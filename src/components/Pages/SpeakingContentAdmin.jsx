@@ -31,6 +31,7 @@ import {
     updateDraftSpeakingQuestion
 } from "../../services/speakingContentService";
 import SpeakingVisualAid from "./SpeakingVisualAid";
+import SpeakingAlphabetCostPanel from "./SpeakingAlphabetCostPanel";
 import SpeakingPictureQuestionSetEditor from "./SpeakingPictureQuestionSetEditor";
 import WorkbookOnePictureContentAdmin from "./WorkbookOnePictureContentAdmin";
 import ManualSpeakingDraftAdmin from "./ManualSpeakingDraftAdmin";
@@ -378,7 +379,7 @@ const QuestionEditor = ({ question, interactionType, promptMode, disabled, onSav
 };
 
 export default function SpeakingContentAdmin() {
-    const { firebaseUser } = useAuth();
+    const { firebaseUser, role } = useAuth();
     const [data, setData] = useState({ books: [], documents: [], chunks: [], sections: [], question_sets: [] });
     const [source, setSource] = useState(emptySource);
     const [wholeBook, setWholeBook] = useState(emptyWholeBook);
@@ -997,6 +998,7 @@ export default function SpeakingContentAdmin() {
     };
 
     return <main className="platform-page speaking-content-admin">
+        {role === "admin" && <SpeakingAlphabetCostPanel firebaseUser={firebaseUser} />}
         <header className="platform-hero speaking-admin-hero"><div><h1>教材 AI 口說題庫</h1><p>每本教材、每一頁就是一個關卡；從來源、草稿、待發布到正式版本清楚分流。</p></div><button type="button" className="platform-primary speaking-create-shortcut" onClick={() => setActiveWorkspace("create")}><Plus size={18} />建立新關卡</button></header>
 
         <section className="platform-card speaking-admin-command" aria-labelledby="speaking-admin-command-title">

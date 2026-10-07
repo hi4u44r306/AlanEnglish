@@ -23,6 +23,7 @@ export class LocalSpeakingRecognizer {
     async prepare(onProgress = () => {}) {
         if (this.ready) { onProgress(this.mode); return; }
         if (this.pending) throw failure("local_busy", "語音辨識仍在準備，請稍候。" );
+        try { if (navigator.storage?.persist) await navigator.storage.persist(); } catch { /* Browser may decline persistence. */ }
         for (const preferSimd of [true, false]) {
             this.dispose();
             try {
@@ -35,11 +36,11 @@ export class LocalSpeakingRecognizer {
                         pending.onProgress?.(`${this.mode}：正在準備…`);
                     } else if (data.type === "progress") {
                         const p = data.progress;
-                        pending.onProgress?.(`${this.mode}：${p.total > 0 ? `正在下載，目前檔案 ${Math.floor(p.loaded / p.total * 100)}%` : "正在準備辨識資源…"}`);
+                        pending.onProgress?.(`${this.mode}：${p.status === "done" ? "資源已載入…" : p.total > 0 ? `載入模型，目前檔案 ${Math.floor(p.loaded / p.total * 100)}%` : "正在載入辨識資源；首次使用需下載…"}`);
                     } else if (["ready", "result", "error"].includes(data.type)) {
                         clearTimeout(pending.timer); this.pending = null;
                         if (data.type === "error") { this.dispose(); pending.reject(failure(data.code, "本機辨識無法完成，請重試；不會改用付費評分。")); }
-                        else { if (data.type === "ready") this.ready = true; pending.resolve(data); }
+                        else { if (data.type === "ready") { this.ready = true; this.mode += data.cached ? " · 模型已快取，下次直接載入" : " · 模型已就緒，瀏覽器可能需要重新下載"; } pending.resolve(data); }
                     }
                 };
                 this.worker.onerror = event => { event.preventDefault(); this.dispose(); };

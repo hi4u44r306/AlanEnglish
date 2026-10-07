@@ -145,6 +145,13 @@ Deno.serve(async (req: Request) => {
         const action = cleanText(body?.action, 40);
         const challengeMode = body?.mode === "challenge" ? "challenge" : "easy";
 
+        if (action === "alphabet_cost_usage") {
+            if (user.role !== "admin") return json(403,{error:"只有管理員可查看全站費用"});
+            const {data,error}=await admin.rpc("speaking_alphabet_cost_usage_v1");
+            if (error) throw error;
+            return json(200,{success:true,usage:data});
+        }
+
         if (action === "catalog") {
             const { data: sets, error } = await admin.from("speaking_question_sets")
                 .select("id,book_id,title,topic,difficulty,intro_zh,learning_goal_zh,version,generation_metadata,published_at,books(id,name,code,content_scope,enabled,archived_at),speaking_questions(id,sort_order)")

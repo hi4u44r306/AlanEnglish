@@ -1,6 +1,17 @@
 # Alan English 專案狀態
 
-最後更新：2026-10-06
+最後更新：2026-10-07
+
+### 本機完整度／A–Z Azure 基本評分與費用提醒（2026-10-07，尚未部署）
+
+- 使用者已核准混合方案：一般／拼讀使用本機完整度 100 分制，只有 A–Z 使用現有 Azure S0 基本評分，關閉 prosody；每天共用 10 輪，同輪重試不重扣，取消學生月送評額度。未採 F0／S0 雙資源方案，未更改 Azure 設定或金鑰。
+- 同一隔離副本 `output/speaking-local-completeness-20261006`，分支 `codex/speaking-local-completeness`，承接 `f1cac5a9`。後端依已發布題型限制付費音訊僅 A–Z，核對實際 PCM WAV／時長／聲音與既有 round claim，基本評分的未測韻律保存為 null，失敗不寫通關／釋放 claim；其餘文字由正式答案重算。新增 additive migration `20261006155728_speaking_alphabet_basic_cost_tracking.sql`，保留舊資料與身分架構。
+- 模型 Cache API 保存必要檔案，申請 best-effort persistent storage，載入後顯示快取是否存在；不是保證任何手機永不重新下載。管理員題庫頁新增手動更新的全站 A–Z 月費估算，NT$1,000／1,500 提醒不阻擋送評；API 重新驗證 admin，學生／老師及偽造前端角色不能讀總額。估算包含新路由失敗／不確定預約，未含切換前／其他 Azure 請求、稅與匯差，以帳單為準。
+- 成本情境：40 人、30 天、一般每題 8 秒、A–Z 每天一輪 26 個字母且每字母 3 秒，US$1／小時基本評分與原 US$0.3／小時韻律，假設 NT$32／USD。一般每天 10／20／30 題，原全部 Azure + prosody 約 NT$2,191／3,300／4,410；新方案各約 NT$832，省 NT$1,359／2,468／3,578（62%／75%／81%）。只比較語音 API，非實際歷史帳單，也不含 ChatGPT、域名、人力。新方案此情境每人 NT$20.8，但 A–Z 重試／更多輪會增加費用，10 輪上限不保證每人每月低於 NT$50。
+- 驗證：SQL 11 項、實際 pronunciation handler 6 項、Azure helper 3 項、費用角色 handler 1 項及 React 38 項，共 59 項通過；focused ESLint、Worker syntax、diff check、production build 成功（output/local-reading-validation/output-hybrid-build.log）。PGlite 使用隔離合成資料，供應商回應為替身；未呼叫付費 Azure。320／412／1440px 費用提醒無溢出，報告 cost-visual-validation.json；每日十輪規則沿用前批同寬度驗證。最後補上提醒按鈕最小 44px 為 UI-only，局部預覽重新編譯與檢查通過，不重跑昂貴 build／全套測試。
+- 模型快取實測通過：乾淨桌面瀏覽器首次有 7 個模型資源請求；重新開頁並阻擋模型主機後，模型請求 0，仍成功準備。報告 cache-validation.json；瀏覽器引擎／WASM 資源及網站網路需求不等於模型下載。初次沙盒禁止 CDN 網路，經隔離公開模型下載驗證後完成，未傳錄音。
+- 尚未完成：實機 Safari／Android、兒童 A–Z 真實 Azure 品質、正式登入後記錄／獎勵／Azure 帳單。GitHub fetch 在目前執行環境受連線及安全目錄限制，尚未核對最新遠端 main；發布前仍須同步並檢查差異。
+- 正式 migration、兩支 Function、Push／PR／合併及 Cloudflare 發布均未執行。依 AGENTS §13–14，待本批正式 SQL／核心學習流程發布明確授權；發布依序 migration → pronunciation-coach／speaking-challenge → main 前端 → 正式驗收。回復可以保留 additive 表／歷史資料並恢復上一份程式，但舊版會恢復全部 Azure 付費，須明確選擇恢復付費或暫停入口。原主工作目錄無關草稿未納入。
 
 ### 每日十輪與 A–Z 成本評估（2026-10-06，尚未部署）
 

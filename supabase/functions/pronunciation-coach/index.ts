@@ -3,6 +3,8 @@ import { assertBookEntitled, relationOne } from "../_shared/book-entitlement.ts"
 import { loadEffectiveAccess } from "../_shared/effective-access.ts";
 import { verifyFirebaseRequest } from "../_shared/firebase-auth.ts";
 import { assessReadingCompleteness } from "../_shared/speaking-completeness.ts";
+import { assessAzureAlphabet } from "../_shared/speaking-azure-alphabet.ts";
+import { inspectPcm16Wav } from "../_shared/speaking-pcm-wav.ts";
 import {
     buildSpeakingReferenceText,
     hasSpeakingAnswerSlots,
@@ -100,10 +102,10 @@ const reserveProviderRequest = async (admin: any, studentId: number, question: a
  ? "今天已開始 10 次口說大挑戰，明天再繼續吧！" : "短時間練習次數較多，請休息一下再繼續。"), {status:429,code:data?.code || "rate_limited"});
  return {requestId:String(data.request_id),challengeUsage:data.challenge_usage || null};
 };
-const finishProviderRequest = async (admin: any, requestId: string, status: string, errorCode: string | null = null) => {
+const finishProviderRequest = async (admin: any, requestId: string, status: string, errorCode: string | null = null, table = "speaking_local_reading_requests") => {
     let lastError: any = null;
     for (let tryIndex = 0; tryIndex < 2; tryIndex += 1) {
-        const { data, error } = await admin.from("speaking_local_reading_requests").update({
+        const { data, error } = await admin.from(table).update({
             status,
             error_code: errorCode,
             completed_at: new Date().toISOString()
@@ -111,7 +113,7 @@ const finishProviderRequest = async (admin: any, requestId: string, status: stri
         if (data?.id) return;
         lastError = error;
         if (!error) {
-            const { data: existing, error: readError } = await admin.from("speaking_local_reading_requests")
+            const { data: existing, error: readError } = await admin.from(table)
                 .select("status,error_code,completed_at").eq("id", requestId).maybeSingle();
             if (!readError
                 && existing?.status === status
@@ -152,12 +154,16 @@ Deno.serve(async (req: Request) => {
             user,
             studentId => loadEffectiveAccess(admin, studentId)
         );
-        if (!req.headers.get("content-type")?.includes("application/json")) return json(409, {error:"口說已改用本機辨識，請重新整理頁面。",code:"local_client_required"});
-        const rawBody = await req.text();
+        const azureRequest = req.headers.get("content-type")?.includes("multipart/form-data");
+        const form = azureRequest ? await req.formData().catch(() => null) : null;
+        const audio = form?.get("audio");
+        if (azureRequest && (!form || form.get("assessment_kind") !== "azure_alphabet_v1")) return json(409, {error:"請重新整理口說頁面",code:"local_client_required"});
+        if (!azureRequest && !req.headers.get("content-type")?.includes("application/json")) return json(409, {error:"口說已改用本機辨識，請重新整理頁面。",code:"local_client_required"});
+        const rawBody = azureRequest ? JSON.stringify(Object.fromEntries(["question_id","foundation_round_id","challenge_session_id","challenge_mode"].map(key => [key,form?.get(key)]))) : await req.text();
         if (rawBody.length > 6000) return json(413, {error:"辨識資料過長"});
         let body: any;
         try { body = JSON.parse(rawBody); } catch { return json(400, {error:"辨識資料格式不正確"}); }
-        if (body?.assessment_kind !== "local_completeness_v1") return json(400, {error:"辨識版本不符，請重新整理頁面"});
+        if (!azureRequest && body?.assessment_kind !== "local_completeness_v1") return json(400, {error:"辨識版本不符，請重新整理頁面"});
         const questionId = Number(body.question_id);
         const requestedRoundId = String(body.foundation_round_id || "").trim();
         const challengeSessionId = String(body.challenge_session_id || "").trim();
@@ -168,6 +174,17 @@ Deno.serve(async (req: Request) => {
             return json(400, { error: "口說挑戰回合無效，請重新進入關卡", code: "challenge_session_required" });
         }
         const question = await assertPublishedQuestionAccess(admin, questionId, user, effectiveAccess);
+        if (azureRequest && question.interactionType !== "alphabet_round") return json(400, {error:"只有 A–Z 使用 Azure 評分",code:"azure_alphabet_only"});
+        if (!azureRequest && question.interactionType === "alphabet_round") return json(409, {error:"A–Z 已使用字母評分，請重新整理",code:"alphabet_client_required"});
+        let audioBuffer: ArrayBuffer | null = null;
+        if (azureRequest) {
+            if (!(audio instanceof File) || audio.size > 400000) return json(413, {error:"字母錄音資料不正確"});
+            audioBuffer = await audio.arrayBuffer();
+            const info = inspectPcm16Wav(audioBuffer);
+            if (!info || !validSpeakingAudioDuration(info.durationSeconds,"alphabet_round")) return json(413,{error:"字母錄音須在 12 秒內",code:"audio_duration_invalid"});
+            if (info.peak < 0.002 || info.rms < 0.0002) return json(422,{error:"錄音太小聲，請重錄",code:"audio_too_quiet"});
+            body.audio_seconds = info.durationSeconds;
+        }
         const maxAudioSeconds = speakingRecordingSeconds(question.interactionType);
         if (challengeMode === "challenge" && ["alphabet_round", "letter_spelling"].includes(question.interactionType)) {
             return json(400, { error: "A–Z 不使用挑戰模式" });
@@ -198,7 +215,7 @@ Deno.serve(async (req: Request) => {
             return json(413, {error:"錄音長度須在 " + maxAudioSeconds + " 秒內",code:"audio_duration_invalid"});
         }
         // Recalculate from approved answers. Client text cannot attest real speech.
-        const localResult = assessReadingCompleteness(question, body.recognized_text);
+        const localResult = azureRequest ? null : assessReadingCompleteness(question, body.recognized_text);
         let challengeUsage: any = null;
         const { data: revealedHint, error: hintError } = challengeMode === "challenge" && !adminDemo
             ? await admin.from("speaking_challenge_hint_reveals").select("question_id")
@@ -223,12 +240,21 @@ Deno.serve(async (req: Request) => {
                 return { status: "claimed" as const, claimToken: String(claim.claim_token) };
             } : undefined,
             reserve: async () => {
+                if (azureRequest) {
+                    const {data,error} = await admin.rpc("reserve_speaking_azure_alphabet_request_v1", {
+                        p_student_id:Number(user.id),p_question_set_id:question.questionSetId,p_question_id:question.questionId,
+                        p_audio_seconds:Math.ceil(body.audio_seconds),p_client_session_id:adminDemo ? null : challengeSessionId });
+                    if (error) throw error;
+                    if (data?.allowed !== true || !data.request_id) throw Object.assign(new Error(data?.code === "speaking_daily_limit_reached" ? "今天已開始 10 輪，明天再繼續" : "短時間送評較多，請稍候"),{status:429,code:data?.code || "rate_limited"});
+                    challengeUsage = data.challenge_usage; return String(data.request_id);
+                }
                 const reserved = await reserveProviderRequest(admin, Number(user.id), question,
                     adminDemo ? null : challengeSessionId);
                 challengeUsage = reserved.challengeUsage;
                 return reserved.requestId;
             },
-            assess: async () => ({ ok: true as const, value: localResult }),
+            assess: async () => ({ ok: true as const, value: azureRequest ? await assessAzureAlphabet(audioBuffer!,question.answerTemplate,
+                Deno.env.get("AZURE_SPEECH_KEY") || "",String(Deno.env.get("AZURE_SPEECH_REGION") || "").trim().toLowerCase()) : localResult! }),
             saveAttempt: adminDemo ? async () => null : !foundationRoundId ? async normalized => {
                 const { data: attempt, error: saveError } = await admin.from("speaking_pronunciation_attempts").insert({
                     student_id: user.id, question_set_id: question.questionSetId, question_id: question.questionId,
@@ -279,7 +305,7 @@ Deno.serve(async (req: Request) => {
                 if (!Number.isInteger(attemptId) || attemptId <= 0) throw new Error("發音評分紀錄無法建立");
                 return { attempt: attemptId, round: foundationAssessment };
             } : undefined,
-            finishRequest: (requestId, status, errorCode) => finishProviderRequest(admin, requestId, status, errorCode),
+            finishRequest: (requestId, status, errorCode) => finishProviderRequest(admin, requestId, status, errorCode, azureRequest ? "speaking_pronunciation_requests" : "speaking_local_reading_requests"),
             releaseClaim: foundationRoundId
                 ? claimToken => releaseFoundationRoundClaim(admin, Number(user.id), foundationRoundId!, claimToken)
                 : undefined,

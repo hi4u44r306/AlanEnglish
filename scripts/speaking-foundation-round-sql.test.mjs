@@ -195,8 +195,11 @@ before(async () => {
     await db.exec(roundMigration);
     await db.exec(read("supabase/migrations/20260914000000_speaking_alphabet_intro_progress.sql"));
     await db.exec(read("supabase/migrations/20260918063338_speaking_challenge_daily_sessions.sql"));
+    await db.exec(read("supabase/migrations/20260913013037_speaking_pronunciation_request_ledger.sql"));
+    await db.exec(read("supabase/migrations/20261003123607_speaking_audio_monthly_budget.sql"));
     await db.exec(read("supabase/migrations/20261006150733_speaking_local_completeness.sql"));
     await db.exec(read("supabase/migrations/20261006154419_speaking_ten_daily_rounds.sql"));
+    await db.exec(read("supabase/migrations/20261006155728_speaking_alphabet_basic_cost_tracking.sql"));
 });
 
 after(() => db.close());
@@ -546,4 +549,22 @@ test("本機請求每天十輪、第十一輪拒絕，同輪只算一次，公�
     try { await assert.rejects(db.query("select * from public.speaking_local_reading_requests"),/permission denied/); }
     finally { await db.exec("reset role"); }
     assert.equal((await scalar("select has_function_privilege('authenticated','public.reserve_speaking_local_request_v1(bigint,bigint,bigint,text,uuid)','EXECUTE') allowed")).allowed,false);
+});
+
+test("A–Z 基本 Azure 沒有個人月額度及 160 次日上限；只計 Azure 秒數，prosody 未測量", async () => {
+    await db.exec("insert into public.students(id) values(93)");
+    const reserve=async()=> (await scalar("select public.reserve_speaking_azure_alphabet_request_v1(93,10,1001,3,'00000000-0000-4000-8000-000000000001') result")).result;
+    const first=await reserve();assert.equal(first.allowed,true);
+    assert.equal(first.challenge_usage.daily_limit,10);
+    await db.exec("update public.speaking_audio_budget_policy set student_monthly_seconds=1,global_monthly_seconds=1");
+    assert.equal((await reserve()).allowed,true);
+    await db.exec("update public.speaking_pronunciation_requests set created_at=now()-interval '1 hour' where student_id=93");
+    for(let i=0;i<180;i++) {const result=await reserve();assert.equal(result.allowed,true);await db.exec("update public.speaking_pronunciation_requests set created_at=now()-interval '1 hour' where student_id=93");}
+    const usage=(await scalar("select public.speaking_alphabet_cost_usage_v1() result")).result;
+    assert.equal(Number(usage.reserved_seconds),182*3);assert.equal(Number(usage.estimated_twd),4.85);
+    await assert.rejects(db.query("select public.reserve_speaking_azure_alphabet_request_v1(93,10,1001,13,null)"),/INVALID_ALPHABET_REQUEST/);
+    for(const role of ['anon','authenticated'])assert.equal((await scalar("select has_function_privilege($1,'public.speaking_alphabet_cost_usage_v1()','EXECUTE') allowed",[role])).allowed,false);
+    const round=await startRound(93),claim=await claimQuestion(93,round.round_id,ids[0]);
+    const recorded=await recordAssessment({version:'v2',studentId:93,roundId:round.round_id,claimToken:claim.claim_token,questionId:ids[0],answerMatch:true,prosodyScore:null});
+    assert.equal((await scalar("select assessment_kind from public.speaking_pronunciation_attempts where id=$1",[recorded.attempt_id])).assessment_kind,'azure_pronunciation');
 });

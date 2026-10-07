@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { FiLoader, FiMic, FiMicOff, FiRefreshCw } from "react-icons/fi";
-import { submitSpeakingPronunciationAttempt } from "../../services/pronunciationCoachService";
-import { retainLocalSpeakingRecognizer } from "../../services/localSpeakingRecognizer";
+import { submitAlphabetPronunciationAttempt } from "../../services/pronunciationCoachService";
 import { convertAudioBlobToWav } from "../../utils/audioWav";
 import { SPEAKING_BUDGET_ERROR_CODES } from "../../utils/speakingRecordingPolicy";
 
@@ -50,13 +49,8 @@ export default function AlphabetAutomaticRecorder({
     const [remainingSeconds, setRemainingSeconds] = useState(MAX_UTTERANCE_MS / 1000);
     const [recordedBlob, setRecordedBlob] = useState(null);
     const [previewUrl, setPreviewUrl] = useState("");
-    const [engineInfo, setEngineInfo] = useState("正在準備本機語音辨識，首次建議使用 Wi-Fi。");
+    const engineInfo = "A–Z 字母評分";
     const [readingScore, setReadingScore] = useState(null);
-    const engineRef = useRef(null);
-    useEffect(() => {
-        const lease = retainLocalSpeakingRecognizer(); engineRef.current = lease.recognizer;
-        return lease.release;
-    }, []);
     const streamRef = useRef(null);
     const audioContextRef = useRef(null);
     const analyserRef = useRef(null);
@@ -136,8 +130,6 @@ export default function AlphabetAutomaticRecorder({
                 return;
             }
             try {
-                await engineRef.current.prepare(info => { if (!cancelled) setEngineInfo(info); });
-                if (cancelled) return;
                 const stream = await navigator.mediaDevices.getUserMedia({
                     audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true }
                 });
@@ -223,21 +215,16 @@ export default function AlphabetAutomaticRecorder({
                 if (operationId !== operationRef.current) return;
                 attempt.wav = wav;
                 setRecordedBlob(wav);
-                await engineRef.current.prepare(info => { if (operationId === operationRef.current) setEngineInfo(info); });
-                if (operationId !== operationRef.current) return;
-                const transcription = attempt.transcription || await engineRef.current.transcribe(wav, 12);
-                if (operationId !== operationRef.current) return;
-                attempt.transcription = transcription;
-                const result = await submitSpeakingPronunciationAttempt({
+                const result = await submitAlphabetPronunciationAttempt({
                     firebaseUser,
                     questionId: question.id,
-                    ...transcription,
+                    audio: wav,
                     foundationRoundId,
                     challengeSessionId
                 });
                 if (operationId !== operationRef.current) return;
-                if (result?.assessment_kind !== "local_completeness_v1" || !Number.isFinite(result?.scores?.completeness) || typeof result?.answer_match !== "boolean") throw new Error("朗讀結果不完整，請重試。");
-                setReadingScore(Math.round(result.scores.completeness));
+                if (result?.assessment_kind !== "azure_pronunciation" || !Number.isFinite(result?.scores?.pronunciation) || result.scores.pronunciation < 0 || result.scores.pronunciation > 100 || typeof result?.answer_match !== "boolean") throw new Error("字母評分結果不完整，請重試。");
+                setReadingScore(Math.round(result.scores.pronunciation));
                 await new Promise(resolve => setTimeout(resolve, 4000));
                 if (operationId !== operationRef.current) return;
                 onScoredRef.current?.(result);
@@ -377,13 +364,13 @@ export default function AlphabetAutomaticRecorder({
 
     return <section className={`speaking-alphabet-auto is-${status}`} aria-live="polite" aria-atomic="true">
         <p>{engineInfo}</p>
-        {readingScore !== null && <p className="speaking-completeness-score">朗讀完整度 <strong>{readingScore} 分</strong></p>}
+        {readingScore !== null && <p className="speaking-completeness-score">字母發音 <strong>{readingScore} 分</strong></p>}
         <span className="speaking-alphabet-auto__icon" aria-hidden="true">
             {status === "submitting" || status === "preparing" ? <FiLoader /> : status === "blocked" ? <FiMicOff /> : <FiMic />}
         </span>
         <div><strong>{copy[0]}</strong><span>{copy[1]}</span></div>
         {status === "recording" && <strong className="speaking-alphabet-auto__countdown" role="timer" aria-label={`錄音剩餘 ${remainingSeconds} 秒`}>還能錄 {remainingSeconds} 秒</strong>}
-        <small>等待中的環境音不會送評；錄音只在這台裝置暫存，離開關卡時會關閉麥克風。</small>
+        <small>等待中的環境音不會送評；字母錄音送交 Azure 本次評分，網站不儲存錄音。離開關卡時會關閉麥克風。</small>
         {status === "retry" && pendingAttemptRef.current && <div className="speaking-alphabet-auto__retry">
             {previewUrl && <audio aria-label="回聽這次字母錄音" controls src={previewUrl} />}
             <button type="button" disabled={budgetBlocked} onClick={() => retrySubmissionRef.current?.()}><FiRefreshCw aria-hidden="true" />重試評分</button>

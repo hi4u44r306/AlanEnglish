@@ -120,3 +120,7 @@ describe("submitPronunciationAttempt", () => {
         });
     });
 });
+
+test('A–Z 錄音使用獨立 multipart，不傳辨識文字或成功狀態',async()=>{
+ const {submitAlphabetPronunciationAttempt}=await import('./pronunciationCoachService');global.fetch=jest.fn().mockResolvedValue({ok:true,json:async()=>({assessment_kind:'azure_pronunciation'})});const audio=new Blob(['wav'],{type:'audio/wav'});await submitAlphabetPronunciationAttempt({firebaseUser:{getIdToken:async()=> 'synthetic-token'},questionId:1,audio,foundationRoundId:'round',challengeSessionId:'session'});const options=global.fetch.mock.calls[0][1];expect(options.body.get('assessment_kind')).toBe('azure_alphabet_v1');expect(options.body.get('audio')).toBeInstanceOf(Blob);expect(options.body.get('recognized_text')).toBeNull();expect(options.body.get('answer_match')).toBeNull();expect(options.headers['Content-Type']).toBeUndefined();
+});

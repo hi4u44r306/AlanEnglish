@@ -46,7 +46,14 @@ self.onmessage = async ({ data }) => {
         },
       });
       await recognizer;
-      self.postMessage({ id, type: 'ready' });
+      let cached = false;
+      try {
+        const cache = await caches.open('transformers-cache');
+        const urls = (await cache.keys()).map(request => request.url);
+        cached = ['encoder_model_quantized.onnx', 'decoder_model_merged_quantized.onnx', 'tokenizer.json']
+          .every(file => urls.some(url => url.includes('79fb389fc764e7c395bd330e9531d9d32ada7049') && url.endsWith(file)));
+      } catch { /* Cache persistence is best effort on mobile/private browsers. */ }
+      self.postMessage({ id, type: 'ready', cached });
     } else if (type === 'transcribe') {
       stage = 'transcribe';
       if (!recognizer) throw new Error('not ready');
