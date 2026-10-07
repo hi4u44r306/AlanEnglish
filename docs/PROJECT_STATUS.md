@@ -1,6 +1,44 @@
 # Alan English 專案狀態
 
-最後更新：2026-10-06
+最後更新：2026-10-07
+
+### 每日一次通關／A–Z 三次字母評分／純回聽（2026-10-07，尚未部署）
+
+- 使用者核准：A–Z 保留 Azure 基本評分，每位學生每個字母每天最多 3 次；同一關每天最多正式完成一次，簡單與挑戰共用，仍保留全站共用的每人每日 10 輪。大小寫、重開、跨關卡／版本與裝置不能重置字母計數。預約後的技術失敗仍占字母次數；沒有恢復個人月秒數額度。
+- 同一隔離副本 `output/speaking-local-completeness-20261006`／`codex/speaking-local-completeness`，承接 `ec90ee7b`。新增 additive migration `20261007025513_speaking_daily_level_and_alphabet_limits.sql`：每日關卡／題目完成表（RLS、FK 索引、service-only），預約時在 Azure 呼叫前檢查上限，完成與預約共用每日 lock；A–Z 使用 v3 完成交易，保存成功每日通關且保留 claim 冪等／既有一次獎勵。一般今日進度只採成功的每日 completion 操作，不把歷史或只有評分、沒有完成的紀錄算成今日通關。
+- 新增 `SpeakingReviewPractice.jsx`／SCSS：今日完成或字母次數耗盡轉為純錄音回聽，可切題、聽已核准示範、返回地圖換關；不載入 ASR、不呼叫 Azure、不寫成績／完成／獎勵。學生不能透過回聽跳題通關。入口與家長規則同步更新；修正 foundation／picture 完成提交使用其自身錄音 session，避免與外層 session 不一致。手冊 v3.56、PROJECT_LOGIC 同批更新。
+- 驗證：後端 25 項（SQL 14、pronunciation handler 7、Azure helper 3、費用角色 handler 1）及受影響 React 9 套 140 項皆通過；首次舊文字／回呼參數斷言 4 項已按新規則更新並補上入口／回聽保護檢查。focused ESLint、diff check、production build 成功（daily-build.log）；最後純 UI 提示／返回圖示／局部 SCSS 調整以 focused webpack 預覽重編譯驗證，不重跑完整 build。沒有安裝 Deno，因此未宣稱完成 Deno check；TS handler 實際轉譯並執行測試。
+- 隔離瀏覽器 320／412／1440px 規則與回聽頁沒有橫向溢出、可切換題目，無模型啟動或送評按鈕；截圖 `output/local-reading-validation/daily-review-412.png` 與報告 daily-review-validation.json、rules-validation.json。屬獨立元件預覽，不代表正式整個遊戲版型或 iPhone Safari 實機驗收。PGlite 為合成資料，Azure 回應替身，未送付費請求。
+- 待完成：最新遠端 main 同步／整合 diff、正式 SQL 明確授權、migration → 兩支 Function → main／Cloudflare 發布與真實學生、iPhone／Android、Azure 帳單驗收。原主工作目錄無關草稿未納入。回復策略：保留 additive 表及歷史資料，恢復本批前混合方案程式與預約函式（會移除每日一次／三次限制）；不能只回復前端而保留不相容後端。未執行正式 migration、外部設定或 Push／PR／合併。
+
+### 本機完整度／A–Z Azure 基本評分與費用提醒（2026-10-07，尚未部署）
+
+- 使用者已核准混合方案：一般／拼讀使用本機完整度 100 分制，只有 A–Z 使用現有 Azure S0 基本評分，關閉 prosody；每天共用 10 輪，同輪重試不重扣，取消學生月送評額度。未採 F0／S0 雙資源方案，未更改 Azure 設定或金鑰。
+- 同一隔離副本 `output/speaking-local-completeness-20261006`，分支 `codex/speaking-local-completeness`，承接 `f1cac5a9`。後端依已發布題型限制付費音訊僅 A–Z，核對實際 PCM WAV／時長／聲音與既有 round claim，基本評分的未測韻律保存為 null，失敗不寫通關／釋放 claim；其餘文字由正式答案重算。新增 additive migration `20261006155728_speaking_alphabet_basic_cost_tracking.sql`，保留舊資料與身分架構。
+- 模型 Cache API 保存必要檔案，申請 best-effort persistent storage，載入後顯示快取是否存在；不是保證任何手機永不重新下載。管理員題庫頁新增手動更新的全站 A–Z 月費估算，NT$1,000／1,500 提醒不阻擋送評；API 重新驗證 admin，學生／老師及偽造前端角色不能讀總額。估算包含新路由失敗／不確定預約，未含切換前／其他 Azure 請求、稅與匯差，以帳單為準。
+- 成本情境：40 人、30 天、一般每題 8 秒、A–Z 每天一輪 26 個字母且每字母 3 秒，US$1／小時基本評分與原 US$0.3／小時韻律，假設 NT$32／USD。一般每天 5／10／20 題，全部 Azure + prosody 的同量服務費約 NT$1,636／2,191／3,300；新方案各約 NT$832，省 NT$804／1,359／2,468（49%／62%／75%）。比較相同練習量，未假設舊月額度先阻擋使用；舊每人 3,600 秒月額度下，10／20 題情境原先可能無法全數送評，因此不可當作歷史已付金額或實際已省金額。只比較語音 API，不含 ChatGPT、域名、人力。新方案此情境每人 NT$20.8，但 A–Z 重試／更多輪會增加費用，10 輪上限不保證每人每月低於 NT$50。
+- 驗證：SQL 11 項、實際 pronunciation handler 6 項、Azure helper 3 項、費用角色 handler 1 項及 React 38 項，共 59 項通過；focused ESLint、Worker syntax、diff check、production build 成功（output/local-reading-validation/output-hybrid-build.log）。PGlite 使用隔離合成資料，供應商回應為替身；未呼叫付費 Azure。320／412／1440px 費用提醒無溢出，報告 cost-visual-validation.json；每日十輪規則沿用前批同寬度驗證。最後補上提醒按鈕最小 44px 為 UI-only，局部預覽重新編譯與檢查通過，不重跑昂貴 build／全套測試。
+- 模型快取實測通過：乾淨桌面瀏覽器首次有 7 個模型資源請求；重新開頁並阻擋模型主機後，模型請求 0，仍成功準備。報告 cache-validation.json；瀏覽器引擎／WASM 資源及網站網路需求不等於模型下載。初次沙盒禁止 CDN 網路，經隔離公開模型下載驗證後完成，未傳錄音。
+- 尚未完成：實機 Safari／Android、兒童 A–Z 真實 Azure 品質、正式登入後記錄／獎勵／Azure 帳單。GitHub fetch 在目前執行環境受連線及安全目錄限制，尚未核對最新遠端 main；發布前仍須同步並檢查差異。
+- 正式 migration、兩支 Function、Push／PR／合併及 Cloudflare 發布均未執行。依 AGENTS §13–14，待本批正式 SQL／核心學習流程發布明確授權；發布依序 migration → pronunciation-coach／speaking-challenge → main 前端 → 正式驗收。回復可以保留 additive 表／歷史資料並恢復上一份程式，但舊版會恢復全部 Azure 付費，須明確選擇恢復付費或暫停入口。原主工作目錄無關草稿未納入。
+
+### 每日十輪與 A–Z 成本評估（2026-10-06，尚未部署）
+
+- 承接 `17b3e04a`，同分支／副本；使用者改為保留每天 10 輪、移除學生每月送評額度。新增 additive migration `20261006154419_speaking_ten_daily_rounds.sql`，保留鎖定、題目歸屬與同輪去重，只把每日值 5 改為 10。catalog 不再查舊付費月額度，規則卡只顯示輪數並保留單段 12／25 秒與安全限流。
+- 使用者詢問 A–Z 免費用完接付費可行性與費用；僅此題型考慮 Azure，其他題維持本機。Azure 設定與路由未改，正式 SQL／Function／前端未部署。原模型快取已啟用；跨重新開頁快取驗收及提示改善仍待處理。
+- 官方 Retail Prices API 於本批核對 southeastasia：Azure Speech S1 Speech To Text 每音訊小時 US$1（資源定價層仍稱 S0），enhanced feature US$0.3／小時。原 Azure 程式開啟 Prosody 加購，A–Z 建議關閉。以匯率 NT$32／USD 作預算假設，40 人、30 天、26 字母／輪、每字母 3 秒、每日一輪，全部付費 NT$832／月；兩輪 NT$1,664；十輪 NT$8,320。兩資源先 F0 五小時再 S0 可最多少 NT$160；並行限制與重試會影響實際用量，S0 不應直接扣五小時。
+- 本批驗證結果見下方補充；未重跑無關全套測試，原 production build 證據沿用，本批局部 UI 編譯與 SQL 隔離執行另外驗證。A–Z 付費整合、跨頁模型快取、正式學生／手機驗收仍未完成。
+- 驗證補充：PGlite SQL 10 項與真實 handler 隔離 4 項、規則卡 React 4 項，共 18 項通過；focused ESLint、SCSS／webpack 預覽編譯、diff check 通過。規則卡 Chrome 引擎 320／412／1440px 無橫向溢出，10 個輪數標記且沒有月額度顯示，報告 output/local-reading-validation/rules-validation.json。
+
+### 口說本機朗讀完整度（2026-10-06，整合草稿／尚未部署）
+
+- 使用者回報獨立測試版成功，要求整合口說大挑戰，最後選擇 100 分制。分支 `codex/speaking-local-completeness`，基準 main `dc866e7a`，獨立副本 `output/speaking-local-completeness-20261006`；原工作目錄未提交修改保留。
+- 一般與 A–Z 錄音接入本機相容 SIMD／scalar Worker；只送辨識文字與題目／回合資料，後端按正式答案計算完整度，舊 multipart 請求拒絕並要求更新，不再呼叫 Azure。結果用「朗讀完整度 N 分」，顯示 4 秒後交回通關流程。一般題保留既有手動送評；本批不改全部題型的導航操作。
+- 新增 migration `20261006150733_speaking_local_completeness.sql`：發音維度可為 null，新增來源欄位、獨立本機請求表及限流 RPC；保留舊資料、每日五輪及 A–Z／獎勵交易。一般題完成也須同回合有效後端紀錄。手機文字不具真人朗讀證明，已明記風險。
+- 隔離驗證：完整度／既有授權與流程 17 項、實際 Edge handler（替身資料庫／禁止供應商網路）4 項、PGlite SQL 10 項通過。React 元件／服務及瀏覽器結果記於同副本 output/local-reading-validation；production build 已成功，無套件或 lockfile 更動。非全套測試，聚焦錄音、評分與儲存。
+- 正式 migration、兩支 Edge Function、Git 合併與 Cloudflare 發布均未執行。依 AGENTS §13–14，待本批正式資料變更明確同意後才執行。發布顺序：migration → pronunciation-coach／speaking-challenge → main 前端 → 正式驗收；舊頁需重整。可保留新增表／舊紀錄回復程式，但會恢復原 Azure 路徑，必須由擁有者選擇恢復付費或暫停入口，不能偷偷使用付費備援。
+- 尚未驗證：新整合版的實機 iPhone／Android、兒童聲音／單字母辨識品質、正式登入後紀錄與獎勵。先前手機獨立測試成功不等於本批正式整合已驗收。
+- 驗收補充：React 元件／服務共 52 項通過（含分數先顯示 4 秒、相容退回、離頁取消、無聲防護）；實際 MediaRecorder → 真正本機 Whisper → 100 分 UI 通過，伺服器評分使用替身，真正 handler 由上列隔離測試驗證。320／412／1440px 無橫向溢出，無 pageerror／錄音 POST。截圖及報告在 output/local-reading-validation，完整 build 成功後另以 targeted tests／preview 編譯驗證結果出現後停止等待提示的小調整。
 
 ### 口說關卡頂部精簡（2026-10-06，已正式部署／實際畫面待驗收）
 

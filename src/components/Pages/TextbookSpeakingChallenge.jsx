@@ -1,9 +1,10 @@
-import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { FiAward, FiBookOpen, FiCheck, FiChevronLeft, FiChevronRight, FiMic, FiVolume2 } from "react-icons/fi";
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import { completeAlphabetIntroListen, completeSpeakingChallengeQuestion, getSpeakingChallengeCatalog, getSpeakingChallengeSet, revealSpeakingChallengeHint, startAlphabetIntroListen, startSpeakingFoundationRound } from "../../services/speakingChallengeService";
 import SpeakingPracticeSteps from "./SpeakingPracticeSteps";
+import SpeakingReviewPractice from "./SpeakingReviewPractice";
 import SpeakingVisualAid from "./SpeakingVisualAid";
 import SpeakingChallengeLoading from "./SpeakingChallengeLoading";
 import SpeakingChallengeRules from "./SpeakingChallengeRules";
@@ -358,11 +359,12 @@ export default function TextbookSpeakingChallenge() {
         return () => { cancelled = true; };
     }, [firebaseUser, questionSetId, staffPreview, challengeMode, navigate, location.pathname, location.state]);
 
-    const markComplete = async question => {
+    const switchToPractice = useCallback(reason => setChallenge(current => current ? { ...current, practice_only: true, practice_reason: reason } : current), []);
+    const markComplete = async (question, sessionId = challengeSessionId) => {
         if (staffPreview) return { success: true, demo_mode: true };
         const requestKey = activeRouteRef.current;
         try {
-            const response = await completeSpeakingChallengeQuestion(firebaseUser, challenge.id, question.id, challengeMode, challengeSessionId);
+            const response = await completeSpeakingChallengeQuestion(firebaseUser, challenge.id, question.id, challengeMode, sessionId);
             if (leavingRef.current || activeRouteRef.current !== requestKey) return response || true;
             setChallenge(current => ({ ...current, speaking_questions: current.speaking_questions.map(item => item.id === question.id ? { ...item, progress_status: "completed" } : item) }));
             if (response?.challenge_completed || response?.completed_challenge || response?.challenge_complete) showCompletion(response);
@@ -370,14 +372,12 @@ export default function TextbookSpeakingChallenge() {
         } catch (saveError) {
             if (leavingRef.current || activeRouteRef.current !== requestKey) return false;
             if (saveError.code === "challenge_hint_used") return { hint_used: true };
+            if (saveError.code === "speaking_level_completed_today") switchToPractice(saveError.message);
             return false;
         }
     };
 
-    const markScored = async question => {
-        if (question.progress_status !== "completed") return markComplete(question);
-        return true;
-    };
+    const markScored = (question, _result, sessionId) => markComplete(question, sessionId || challengeSessionId);
 
     const revealHint = (question, sessionId) => staffPreview
         ? Promise.resolve({
@@ -476,10 +476,12 @@ export default function TextbookSpeakingChallenge() {
     }
     const bookCatalogPath = challengeBookCatalogPath(challenge);
     const returnToBookCatalog = () => requestReturn(bookCatalogPath);
+    if (!staffPreview && challenge.practice_only) return renderScene(<SpeakingReviewPractice challenge={challenge} onExit={returnToBookCatalog} />);
     if (["alphabet_round", "letter_spelling"].includes(interactionType)) return renderScene(<WorkbookOneFoundationChallenge
         challenge={challenge}
         firebaseUser={firebaseUser}
         onComplete={markScored}
+        onPracticeOnly={switchToPractice}
         staffPreview={staffPreview}
         adminScoringPreview={adminScoringPreview}
         onStartRound={() => startSpeakingFoundationRound(firebaseUser, challenge.id)}
@@ -498,6 +500,7 @@ export default function TextbookSpeakingChallenge() {
         onRevealHint={revealHint}
         staffAudioPreview={staffPreview}
         onComplete={markScored}
+        onPracticeOnly={switchToPractice}
         staffPreview={staffPreview}
         adminScoringPreview={adminScoringPreview}
         onExit={returnToBookCatalog}
@@ -571,7 +574,7 @@ export default function TextbookSpeakingChallenge() {
                     <SpeakingVisualAid aid={activeQuestion.visual_aid} />
                 </div>
                 {staffPreview && activeInteractionType === "picture_gap_sentence" && <button type="button" className="speaking-gap-sentence-audio" onClick={() => playModelAudio({ ...activeQuestion, model_audio_url: activeQuestion.picture_interaction?.sentence_audio_url })} disabled={!activeQuestion.picture_interaction?.sentence_audio_url || audioWorking === String(activeQuestion.id)}><FiVolume2 aria-hidden="true" />{audioWorking === String(activeQuestion.id) ? "整句播放中…" : "聽整句（每個挖空停 2 秒）"}</button>}
-                {staffPreview && !adminScoringPreview ? <p className="speaking-staff-preview-banner" role="status">老師唯讀預覽：可使用下方按鈕逐題查看，不啟用麥克風。</p> : <SpeakingPracticeSteps firebaseUser={firebaseUser} question={activeQuestion} challengeSessionId={challengeSessionId} challengeMode={challengeMode} showAnswerByDefault={!activeReadAloud && challengeMode === "easy"} onRevealHint={revealHint} interactionType={activeInteractionType} hideHelp={activeReadAloud || (activePictureMode && staffPreview && !adminScoringPreview)} readAloud={activeReadAloud} deferAnswerHelp={activeZhToEn || activeGrammarCue} allowModelAudio={activeReadAloud || staffPreview} audioWorking={audioWorking === String(activeQuestion.id)} onPlayAudio={() => playModelAudio(activeQuestion)} onCompleted={() => markScored(activeQuestion)} promptTitle={activeReadAloud ? "看著文字，開口念" : activeZhToEn ? "看中文，說英文" : activeGrammarCue ? "看提示，說完整句" : activeTextQa ? "看題目，完整回答" : "直接開口回答"} promptDetail={activeReadAloud ? "照著題目文字念，需要時可以先聽示範。" : activeZhToEn ? "先自己說一次完整英文翻譯，之後可以查看提示。" : activeGrammarCue ? "依照文法提示說完整英文句子，之後可以查看示範答案。" : activeTextQa ? "不用圖片；題目未指定性別時，男生或女生答案選一種說完整即可。" : "不用打字，按下麥克風後用完整英文句子回答。"} />}
+                {staffPreview && !adminScoringPreview ? <p className="speaking-staff-preview-banner" role="status">老師唯讀預覽：可使用下方按鈕逐題查看，不啟用麥克風。</p> : <SpeakingPracticeSteps onPracticeOnly={switchToPractice} firebaseUser={firebaseUser} question={activeQuestion} challengeSessionId={challengeSessionId} challengeMode={challengeMode} showAnswerByDefault={!activeReadAloud && challengeMode === "easy"} onRevealHint={revealHint} interactionType={activeInteractionType} hideHelp={activeReadAloud || (activePictureMode && staffPreview && !adminScoringPreview)} readAloud={activeReadAloud} deferAnswerHelp={activeZhToEn || activeGrammarCue} allowModelAudio={activeReadAloud || staffPreview} audioWorking={audioWorking === String(activeQuestion.id)} onPlayAudio={() => playModelAudio(activeQuestion)} onCompleted={() => markScored(activeQuestion)} promptTitle={activeReadAloud ? "看著文字，開口念" : activeZhToEn ? "看中文，說英文" : activeGrammarCue ? "看提示，說完整句" : activeTextQa ? "看題目，完整回答" : "直接開口回答"} promptDetail={activeReadAloud ? "照著題目文字念，需要時可以先聽示範。" : activeZhToEn ? "先自己說一次完整英文翻譯，之後可以查看提示。" : activeGrammarCue ? "依照文法提示說完整英文句子，之後可以查看示範答案。" : activeTextQa ? "不用圖片；題目未指定性別時，男生或女生答案選一種說完整即可。" : "不用打字，按下麥克風後用完整英文句子回答。"} />}
                 {audioError && <p className="speaking-audio-notice" role="alert">{audioError}</p>}
                 <small className="speaking-no-reward">{staffPreview ? "示範評分不會寫入學生進度、發放獎勵或計入每日挑戰額度。" : challengeMode === "challenge" ? "挑戰成就會獨立記錄；簡單模式通關才會解鎖下一頁與領取首次獎勵。" : singlePractice ? "首次通關可獲得 XP 與 AE Points，並解鎖下一頁。" : "簡單模式首次通關可獲得 XP 與 AE Points，並解鎖下一頁。"}</small>
             </article>

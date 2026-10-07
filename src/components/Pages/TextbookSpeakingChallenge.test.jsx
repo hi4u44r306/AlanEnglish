@@ -34,6 +34,15 @@ describe("TextbookSpeakingChallenge model audio", () => {
     beforeEach(() => { jest.clearAllMocks(); mockRole = "student"; });
     afterEach(() => { global.Audio = originalAudio; });
 
+    it("今日完成的 A–Z 直接顯示回聽，不建立正式回合或寫完成紀錄", async () => {
+        getSpeakingChallengeSet.mockResolvedValue({challenge:{id:7,title:"A–Z",practice_only:true,completed_today:true,generation_metadata:{interaction_type:"alphabet_round"},speaking_questions:[{id:701,question_text:"A"}]}});
+        render(<MemoryRouter initialEntries={["/student/speaking-challenges/7"]}><Routes><Route path="/student/speaking-challenges/:questionSetId" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
+        expect(await screen.findByText("錄音回聽練習")).toBeInTheDocument();
+        expect(screen.queryByTestId("foundation-challenge")).not.toBeInTheDocument();
+        expect(startSpeakingFoundationRound).not.toHaveBeenCalled();
+        expect(completeSpeakingChallengeQuestion).not.toHaveBeenCalled();
+    });
+
     it("下一個目標只推薦已解鎖未完成關卡，入口開摘要並在 Escape 後還原焦點", async () => {
         getSpeakingChallengeCatalog.mockResolvedValue({ challenges: [
             { id: 1, title: "P14 已完成", source_pages: [14], book: { name: "Workbook 1" }, question_count: 7, completed_count: 7, is_completed: true },
@@ -581,7 +590,8 @@ describe("TextbookSpeakingChallenge model audio", () => {
         fireEvent.click(rulesToggle);
         expect(rulesToggle).toHaveAttribute("aria-expanded", "true");
         expect(screen.getByText("輪數怎麼算？")).toBeInTheDocument();
-        expect(screen.getByText("送評怎麼算？")).toBeInTheDocument();
+        expect(screen.getByText("送評有上限嗎？")).toBeInTheDocument();
+        expect(screen.getByText(/每個字母每天最多評分 3 次/)).toBeInTheDocument();
         expect(screen.getByText(/第一次送評才扣一輪.*同一輪重試不多扣/)).toBeInTheDocument();
         expect(screen.getByText(/字母／拼讀最多 12 秒/)).toBeInTheDocument();
         expect(screen.getByText(/練習／簡單通關解鎖下一頁/)).toBeInTheDocument();

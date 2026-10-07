@@ -11,7 +11,6 @@ import {
 } from "../_shared/speaking-foundation-answer.ts";
 import { authorizeSpeakingChallenge, buildPublicSpeakingQuestion } from "../_shared/speaking-challenge-view.ts";
 import { pageQuestionMode } from "../_shared/speaking-page-question-mode.ts";
-import { loadSpeakingAudioUsage } from "../_shared/speaking-audio-usage.ts";
 import {
     ALPHABET_SEQUENCE_ASSEMBLER_VERSION,
     ALPHABET_SEQUENCE_GAP_MS,
@@ -41,7 +40,7 @@ const SPEAKING_CHALLENGE_REWARD_POLICY = Object.freeze({
     basis: "first_completion_per_challenge",
     ae_points_eligible_students_only: true
 });
-const SPEAKING_CHALLENGE_DAILY_LIMIT = 5;
+const SPEAKING_CHALLENGE_DAILY_LIMIT = 10;
 const SPEAKING_RECORDING_LIMIT_SECONDS = 12;
 const CLIENT_SESSION_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const taipeiActivityDate = () => {
@@ -53,6 +52,13 @@ const taipeiActivityDate = () => {
     }).formatToParts(new Date());
     const values = Object.fromEntries(parts.map(part => [part.type, part.value]));
     return `${values.year}-${values.month}-${values.day}`;
+};
+
+const dailyLevelPolicy = async (admin: any, studentId: number, demoMode: boolean, setId: number | null = null) => {
+    if (demoMode) return { completed_set_ids: [], level_daily_limit: 1, alphabet_letter_daily_limit: 3 };
+    const { data, error } = await admin.rpc("speaking_daily_level_policy_v1", { p_student_id: studentId, p_question_set_id: setId });
+    if (error) throw error;
+    return data;
 };
 
 const speakingChallengePolicy = async (admin: any, studentId: number, demoMode: boolean) => {
@@ -146,6 +152,13 @@ Deno.serve(async (req: Request) => {
         const action = cleanText(body?.action, 40);
         const challengeMode = body?.mode === "challenge" ? "challenge" : "easy";
 
+        if (action === "alphabet_cost_usage") {
+            if (user.role !== "admin") return json(403,{error:"只有管理員可查看全站費用"});
+            const {data,error}=await admin.rpc("speaking_alphabet_cost_usage_v1");
+            if (error) throw error;
+            return json(200,{success:true,usage:data});
+        }
+
         if (action === "catalog") {
             const { data: sets, error } = await admin.from("speaking_question_sets")
                 .select("id,book_id,title,topic,difficulty,intro_zh,learning_goal_zh,version,generation_metadata,published_at,books(id,name,code,content_scope,enabled,archived_at),speaking_questions(id,sort_order)")
@@ -181,13 +194,11 @@ Deno.serve(async (req: Request) => {
                     || Number(stateBySet.get(Number(left.id))?.source_pages?.at(-1) || 0) - Number(stateBySet.get(Number(right.id))?.source_pages?.at(-1) || 0)
                     || Number(left.id) - Number(right.id);
             });
-            const [dailyPolicy, audioBudget] = await Promise.all([
-                speakingChallengePolicy(admin, Number(user.id), demoMode),
-                demoMode ? Promise.resolve(null) : loadSpeakingAudioUsage(admin, Number(user.id))
-            ]);
-            const challengePolicy = { ...dailyPolicy, audio_budget: audioBudget };
+            const challengePolicy = await speakingChallengePolicy(admin, Number(user.id), demoMode);
+            const levelPolicy = await dailyLevelPolicy(admin, Number(user.id), demoMode);
             return json(200, { success: true, demo_mode: demoMode, reward_policy: SPEAKING_CHALLENGE_REWARD_POLICY, challenge_policy: challengePolicy, challenges: orderedSets.map((set: any) => ({
                 id: set.id, book: set.books, title: set.title, topic: set.topic, difficulty: set.difficulty,
+                completed_today: levelPolicy.completed_set_ids.includes(Number(set.id)),
                 intro_zh: set.intro_zh, learning_goal_zh: set.learning_goal_zh,
                 version: set.version, generation_metadata: set.generation_metadata || {},
                 question_count: (set.speaking_questions || []).length,
@@ -219,6 +230,8 @@ Deno.serve(async (req: Request) => {
         const questionSet = { ...questionSetRecord, speaking_questions: setQuestions || [] };
 
         if (action === "question_set") {
+            const levelPolicy = await dailyLevelPolicy(admin, Number(user.id), demoMode, setId);
+            const practiceOnly = levelPolicy.completed_set_ids.includes(setId);
             const ids = (questionSet.speaking_questions || []).map((question: any) => Number(question.id));
             const interactionType = readQuestionSetInteractionType(questionSet.generation_metadata);
             const alphabetMode = interactionType === "alphabet_round";
@@ -235,6 +248,13 @@ Deno.serve(async (req: Request) => {
             const statusByQuestion = new Map((progress || []).map((row: any) => [
                 Number(row.question_id), challengeMode === "challenge" ? "completed" : row.status
             ]));
+            const { data: todayAttempts, error: todayError } = ids.length && !demoMode && !practiceOnly
+                ? await admin.from("speaking_daily_question_completions").select("question_id")
+                    .eq("student_id", Number(user.id)).eq("question_set_id", setId).eq("challenge_mode", challengeMode)
+                    .eq("activity_date", taipeiActivityDate())
+                : { data: [], error: null };
+            if (todayError) throw todayError;
+            const todayCompleted = new Set((todayAttempts || []).map((row: any) => Number(row.question_id)));
             const { data: audioLinks, error: audioLinkError } = ids.length
                 ? await admin.from("speaking_question_audio").select("question_id,asset_id,purpose").in("question_id", ids)
                 : { data: [], error: null };
@@ -338,11 +358,11 @@ Deno.serve(async (req: Request) => {
                     promptMode: questionMode.promptMode,
                     answerAudioEnabled: questionSet.generation_metadata?.source === "ocr_page_candidate"
                         && questionSet.generation_metadata?.requires_answer_audio === true,
-                    staffAudioPreview: demoMode,
+                    staffAudioPreview: demoMode || practiceOnly,
                     readingAudioEnabled: interactionType !== "mixed" || Array.isArray(questionSet.generation_metadata?.question_modes)
                         && questionSet.generation_metadata.question_modes.some((mode: any) => Number(mode.sort_order) === Number(question.sort_order)
                             && mode.interaction_type === questionMode.interactionType),
-                    showEasyAnswer: challengeMode === "easy",
+                    showEasyAnswer: challengeMode === "easy" || practiceOnly,
                     progressStatus: statusByQuestion.get(Number(question.id)),
                     modelAsset,
                     promptAsset,
@@ -352,7 +372,7 @@ Deno.serve(async (req: Request) => {
                         createR2PresignedUrl(privateObjectKey, "GET", 15 * 60)
                     )
                 });
-                questions.push(challengeMode === "challenge" && !demoMode ? {
+                questions.push(challengeMode === "challenge" && !demoMode && !practiceOnly ? {
                     ...publicQuestion,
                     hint_zh: "",
                     keywords: [],
@@ -367,7 +387,10 @@ Deno.serve(async (req: Request) => {
                 demo_mode: demoMode,
                 mode: challengeMode,
                 challenge_policy: challengePolicy,
-                challenge: { ...questionSet, speaking_questions: questions, alphabet_audio: alphabetAudio }
+                challenge: { ...questionSet, speaking_questions: questions.map((question: any) => ({ ...question,
+                    historical_progress_status: question.progress_status,
+                    progress_status: demoMode || practiceOnly ? question.progress_status : todayCompleted.has(Number(question.id)) ? "completed" : "not_started"
+                })), alphabet_audio: alphabetAudio, practice_only: practiceOnly, completed_today: practiceOnly }
             });
         }
 
@@ -479,13 +502,14 @@ Deno.serve(async (req: Request) => {
             }
             const shuffled = secureShuffle(canonicalQuestions);
             const questionOrder = shuffled.map((question: any) => Number(question.id));
-            const { data: round, error: roundError } = await admin.rpc("start_speaking_foundation_round_v1", {
+            const { data: round, error: roundError } = await admin.rpc("start_speaking_foundation_round_v2", {
                 p_student_id: Number(user.id),
                 p_question_set_id: setId,
                 p_question_set_version: Number(questionSet.version),
                 p_question_order: questionOrder
             });
             if (roundError) throw roundError;
+            if (round?.status === "practice_only") return json(409, { error: "這一關今天已完成，可以錄音回聽，明天再評分。", code: "speaking_level_completed_today" });
             if (round?.status === "busy") {
                 return json(409, {
                     error: "上一題正在評分，請稍候再開始新回合",
@@ -532,7 +556,7 @@ Deno.serve(async (req: Request) => {
             if (interactionType === "alphabet_round") {
                 return json(409, { error: "A–Z 必須完成同一個連續挑戰回合", code: "foundation_round_required" });
             }
-            if (interactionType || challengeMode === "challenge") {
+            {
                 const pictureMode = interactionType === "picture_qa" || interactionType === "picture_gap_sentence";
                 if (pictureMode && pictureInteraction?.interaction_type !== interactionType) {
                     return json(409, { error: "這題的圖片口說內容尚未完成核准", code: "picture_interaction_missing" });
@@ -543,19 +567,15 @@ Deno.serve(async (req: Request) => {
                     .eq("question_set_id", setId).eq("question_id", questionId)
                     .eq("challenge_mode", challengeMode).gte("created_at", since);
                 const clientSessionId = String(body?.challenge_session_id || "").trim();
-                if (challengeMode === "challenge") {
-                    if (!CLIENT_SESSION_PATTERN.test(clientSessionId)) {
-                        return json(400, { error: "挑戰回合無效，請重新進入關卡" });
-                    }
-                    attemptQuery = attemptQuery.eq("client_session_id", clientSessionId);
+                if (!CLIENT_SESSION_PATTERN.test(clientSessionId)) {
+                    return json(400, { error: "挑戰回合無效，請重新進入關卡" });
                 }
+                attemptQuery = attemptQuery.eq("client_session_id", clientSessionId);
                 const { data: attempt, error: attemptError } = await attemptQuery
                     .order("created_at", { ascending: false }).limit(1).maybeSingle();
                 if (attemptError) throw attemptError;
-                // pronunciation-coach computes answer_match from the provider response and
-                // persists it server-side. Reusing that authoritative decision keeps the
-                // child-tolerant spelling policy consistent while still rejecting any
-                // completion value supplied by the browser.
+                // Every question needs a saved server decision for this session.
+                // Local ASR text is client-reported; scores/completion flags are ignored.
                 if (!attempt || attempt.answer_match !== true) {
                     return json(409, { error: "這一題要先完成正確的口說評分", code: "correct_assessment_required" });
                 }
@@ -569,24 +589,14 @@ Deno.serve(async (req: Request) => {
                     }
                 }
             }
-            if (challengeMode === "challenge") {
-                const { error: completionError } = await admin.from("speaking_challenge_mode_progress").upsert({
-                    student_id: Number(user.id), question_set_id: setId, question_id: questionId
-                }, { onConflict: "student_id,question_id", ignoreDuplicates: true });
-                if (completionError) throw completionError;
-                const questionIds = (questionSet.speaking_questions || []).map((item: any) => Number(item.id));
-                const { count, error: progressError } = await admin.from("speaking_challenge_mode_progress")
-                    .select("question_id", { count: "exact", head: true })
-                    .eq("student_id", Number(user.id)).eq("question_set_id", setId).in("question_id", questionIds);
-                if (progressError) throw progressError;
-                return json(200, { success: true, challenge_completed: questionIds.length > 0 && count === questionIds.length, xp_awarded: 0, ae_points_awarded: 0 });
-            }
-            const { data: completion, error: completionError } = await admin.rpc("complete_speaking_challenge_question_v2", {
-                p_student_id: Number(user.id),
-                p_question_set_id: setId,
-                p_question_id: questionId
+            const { data: completion, error: completionError } = await admin.rpc("complete_speaking_daily_question_v1", {
+                p_student_id: Number(user.id), p_question_set_id: setId, p_question_id: questionId,
+                p_client_session_id: String(body.challenge_session_id), p_challenge_mode: challengeMode
             });
-            if (completionError) throw completionError;
+            if (completionError) {
+                if (/DAILY_LEVEL_COMPLETED/.test(String(completionError.message))) return json(409, { error: "這一關今天已完成，可以錄音回聽，明天再評分。", code: "speaking_level_completed_today" });
+                throw completionError;
+            }
             return json(200, { success: true, ...(completion || {}) });
         }
         return json(400, { error: "不支援的操作" });
