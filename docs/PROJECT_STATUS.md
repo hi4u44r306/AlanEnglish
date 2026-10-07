@@ -7,9 +7,9 @@
 - 延續 output/cost-alerts-20261007／feature/cost-alert-email-ack，已同步 main 56bc33d8；原主目錄草稿保留。成本頁納入 14 類服務，新增 OpenAI／Azure／Google 帳務、Cloudflare analytics、Resend quota、Stripe fee、GitHub repo usage 採集器；Supabase DB 大小、固定費用與完整總額設定一併集中。新增三張 service-only／RLS 表及三個 RPC；連同 Email 共五張表／六個 RPC及獨立五分鐘排程。
 - 總成本／門檻／Email 共用完整月 SQL；沿用 Azure alphabet basic 每小時 1 美元的保守估算，含預留與失敗，本機朗讀不計入。同服務帳單取代估算、不重複相加月費，保留 credits、費用歷史及失敗前成功快照。各來源有延遲；未取得完整金額清楚標示缺口。
 - 最終 41 項後端／PostgreSQL／採集器＋17 項 React（共 58）通過；7 檔 ESLint、shared TypeScript 0 diagnostics、Edge 語法、diff check 與 production build main.53a7b691.js 通過；已準備 Cloudflare assets。真實帳務權限、export、Email 投遞、正式 cron 與桌面／412px／iPhone 尚未驗收，未繞過瀏覽器權限拒絕。
-- 本機 checkpoint；推送／Draft PR 準備中，尚未合併／套用正式 migration／更改 Secret／發布。兩個 additive migrations 與帳務 IAM／Secret 需本批明確授權。接通來源、間隔、剩餘缺口與回復詳見 docs/COST_ALERT_RELEASE.md；手冊 v3.57 草稿。
+- 本機 checkpoint f216cedd；已推送並建立 Draft PR #440（https://github.com/hi4u44r306/AlanEnglish/pull/440），尚未合併／套用正式 migration／更改 Secret／發布。兩個 additive migrations 與帳務 IAM／Secret 需本批明確授權。接通來源、間隔、剩餘缺口與回復詳見 docs/COST_ALERT_RELEASE.md；手冊 v3.57 草稿。
 
-### 成本 Email 每五分鐘持續提醒（2026-10-07，本機已實作／尚未部署）
+### 成本 Email 初版隔離驗證紀錄（2026-10-07，已由上節統整版取代；尚未部署）
 
 - 獨立副本 `output/cost-alerts-20261007`；分支 `feature/cost-alert-email-ack`，基準最新已取得 main `dc866e7a`。原主目錄的其他草稿、分支及未提交修改保留。新增 Email 收件設定、成本提醒區及「我已經看到」按鈕、Firebase 管理員驗證的 `cost-alert-manager`、三個 service-only RPC、兩張 RLS 表及獨立每 5 分鐘 cron；不變更既有每小時家長排程／學生／教材／付款／學習紀錄。
 - 觸發使用成本頁的既有已追蹤估算與月預算警戒線（含等於）；未登入／關閉網站仍由後端提醒，只查看／登入不會確認。收件管理員按鈕成功確認即停止整個月份通知，當月費用再增加或達 100% 也不重新通知；新月達線再提醒，舊月未確認仍保留。採既有 Resend Email，LINE 未接入；初次需本人按「使用我的 Email 接收提醒」。
