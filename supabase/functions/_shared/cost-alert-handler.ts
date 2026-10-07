@@ -36,7 +36,7 @@ export async function handleCostAlertRequest(req: Request, deps: {
             const budget = checked(await admin.from('ai_api_budget_settings').select('usd_to_twd_rate').eq('id', 1).single());
             await refreshServiceCosts(admin, month, { env, fetch: deps.fetch, now: new Date(), usdToTwd: Number(budget.usd_to_twd_rate) });
             if (env("COST_ALERTS_ENABLED") === "false") return json(200, { paused: true });
-            const sender = checked(await admin.from("guardian_email_settings").select("from_email,from_name,reply_to_email").eq("id", 1).maybeSingle());
+            const sender = checked(await admin.from("guardian_email_settings").select("from_email,from_name,reply_to").eq("id", 1).maybeSingle());
             const apiKey = env("RESEND_API_KEY");
             checked(await admin.rpc("reconcile_api_cost_alert_v1"));
             if (!apiKey || !validCostAlertEmail(sender?.from_email)) return json(503, { error: "成本提醒寄信服務尚未設定" });
@@ -54,7 +54,7 @@ export async function handleCostAlertRequest(req: Request, deps: {
                         headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json", "Idempotency-Key": `api-cost-${alert.id}-${alert.generation}-${alert.attempt_count}` },
                         body: JSON.stringify({
                             from: `${cleanText(sender.from_name, 80).replace(/[<>\r\n]/g, "") || "Alan English"} <${sender.from_email}>`, to: [email],
-                            reply_to: validCostAlertEmail(sender.reply_to_email) ? sender.reply_to_email : undefined,
+                            reply_to: validCostAlertEmail(sender.reply_to) ? sender.reply_to : undefined,
                             subject: message.subject, text: message.text
                         }),
                         signal: AbortSignal.timeout(10000)

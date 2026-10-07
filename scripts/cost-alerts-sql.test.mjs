@@ -29,7 +29,7 @@ before(async () => {
         create table speaking_source_chunks(input_tokens bigint,output_tokens bigint,created_at timestamptz);
         create table speaking_tts_assets(used_characters bigint,created_at timestamptz);
         create table speaking_pronunciation_requests(audio_seconds numeric,interaction_type text,status text,created_at timestamptz,provider text default 'azure');
-        create table guardian_email_settings(id smallint primary key,from_email text,from_name text,reply_to_email text);
+        create table guardian_email_settings(id smallint primary key,from_email text,from_name text,reply_to text);
         create schema vault; create table vault.secrets(name text); create table vault.decrypted_secrets(name text,decrypted_secret text);
         insert into vault.secrets values('guardian_email_project_url'),('guardian_email_cron_secret');
         create schema cron; create table cron.test_jobs(name text,schedule text,command text);
@@ -172,10 +172,12 @@ const makeRequest = (body, options = {}) => handleCostAlertRequest(new Request("
 });
 beforeEach(() => { sends = []; providerStatus = 200; });
 test("background cron sends without a login and deduplicates; acknowledging stops later sends", async () => {
+    await db.exec("update guardian_email_settings set reply_to='support@example.com'");
     await spend(8);
     let response = await makeRequest({ action: "run_due" }, { secret: "test-cron", unauthenticated: true });
     assert.equal(response.status, 200); assert.equal(sends.length, 1);
     assert.deepEqual(sends[0].body.to, ["owner@example.com"]); assert.match(sends[0].body.text, /我已經看到/);
+    assert.equal(sends[0].body.reply_to, "support@example.com");
     assert.match(sends[0].headers["Idempotency-Key"], /^api-cost-/);
     await makeRequest({ action: "run_due" }, { secret: "test-cron" }); assert.equal(sends.length, 1);
     const [a] = await alerts(); response = await makeRequest({ action: "acknowledge", alert_id: a.id, generation: a.generation });
