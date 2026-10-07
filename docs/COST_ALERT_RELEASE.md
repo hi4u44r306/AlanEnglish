@@ -1,6 +1,6 @@
 # 網站成本統整與持續提醒發布／回復
 
-2026-10-07；本機功能分支 `feature/cost-alert-email-ack`，基準 `dc866e7a`。尚未部署。
+2026-10-07；本機功能分支 `feature/cost-alert-email-ack`，已同步 main `38cf94c2`。使用者已同意直接正式部署與驗收，發布進行中。
 
 ## 範圍與驗證界線
 
@@ -44,7 +44,7 @@
 
 依官方資料： [OpenAI Costs](https://developers.openai.com/api/reference/python/resources/admin/subresources/organization/subresources/usage/methods/costs)、[Azure Query](https://learn.microsoft.com/en-us/rest/api/cost-management/query/usage?view=rest-cost-management-2025-03-01)、[Azure 更新／限流](https://learn.microsoft.com/en-us/azure/cost-management-billing/costs/manage-automation)、[Google 標準帳務匯出](https://docs.cloud.google.com/billing/docs/how-to/export-data-bigquery-tables/standard-usage)、[BigQuery query](https://docs.cloud.google.com/bigquery/docs/reference/rest/v2/jobs/query)、[Cloudflare Worker](https://developers.cloudflare.com/analytics/graphql-api/tutorials/querying-workers-metrics/)、[R2 analytics](https://developers.cloudflare.com/r2/platform/metrics-analytics/)、[Supabase Billing](https://supabase.com/docs/guides/platform/billing-on-supabase)、[Resend Usage](https://www.resend.com/docs/api-reference/usage/retrieve-usage)、[Stripe fees](https://docs.stripe.com/api/balance_transactions/list)、[GitHub usage](https://docs.github.com/en/rest/billing/usage)。Cloudflare billable v2 目前 Alpha Restricted 且未完成成本欄位，不把範例 BilledCost=0 當成實際免費。
 
-## 正式發布（待使用者針對本批授權）
+## 正式發布（本批已獲使用者授權）
 
 1. 核對最新 main 並只合併本批分支，保留其他未發布草稿。
 2. 從 main 部署 `cost-alert-manager`；沿用既有 Secret，核對名稱／是否設定即可，禁止取出值。

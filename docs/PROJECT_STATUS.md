@@ -4,10 +4,10 @@
 
 ### 全服務成本統整（2026-10-07，本機實作／尚未部署）
 
-- 延續 output/cost-alerts-20261007／feature/cost-alert-email-ack，已同步 main 56bc33d8；原主目錄草稿保留。成本頁納入 14 類服務，新增 OpenAI／Azure／Google 帳務、Cloudflare analytics、Resend quota、Stripe fee、GitHub repo usage 採集器；Supabase DB 大小、固定費用與完整總額設定一併集中。新增三張 service-only／RLS 表及三個 RPC；連同 Email 共五張表／六個 RPC及獨立五分鐘排程。
+- 延續 output/cost-alerts-20261007／feature/cost-alert-email-ack，已同步 main 38cf94c2；原主目錄草稿保留。成本頁納入 14 類服務，新增 OpenAI／Azure／Google 帳務、Cloudflare analytics、Resend quota、Stripe fee、GitHub repo usage 採集器；Supabase DB 大小、固定費用與完整總額設定一併集中。新增三張 service-only／RLS 表及三個 RPC；連同 Email 共五張表／六個 RPC及獨立五分鐘排程。
 - 總成本／門檻／Email 共用完整月 SQL；沿用 Azure alphabet basic 每小時 1 美元的保守估算，含預留與失敗，本機朗讀不計入。同服務帳單取代估算、不重複相加月費，保留 credits、費用歷史及失敗前成功快照。各來源有延遲；未取得完整金額清楚標示缺口。
 - 最終 41 項後端／PostgreSQL／採集器＋17 項 React（共 58）通過；7 檔 ESLint、shared TypeScript 0 diagnostics、Edge 語法、diff check 與 production build main.53a7b691.js 通過；已準備 Cloudflare assets。真實帳務權限、export、Email 投遞、正式 cron 與桌面／412px／iPhone 尚未驗收，未繞過瀏覽器權限拒絕。
-- 本機 checkpoint f216cedd；已推送並建立 Draft PR #440（https://github.com/hi4u44r306/AlanEnglish/pull/440），尚未合併／套用正式 migration／更改 Secret／發布。兩個 additive migrations 與帳務 IAM／Secret 需本批明確授權。接通來源、間隔、剩餘缺口與回復詳見 docs/COST_ALERT_RELEASE.md；手冊 v3.57 草稿。
+- 本機 checkpoint f216cedd；已推送並建立 Draft PR #440（https://github.com/hi4u44r306/AlanEnglish/pull/440），尚未合併／套用正式 migration／更改 Secret／發布。使用者已於 2026-10-07 明確同意本批直接正式部署及驗收；正在發布。接通來源、間隔、剩餘缺口與回復詳見 docs/COST_ALERT_RELEASE.md；手冊 v3.58 草稿。
 
 ### 成本 Email 初版隔離驗證紀錄（2026-10-07，已由上節統整版取代；尚未部署）
 
@@ -18,11 +18,9 @@
 - 隔離實際元件預覽 `http://127.0.0.1:3018` 已編譯，API 全部使用固定假資料；Browser Use 無法驗證 saved permissions，拒絕 localhost 存取，未繞過。桌面／412px／iPhone 實際版面及真實 Email 投遞未驗，A-15／A-16 截圖與影片待製作。
 - 尚未 Push／PR／合併／套用正式 SQL／部署 Function／發布前端／啟用私人收件人。下一步依 AGENTS.md 第 13–14 節取得本批正式 migration 與排程授權，再按 `docs/COST_ALERT_RELEASE.md` 執行。回復先停用新 cron（必要時成本提醒專用停止開關），保留 additive 表／確認紀錄；不影響既有家長通知。手冊 v3.54 本機草稿同步。
 - 相關檔案：`ApiUsageAdmin.jsx`／測試／SCSS、`CostAlertPanel.jsx`／測試、`costAlertService.js`、`_shared/cost-alert-handler.ts`／`cost-alert-email.ts`、`cost-alert-manager/index.ts`、`supabase/config.toml`、`20261007024653_cost_alert_acknowledgement.sql`、`scripts/cost-alerts-sql.test.mjs`、`package.json`、產品邏輯／狀態／手冊及發布說明。
- 的保守估算（本機朗讀不計入）；同服務帳單取代估算、不重複相加月費，保留 credits、費用歷史及失敗前成功快照。各來源更新有延遲；部分完整帳單未接通，不把未知金額當免費。
-- 已完成隔離 PostgreSQL 執行新 migration 與 API response／JWT／分頁／逾時／原子租約／RLS／角色與月份切換驗證；最終 41 項後端／PostgreSQL／採集器＋17 項 React（共 58）通過；7 檔 ESLint、shared TypeScript 0 diagnostics、Edge 語法、diff check 與 production build main.53a7b691.js 通過，已準備 Cloudflare assets。範圍只含成本頁／採集器／提醒與文件，不更動現有學生權限、付款模式或正式 Secret。
-- 尚未發布。真實帳務、reader／export、Email投遞、正式cron、桌面／412px／iPhone尚未驗收；沿用瀏覽器 saved permissions 拒絕且不繞過。正式 migration／帳務IAM與Secret／部署仍需本批明確授權。接通範圍、來源頻率、尚缺資料及回復詳見 docs/COST_ALERT_RELEASE.md；手冊 v3.57 草稿。
 
 
+字母勾叉回饋與手機卡片排版（2026-10-07，已正式部署／實機待驗收）：使用者要求 A–Z 不顯示分數，只顯示通過或重唸。AlphabetAutomaticRecorder 改以後端 answer_match 顯示綠色打勾「通過！」／紅色打叉「再唸一次」，不按分數猜通關，保留 4 秒回饋與原有提交、錯題／換題／每日字母額度流程。TextbookSpeakingChallenge.scss 固定圖示第一欄、說明第二欄、倒數及頁腳位置，移除引擎／分數段落造成的 grid 窄欄與卡片過高；採 border-box 並縮短判別提示。不修改後端、Azure、SQL、資料儲存或一般題分數。14 項 recorder 測試、focused ESLint／局部 webpack 編譯通過；實際 JSX／SCSS 的合成初始狀態預覽於 320／412／1440px 驗證判別中、通過、重唸與錄音，無横向溢出、文字欄至少 150px、卡片小於 230px，412px 截圖已目視確認。預覽不啟動實際麥克風或付費 API，非正式登入後／iPhone 實機驗收。production build 由 Cloudflare 執行，本機不重跑全套或完整 build。 PR #438 已合併 main `4044747313601ccf4a87be2a8a18b68a853221c6`；Cloudflare 唯一 production build `b0199871-22bc-456c-b865-852aa22abf3d`／check `112635480474` 於 2026-10-07 12:45:11 台灣時間 completed／success，精確對應 main。正式 Browser Use 權限檢查仍受限制，未繞過；登入後全關卡／iPhone 實機尚未驗收，請重新整理確認。手冊 v3.57 同步正式狀態，純文件紀錄不重跑應用測試或觸發第二次前端 build。回復可 revert 此批前端 merge，無 SQL／資料回復需求。
 
 口說列表載入錯誤修復（2026-10-07，已正式部署／登入後驗收待補）：正式日誌出現 PGRST201；新增每日題目完成表被 PostgREST 視為關卡／題目的第二條 many-to-many 關聯，導致原未指定 FK 的查詢歧義。limit=0 的正式 API 結構測試重現 300／PGRST201；指定 speaking_questions_question_set_id_fkey 後進入正常權限檢查 401／42501，未讀學生資料或放寬權限。修改 speaking-challenge（2 處）、speaking-content-manager（16 處）、weekly-report（1 處）、pronunciation-coach（1 處）、speaking-tts-manager（1 處）使用原有 FK；不改 SQL、通關限制或資料。實際 catalog handler 的學生／管理員回歸測試與費用权限、週報與評分 handler 測試共 12 項通過，五支 TS syntax check 通過。題庫契約 38 項中 34 項通過，4 項仍檢查舊評分／完成 RPC，與 hotfix 前基準結果相同（output/relation-baseline.log），非本批引入。正反向 limit=0 API 均確認原歧義重現及指定 FK 後正常進入權限檢查。後端查詢修改不需重跑 React build；PR #436 已合併 main `838a97bdf0d82c71ed58c71e2345e22f7fc25bf6`；Functions 已更新為 speaking-challenge v51、pronunciation-coach v32、speaking-content-manager v67、speaking-tts-manager v39、weekly-report v25，全部 ACTIVE／verify_jwt=false，原有 Firebase 驗證保留。五支未登入實際 POST 都是 401，21 個實際 SELECT 的正式 API limit=0 均不再出現 PGRST201，而正確進入 401／42501 權限檢查；未讀學生資料或產生付費請求。Cloudflare build `f58511d1-4e59-4109-8674-c02fdfc37117`／check `112631708685` 在 2026-10-07 12:30:02 台灣時間 success，精確對應上述 main。正式 Browser Use 權限檢查限制仍在，登入後及 iPhone 實機待驗收；不能把未登入保護測試當作整個學生流程通過。前版本入口原始碼保存於忽略目錄 output/relation-hotfix-rollback；恢復前版本會再出現已知歧義，應保留此修復或配套回復原混合方案資料庫，不能只回復其中一支服務。
 

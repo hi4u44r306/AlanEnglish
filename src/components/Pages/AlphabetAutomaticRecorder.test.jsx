@@ -110,6 +110,20 @@ describe("AlphabetAutomaticRecorder", () => {
         expect(submitAlphabetPronunciationAttempt).toHaveBeenCalledTimes(1);
         await waitFor(() => expect(callbacks.onScored).toHaveBeenCalledTimes(1));
     });
+    it.each([true, false])("字母結果依後端答對狀態顯示勾叉，不顯示分數：%s", async answerMatch => {
+        let finishFeedback;
+        global.setTimeout = (fn, ms, ...args) => ms === 4000
+            ? (finishFeedback = fn, 1) : originalTimeout(fn, ms, ...args);
+        submitAlphabetPronunciationAttempt.mockResolvedValue({ assessment_kind: "azure_pronunciation", answer_match: answerMatch, scores: { pronunciation: 85 }, foundation_round: { status: answerMatch ? "open" : "retry" } });
+        const view = await mount();
+        await speak();
+        expect(await screen.findByText(answerMatch ? "通過！" : "再唸一次")).toBeInTheDocument();
+        expect(view.container.querySelector(answerMatch ? ".is-passed" : ".is-incorrect")).toBeInTheDocument();
+        expect(screen.queryByText(/85|字母發音|朗讀完整度/)).not.toBeInTheDocument();
+        expect(callbacks.onScored).not.toHaveBeenCalled();
+        await act(async () => finishFeedback());
+        expect(callbacks.onScored).toHaveBeenCalledWith(expect.objectContaining({ answer_match: answerMatch }));
+    });
     it("字母額度用完即轉回聽模式，不判通關或自動重送", async () => {
         submitAlphabetPronunciationAttempt.mockRejectedValueOnce(Object.assign(new Error("明天再挑戰"), { code: "alphabet_letter_daily_limit_reached" }));
         const onPracticeOnly = jest.fn();
