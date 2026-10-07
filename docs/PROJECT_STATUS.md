@@ -4,14 +4,8 @@
 
 ### 全服務成本統整（2026-10-07，本機實作／尚未部署）
 
-- 延續 output/cost-alerts-20261007／feature/cost-alert-email-ack，原主目錄草稿保留。成本頁納入 14 類服務，新增 OpenAI／Azure／Google 帳務、Cloudflare analytics、Resend quota、Stripe fee、GitHub repo usage 採集器；Supabase DB 大小、固定費用與完整總額設定一併集中。新增三張 service-only／RLS 表及三個 RPC；連同 Email 共五張表／六個 RPC與既有獨立五分鐘排程。
-- 總成本／門檻／Email 共用完整月 SQL，含既有 Azure alphabet basic 預留秒數每小時 US### 全服務成本統整（2026-10-07，本機實作／尚未部署）
-
-- 延續 output/cost-alerts-20261007／feature/cost-alert-email-ack，原主目錄草稿保留。成本頁納入 14 類服務，新增 OpenAI／Azure／Google 帳務、Cloudflare analytics、Resend quota、Stripe fee、GitHub repo usage 採集器；Supabase DB 大小、固定費用與完整總額設定一併集中。新增三張 service-only／RLS 表及三個 RPC；連同 Email 共五張表／六個 RPC與既有獨立五分鐘排程。
-- 總成本／門檻／Email 共用完整月 SQL，含既有 Azure alphabet basic 預留秒數每小時 US$1 的保守估算（本機朗讀不計入）；同服務帳單取代估算、不重複相加月費，保留 credits、費用歷史及失敗前成功快照。各來源更新有延遲；部分完整帳單未接通，不把未知金額當免費。
-- 已完成隔離 PostgreSQL 執行新 migration 與 API response／JWT／分頁／逾時／原子租約／RLS／角色與月份切換驗證；最終測試與 build 結果待本批驗證追加。範圍只含成本頁／採集器／提醒與文件，不更動現有學生權限、付款模式或正式 Secret。
-- 真實帳務、reader／export、Email投遞、正式cron、桌面／412px／iPhone尚未驗收；沿用瀏覽器 saved permissions 拒絕且不繞過。正式 migration／帳務IAM與Secret／部署仍需本批明確授權。接通範圍、來源頻率、尚缺資料及回復詳見 docs/COST_ALERT_RELEASE.md；手冊 v3.55 草稿。
-
+- 延續 output/cost-alerts-20261007／feature/cost-alert-email-ack，已同步 main 56bc33d8；原主目錄草稿保留。成本頁納入 14 類服務，新增 OpenAI／Azure／Google 帳務、Cloudflare analytics、Resend quota、Stripe fee、GitHub repo usage 採集器；Supabase DB 大小、固定費用與完整總額設定一併集中。新增三張 service-only／RLS 表及三個 RPC；連同 Email 共五張表／六個 RPC與既有獨立五分鐘排程。
+- 總成本／門檻／Email 共用完整月 SQL，含既有 Azure alphabet basic 預留秒數每小時 US
 ### 成本 Email 每五分鐘持續提醒（2026-10-07，本機已實作／尚未部署）
 
 - 獨立副本 `output/cost-alerts-20261007`；分支 `feature/cost-alert-email-ack`，基準最新已取得 main `dc866e7a`。原主目錄的其他草稿、分支及未提交修改保留。新增 Email 收件設定、成本提醒區及「我已經看到」按鈕、Firebase 管理員驗證的 `cost-alert-manager`、三個 service-only RPC、兩張 RLS 表及獨立每 5 分鐘 cron；不變更既有每小時家長排程／學生／教材／付款／學習紀錄。
@@ -22,111 +16,12 @@
 - 尚未 Push／PR／合併／套用正式 SQL／部署 Function／發布前端／啟用私人收件人。下一步依 AGENTS.md 第 13–14 節取得本批正式 migration 與排程授權，再按 `docs/COST_ALERT_RELEASE.md` 執行。回復先停用新 cron（必要時成本提醒專用停止開關），保留 additive 表／確認紀錄；不影響既有家長通知。手冊 v3.54 本機草稿同步。
 - 相關檔案：`ApiUsageAdmin.jsx`／測試／SCSS、`CostAlertPanel.jsx`／測試、`costAlertService.js`、`_shared/cost-alert-handler.ts`／`cost-alert-email.ts`、`cost-alert-manager/index.ts`、`supabase/config.toml`、`20261007024653_cost_alert_acknowledgement.sql`、`scripts/cost-alerts-sql.test.mjs`、`package.json`、產品邏輯／狀態／手冊及發布說明。
  的保守估算（本機朗讀不計入）；同服務帳單取代估算、不重複相加月費，保留 credits、費用歷史及失敗前成功快照。各來源更新有延遲；部分完整帳單未接通，不把未知金額當免費。
-- 已完成隔離 PostgreSQL 執行新 migration 與 API response／JWT／分頁／逾時／原子租約／RLS／角色與月份切換驗證；最終測試與 build 結果待本批驗證追加。範圍只含成本頁／採集器／提醒與文件，不更動現有學生權限、付款模式或正式 Secret。
-- 真實帳務、reader／export、Email投遞、正式cron、桌面／412px／iPhone尚未驗收；沿用瀏覽器 saved permissions 拒絕且不繞過。正式 migration／帳務IAM與Secret／部署仍需本批明確授權。接通範圍、來源頻率、尚缺資料及回復詳見 docs/COST_ALERT_RELEASE.md；手冊 v3.55 草稿。
+- 已完成隔離 PostgreSQL 執行新 migration 與 API response／JWT／分頁／逾時／原子租約／RLS／角色與月份切換驗證；最終 41 項後端／PostgreSQL／採集器＋17 項 React（共 58）通過；7 檔 ESLint、shared TypeScript 0 diagnostics、Edge 語法、diff check 與 production build main.53a7b691.js 通過，已準備 Cloudflare assets。範圍只含成本頁／採集器／提醒與文件，不更動現有學生權限、付款模式或正式 Secret。
+- 尚未發布。真實帳務、reader／export、Email投遞、正式cron、桌面／412px／iPhone尚未驗收；沿用瀏覽器 saved permissions 拒絕且不繞過。正式 migration／帳務IAM與Secret／部署仍需本批明確授權。接通範圍、來源頻率、尚缺資料及回復詳見 docs/COST_ALERT_RELEASE.md；手冊 v3.57 草稿。
 
-### 成本 Email 每五分鐘持續提醒（2026-10-07，本機已實作／尚未部署）
 
-- 獨立副本 `output/cost-alerts-20261007`；分支 `feature/cost-alert-email-ack`，基準最新已取得 main `dc866e7a`。原主目錄的其他草稿、分支及未提交修改保留。新增 Email 收件設定、成本提醒區及「我已經看到」按鈕、Firebase 管理員驗證的 `cost-alert-manager`、三個 service-only RPC、兩張 RLS 表及獨立每 5 分鐘 cron；不變更既有每小時家長排程／學生／教材／付款／學習紀錄。
-- 觸發使用成本頁的既有已追蹤估算與月預算警戒線（含等於）；未登入／關閉網站仍由後端提醒，只查看／登入不會確認。收件管理員按鈕成功確認即停止整個月份通知，當月費用再增加或達 100% 也不重新通知；新月達線再提醒，舊月未確認仍保留。採既有 Resend Email，LINE 未接入；初次需本人按「使用我的 Email 接收提醒」。
-- 18/18 隔離 PostgreSQL／後端／寄信替身整合測試、10/10 受影響 React 測試、5 檔 ESLint、shared TypeScript 0 diagnostics、三檔 Edge 語法及 diff check 通過。最終 production build `main.096572ec.js` 成功；只在補上遲到刷新防護及收斂同月停止規則後重驗相關測試／build，未跑無關全套測試、未改套件／lockfile。
-- 實際 migration 已在 PGlite 隔離 PostgreSQL 執行，確認精確門檻、四類來源估算、台北月界線、原子防重送、確認持久化／越權／達 100% 仍停止、跨月、RLS／RPC 撤權、背景寄送／失敗重試與確認後停止；cron 註冊及 Email provider 使用替身，不能視為正式排程與實際收件證據。
-- 隔離實際元件預覽 `http://127.0.0.1:3018` 已編譯，API 全部使用固定假資料；Browser Use 無法驗證 saved permissions，拒絕 localhost 存取，未繞過。桌面／412px／iPhone 實際版面及真實 Email 投遞未驗，A-15／A-16 截圖與影片待製作。
-- 尚未 Push／PR／合併／套用正式 SQL／部署 Function／發布前端／啟用私人收件人。下一步依 AGENTS.md 第 13–14 節取得本批正式 migration 與排程授權，再按 `docs/COST_ALERT_RELEASE.md` 執行。回復先停用新 cron（必要時成本提醒專用停止開關），保留 additive 表／確認紀錄；不影響既有家長通知。手冊 v3.54 本機草稿同步。
-- 相關檔案：`ApiUsageAdmin.jsx`／測試／SCSS、`CostAlertPanel.jsx`／測試、`costAlertService.js`、`_shared/cost-alert-handler.ts`／`cost-alert-email.ts`、`cost-alert-manager/index.ts`、`supabase/config.toml`、`20261007024653_cost_alert_acknowledgement.sql`、`scripts/cost-alerts-sql.test.mjs`、`package.json`、產品邏輯／狀態／手冊及發布說明。
 
 口說列表載入錯誤修復（2026-10-07，已正式部署／登入後驗收待補）：正式日誌出現 PGRST201；新增每日題目完成表被 PostgREST 視為關卡／題目的第二條 many-to-many 關聯，導致原未指定 FK 的查詢歧義。limit=0 的正式 API 結構測試重現 300／PGRST201；指定 speaking_questions_question_set_id_fkey 後進入正常權限檢查 401／42501，未讀學生資料或放寬權限。修改 speaking-challenge（2 處）、speaking-content-manager（16 處）、weekly-report（1 處）、pronunciation-coach（1 處）、speaking-tts-manager（1 處）使用原有 FK；不改 SQL、通關限制或資料。實際 catalog handler 的學生／管理員回歸測試與費用权限、週報與評分 handler 測試共 12 項通過，五支 TS syntax check 通過。題庫契約 38 項中 34 項通過，4 項仍檢查舊評分／完成 RPC，與 hotfix 前基準結果相同（output/relation-baseline.log），非本批引入。正反向 limit=0 API 均確認原歧義重現及指定 FK 後正常進入權限檢查。後端查詢修改不需重跑 React build；PR #436 已合併 main `838a97bdf0d82c71ed58c71e2345e22f7fc25bf6`；Functions 已更新為 speaking-challenge v51、pronunciation-coach v32、speaking-content-manager v67、speaking-tts-manager v39、weekly-report v25，全部 ACTIVE／verify_jwt=false，原有 Firebase 驗證保留。五支未登入實際 POST 都是 401，21 個實際 SELECT 的正式 API limit=0 均不再出現 PGRST201，而正確進入 401／42501 權限檢查；未讀學生資料或產生付費請求。Cloudflare build `f58511d1-4e59-4109-8674-c02fdfc37117`／check `112631708685` 在 2026-10-07 12:30:02 台灣時間 success，精確對應上述 main。正式 Browser Use 權限檢查限制仍在，登入後及 iPhone 實機待驗收；不能把未登入保護測試當作整個學生流程通過。前版本入口原始碼保存於忽略目錄 output/relation-hotfix-rollback；恢復前版本會再出現已知歧義，應保留此修復或配套回復原混合方案資料庫，不能只回復其中一支服務。
-
-### 口說混合評分與每日換關正式發布（2026-10-07，已部署／實機驗收待補）
-
-- 使用者明確同意本批正式資料庫與核心通關流程發布。PR #434 已合併 main `9fab824db672a8aeadd9f1bc0fbaca041da95cba`；本機副本 `output/speaking-local-completeness-20261006`，原主工作目錄無關草稿與成本 Email 功能未納入。
-- 四筆 additive migration 已逐筆成功執行：`20261006150733`、`20261006154419`、`20261006155728`、`20261007025513`；MCP 產生的暫時版本已在成功執行後透過 CLI repair 對齊已提交版本並去除重複 history，沒有重跑 SQL、刪除學習資料或大量 db push。三張新增表確認 RLS 開啟、anon／authenticated 無讀取權；六支新增／更新 RPC 皆 invoker、僅 service_role 可執行。
-- 從已合併 main 部署 `pronunciation-coach v31` 與 `speaking-challenge v50`，ACTIVE、verify_jwt=false，服務內維持 Firebase 驗證；遠端入口原始碼與 main 相符，實際未登入 POST 均 401。既有 Secret 名稱已確認存在，沒有新增或變更 Azure／Firebase／R2 設定，未讀取金鑰值。
-- Cloudflare 唯一一次 production build `8c683943-f908-467b-aeda-6d7641cf307e` completed／success；check `112627901454` 精確對應上述 main，2026-10-07 12:14:48 台灣時間完成。正式前端只由 main 發布，Netlify 歷史檢查不作正式發布依據。
-- 已發布：一般／拼讀本機朗讀完整度 100 分制、模型瀏覽器快取；A–Z Azure S0 基本評分關閉 prosody；每日共用 10 輪、同關每日一次、每字母每日 3 次預約，跨大小寫／裝置／版本共用；達限後純錄音回聽，不送評、不寫通關／獎勵；管理員 NT### 全服務成本統整（2026-10-07，本機實作／尚未部署）
-
-- 延續 output/cost-alerts-20261007／feature/cost-alert-email-ack，原主目錄草稿保留。成本頁納入 14 類服務，新增 OpenAI／Azure／Google 帳務、Cloudflare analytics、Resend quota、Stripe fee、GitHub repo usage 採集器；Supabase DB 大小、固定費用與完整總額設定一併集中。新增三張 service-only／RLS 表及三個 RPC；連同 Email 共五張表／六個 RPC與既有獨立五分鐘排程。
-- 總成本／門檻／Email 共用完整月 SQL，含既有 Azure alphabet basic 預留秒數每小時 US$1 的保守估算（本機朗讀不計入）；同服務帳單取代估算、不重複相加月費，保留 credits、費用歷史及失敗前成功快照。各來源更新有延遲；部分完整帳單未接通，不把未知金額當免費。
-- 已完成隔離 PostgreSQL 執行新 migration 與 API response／JWT／分頁／逾時／原子租約／RLS／角色與月份切換驗證；最終測試與 build 結果待本批驗證追加。範圍只含成本頁／採集器／提醒與文件，不更動現有學生權限、付款模式或正式 Secret。
-- 真實帳務、reader／export、Email投遞、正式cron、桌面／412px／iPhone尚未驗收；沿用瀏覽器 saved permissions 拒絕且不繞過。正式 migration／帳務IAM與Secret／部署仍需本批明確授權。接通範圍、來源頻率、尚缺資料及回復詳見 docs/COST_ALERT_RELEASE.md；手冊 v3.55 草稿。
-
-### 成本 Email 每五分鐘持續提醒（2026-10-07，本機已實作／尚未部署）
-
-- 獨立副本 `output/cost-alerts-20261007`；分支 `feature/cost-alert-email-ack`，基準最新已取得 main `dc866e7a`。原主目錄的其他草稿、分支及未提交修改保留。新增 Email 收件設定、成本提醒區及「我已經看到」按鈕、Firebase 管理員驗證的 `cost-alert-manager`、三個 service-only RPC、兩張 RLS 表及獨立每 5 分鐘 cron；不變更既有每小時家長排程／學生／教材／付款／學習紀錄。
-- 觸發使用成本頁的既有已追蹤估算與月預算警戒線（含等於）；未登入／關閉網站仍由後端提醒，只查看／登入不會確認。收件管理員按鈕成功確認即停止整個月份通知，當月費用再增加或達 100% 也不重新通知；新月達線再提醒，舊月未確認仍保留。採既有 Resend Email，LINE 未接入；初次需本人按「使用我的 Email 接收提醒」。
-- 18/18 隔離 PostgreSQL／後端／寄信替身整合測試、10/10 受影響 React 測試、5 檔 ESLint、shared TypeScript 0 diagnostics、三檔 Edge 語法及 diff check 通過。最終 production build `main.096572ec.js` 成功；只在補上遲到刷新防護及收斂同月停止規則後重驗相關測試／build，未跑無關全套測試、未改套件／lockfile。
-- 實際 migration 已在 PGlite 隔離 PostgreSQL 執行，確認精確門檻、四類來源估算、台北月界線、原子防重送、確認持久化／越權／達 100% 仍停止、跨月、RLS／RPC 撤權、背景寄送／失敗重試與確認後停止；cron 註冊及 Email provider 使用替身，不能視為正式排程與實際收件證據。
-- 隔離實際元件預覽 `http://127.0.0.1:3018` 已編譯，API 全部使用固定假資料；Browser Use 無法驗證 saved permissions，拒絕 localhost 存取，未繞過。桌面／412px／iPhone 實際版面及真實 Email 投遞未驗，A-15／A-16 截圖與影片待製作。
-- 尚未 Push／PR／合併／套用正式 SQL／部署 Function／發布前端／啟用私人收件人。下一步依 AGENTS.md 第 13–14 節取得本批正式 migration 與排程授權，再按 `docs/COST_ALERT_RELEASE.md` 執行。回復先停用新 cron（必要時成本提醒專用停止開關），保留 additive 表／確認紀錄；不影響既有家長通知。手冊 v3.54 本機草稿同步。
-- 相關檔案：`ApiUsageAdmin.jsx`／測試／SCSS、`CostAlertPanel.jsx`／測試、`costAlertService.js`、`_shared/cost-alert-handler.ts`／`cost-alert-email.ts`、`cost-alert-manager/index.ts`、`supabase/config.toml`、`20261007024653_cost_alert_acknowledgement.sql`、`scripts/cost-alerts-sql.test.mjs`、`package.json`、產品邏輯／狀態／手冊及發布說明。
-,000／1,500 月費估算提醒。A–Z 仍可能計費，不是全站完全免費。
-- 驗證沿用本批 165 個相關測試、隔離 PGlite、production build、focused ESLint／320／412／1440px 元件預覽；發布前 diff check、require-pushed preflight 通過，兩支 TS syntax check 通過。純文件更新不重跑應用測試或 build，不應觸發另一個 Cloudflare build。
-- 正式網址 Browser Use 被 saved browser permissions 無法驗證所阻擋；未繞過控制。登入後全遊戲畫面、真實學生紀錄／獎勵、iPhone Safari／Android 錄音與 Azure 真實帳單尚未驗收，不能宣稱線上完整驗收通過。先請家長重新整理並測試，這些限制不以本機替身測試代替。
-- 回復：已保存發布前兩支 Function 來源於忽略目錄 `output/speaking-release-rollback`。若核心流程異常，保留新增表與所有歷史資料，配套恢復前後端及受影響預約／完成函式；不能只回復前端。恢復舊版會重新使用全部 Azure 付費，需明確決定恢復付費或暫停入口。下方尚未部署段落為發布前歷史紀錄，本節為目前狀態。
-
-### 每日一次通關／A–Z 三次字母評分／純回聽（2026-10-07，尚未部署）
-
-- 使用者核准：A–Z 保留 Azure 基本評分，每位學生每個字母每天最多 3 次；同一關每天最多正式完成一次，簡單與挑戰共用，仍保留全站共用的每人每日 10 輪。大小寫、重開、跨關卡／版本與裝置不能重置字母計數。預約後的技術失敗仍占字母次數；沒有恢復個人月秒數額度。
-- 同一隔離副本 `output/speaking-local-completeness-20261006`／`codex/speaking-local-completeness`，承接 `ec90ee7b`。新增 additive migration `20261007025513_speaking_daily_level_and_alphabet_limits.sql`：每日關卡／題目完成表（RLS、FK 索引、service-only），預約時在 Azure 呼叫前檢查上限，完成與預約共用每日 lock；A–Z 使用 v3 完成交易，保存成功每日通關且保留 claim 冪等／既有一次獎勵。一般今日進度只採成功的每日 completion 操作，不把歷史或只有評分、沒有完成的紀錄算成今日通關。
-- 新增 `SpeakingReviewPractice.jsx`／SCSS：今日完成或字母次數耗盡轉為純錄音回聽，可切題、聽已核准示範、返回地圖換關；不載入 ASR、不呼叫 Azure、不寫成績／完成／獎勵。學生不能透過回聽跳題通關。入口與家長規則同步更新；修正 foundation／picture 完成提交使用其自身錄音 session，避免與外層 session 不一致。手冊 v3.56、PROJECT_LOGIC 同批更新。
-- 驗證：後端 25 項（SQL 14、pronunciation handler 7、Azure helper 3、費用角色 handler 1）及受影響 React 9 套 140 項皆通過；首次舊文字／回呼參數斷言 4 項已按新規則更新並補上入口／回聽保護檢查。focused ESLint、diff check、production build 成功（daily-build.log）；最後純 UI 提示／返回圖示／局部 SCSS 調整以 focused webpack 預覽重編譯驗證，不重跑完整 build。沒有安裝 Deno，因此未宣稱完成 Deno check；TS handler 實際轉譯並執行測試。
-- 隔離瀏覽器 320／412／1440px 規則與回聽頁沒有橫向溢出、可切換題目，無模型啟動或送評按鈕；截圖 `output/local-reading-validation/daily-review-412.png` 與報告 daily-review-validation.json、rules-validation.json。屬獨立元件預覽，不代表正式整個遊戲版型或 iPhone Safari 實機驗收。PGlite 為合成資料，Azure 回應替身，未送付費請求。
-- 待完成：最新遠端 main 同步／整合 diff、正式 SQL 明確授權、migration → 兩支 Function → main／Cloudflare 發布與真實學生、iPhone／Android、Azure 帳單驗收。原主工作目錄無關草稿未納入。回復策略：保留 additive 表及歷史資料，恢復本批前混合方案程式與預約函式（會移除每日一次／三次限制）；不能只回復前端而保留不相容後端。未執行正式 migration、外部設定或 Push／PR／合併。
-
-### 本機完整度／A–Z Azure 基本評分與費用提醒（2026-10-07，尚未部署）
-
-- 使用者已核准混合方案：一般／拼讀使用本機完整度 100 分制，只有 A–Z 使用現有 Azure S0 基本評分，關閉 prosody；每天共用 10 輪，同輪重試不重扣，取消學生月送評額度。未採 F0／S0 雙資源方案，未更改 Azure 設定或金鑰。
-- 同一隔離副本 `output/speaking-local-completeness-20261006`，分支 `codex/speaking-local-completeness`，承接 `f1cac5a9`。後端依已發布題型限制付費音訊僅 A–Z，核對實際 PCM WAV／時長／聲音與既有 round claim，基本評分的未測韻律保存為 null，失敗不寫通關／釋放 claim；其餘文字由正式答案重算。新增 additive migration `20261006155728_speaking_alphabet_basic_cost_tracking.sql`，保留舊資料與身分架構。
-- 模型 Cache API 保存必要檔案，申請 best-effort persistent storage，載入後顯示快取是否存在；不是保證任何手機永不重新下載。管理員題庫頁新增手動更新的全站 A–Z 月費估算，NT### 全服務成本統整（2026-10-07，本機實作／尚未部署）
-
-- 延續 output/cost-alerts-20261007／feature/cost-alert-email-ack，原主目錄草稿保留。成本頁納入 14 類服務，新增 OpenAI／Azure／Google 帳務、Cloudflare analytics、Resend quota、Stripe fee、GitHub repo usage 採集器；Supabase DB 大小、固定費用與完整總額設定一併集中。新增三張 service-only／RLS 表及三個 RPC；連同 Email 共五張表／六個 RPC與既有獨立五分鐘排程。
-- 總成本／門檻／Email 共用完整月 SQL，含既有 Azure alphabet basic 預留秒數每小時 US$1 的保守估算（本機朗讀不計入）；同服務帳單取代估算、不重複相加月費，保留 credits、費用歷史及失敗前成功快照。各來源更新有延遲；部分完整帳單未接通，不把未知金額當免費。
-- 已完成隔離 PostgreSQL 執行新 migration 與 API response／JWT／分頁／逾時／原子租約／RLS／角色與月份切換驗證；最終測試與 build 結果待本批驗證追加。範圍只含成本頁／採集器／提醒與文件，不更動現有學生權限、付款模式或正式 Secret。
-- 真實帳務、reader／export、Email投遞、正式cron、桌面／412px／iPhone尚未驗收；沿用瀏覽器 saved permissions 拒絕且不繞過。正式 migration／帳務IAM與Secret／部署仍需本批明確授權。接通範圍、來源頻率、尚缺資料及回復詳見 docs/COST_ALERT_RELEASE.md；手冊 v3.55 草稿。
-
-### 成本 Email 每五分鐘持續提醒（2026-10-07，本機已實作／尚未部署）
-
-- 獨立副本 `output/cost-alerts-20261007`；分支 `feature/cost-alert-email-ack`，基準最新已取得 main `dc866e7a`。原主目錄的其他草稿、分支及未提交修改保留。新增 Email 收件設定、成本提醒區及「我已經看到」按鈕、Firebase 管理員驗證的 `cost-alert-manager`、三個 service-only RPC、兩張 RLS 表及獨立每 5 分鐘 cron；不變更既有每小時家長排程／學生／教材／付款／學習紀錄。
-- 觸發使用成本頁的既有已追蹤估算與月預算警戒線（含等於）；未登入／關閉網站仍由後端提醒，只查看／登入不會確認。收件管理員按鈕成功確認即停止整個月份通知，當月費用再增加或達 100% 也不重新通知；新月達線再提醒，舊月未確認仍保留。採既有 Resend Email，LINE 未接入；初次需本人按「使用我的 Email 接收提醒」。
-- 18/18 隔離 PostgreSQL／後端／寄信替身整合測試、10/10 受影響 React 測試、5 檔 ESLint、shared TypeScript 0 diagnostics、三檔 Edge 語法及 diff check 通過。最終 production build `main.096572ec.js` 成功；只在補上遲到刷新防護及收斂同月停止規則後重驗相關測試／build，未跑無關全套測試、未改套件／lockfile。
-- 實際 migration 已在 PGlite 隔離 PostgreSQL 執行，確認精確門檻、四類來源估算、台北月界線、原子防重送、確認持久化／越權／達 100% 仍停止、跨月、RLS／RPC 撤權、背景寄送／失敗重試與確認後停止；cron 註冊及 Email provider 使用替身，不能視為正式排程與實際收件證據。
-- 隔離實際元件預覽 `http://127.0.0.1:3018` 已編譯，API 全部使用固定假資料；Browser Use 無法驗證 saved permissions，拒絕 localhost 存取，未繞過。桌面／412px／iPhone 實際版面及真實 Email 投遞未驗，A-15／A-16 截圖與影片待製作。
-- 尚未 Push／PR／合併／套用正式 SQL／部署 Function／發布前端／啟用私人收件人。下一步依 AGENTS.md 第 13–14 節取得本批正式 migration 與排程授權，再按 `docs/COST_ALERT_RELEASE.md` 執行。回復先停用新 cron（必要時成本提醒專用停止開關），保留 additive 表／確認紀錄；不影響既有家長通知。手冊 v3.54 本機草稿同步。
-- 相關檔案：`ApiUsageAdmin.jsx`／測試／SCSS、`CostAlertPanel.jsx`／測試、`costAlertService.js`、`_shared/cost-alert-handler.ts`／`cost-alert-email.ts`、`cost-alert-manager/index.ts`、`supabase/config.toml`、`20261007024653_cost_alert_acknowledgement.sql`、`scripts/cost-alerts-sql.test.mjs`、`package.json`、產品邏輯／狀態／手冊及發布說明。
-,000／1,500 提醒不阻擋送評；API 重新驗證 admin，學生／老師及偽造前端角色不能讀總額。估算包含新路由失敗／不確定預約，未含切換前／其他 Azure 請求、稅與匯差，以帳單為準。
-- 成本情境：40 人、30 天、一般每題 8 秒、A–Z 每天一輪 26 個字母且每字母 3 秒，US### 全服務成本統整（2026-10-07，本機實作／尚未部署）
-
-- 延續 output/cost-alerts-20261007／feature/cost-alert-email-ack，原主目錄草稿保留。成本頁納入 14 類服務，新增 OpenAI／Azure／Google 帳務、Cloudflare analytics、Resend quota、Stripe fee、GitHub repo usage 採集器；Supabase DB 大小、固定費用與完整總額設定一併集中。新增三張 service-only／RLS 表及三個 RPC；連同 Email 共五張表／六個 RPC與既有獨立五分鐘排程。
-- 總成本／門檻／Email 共用完整月 SQL，含既有 Azure alphabet basic 預留秒數每小時 US$1 的保守估算（本機朗讀不計入）；同服務帳單取代估算、不重複相加月費，保留 credits、費用歷史及失敗前成功快照。各來源更新有延遲；部分完整帳單未接通，不把未知金額當免費。
-- 已完成隔離 PostgreSQL 執行新 migration 與 API response／JWT／分頁／逾時／原子租約／RLS／角色與月份切換驗證；最終測試與 build 結果待本批驗證追加。範圍只含成本頁／採集器／提醒與文件，不更動現有學生權限、付款模式或正式 Secret。
-- 真實帳務、reader／export、Email投遞、正式cron、桌面／412px／iPhone尚未驗收；沿用瀏覽器 saved permissions 拒絕且不繞過。正式 migration／帳務IAM與Secret／部署仍需本批明確授權。接通範圍、來源頻率、尚缺資料及回復詳見 docs/COST_ALERT_RELEASE.md；手冊 v3.55 草稿。
-
-### 成本 Email 每五分鐘持續提醒（2026-10-07，本機已實作／尚未部署）
-
-- 獨立副本 `output/cost-alerts-20261007`；分支 `feature/cost-alert-email-ack`，基準最新已取得 main `dc866e7a`。原主目錄的其他草稿、分支及未提交修改保留。新增 Email 收件設定、成本提醒區及「我已經看到」按鈕、Firebase 管理員驗證的 `cost-alert-manager`、三個 service-only RPC、兩張 RLS 表及獨立每 5 分鐘 cron；不變更既有每小時家長排程／學生／教材／付款／學習紀錄。
-- 觸發使用成本頁的既有已追蹤估算與月預算警戒線（含等於）；未登入／關閉網站仍由後端提醒，只查看／登入不會確認。收件管理員按鈕成功確認即停止整個月份通知，當月費用再增加或達 100% 也不重新通知；新月達線再提醒，舊月未確認仍保留。採既有 Resend Email，LINE 未接入；初次需本人按「使用我的 Email 接收提醒」。
-- 18/18 隔離 PostgreSQL／後端／寄信替身整合測試、10/10 受影響 React 測試、5 檔 ESLint、shared TypeScript 0 diagnostics、三檔 Edge 語法及 diff check 通過。最終 production build `main.096572ec.js` 成功；只在補上遲到刷新防護及收斂同月停止規則後重驗相關測試／build，未跑無關全套測試、未改套件／lockfile。
-- 實際 migration 已在 PGlite 隔離 PostgreSQL 執行，確認精確門檻、四類來源估算、台北月界線、原子防重送、確認持久化／越權／達 100% 仍停止、跨月、RLS／RPC 撤權、背景寄送／失敗重試與確認後停止；cron 註冊及 Email provider 使用替身，不能視為正式排程與實際收件證據。
-- 隔離實際元件預覽 `http://127.0.0.1:3018` 已編譯，API 全部使用固定假資料；Browser Use 無法驗證 saved permissions，拒絕 localhost 存取，未繞過。桌面／412px／iPhone 實際版面及真實 Email 投遞未驗，A-15／A-16 截圖與影片待製作。
-- 尚未 Push／PR／合併／套用正式 SQL／部署 Function／發布前端／啟用私人收件人。下一步依 AGENTS.md 第 13–14 節取得本批正式 migration 與排程授權，再按 `docs/COST_ALERT_RELEASE.md` 執行。回復先停用新 cron（必要時成本提醒專用停止開關），保留 additive 表／確認紀錄；不影響既有家長通知。手冊 v3.54 本機草稿同步。
-- 相關檔案：`ApiUsageAdmin.jsx`／測試／SCSS、`CostAlertPanel.jsx`／測試、`costAlertService.js`、`_shared/cost-alert-handler.ts`／`cost-alert-email.ts`、`cost-alert-manager/index.ts`、`supabase/config.toml`、`20261007024653_cost_alert_acknowledgement.sql`、`scripts/cost-alerts-sql.test.mjs`、`package.json`、產品邏輯／狀態／手冊及發布說明。
-／小時基本評分與原 US$0.3／小時韻律，假設 NT$32／USD。一般每天 5／10／20 題，全部 Azure + prosody 的同量服務費約 NT### 全服務成本統整（2026-10-07，本機實作／尚未部署）
-
-- 延續 output/cost-alerts-20261007／feature/cost-alert-email-ack，原主目錄草稿保留。成本頁納入 14 類服務，新增 OpenAI／Azure／Google 帳務、Cloudflare analytics、Resend quota、Stripe fee、GitHub repo usage 採集器；Supabase DB 大小、固定費用與完整總額設定一併集中。新增三張 service-only／RLS 表及三個 RPC；連同 Email 共五張表／六個 RPC與既有獨立五分鐘排程。
-- 總成本／門檻／Email 共用完整月 SQL，含既有 Azure alphabet basic 預留秒數每小時 US$1 的保守估算（本機朗讀不計入）；同服務帳單取代估算、不重複相加月費，保留 credits、費用歷史及失敗前成功快照。各來源更新有延遲；部分完整帳單未接通，不把未知金額當免費。
-- 已完成隔離 PostgreSQL 執行新 migration 與 API response／JWT／分頁／逾時／原子租約／RLS／角色與月份切換驗證；最終測試與 build 結果待本批驗證追加。範圍只含成本頁／採集器／提醒與文件，不更動現有學生權限、付款模式或正式 Secret。
-- 真實帳務、reader／export、Email投遞、正式cron、桌面／412px／iPhone尚未驗收；沿用瀏覽器 saved permissions 拒絕且不繞過。正式 migration／帳務IAM與Secret／部署仍需本批明確授權。接通範圍、來源頻率、尚缺資料及回復詳見 docs/COST_ALERT_RELEASE.md；手冊 v3.55 草稿。
-
-### 成本 Email 每五分鐘持續提醒（2026-10-07，本機已實作／尚未部署）
-
-- 獨立副本 `output/cost-alerts-20261007`；分支 `feature/cost-alert-email-ack`，基準最新已取得 main `dc866e7a`。原主目錄的其他草稿、分支及未提交修改保留。新增 Email 收件設定、成本提醒區及「我已經看到」按鈕、Firebase 管理員驗證的 `cost-alert-manager`、三個 service-only RPC、兩張 RLS 表及獨立每 5 分鐘 cron；不變更既有每小時家長排程／學生／教材／付款／學習紀錄。
-- 觸發使用成本頁的既有已追蹤估算與月預算警戒線（含等於）；未登入／關閉網站仍由後端提醒，只查看／登入不會確認。收件管理員按鈕成功確認即停止整個月份通知，當月費用再增加或達 100% 也不重新通知；新月達線再提醒，舊月未確認仍保留。採既有 Resend Email，LINE 未接入；初次需本人按「使用我的 Email 接收提醒」。
-- 18/18 隔離 PostgreSQL／後端／寄信替身整合測試、10/10 受影響 React 測試、5 檔 ESLint、shared TypeScript 0 diagnostics、三檔 Edge 語法及 diff check 通過。最終 production build `main.096572ec.js` 成功；只在補上遲到刷新防護及收斂同月停止規則後重驗相關測試／build，未跑無關全套測試、未改套件／lockfile。
-- 實際 migration 已在 PGlite 隔離 PostgreSQL 執行，確認精確門檻、四類來源估算、台北月界線、原子防重送、確認持久化／越權／達 100% 仍停止、跨月、RLS／RPC 撤權、背景寄送／失敗重試與確認後停止；cron 註冊及 Email provider 使用替身，不能視為正式排程與實際收件證據。
-- 隔離實際元件預覽 `http://127.0.0.1:3018` 已編譯，API 全部使用固定假資料；Browser Use 無法驗證 saved permissions，拒絕 localhost 存取，未繞過。桌面／412px／iPhone 實際版面及真實 Email 投遞未驗，A-15／A-16 截圖與影片待製作。
-- 尚未 Push／PR／合併／套用正式 SQL／部署 Function／發布前端／啟用私人收件人。下一步依 AGENTS.md 第 13–14 節取得本批正式 migration 與排程授權，再按 `docs/COST_ALERT_RELEASE.md` 執行。回復先停用新 cron（必要時成本提醒專用停止開關），保留 additive 表／確認紀錄；不影響既有家長通知。手冊 v3.54 本機草稿同步。
-- 相關檔案：`ApiUsageAdmin.jsx`／測試／SCSS、`CostAlertPanel.jsx`／測試、`costAlertService.js`、`_shared/cost-alert-handler.ts`／`cost-alert-email.ts`、`cost-alert-manager/index.ts`、`supabase/config.toml`、`20261007024653_cost_alert_acknowledgement.sql`、`scripts/cost-alerts-sql.test.mjs`、`package.json`、產品邏輯／狀態／手冊及發布說明。
-,636／2,191／3,300；新方案各約 NT$832，省 NT$804／1,359／2,468（49%／62%／75%）。比較相同練習量，未假設舊月額度先阻擋使用；舊每人 3,600 秒月額度下，10／20 題情境原先可能無法全數送評，因此不可當作歷史已付金額或實際已省金額。只比較語音 API，不含 ChatGPT、域名、人力。新方案此情境每人 NT口說列表載入錯誤修復（2026-10-07，已正式部署／登入後驗收待補）：正式日誌出現 PGRST201；新增每日題目完成表被 PostgREST 視為關卡／題目的第二條 many-to-many 關聯，導致原未指定 FK 的查詢歧義。limit=0 的正式 API 結構測試重現 300／PGRST201；指定 speaking_questions_question_set_id_fkey 後進入正常權限檢查 401／42501，未讀學生資料或放寬權限。修改 speaking-challenge（2 處）、speaking-content-manager（16 處）、weekly-report（1 處）、pronunciation-coach（1 處）、speaking-tts-manager（1 處）使用原有 FK；不改 SQL、通關限制或資料。實際 catalog handler 的學生／管理員回歸測試與費用权限、週報與評分 handler 測試共 12 項通過，五支 TS syntax check 通過。題庫契約 38 項中 34 項通過，4 項仍檢查舊評分／完成 RPC，與 hotfix 前基準結果相同（output/relation-baseline.log），非本批引入。正反向 limit=0 API 均確認原歧義重現及指定 FK 後正常進入權限檢查。後端查詢修改不需重跑 React build；PR #436 已合併 main `838a97bdf0d82c71ed58c71e2345e22f7fc25bf6`；Functions 已更新為 speaking-challenge v51、pronunciation-coach v32、speaking-content-manager v67、speaking-tts-manager v39、weekly-report v25，全部 ACTIVE／verify_jwt=false，原有 Firebase 驗證保留。五支未登入實際 POST 都是 401，21 個實際 SELECT 的正式 API limit=0 均不再出現 PGRST201，而正確進入 401／42501 權限檢查；未讀學生資料或產生付費請求。Cloudflare build `f58511d1-4e59-4109-8674-c02fdfc37117`／check `112631708685` 在 2026-10-07 12:30:02 台灣時間 success，精確對應上述 main。正式 Browser Use 權限檢查限制仍在，登入後及 iPhone 實機待驗收；不能把未登入保護測試當作整個學生流程通過。前版本入口原始碼保存於忽略目錄 output/relation-hotfix-rollback；恢復前版本會再出現已知歧義，應保留此修復或配套回復原混合方案資料庫，不能只回復其中一支服務。
 
 ### 口說混合評分與每日換關正式發布（2026-10-07，已部署／實機驗收待補）
 
@@ -164,77 +59,6 @@
 - 承接 `17b3e04a`，同分支／副本；使用者改為保留每天 10 輪、移除學生每月送評額度。新增 additive migration `20261006154419_speaking_ten_daily_rounds.sql`，保留鎖定、題目歸屬與同輪去重，只把每日值 5 改為 10。catalog 不再查舊付費月額度，規則卡只顯示輪數並保留單段 12／25 秒與安全限流。
 - 使用者詢問 A–Z 免費用完接付費可行性與費用；僅此題型考慮 Azure，其他題維持本機。Azure 設定與路由未改，正式 SQL／Function／前端未部署。原模型快取已啟用；跨重新開頁快取驗收及提示改善仍待處理。
 - 官方 Retail Prices API 於本批核對 southeastasia：Azure Speech S1 Speech To Text 每音訊小時 US$1（資源定價層仍稱 S0），enhanced feature US$0.3／小時。原 Azure 程式開啟 Prosody 加購，A–Z 建議關閉。以匯率 NT$32／USD 作預算假設，40 人、30 天、26 字母／輪、每字母 3 秒、每日一輪，全部付費 NT$832／月；兩輪 NT$1,664；十輪 NT$8,320。兩資源先 F0 五小時再 S0 可最多少 NT$160；並行限制與重試會影響實際用量，S0 不應直接扣五小時。
-- 本批驗證結果見下方補充；未重跑無關全套測試，原 production build 證據沿用，本批局部 UI 編譯與 SQL 隔離執行另外驗證。A–Z 付費整合、跨頁模型快取、正式學生／手機驗收仍未完成。
-- 驗證補充：PGlite SQL 10 項與真實 handler 隔離 4 項、規則卡 React 4 項，共 18 項通過；focused ESLint、SCSS／webpack 預覽編譯、diff check 通過。規則卡 Chrome 引擎 320／412／1440px 無橫向溢出，10 個輪數標記且沒有月額度顯示，報告 output/local-reading-validation/rules-validation.json。
-
-### 口說本機朗讀完整度（2026-10-06，整合草稿／尚未部署）
-
-- 使用者回報獨立測試版成功，要求整合口說大挑戰，最後選擇 100 分制。分支 `codex/speaking-local-completeness`，基準 main `dc866e7a`，獨立副本 `output/speaking-local-completeness-20261006`；原工作目錄未提交修改保留。
-- 一般與 A–Z 錄音接入本機相容 SIMD／scalar Worker；只送辨識文字與題目／回合資料，後端按正式答案計算完整度，舊 multipart 請求拒絕並要求更新，不再呼叫 Azure。結果用「朗讀完整度 N 分」，顯示 4 秒後交回通關流程。一般題保留既有手動送評；本批不改全部題型的導航操作。
-- 新增 migration `20261006150733_speaking_local_completeness.sql`：發音維度可為 null，新增來源欄位、獨立本機請求表及限流 RPC；保留舊資料、每日五輪及 A–Z／獎勵交易。一般題完成也須同回合有效後端紀錄。手機文字不具真人朗讀證明，已明記風險。
-- 隔離驗證：完整度／既有授權與流程 17 項、實際 Edge handler（替身資料庫／禁止供應商網路）4 項、PGlite SQL 10 項通過。React 元件／服務及瀏覽器結果記於同副本 output/local-reading-validation；production build 已成功，無套件或 lockfile 更動。非全套測試，聚焦錄音、評分與儲存。
-- 正式 migration、兩支 Edge Function、Git 合併與 Cloudflare 發布均未執行。依 AGENTS §13–14，待本批正式資料變更明確同意後才執行。發布顺序：migration → pronunciation-coach／speaking-challenge → main 前端 → 正式驗收；舊頁需重整。可保留新增表／舊紀錄回復程式，但會恢復原 Azure 路徑，必須由擁有者選擇恢復付費或暫停入口，不能偷偷使用付費備援。
-- 尚未驗證：新整合版的實機 iPhone／Android、兒童聲音／單字母辨識品質、正式登入後紀錄與獎勵。先前手機獨立測試成功不等於本批正式整合已驗收。
-- 驗收補充：React 元件／服務共 52 項通過（含分數先顯示 4 秒、相容退回、離頁取消、無聲防護）；實際 MediaRecorder → 真正本機 Whisper → 100 分 UI 通過，伺服器評分使用替身，真正 handler 由上列隔離測試驗證。320／412／1440px 無橫向溢出，無 pageerror／錄音 POST。截圖及報告在 output/local-reading-validation，完整 build 成功後另以 targeted tests／preview 編譯驗證結果出現後停止等待提示的小調整。
-0.8，但 A–Z 重試／更多輪會增加費用，10 輪上限不保證每人每月低於 NT$50。
-- 驗證：SQL 11 項、實際 pronunciation handler 6 項、Azure helper 3 項、費用角色 handler 1 項及 React 38 項，共 59 項通過；focused ESLint、Worker syntax、diff check、production build 成功（output/local-reading-validation/output-hybrid-build.log）。PGlite 使用隔離合成資料，供應商回應為替身；未呼叫付費 Azure。320／412／1440px 費用提醒無溢出，報告 cost-visual-validation.json；每日十輪規則沿用前批同寬度驗證。最後補上提醒按鈕最小 44px 為 UI-only，局部預覽重新編譯與檢查通過，不重跑昂貴 build／全套測試。
-- 模型快取實測通過：乾淨桌面瀏覽器首次有 7 個模型資源請求；重新開頁並阻擋模型主機後，模型請求 0，仍成功準備。報告 cache-validation.json；瀏覽器引擎／WASM 資源及網站網路需求不等於模型下載。初次沙盒禁止 CDN 網路，經隔離公開模型下載驗證後完成，未傳錄音。
-- 尚未完成：實機 Safari／Android、兒童 A–Z 真實 Azure 品質、正式登入後記錄／獎勵／Azure 帳單。GitHub fetch 在目前執行環境受連線及安全目錄限制，尚未核對最新遠端 main；發布前仍須同步並檢查差異。
-- 正式 migration、兩支 Function、Push／PR／合併及 Cloudflare 發布均未執行。依 AGENTS §13–14，待本批正式 SQL／核心學習流程發布明確授權；發布依序 migration → pronunciation-coach／speaking-challenge → main 前端 → 正式驗收。回復可以保留 additive 表／歷史資料並恢復上一份程式，但舊版會恢復全部 Azure 付費，須明確選擇恢復付費或暫停入口。原主工作目錄無關草稿未納入。
-
-### 每日十輪與 A–Z 成本評估（2026-10-06，尚未部署）
-
-- 承接 `17b3e04a`，同分支／副本；使用者改為保留每天 10 輪、移除學生每月送評額度。新增 additive migration `20261006154419_speaking_ten_daily_rounds.sql`，保留鎖定、題目歸屬與同輪去重，只把每日值 5 改為 10。catalog 不再查舊付費月額度，規則卡只顯示輪數並保留單段 12／25 秒與安全限流。
-- 使用者詢問 A–Z 免費用完接付費可行性與費用；僅此題型考慮 Azure，其他題維持本機。Azure 設定與路由未改，正式 SQL／Function／前端未部署。原模型快取已啟用；跨重新開頁快取驗收及提示改善仍待處理。
-- 官方 Retail Prices API 於本批核對 southeastasia：Azure Speech S1 Speech To Text 每音訊小時 US### 全服務成本統整（2026-10-07，本機實作／尚未部署）
-
-- 延續 output/cost-alerts-20261007／feature/cost-alert-email-ack，原主目錄草稿保留。成本頁納入 14 類服務，新增 OpenAI／Azure／Google 帳務、Cloudflare analytics、Resend quota、Stripe fee、GitHub repo usage 採集器；Supabase DB 大小、固定費用與完整總額設定一併集中。新增三張 service-only／RLS 表及三個 RPC；連同 Email 共五張表／六個 RPC與既有獨立五分鐘排程。
-- 總成本／門檻／Email 共用完整月 SQL，含既有 Azure alphabet basic 預留秒數每小時 US$1 的保守估算（本機朗讀不計入）；同服務帳單取代估算、不重複相加月費，保留 credits、費用歷史及失敗前成功快照。各來源更新有延遲；部分完整帳單未接通，不把未知金額當免費。
-- 已完成隔離 PostgreSQL 執行新 migration 與 API response／JWT／分頁／逾時／原子租約／RLS／角色與月份切換驗證；最終測試與 build 結果待本批驗證追加。範圍只含成本頁／採集器／提醒與文件，不更動現有學生權限、付款模式或正式 Secret。
-- 真實帳務、reader／export、Email投遞、正式cron、桌面／412px／iPhone尚未驗收；沿用瀏覽器 saved permissions 拒絕且不繞過。正式 migration／帳務IAM與Secret／部署仍需本批明確授權。接通範圍、來源頻率、尚缺資料及回復詳見 docs/COST_ALERT_RELEASE.md；手冊 v3.55 草稿。
-
-### 成本 Email 每五分鐘持續提醒（2026-10-07，本機已實作／尚未部署）
-
-- 獨立副本 `output/cost-alerts-20261007`；分支 `feature/cost-alert-email-ack`，基準最新已取得 main `dc866e7a`。原主目錄的其他草稿、分支及未提交修改保留。新增 Email 收件設定、成本提醒區及「我已經看到」按鈕、Firebase 管理員驗證的 `cost-alert-manager`、三個 service-only RPC、兩張 RLS 表及獨立每 5 分鐘 cron；不變更既有每小時家長排程／學生／教材／付款／學習紀錄。
-- 觸發使用成本頁的既有已追蹤估算與月預算警戒線（含等於）；未登入／關閉網站仍由後端提醒，只查看／登入不會確認。收件管理員按鈕成功確認即停止整個月份通知，當月費用再增加或達 100% 也不重新通知；新月達線再提醒，舊月未確認仍保留。採既有 Resend Email，LINE 未接入；初次需本人按「使用我的 Email 接收提醒」。
-- 18/18 隔離 PostgreSQL／後端／寄信替身整合測試、10/10 受影響 React 測試、5 檔 ESLint、shared TypeScript 0 diagnostics、三檔 Edge 語法及 diff check 通過。最終 production build `main.096572ec.js` 成功；只在補上遲到刷新防護及收斂同月停止規則後重驗相關測試／build，未跑無關全套測試、未改套件／lockfile。
-- 實際 migration 已在 PGlite 隔離 PostgreSQL 執行，確認精確門檻、四類來源估算、台北月界線、原子防重送、確認持久化／越權／達 100% 仍停止、跨月、RLS／RPC 撤權、背景寄送／失敗重試與確認後停止；cron 註冊及 Email provider 使用替身，不能視為正式排程與實際收件證據。
-- 隔離實際元件預覽 `http://127.0.0.1:3018` 已編譯，API 全部使用固定假資料；Browser Use 無法驗證 saved permissions，拒絕 localhost 存取，未繞過。桌面／412px／iPhone 實際版面及真實 Email 投遞未驗，A-15／A-16 截圖與影片待製作。
-- 尚未 Push／PR／合併／套用正式 SQL／部署 Function／發布前端／啟用私人收件人。下一步依 AGENTS.md 第 13–14 節取得本批正式 migration 與排程授權，再按 `docs/COST_ALERT_RELEASE.md` 執行。回復先停用新 cron（必要時成本提醒專用停止開關），保留 additive 表／確認紀錄；不影響既有家長通知。手冊 v3.54 本機草稿同步。
-- 相關檔案：`ApiUsageAdmin.jsx`／測試／SCSS、`CostAlertPanel.jsx`／測試、`costAlertService.js`、`_shared/cost-alert-handler.ts`／`cost-alert-email.ts`、`cost-alert-manager/index.ts`、`supabase/config.toml`、`20261007024653_cost_alert_acknowledgement.sql`、`scripts/cost-alerts-sql.test.mjs`、`package.json`、產品邏輯／狀態／手冊及發布說明。
-（資源定價層仍稱 S0），enhanced feature US$0.3／小時。原 Azure 程式開啟 Prosody 加購，A–Z 建議關閉。以匯率 NT$32／USD 作預算假設，40 人、30 天、26 字母／輪、每字母 3 秒、每日一輪，全部付費 NT$832／月；兩輪 NT### 全服務成本統整（2026-10-07，本機實作／尚未部署）
-
-- 延續 output/cost-alerts-20261007／feature/cost-alert-email-ack，原主目錄草稿保留。成本頁納入 14 類服務，新增 OpenAI／Azure／Google 帳務、Cloudflare analytics、Resend quota、Stripe fee、GitHub repo usage 採集器；Supabase DB 大小、固定費用與完整總額設定一併集中。新增三張 service-only／RLS 表及三個 RPC；連同 Email 共五張表／六個 RPC與既有獨立五分鐘排程。
-- 總成本／門檻／Email 共用完整月 SQL，含既有 Azure alphabet basic 預留秒數每小時 US$1 的保守估算（本機朗讀不計入）；同服務帳單取代估算、不重複相加月費，保留 credits、費用歷史及失敗前成功快照。各來源更新有延遲；部分完整帳單未接通，不把未知金額當免費。
-- 已完成隔離 PostgreSQL 執行新 migration 與 API response／JWT／分頁／逾時／原子租約／RLS／角色與月份切換驗證；最終測試與 build 結果待本批驗證追加。範圍只含成本頁／採集器／提醒與文件，不更動現有學生權限、付款模式或正式 Secret。
-- 真實帳務、reader／export、Email投遞、正式cron、桌面／412px／iPhone尚未驗收；沿用瀏覽器 saved permissions 拒絕且不繞過。正式 migration／帳務IAM與Secret／部署仍需本批明確授權。接通範圍、來源頻率、尚缺資料及回復詳見 docs/COST_ALERT_RELEASE.md；手冊 v3.55 草稿。
-
-### 成本 Email 每五分鐘持續提醒（2026-10-07，本機已實作／尚未部署）
-
-- 獨立副本 `output/cost-alerts-20261007`；分支 `feature/cost-alert-email-ack`，基準最新已取得 main `dc866e7a`。原主目錄的其他草稿、分支及未提交修改保留。新增 Email 收件設定、成本提醒區及「我已經看到」按鈕、Firebase 管理員驗證的 `cost-alert-manager`、三個 service-only RPC、兩張 RLS 表及獨立每 5 分鐘 cron；不變更既有每小時家長排程／學生／教材／付款／學習紀錄。
-- 觸發使用成本頁的既有已追蹤估算與月預算警戒線（含等於）；未登入／關閉網站仍由後端提醒，只查看／登入不會確認。收件管理員按鈕成功確認即停止整個月份通知，當月費用再增加或達 100% 也不重新通知；新月達線再提醒，舊月未確認仍保留。採既有 Resend Email，LINE 未接入；初次需本人按「使用我的 Email 接收提醒」。
-- 18/18 隔離 PostgreSQL／後端／寄信替身整合測試、10/10 受影響 React 測試、5 檔 ESLint、shared TypeScript 0 diagnostics、三檔 Edge 語法及 diff check 通過。最終 production build `main.096572ec.js` 成功；只在補上遲到刷新防護及收斂同月停止規則後重驗相關測試／build，未跑無關全套測試、未改套件／lockfile。
-- 實際 migration 已在 PGlite 隔離 PostgreSQL 執行，確認精確門檻、四類來源估算、台北月界線、原子防重送、確認持久化／越權／達 100% 仍停止、跨月、RLS／RPC 撤權、背景寄送／失敗重試與確認後停止；cron 註冊及 Email provider 使用替身，不能視為正式排程與實際收件證據。
-- 隔離實際元件預覽 `http://127.0.0.1:3018` 已編譯，API 全部使用固定假資料；Browser Use 無法驗證 saved permissions，拒絕 localhost 存取，未繞過。桌面／412px／iPhone 實際版面及真實 Email 投遞未驗，A-15／A-16 截圖與影片待製作。
-- 尚未 Push／PR／合併／套用正式 SQL／部署 Function／發布前端／啟用私人收件人。下一步依 AGENTS.md 第 13–14 節取得本批正式 migration 與排程授權，再按 `docs/COST_ALERT_RELEASE.md` 執行。回復先停用新 cron（必要時成本提醒專用停止開關），保留 additive 表／確認紀錄；不影響既有家長通知。手冊 v3.54 本機草稿同步。
-- 相關檔案：`ApiUsageAdmin.jsx`／測試／SCSS、`CostAlertPanel.jsx`／測試、`costAlertService.js`、`_shared/cost-alert-handler.ts`／`cost-alert-email.ts`、`cost-alert-manager/index.ts`、`supabase/config.toml`、`20261007024653_cost_alert_acknowledgement.sql`、`scripts/cost-alerts-sql.test.mjs`、`package.json`、產品邏輯／狀態／手冊及發布說明。
-,664；十輪 NT$8,320。兩資源先 F0 五小時再 S0 可最多少 NT### 全服務成本統整（2026-10-07，本機實作／尚未部署）
-
-- 延續 output/cost-alerts-20261007／feature/cost-alert-email-ack，原主目錄草稿保留。成本頁納入 14 類服務，新增 OpenAI／Azure／Google 帳務、Cloudflare analytics、Resend quota、Stripe fee、GitHub repo usage 採集器；Supabase DB 大小、固定費用與完整總額設定一併集中。新增三張 service-only／RLS 表及三個 RPC；連同 Email 共五張表／六個 RPC與既有獨立五分鐘排程。
-- 總成本／門檻／Email 共用完整月 SQL，含既有 Azure alphabet basic 預留秒數每小時 US$1 的保守估算（本機朗讀不計入）；同服務帳單取代估算、不重複相加月費，保留 credits、費用歷史及失敗前成功快照。各來源更新有延遲；部分完整帳單未接通，不把未知金額當免費。
-- 已完成隔離 PostgreSQL 執行新 migration 與 API response／JWT／分頁／逾時／原子租約／RLS／角色與月份切換驗證；最終測試與 build 結果待本批驗證追加。範圍只含成本頁／採集器／提醒與文件，不更動現有學生權限、付款模式或正式 Secret。
-- 真實帳務、reader／export、Email投遞、正式cron、桌面／412px／iPhone尚未驗收；沿用瀏覽器 saved permissions 拒絕且不繞過。正式 migration／帳務IAM與Secret／部署仍需本批明確授權。接通範圍、來源頻率、尚缺資料及回復詳見 docs/COST_ALERT_RELEASE.md；手冊 v3.55 草稿。
-
-### 成本 Email 每五分鐘持續提醒（2026-10-07，本機已實作／尚未部署）
-
-- 獨立副本 `output/cost-alerts-20261007`；分支 `feature/cost-alert-email-ack`，基準最新已取得 main `dc866e7a`。原主目錄的其他草稿、分支及未提交修改保留。新增 Email 收件設定、成本提醒區及「我已經看到」按鈕、Firebase 管理員驗證的 `cost-alert-manager`、三個 service-only RPC、兩張 RLS 表及獨立每 5 分鐘 cron；不變更既有每小時家長排程／學生／教材／付款／學習紀錄。
-- 觸發使用成本頁的既有已追蹤估算與月預算警戒線（含等於）；未登入／關閉網站仍由後端提醒，只查看／登入不會確認。收件管理員按鈕成功確認即停止整個月份通知，當月費用再增加或達 100% 也不重新通知；新月達線再提醒，舊月未確認仍保留。採既有 Resend Email，LINE 未接入；初次需本人按「使用我的 Email 接收提醒」。
-- 18/18 隔離 PostgreSQL／後端／寄信替身整合測試、10/10 受影響 React 測試、5 檔 ESLint、shared TypeScript 0 diagnostics、三檔 Edge 語法及 diff check 通過。最終 production build `main.096572ec.js` 成功；只在補上遲到刷新防護及收斂同月停止規則後重驗相關測試／build，未跑無關全套測試、未改套件／lockfile。
-- 實際 migration 已在 PGlite 隔離 PostgreSQL 執行，確認精確門檻、四類來源估算、台北月界線、原子防重送、確認持久化／越權／達 100% 仍停止、跨月、RLS／RPC 撤權、背景寄送／失敗重試與確認後停止；cron 註冊及 Email provider 使用替身，不能視為正式排程與實際收件證據。
-- 隔離實際元件預覽 `http://127.0.0.1:3018` 已編譯，API 全部使用固定假資料；Browser Use 無法驗證 saved permissions，拒絕 localhost 存取，未繞過。桌面／412px／iPhone 實際版面及真實 Email 投遞未驗，A-15／A-16 截圖與影片待製作。
-- 尚未 Push／PR／合併／套用正式 SQL／部署 Function／發布前端／啟用私人收件人。下一步依 AGENTS.md 第 13–14 節取得本批正式 migration 與排程授權，再按 `docs/COST_ALERT_RELEASE.md` 執行。回復先停用新 cron（必要時成本提醒專用停止開關），保留 additive 表／確認紀錄；不影響既有家長通知。手冊 v3.54 本機草稿同步。
-- 相關檔案：`ApiUsageAdmin.jsx`／測試／SCSS、`CostAlertPanel.jsx`／測試、`costAlertService.js`、`_shared/cost-alert-handler.ts`／`cost-alert-email.ts`、`cost-alert-manager/index.ts`、`supabase/config.toml`、`20261007024653_cost_alert_acknowledgement.sql`、`scripts/cost-alerts-sql.test.mjs`、`package.json`、產品邏輯／狀態／手冊及發布說明。
-60；並行限制與重試會影響實際用量，S0 不應直接扣五小時。
 - 本批驗證結果見下方補充；未重跑無關全套測試，原 production build 證據沿用，本批局部 UI 編譯與 SQL 隔離執行另外驗證。A–Z 付費整合、跨頁模型快取、正式學生／手機驗收仍未完成。
 - 驗證補充：PGlite SQL 10 項與真實 handler 隔離 4 項、規則卡 React 4 項，共 18 項通過；focused ESLint、SCSS／webpack 預覽編譯、diff check 通過。規則卡 Chrome 引擎 320／412／1440px 無橫向溢出，10 個輪數標記且沒有月額度顯示，報告 output/local-reading-validation/rules-validation.json。
 
