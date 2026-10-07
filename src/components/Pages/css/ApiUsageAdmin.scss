@@ -121,3 +121,21 @@
 @media (prefers-reduced-motion: reduce) {
     .api-refresh .is-spinning, .api-provider-card, .api-provider-head > svg, .api-budget-track span, .api-trend-bar { animation: none; transition: none; }
 }
+.api-service-card {
+    min-width: 0; padding: 20px; border: 1px solid #dce5ef; border-radius: 18px; background: white;
+    &.has-gap { border-color: #e7c98a; }
+    p { font-size: 14px; line-height: 1.7; overflow-wrap: anywhere; }
+    dl { font-size: 13px; div { display: flex; flex-wrap: wrap; gap: 6px 12px; padding: 5px 0; } dt { color: #60718b; } dd { margin: 0; } }
+}
+.api-service-heading { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 12px;
+    h3 { margin: 0 0 6px; font-size: 18px; } small { color: #60718b; } strong { font-size: 21px; overflow-wrap: anywhere; }
+}
+.api-service-basis, .api-service-gap { color: #8b5412; }
+.api-service-gap { padding: 10px 14px; background: #fff6df; border-radius: 10px; }
+.api-service-metric { display: grid; gap: 5px; padding: 10px 0; border-top: 1px solid #e6edf5; font-size: 14px; small { color: #60718b; } &.has-gap strong { color: #a9491a; } }
+.api-service-form { display: grid; gap: 14px; margin-top: 18px;
+    label { display: grid; gap: 6px; font-size: 14px; } input { box-sizing: border-box; width: 100%; min-width: 0; min-height: 44px; padding: 10px; border: 1px solid #b9c8da; border-radius: 9px; }
+    .api-service-checkbox { display: flex; align-items: center; input { width: 20px; margin: 0; } }
+    button { min-height: 44px; }
+}
+@media (max-width: 480px) { .api-service-card { padding: 16px; } .api-service-heading h3 { font-size: 17px; } }

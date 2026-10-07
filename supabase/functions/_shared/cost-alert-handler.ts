@@ -1,4 +1,5 @@
 import { deliverCostAlerts, validCostAlertEmail } from "./cost-alert-email.ts";
+import { refreshServiceCosts, saveServiceCost, serviceCostDashboard } from "./service-cost-dashboard.ts";
 const cleanText = (value: unknown, length: number) => String(value || "").trim().slice(0, length);
 
 const corsHeaders = {
@@ -31,6 +32,9 @@ export async function handleCostAlertRequest(req: Request, deps: {
             if (!secret) return json(401, { error: "排程驗證失敗" });
             const authorized = checked(await admin.rpc("verify_guardian_cron_secret", { p_secret: secret }));
             if (authorized !== true) return json(403, { error: "排程驗證失敗" });
+            const month = new Date().toLocaleDateString('en-CA', { year: 'numeric', month: '2-digit', timeZone: 'Asia/Taipei' });
+            const budget = checked(await admin.from('ai_api_budget_settings').select('usd_to_twd_rate').eq('id', 1).single());
+            await refreshServiceCosts(admin, month, { env, fetch: deps.fetch, now: new Date(), usdToTwd: Number(budget.usd_to_twd_rate) });
             if (env("COST_ALERTS_ENABLED") === "false") return json(200, { paused: true });
             const sender = checked(await admin.from("guardian_email_settings").select("from_email,from_name,reply_to_email").eq("id", 1).maybeSingle());
             const apiKey = env("RESEND_API_KEY");
@@ -70,6 +74,14 @@ export async function handleCostAlertRequest(req: Request, deps: {
         }
         const caller = await deps.verifyUser(req, admin);
         if (caller.role !== "admin") return json(403, { error: "只有管理員可以管理成本提醒" });
+        if (action === 'dashboard' || action === 'save_service') {
+            const month = cleanText(body.month, 7);
+            if (!/^20\d{2}-(0[1-9]|1[0-2])$/.test(month)) return json(400, { error: '月份格式不正確' });
+            if (action === 'save_service') await saveServiceCost(admin, body);
+            const budget = checked(await admin.from('ai_api_budget_settings').select('usd_to_twd_rate').eq('id', 1).single());
+            await refreshServiceCosts(admin, month, { env, fetch: deps.fetch, now: new Date(), usdToTwd: Number(budget.usd_to_twd_rate) });
+            return json(200, { success: true, monitoring_paused: env('COST_MONITORING_ENABLED') === 'false', ...await serviceCostDashboard(admin, month) });
+        }
         if (action === "subscribe") {
             if (!validCostAlertEmail(caller.email)) return json(400, { error: "管理員帳號沒有可收信的 Email，請先修正帳號 Email" });
             const subscribed = checked(await admin.from("api_cost_notification_settings").update({ recipient_student_id: caller.id, updated_at: new Date().toISOString() })

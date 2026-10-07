@@ -2,6 +2,13 @@
 
 最後更新：2026-10-07
 
+### 全服務成本統整（2026-10-07，本機實作／尚未部署）
+
+- 延續 output/cost-alerts-20261007／feature/cost-alert-email-ack，原主目錄草稿保留。成本頁納入 14 類服務，新增 OpenAI／Azure／Google 帳務、Cloudflare analytics、Resend quota、Stripe fee、GitHub repo usage 採集器；Supabase DB 大小、固定費用與完整總額設定一併集中。新增三張 service-only／RLS 表及三個 RPC；連同 Email 共五張表／六個 RPC與既有獨立五分鐘排程。
+- 總成本／門檻／Email 共用完整月 SQL，含既有 Azure alphabet basic 預留秒數每小時 US$1 的保守估算（本機朗讀不計入）；同服務帳單取代估算、不重複相加月費，保留 credits、費用歷史及失敗前成功快照。各來源更新有延遲；部分完整帳單未接通，不把未知金額當免費。
+- 已完成隔離 PostgreSQL 執行新 migration 與 API response／JWT／分頁／逾時／原子租約／RLS／角色與月份切換驗證；最終測試與 build 結果待本批驗證追加。範圍只含成本頁／採集器／提醒與文件，不更動現有學生權限、付款模式或正式 Secret。
+- 真實帳務、reader／export、Email投遞、正式cron、桌面／412px／iPhone尚未驗收；沿用瀏覽器 saved permissions 拒絕且不繞過。正式 migration／帳務IAM與Secret／部署仍需本批明確授權。接通範圍、來源頻率、尚缺資料及回復詳見 docs/COST_ALERT_RELEASE.md；手冊 v3.55 草稿。
+
 ### 成本 Email 每五分鐘持續提醒（2026-10-07，本機已實作／尚未部署）
 
 - 獨立副本 `output/cost-alerts-20261007`；分支 `feature/cost-alert-email-ack`，基準最新已取得 main `dc866e7a`。原主目錄的其他草稿、分支及未提交修改保留。新增 Email 收件設定、成本提醒區及「我已經看到」按鈕、Firebase 管理員驗證的 `cost-alert-manager`、三個 service-only RPC、兩張 RLS 表及獨立每 5 分鐘 cron；不變更既有每小時家長排程／學生／教材／付款／學習紀錄。

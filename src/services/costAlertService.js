@@ -14,3 +14,5 @@ const request = async (firebaseUser, body) => {
 export const getCostAlerts = firebaseUser => request(firebaseUser, { action: "status" });
 export const subscribeCostAlerts = firebaseUser => request(firebaseUser, { action: "subscribe" });
 export const acknowledgeCostAlert = (firebaseUser, alert) => request(firebaseUser, { action: "acknowledge", alert_id: alert.id, generation: alert.generation });
+export const getServiceCostDashboard = (firebaseUser, month) => request(firebaseUser, { action: "dashboard", month });
+export const saveServiceCost = (firebaseUser, payload) => request(firebaseUser, { action: "save_service", ...payload });

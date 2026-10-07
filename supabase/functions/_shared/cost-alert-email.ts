@@ -8,7 +8,7 @@ export function costAlertMessage(alert: { month: string; level: string; cost_usd
     const stage = alert.level === "critical" ? "已達月預算" : "已達警戒線";
     return {
         subject: `Alan English 成本提醒：${month} ${stage}`,
-        text: `${month} 已追蹤 API 估算成本 US$${cost}，月預算 US$${budget}，警戒線 ${alert.warning_percent}%。\n系統每 5 分鐘提醒一次；登入或開啟頁面不會停止，請進入成本頁面按「我已經看到」。\nhttps://alanenglish.com.tw/admin/api-usage\n估算範圍為成本頁的自動追蹤服務；外部帳單仍須另行核對。`
+        text: `${month} 網站已知成本合計 US$${cost}，月預算 US$${budget}，警戒線 ${alert.warning_percent}%。\n系統每 5 分鐘提醒一次；登入或開啟頁面不會停止，請進入成本頁面按「我已經看到」。\nhttps://alanenglish.com.tw/admin/api-usage\n合計包含已接通服務帳務、網站估算與固定月費；缺少資料的服務不視為免費，供應商帳務可能延遲，詳見成本頁更新狀態。`
     };
 }
 
