@@ -203,7 +203,7 @@ export async function collectCloudflareR2(month: string, io: CostIO): Promise<Co
     } catch { return fail('provider_r2_operations_failed'); }
     try {
         storageResponse = await cloudflareAnalytics(io, key, `query($account:string!,$start:Time!,$end:Time!,$bucket:string!){viewer{accounts(filter:{accountTag:$account}){
-      r2StorageAdaptiveGroups(limit:1,filter:{datetime_geq:$start,datetime_leq:$end,bucketName:$bucket},orderBy:[datetime_DESC]){max{payloadSize metadataSize objectCount}}
+      r2StorageAdaptiveGroups(limit:10000,filter:{datetime_geq:$start,datetime_leq:$end,bucketName:$bucket},orderBy:[datetime_DESC]){max{payloadSize metadataSize objectCount}}
     }}}`, variables);
     } catch { return fail('provider_r2_storage_failed'); }
     const operationsRow = list(operationsResponse.data?.viewer?.accounts)[0];
@@ -211,7 +211,9 @@ export async function collectCloudflareR2(month: string, io: CostIO): Promise<Co
     if (!operationsRow || !storageRow) return fail('invalid_response');
     const operations = list(operationsRow.r2OperationsAdaptiveGroups);
     if (operations.length >= 10000) return fail('incomplete_pagination');
-    const storage = list(storageRow.r2StorageAdaptiveGroups)[0]?.max;
+    const storageRows = list(storageRow.r2StorageAdaptiveGroups);
+    if (storageRows.length >= 10000) return fail('incomplete_pagination');
+    const storage = storageRows[0]?.max;
     const r2: CostMetric[] = operations.map(x => ({ name: `R2 ${String(x.dimensions?.actionType || '').slice(0,60)}`, used: number(x.sum?.requests), unit: '次', limit: null }));
     if (storage) r2.push({ name: '目前 R2 儲存（非 GB-month）', used: number(storage.payloadSize) + number(storage.metadataSize), unit: 'bytes', limit: null });
     return [result('cloudflare_r2', period, null, r2)];
