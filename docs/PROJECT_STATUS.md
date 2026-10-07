@@ -2,6 +2,11 @@
 
 最後更新：2026-10-07
 
+### 一般口說分數回饋（2026-10-07，尚未部署）
+
+- 分支 fix/speaking-score-only，從最新 main 建立；移除一般口說／拼讀回饋的辨識全文、逐字色塊、文字建議與最多三字練習區，保留朗讀完整度分數、結果狀態及重試／示範操作。不修改後端判分、通關、額度或 A–Z。
+- 相關檔案：SpeakingPronunciationRecorder.jsx／test.jsx、PROJECT_LOGIC.md、網站使用手冊 v3.61。16 項元件測試通過，涵蓋分數、移除逐字資訊、重試、錄音回聽、技術失敗與辨識不確定提示；不確定仍顯示「不算你答錯」必要說明。只改回饋呈現；不重跑完整測試與本機 production build，正式 Cloudflare build 驗證編譯。正式發布與桌面／412px／iPhone 畫面驗收待完成。
+
 ### 成本正式發布及寄信欄位修復（2026-10-07）
 
 - 使用者已同意本批正式部署。PR #440 合併 main `321a5feb`；Cloudflare build `b69aa42d-d41b-479e-b0bb-8cb7219e75d0`／check `112664462725` 在 14:34:53 台灣時間 success，對應此 main。成本路由與 main.ac2fca7f.js HTTP 200；HTTP 資產核對不等於登入後操作驗收。
