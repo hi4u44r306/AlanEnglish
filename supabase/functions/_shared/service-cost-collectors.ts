@@ -195,28 +195,16 @@ export async function collectCloudflareR2(month: string, io: CostIO): Promise<Co
     const bucket = identifier(required(io, 'COST_CLOUDFLARE_R2_BUCKET'), /^[a-zA-Z0-9_.-]+$/);
     const variables = { account, start: period.start, end: period.end, bucket };
     let operationsResponse: any;
-    let storageResponse: any;
     try {
         operationsResponse = await cloudflareAnalytics(io, key, `query($account:string!,$start:Time!,$end:Time!,$bucket:string!){viewer{accounts(filter:{accountTag:$account}){
       r2OperationsAdaptiveGroups(limit:10000,filter:{datetime_geq:$start,datetime_leq:$end,bucketName:$bucket}){sum{requests} dimensions{actionType}}
     }}}`, variables);
     } catch { return fail('provider_r2_operations_failed'); }
-    try {
-        storageResponse = await request(io, `https://api.cloudflare.com/client/v4/accounts/${account}/r2/metrics`, {
-            headers: { Authorization: `Bearer ${key}` }
-        });
-        if (storageResponse.success !== true || !storageResponse.result) return fail('invalid_response');
-    } catch { return fail('provider_r2_storage_failed'); }
     const operationsRow = list(operationsResponse.data?.viewer?.accounts)[0];
     if (!operationsRow) return fail('invalid_response');
     const operations = list(operationsRow.r2OperationsAdaptiveGroups);
     if (operations.length >= 10000) return fail('incomplete_pagination');
     const r2: CostMetric[] = operations.map(x => ({ name: `R2 ${String(x.dimensions?.actionType || '').slice(0,60)}`, used: number(x.sum?.requests), unit: '次', limit: null }));
-    const storageGroups = ['standard', 'infrequentAccess'].flatMap(storageClass => ['published', 'uploaded'].map(state => storageResponse.result?.[storageClass]?.[state]).filter(Boolean));
-    const storageBytes = storageGroups.reduce((sum, row) => sum + number(row.payloadSize ?? 0) + number(row.metadataSize ?? 0), 0);
-    const objects = storageGroups.reduce((sum, row) => sum + number(row.objects ?? 0), 0);
-    r2.push({ name: '帳戶 R2 目前儲存（非 GB-month）', used: storageBytes, unit: 'bytes', limit: null });
-    r2.push({ name: '帳戶 R2 物件', used: objects, unit: '個', limit: null });
     return [result('cloudflare_r2', period, null, r2)];
 }
 
