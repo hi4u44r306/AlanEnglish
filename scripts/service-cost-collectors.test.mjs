@@ -51,8 +51,8 @@ test('Stripe test mode cannot contribute real costs; live fees exclude revenue a
 test('Cloudflare uses analytics and does not label usage or bytes as a bill',async()=>{
     const config={COST_CLOUDFLARE_ACCOUNT_ID:'a'.repeat(32),COST_CLOUDFLARE_READ_TOKEN:'mock',COST_CLOUDFLARE_WORKER_NAME:'alanenglish',COST_CLOUDFLARE_R2_BUCKET:'alanenglish-audio'};
     let workersPayload;const workers=await collectCloudflareWorkers('2026-10',io(config,async(_url,opts)=>{workersPayload=JSON.parse(opts.body);return response({data:{viewer:{accounts:[{workersInvocationsAdaptive:[{sum:{requests:12,errors:1}}]}]}}});}));
-    let r2Payload;const r2=await collectCloudflareR2('2026-10',io(config,async(url,opts)=>{if(String(url).includes('/r2/metrics'))return response({success:true,result:{standard:{published:{payloadSize:1000,metadataSize:100,objects:3}},infrequentAccess:{uploaded:{payloadSize:20,metadataSize:5,objects:1}}}});r2Payload=JSON.parse(opts.body);return response({data:{viewer:{accounts:[{r2OperationsAdaptiveGroups:[{sum:{requests:10},dimensions:{actionType:'GetObject'}}]}]}}});}));
-    assert.equal(workers[0].cost_usd,null);assert.equal(r2[0].metrics[1].used,1125);assert.equal(r2[0].metrics[2].used,4);assert.equal(workersPayload.variables.script,'alanenglish');assert.equal(r2Payload.variables.bucket,'alanenglish-audio');
+    let r2Payload;const r2=await collectCloudflareR2('2026-10',io(config,async(_url,opts)=>{r2Payload=JSON.parse(opts.body);return response({data:{viewer:{accounts:[{r2OperationsAdaptiveGroups:[{sum:{requests:10},dimensions:{actionType:'GetObject'}}]}]}}});}));
+    assert.equal(workers[0].cost_usd,null);assert.equal(r2[0].metrics[0].used,10);assert.equal(workersPayload.variables.script,'alanenglish');assert.equal(r2Payload.variables.bucket,'alanenglish-audio');
     assert.doesNotMatch(workersPayload.query,/r2OperationsAdaptiveGroups/);assert.match(r2Payload.query,/r2OperationsAdaptiveGroups[^}]+datetime_leq:\$end/);assert.doesNotMatch(r2Payload.query,/r2StorageAdaptiveGroups/);
 });
 test('Cloudflare errors expose only safe diagnostic categories',async()=>{
@@ -62,11 +62,10 @@ test('Cloudflare errors expose only safe diagnostic categories',async()=>{
     assert.equal(costError(new Error('provider_auth_failed')),'provider_auth_failed');
     assert.equal(costError(new Error('secret-account token=hidden')),'collection_failed');
 });
-test('Cloudflare R2 reports which documented dataset failed without upstream details',async()=>{
+test('Cloudflare R2 reports an operations failure without upstream details',async()=>{
     const env={COST_CLOUDFLARE_ACCOUNT_ID:'a'.repeat(32),COST_CLOUDFLARE_READ_TOKEN:'mock',COST_CLOUDFLARE_R2_BUCKET:'alanenglish-audio'};
     await assert.rejects(collectCloudflareR2('2026-10',io(env,async()=>response({errors:[{message:'private upstream detail'}]}))),/provider_r2_operations_failed/);
-    let calls=0;await assert.rejects(collectCloudflareR2('2026-10',io(env,async()=>++calls===1?response({data:{viewer:{accounts:[{r2OperationsAdaptiveGroups:[]}]}}}):response({success:false,errors:[{message:'private upstream detail'}]}))),/provider_r2_storage_failed/);
-    assert.equal(costError(new Error('provider_r2_storage_failed')),'provider_r2_storage_failed');
+    assert.equal(costError(new Error('provider_r2_operations_failed')),'provider_r2_operations_failed');
 });
 test('collection errors reveal no raw tokens or response bodies',()=>{
     assert.equal(costError(new Error('token=secret PII response')),'collection_failed');
