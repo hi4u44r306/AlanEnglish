@@ -4,8 +4,25 @@
 
 ### A–Z 原地重開麥克風（2026-10-07，尚未部署）
 
-- 分支 codex/alphabet-reopen-microphone，基準 origin/main b678b89e。使用者要求切到背景後留在原回合按鈕開啟；修改 AlphabetAutomaticRecorder 與測試、PROJECT_LOGIC／手冊 v3.59。背景釋放 stream／AudioContext，停止半段錄音不送評；回來顯示「麥克風已暫停」與重開按鈕，不再錯顯已開啟。重新取得麥克風保留原題／round／session，防連點；已開始送評不取消原回覆、不自動重送。過期／真正離開頁面／reload 不承諾復原。
+- 分支 codex/alphabet-reopen-microphone，基準 origin/main b678b89e；發布前已合併最新 main 321a5feb，兩份文件衝突保留雙方內容，應用程式無衝突。使用者要求切到背景後留在原回合按鈕開啟；修改 AlphabetAutomaticRecorder 與測試、PROJECT_LOGIC／手冊 v3.60。背景釋放 stream／AudioContext，停止半段錄音不送評；回來顯示「麥克風已暫停」與重開按鈕，不再錯顯已開啟。重新取得麥克風保留原題／round／session，防連點；已開始送評不取消原回覆、不自動重送。過期／真正離開頁面／reload 不承諾復原。
 - 45 項相關 React 測試通過，涵蓋背景→可見→重開、保留 round／session、半段丟棄、已送評晚到回覆只處理一次、拒絕權限後原地重試及晚到 permission stream 立即停止；兩檔 ESLint／diff check 通過。實際 JSX／SCSS 合成預覽於 320／412／1440px 六狀態無溢出，重開按鈕至少 44px，412px 截圖已目視確認，預覽不啟動麥克風或付費 API。不改後端／SQL／每日額度，本機不重跑 full suite／production build，交 Cloudflare main 建置。發布待補；iPhone Safari／正式登入實機仍待驗收，回復可 revert 前端，無資料回復需求。
+
+### 全服務成本統整（2026-10-07，本機實作／尚未部署）
+
+- 延續 output/cost-alerts-20261007／feature/cost-alert-email-ack，已同步 main b678b89e；原主目錄草稿保留。成本頁納入 14 類服務，新增 OpenAI／Azure／Google 帳務、Cloudflare analytics、Resend quota、Stripe fee、GitHub repo usage 採集器；Supabase DB 大小、固定費用與完整總額設定一併集中。新增三張 service-only／RLS 表及三個 RPC；連同 Email 共五張表／六個 RPC及獨立五分鐘排程。
+- 總成本／門檻／Email 共用完整月 SQL；沿用 Azure alphabet basic 每小時 1 美元的保守估算，含預留與失敗，本機朗讀不計入。同服務帳單取代估算、不重複相加月費，保留 credits、費用歷史及失敗前成功快照。各來源有延遲；未取得完整金額清楚標示缺口。
+- 最終 41 項後端／PostgreSQL／採集器＋17 項 React（共 58）通過；7 檔 ESLint、shared TypeScript 0 diagnostics、Edge 語法、diff check 與 production build main.53a7b691.js 通過；已準備 Cloudflare assets。真實帳務權限、export、Email 投遞、正式 cron 與桌面／412px／iPhone 尚未驗收，未繞過瀏覽器權限拒絕。
+- 本機 checkpoint f216cedd；已推送並建立 Draft PR #440（https://github.com/hi4u44r306/AlanEnglish/pull/440），尚未合併／套用正式 migration／更改 Secret／發布。使用者已於 2026-10-07 明確同意本批直接正式部署及驗收；正在發布。接通來源、間隔、剩餘缺口與回復詳見 docs/COST_ALERT_RELEASE.md；手冊 v3.59 草稿。
+
+### 成本 Email 初版隔離驗證紀錄（2026-10-07，已由上節統整版取代；尚未部署）
+
+- 獨立副本 `output/cost-alerts-20261007`；分支 `feature/cost-alert-email-ack`，基準最新已取得 main `dc866e7a`。原主目錄的其他草稿、分支及未提交修改保留。新增 Email 收件設定、成本提醒區及「我已經看到」按鈕、Firebase 管理員驗證的 `cost-alert-manager`、三個 service-only RPC、兩張 RLS 表及獨立每 5 分鐘 cron；不變更既有每小時家長排程／學生／教材／付款／學習紀錄。
+- 觸發使用成本頁的既有已追蹤估算與月預算警戒線（含等於）；未登入／關閉網站仍由後端提醒，只查看／登入不會確認。收件管理員按鈕成功確認即停止整個月份通知，當月費用再增加或達 100% 也不重新通知；新月達線再提醒，舊月未確認仍保留。採既有 Resend Email，LINE 未接入；初次需本人按「使用我的 Email 接收提醒」。
+- 18/18 隔離 PostgreSQL／後端／寄信替身整合測試、10/10 受影響 React 測試、5 檔 ESLint、shared TypeScript 0 diagnostics、三檔 Edge 語法及 diff check 通過。最終 production build `main.096572ec.js` 成功；只在補上遲到刷新防護及收斂同月停止規則後重驗相關測試／build，未跑無關全套測試、未改套件／lockfile。
+- 實際 migration 已在 PGlite 隔離 PostgreSQL 執行，確認精確門檻、四類來源估算、台北月界線、原子防重送、確認持久化／越權／達 100% 仍停止、跨月、RLS／RPC 撤權、背景寄送／失敗重試與確認後停止；cron 註冊及 Email provider 使用替身，不能視為正式排程與實際收件證據。
+- 隔離實際元件預覽 `http://127.0.0.1:3018` 已編譯，API 全部使用固定假資料；Browser Use 無法驗證 saved permissions，拒絕 localhost 存取，未繞過。桌面／412px／iPhone 實際版面及真實 Email 投遞未驗，A-15／A-16 截圖與影片待製作。
+- 尚未 Push／PR／合併／套用正式 SQL／部署 Function／發布前端／啟用私人收件人。下一步依 AGENTS.md 第 13–14 節取得本批正式 migration 與排程授權，再按 `docs/COST_ALERT_RELEASE.md` 執行。回復先停用新 cron（必要時成本提醒專用停止開關），保留 additive 表／確認紀錄；不影響既有家長通知。手冊 v3.54 本機草稿同步。
+- 相關檔案：`ApiUsageAdmin.jsx`／測試／SCSS、`CostAlertPanel.jsx`／測試、`costAlertService.js`、`_shared/cost-alert-handler.ts`／`cost-alert-email.ts`、`cost-alert-manager/index.ts`、`supabase/config.toml`、`20261007024653_cost_alert_acknowledgement.sql`、`scripts/cost-alerts-sql.test.mjs`、`package.json`、產品邏輯／狀態／手冊及發布說明。
 
 ### A–Z 加速換題與手動重唸（2026-10-07，已部署／實機待驗收）
 

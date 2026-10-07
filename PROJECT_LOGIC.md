@@ -380,9 +380,17 @@ NT$299 基本會員目前使用 Stripe 沙盒 Price。AI「教材與發音練習
 - 「API 使用量與費用」只可由後端驗證 Firebase Token 並重新確認 `admin` 身分後讀取。
 - 平台可估算 OpenAI AI 教材、OpenAI 教材 OCR／口說題庫及 Google Cloud Text-to-Speech 示範語音的月用量。
 - 成本一律標示為估算值；Google TTS 以公開牌價保守估算，不自行扣除可能被同帳務帳戶其他服務共用的免費額度或折抵。
-- Supabase、Cloudflare R2、Cloudflare Workers／Pages、Firebase Authentication、Resend 與 PAYUNi 的完整帳單不能只靠應用程式資料庫推算，頁面必須標示「外部核對」，不得把未知金額顯示為零元。
+- Supabase、Cloudflare R2、Cloudflare Workers／Pages、Firebase Authentication、Resend 與 PAYUNi 的完整帳單不能只靠應用程式資料庫推算，未接通的帳單必須標示資料缺口，不得把未知金額顯示為零元。
 - 月預算需顯示使用進度、警示門檻與依當月已過天數計算的月底預估；超過警示門檻顯示橘色，超過預算顯示紅色。
 - 異常提醒至少包含預算超標／可能超標、失敗請求比例偏高及單日請求量明顯高於近期平均。提醒不得自動刪除資料、停權學生或停用付費服務。
+- 成本 Email 提醒（2026-10-07，本機已實作／尚未部署）：已知網站總成本達到管理員警戒百分比，由獨立後端每 5 分鐘排程寄到指定管理員本人帳號 Email；未登入、關閉網站或只查看成本頁均不停止。只有收件管理員於成本頁按「我已經看到」才確認當月提醒；確認後該月費用再增加或達 100% 月預算都不重新通知，下個月達線再提醒，舊月份未確認提醒保留。Email 使用現有寄信服務，未整合 LINE；已接通帳單與固定費用一併納入；月底預估及失敗率異常不納入此重複寄信觸發條件。
+
+
+- 全服務成本統整（2026-10-07，本機已實作／尚未部署）：管理員入口「網站成本」，頁面「網站成本與服務用量」。統整 OpenAI、Google TTS、Firebase／Identity Platform、其他 Google 服務、Azure Speech、Supabase、Cloudflare R2／Workers、Resend、Stripe、GitHub、舊 Netlify、網域／固定訂閱、其他／PAYUNi。
+- 後端五分鐘排程持續監測；頁面每分鐘更新。供應商帳務有延遲並有各來源採集間隔；不能宣稱即時最終帳單。已接通來源由 server-only Secret 讀取，只保存月份 aggregate／metrics，不保存金鑰、供應商原始回應、帳戶／交易個資。實際帳務權限仍待一次設定；部分服務完整帳單未接通。
+- 總成本與 Email 觸發共同採用完整月份 SQL：供應商同服務帳單取代網站估算、credits 保留；usage-only 費用加已設定固定方案費；完整總額不再相加固定費。未知值為 NULL、未計入的費用清楚標示缺口；失敗保留上次成功金額與更新時間，不歸零。固定費用保留逐月生效歷史。
+- Supabase 當前 DB 大小、Cloudflare 操作／請求／儲存、Resend 帳戶額度與 Azure 已結束錄音請求秒數可集中查看；它們不等於完整帳單或計費 MAU／GB-month。頁面警示用量接近上限；目前 Email 重複提醒只依已知總成本。未整合 LINE。發布與權限需求詳見 docs/COST_ALERT_RELEASE.md。
+
 
 ## 7. 英文班作業
 
