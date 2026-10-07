@@ -55,6 +55,8 @@ export default function AlphabetAutomaticRecorder({
     const [previewUrl, setPreviewUrl] = useState("");
     const [answerMatch, setAnswerMatch] = useState(null);
     const [slowSubmission, setSlowSubmission] = useState(false);
+    const [microphoneClosed, setMicrophoneClosed] = useState(false);
+    const [microphoneVersion, setMicrophoneVersion] = useState(0);
     const streamRef = useRef(null);
     const audioContextRef = useRef(null);
     const analyserRef = useRef(null);
@@ -66,6 +68,8 @@ export default function AlphabetAutomaticRecorder({
     const pendingAttemptRef = useRef(null);
     const retrySubmissionRef = useRef(null);
     const submittingRef = useRef(false);
+    const microphoneRequestRef = useRef(0);
+    const microphoneOpeningRef = useRef(false);
     const onScoredRef = useRef(onScored);
     const onRoundInvalidRef = useRef(onRoundInvalid);
 
@@ -92,12 +96,18 @@ export default function AlphabetAutomaticRecorder({
     };
 
     const stopRecorder = () => {
-        if (recorderRef.current?.state === "recording") recorderRef.current.stop();
+        if (recorderRef.current?.state === "recording") {
+            // Backgrounding discards partial audio; stopping must not submit it.
+            recorderRef.current.onstop = null;
+            recorderRef.current.stop();
+        }
         recorderRef.current = null;
     };
 
-    const release = () => {
-        operationRef.current += 1;
+    const release = (invalidateAttempt = true) => {
+        if (invalidateAttempt) operationRef.current += 1;
+        microphoneRequestRef.current += 1;
+        microphoneOpeningRef.current = false;
         cancelDetection();
         stopRecorder();
         streamRef.current?.getTracks().forEach(track => track.stop());
@@ -120,12 +130,18 @@ export default function AlphabetAutomaticRecorder({
     useEffect(() => {
         const stopWhenHidden = () => {
             if (document.visibilityState !== "hidden") return;
-            release();
-            pendingAttemptRef.current = null;
-            retrySubmissionRef.current = null;
-            setRecordedBlob(null);
-            setStatus("blocked");
-            setError("為了保護錄音隱私，切換到其他頁面後已關閉麥克風；請回到列表再開始一次");
+            // Keep an already submitted attempt alive so its response can advance
+            // the existing round. Never resend it just to reopen the microphone.
+            release(!submittingRef.current);
+            setMicrophoneClosed(true);
+            if (!submittingRef.current) {
+                pendingAttemptRef.current = null;
+                retrySubmissionRef.current = null;
+                setRecordedBlob(null);
+                setAnswerMatch(null);
+                setStatus("blocked");
+            }
+            setError("");
         };
         document.addEventListener("visibilitychange", stopWhenHidden);
         return () => document.removeEventListener("visibilitychange", stopWhenHidden);
@@ -133,25 +149,35 @@ export default function AlphabetAutomaticRecorder({
 
     useEffect(() => {
         let cancelled = false;
+        const requestId = ++microphoneRequestRef.current;
         const prepare = async () => {
+            if (document.visibilityState === "hidden") { setMicrophoneClosed(true); setStatus("blocked"); return; }
             if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
                 setStatus("blocked");
                 setError("這個瀏覽器不支援自動收音，請改用新版 Chrome 或 Safari");
                 return;
             }
+            microphoneOpeningRef.current = true;
+            setMicrophoneClosed(false);
+            setStatus("preparing");
+            setError("");
+            let acquiredStream;
+            let acquiredContext;
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({
                     audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true }
                 });
-                if (cancelled) {
+                acquiredStream = stream;
+                if (cancelled || requestId !== microphoneRequestRef.current) {
                     stream.getTracks().forEach(track => track.stop());
                     return;
                 }
                 const AudioContextClass = window.AudioContext || window.webkitAudioContext;
                 if (!AudioContextClass) throw new Error("audio_context_unavailable");
                 const context = new AudioContextClass();
+                acquiredContext = context;
                 await context.resume?.();
-                if (cancelled) {
+                if (cancelled || requestId !== microphoneRequestRef.current) {
                     stream.getTracks().forEach(track => track.stop());
                     await context.close().catch(() => undefined);
                     return;
@@ -165,16 +191,21 @@ export default function AlphabetAutomaticRecorder({
                 setStatus("listening");
                 setSessionVersion(version => version + 1);
             } catch (cause) {
-                if (cancelled) return;
+                acquiredStream?.getTracks().forEach(track => track.stop());
+                acquiredContext?.close?.().catch(() => undefined);
+                if (cancelled || requestId !== microphoneRequestRef.current) return;
+                setMicrophoneClosed(true);
                 setStatus("blocked");
                 setError(cause?.name === "NotAllowedError"
                     ? "請允許麥克風權限，才能開始 A–Z 挑戰"
                     : cause?.code ? cause.message : "目前無法啟動麥克風，請確認瀏覽器設定後再試一次");
+            } finally {
+                if (requestId === microphoneRequestRef.current) microphoneOpeningRef.current = false;
             }
         };
         prepare();
         return () => { cancelled = true; };
-    }, []);
+    }, [microphoneVersion]);
 
     useEffect(() => {
         operationRef.current += 1;
@@ -371,9 +402,19 @@ export default function AlphabetAutomaticRecorder({
         };
     }, [allowDemoAssessment, attemptVersion, challengeSessionId, firebaseUser, foundationRoundId, onPracticeOnly, paused, question?.id, sessionVersion]);
 
-    const displayedMatch = waitingForRetry ? false : answerMatch;
+    const microphonePaused = microphoneClosed && status !== "submitting" && answerMatch === null;
+    const reopenMicrophone = () => {
+        if (submittingRef.current || microphoneOpeningRef.current || document.visibilityState === "hidden") return;
+        microphoneOpeningRef.current = true;
+        setMicrophoneClosed(false);
+        setStatus("preparing");
+        setMicrophoneVersion(version => version + 1);
+    };
+    const displayedMatch = microphonePaused ? null : waitingForRetry ? false : answerMatch;
     const copy = displayedMatch !== null
         ? displayedMatch ? ["通過！", "準備下一個字母。"] : ["再唸一次", waitingForRetry ? "準備好後，按下方按鈕再唸。" : "沒關係，再試一次！"]
+        : microphonePaused
+        ? ["麥克風已暫停", "按下方按鈕繼續，不必退出這一輪。"]
         : status === "preparing"
         ? ["正在開啟麥克風…", "只要允許一次，這一輪會自動收音。"]
         : status === "recording"
@@ -386,14 +427,17 @@ export default function AlphabetAutomaticRecorder({
                     ? ["麥克風沒有開啟", "請確認瀏覽器的麥克風權限。"]
                     : ["麥克風已開啟", "看到字母後直接唸，不會播放答案提示。"];
 
-    return <section className={`speaking-alphabet-auto is-${displayedMatch !== null ? "result" : status}${displayedMatch !== null ? displayedMatch ? " is-passed" : " is-incorrect" : ""}`} aria-live="polite" aria-atomic="true">
+    return <section className={`speaking-alphabet-auto is-${microphonePaused ? "blocked" : displayedMatch !== null ? "result" : status}${displayedMatch !== null ? displayedMatch ? " is-passed" : " is-incorrect" : ""}`} aria-live="polite" aria-atomic="true">
         <span className="speaking-alphabet-auto__icon" aria-hidden="true">
-            {displayedMatch !== null ? displayedMatch ? <FiCheck /> : <FiX /> : status === "submitting" || status === "preparing" ? <FiLoader /> : status === "blocked" ? <FiMicOff /> : <FiMic />}
+            {microphonePaused ? <FiMicOff /> : displayedMatch !== null ? displayedMatch ? <FiCheck /> : <FiX /> : status === "submitting" || status === "preparing" ? <FiLoader /> : status === "blocked" ? <FiMicOff /> : <FiMic />}
         </span>
         <div className="speaking-alphabet-auto__message"><strong>{copy[0]}</strong><span>{copy[1]}</span></div>
         {status === "recording" && <strong className="speaking-alphabet-auto__countdown" role="timer" aria-label={`錄音剩餘 ${remainingSeconds} 秒`}>還能錄 {remainingSeconds} 秒</strong>}
         <small>錄音僅用於本次判別，網站不保存錄音。</small>
-        {waitingForRetry && <div className="speaking-alphabet-auto__retry">
+        {microphonePaused && <div className="speaking-alphabet-auto__retry">
+            <button type="button" onClick={reopenMicrophone}><FiMic aria-hidden="true" />重新開啟麥克風</button>
+        </div>}
+        {waitingForRetry && !microphonePaused && <div className="speaking-alphabet-auto__retry">
             <button type="button" disabled={!onRetryReading} onClick={onRetryReading}><FiMic aria-hidden="true" />再唸一次</button>
         </div>}
         {status === "retry" && pendingAttemptRef.current && <div className="speaking-alphabet-auto__retry">
