@@ -13,7 +13,7 @@ import * as azure from "../supabase/functions/_shared/speaking-azure-alphabet.ts
 import * as wav from "../supabase/functions/_shared/speaking-pcm-wav.ts";
 const compiled = ts.transpileModule(readFileSync(new URL("../supabase/functions/pronunciation-coach/index.ts", import.meta.url), "utf8"),
     { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
-function harness({ authorized = true, entitled = true, active = true, role = "student", hint = false, alphabet = false, providerFailure = false, denied = null } = {}) {
+function harness({ authorized = true, entitled = true, active = true, role = "student", hint = false, alphabet = false, providerFailure = false, denied = null, answerTemplate = "I like apples." } = {}) {
     let handler; const writes = [], reservations = [];
     const client = {
         rpc: async (name, args) => { reservations.push({ name, args });
@@ -33,7 +33,7 @@ function harness({ authorized = true, entitled = true, active = true, role = "st
                     if (value) return { data: value };
                     if (table === "speaking_questions") return { data: columns.includes("speaking_question_sets")
                         ? { id: 1, question_set_id: 10, speaking_question_sets: { id: 10, version: 1, generation_metadata: alphabet ? {interaction_type:"alphabet_round"} : {}, books: { id: 2 } } }
-                        : { model_answer: alphabet ? "A" : "I like apples.", accepted_intents: [] } };
+                        : { model_answer: alphabet ? "A" : answerTemplate, accepted_intents: [] } };
                     if (table === "speaking_foundation_rounds") return {data:{id:"00000000-0000-4000-8000-000000000002",student_id:5,question_set_id:10,question_set_version:1,question_order:[1],next_index:0,status:"open",expires_at:new Date(Date.now()+3600000).toISOString()}};
                     if (table === "speaking_challenge_hint_reveals") return { data: hint ? { question_id: 1 } : null };
                     return { data: null };
@@ -80,6 +80,20 @@ test("實際 handler 從後端答案重算，忽略偽造分數與參考答案�
     const saved = h.writes.find(row => row.table === "speaking_pronunciation_attempts").value;
     assert.equal(saved.pronunciation_score, null); assert.equal(saved.completeness_score, 67);
 });
+test("後端以已發布括號替代答案重算分數，肯定及否定各自保存 100 分", async () => {
+    for (const ending of ["Yes, it's mine.", "No, it's not."]) {
+        const h = harness({answerTemplate:"What is this? It is a key. Is it yours? Yes, it's mine. (No, it's not.)"});
+        const response = await h.handler(request({recognized_text:"What is this? It is a key. Is it yours? " + ending, scores:{completeness:78}}));
+        assert.equal(response.status, 200);
+        const result = await response.json();
+        assert.equal(result.scores.completeness, 100);
+        assert.equal(result.answer_match, true);
+        const saved = h.writes.find(row => row.table === "speaking_pronunciation_attempts").value;
+        assert.equal(saved.completeness_score, 100);
+        assert.equal(saved.answer_match, true);
+    }
+});
+
 test("無權限、無教材或失效方案不可儲存", async () => {
     for (const options of [{ authorized: false }, { entitled: false }, { active: false }]) {
         const h = harness(options); const response = await h.handler(request());

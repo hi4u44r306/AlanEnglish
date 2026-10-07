@@ -2,6 +2,13 @@
 
 最後更新：2026-10-07
 
+### 括號替代答案完整度修正（2026-10-07，隔離驗證完成／尚未部署）
+
+- 分支 fix/speaking-parenthetical-alternatives，基準 main 063b2da6。重現 P.11 完整肯定回答被計為 14/18＝78 分；將句尾括號 Yes／No 改為前一回覆的替代選項，保留共同句子，各自比對完整度及既有答案規則。一般句、文字／圖片問答與填空各自測試；其他括號不猜成答案。只改新送評，不回填、改題庫或資料表。
+- 修改 speaking-completeness.ts、speaking-completeness.test.mjs、speaking-local-handler.test.mjs、PROJECT_LOGIC.md 與使用手冊 v3.62。32 項本機評分／真實 handler 隔離替身／流程與權限測試、shared TypeScript 0 diagnostics、Edge helper 語法及 diff check 通過；肯定及否定回答均 100 分，handler 忽略前端分數並保存後端重算值。只唸選項／矛盾答案仍拒絕。既有兒童辨識容錯規則未修改。
+- 舊 test-speaking-foundation-answer.mjs 在 main 也使用已淘汰 reserveChallengeSession 原始碼正則，測試在該契約斷言失敗；本批未改那份舊測試或 pronunciation-coach handler。未跑全套或前端 build：無前端程式變更；相關後端隔離測試及型別／語法驗證如上。
+- 依 AGENTS 第 13、16 節，這批會影響正式評分／學習紀錄，正式 pronunciation-coach Function 部署需取得本批明確同意；尚未合併／部署。回復可重部署 main 063b2da6 的既有 Function，不刪除歷史紀錄。正式帳號及 iPhone 實際朗讀待驗。
+
 ### 一般口說分數回饋（2026-10-07，已部署／登入畫面待驗）
 
 - 分支 fix/speaking-score-only，從最新 main 建立；移除一般口說／拼讀回饋的辨識全文、逐字色塊、文字建議與最多三字練習區，保留朗讀完整度分數、結果狀態及重試／示範操作。不修改後端判分、通關、額度或 A–Z。

@@ -36,3 +36,32 @@ test("答錯的挑戰不回傳隱藏參考字句", () => {
     const result = assess(question("The password is pumpkin.", "text_qa"), "hello there");
     assert.equal(JSON.stringify(result).includes("pumpkin"), false);
 });
+
+const keyAnswer = "What is this? It is a key. Is it yours? Yes, it's mine. (No, it's not.)";
+for (const type of ["standard_sentence", "text_qa", "picture_qa", "picture_gap_sentence"]) {
+    test(`${type} 括號回答擇一，肯定及否定完整回答都是 100 分`, () => {
+        for (const ending of ["Yes, it's mine.", "No, it's not.", "No, it is not."]) {
+            const result = assess(question(keyAnswer, type), "What is this? It is a key. Is it yours? " + ending);
+            assert.equal(result.scores.completeness, 100);
+            assert.equal(result.answer_match, true);
+            assert.equal(result.scores.prosody, null);
+        }
+    });
+}
+test("括號替代回答仍要求共用句子，不接受只唸括號或兩種矛盾回答", () => {
+    for (const spoken of ["No, it's not.", "Yes, it's mine.", "It is a desk.", "What is this? It is a key. Is it yours? Yes, it's mine. No, it's not."]) {
+        assert.equal(assess(question(keyAnswer, "picture_qa"), spoken).answer_match, false);
+    }
+});
+test("全形括號、反向肯定選項與 acceptedAnswers 也各自比對", () => {
+    const template = "Is it yours? No, it isn't.（Yes, it is.）";
+    for (const spoken of ["Is it yours? No, it isn't.", "Is it yours? Yes, it is."]) {
+        assert.equal(assess(question(template, "text_qa"), spoken).scores.completeness, 100);
+        assert.equal(assess(question("It is a book.", "text_qa", [template]), spoken).answer_match, true);
+    }
+});
+test("其他括號內容不自動轉成可接受回答", () => {
+    const template = "It is a key. (Read clearly.)";
+    assert.equal(assess(question(template, "text_qa"), "Read clearly.").answer_match, false);
+    assert.equal(assess(question("I have no idea. (No, it isn't.)", "text_qa"), "No, it isn't.").answer_match, false);
+});
