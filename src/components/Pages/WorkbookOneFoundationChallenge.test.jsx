@@ -80,6 +80,15 @@ const alphabetRoundResponse = {
 const startAlphabetRound = jest.fn();
 
 describe("WorkbookOneFoundationChallenge", () => {
+    it("A–Z 練習完成不建立正式 round，不呼叫正式通關", async () => {
+        const onComplete=jest.fn(),onFinished=jest.fn(),onStartRound=jest.fn();
+        render(<WorkbookOneFoundationChallenge challenge={{...alphabetChallenge,alphabet_audio:{...alphabetAudio,intro_listen_completed:true}}}
+            challengeMode="easy" firebaseUser={{uid:"student"}} onStartRound={onStartRound} onComplete={onComplete} onFinished={onFinished} />);
+        await act(async()=>fireEvent.click(screen.getByRole("button",{name:"開始挑戰"})));
+        for(let i=0;i<26;i++) await act(async()=>fireEvent.click(screen.getByRole("button",{name:"模擬自動答對"})));
+        expect(onStartRound).not.toHaveBeenCalled();expect(onComplete).not.toHaveBeenCalled();
+        expect(onFinished).toHaveBeenCalledWith(expect.objectContaining({practice_completed:true,demo_mode:false}));
+    });
     it("spelling forwards the actual completion reward to the shared celebration", async () => {
         const reward = { challenge_completed: true, xp_awarded: 30, ae_points_awarded: 3 };
         const onFinished = jest.fn();

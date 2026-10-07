@@ -174,8 +174,9 @@ Deno.serve(async (req: Request) => {
             return json(400, { error: "口說挑戰回合無效，請重新進入關卡", code: "challenge_session_required" });
         }
         const question = await assertPublishedQuestionAccess(admin, questionId, user, effectiveAccess);
-        if (azureRequest && question.interactionType !== "alphabet_round") return json(400, {error:"只有 A–Z 使用 Azure 評分",code:"azure_alphabet_only"});
-        if (!azureRequest && question.interactionType === "alphabet_round") return json(409, {error:"A–Z 已使用字母評分，請重新整理",code:"alphabet_client_required"});
+        const letterAssessment = ["alphabet_round", "letter_spelling"].includes(question.interactionType);
+        if (azureRequest && !letterAssessment) return json(400, {error:"只有字母與拼字題使用 Azure 評分",code:"azure_alphabet_only"});
+        if (!azureRequest && letterAssessment) return json(409, {error:"字母與拼字已使用 Azure 評分，請重新整理",code:"alphabet_client_required"});
         let audioBuffer: ArrayBuffer | null = null;
         if (azureRequest) {
             if (!(audio instanceof File) || audio.size > 400000) return json(413, {error:"字母錄音資料不正確"});
@@ -186,10 +187,7 @@ Deno.serve(async (req: Request) => {
             body.audio_seconds = info.durationSeconds;
         }
         const maxAudioSeconds = speakingRecordingSeconds(question.interactionType);
-        if (challengeMode === "challenge" && ["alphabet_round", "letter_spelling"].includes(question.interactionType)) {
-            return json(400, { error: "A–Z 不使用挑戰模式" });
-        }
-        if (question.interactionType === "alphabet_round" && !adminDemo) {
+        if (question.interactionType === "alphabet_round" && challengeMode === "challenge" && !adminDemo) {
             if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(requestedRoundId)) {
                 return json(409, { error: "請重新開始這一輪 A–Z 挑戰", code: "foundation_round_required" });
             }
@@ -242,21 +240,22 @@ Deno.serve(async (req: Request) => {
             } : undefined,
             reserve: async () => {
                 if (azureRequest) {
-                    const {data,error} = await admin.rpc("reserve_speaking_azure_alphabet_request_v1", {
+                    const spellingRequest = question.interactionType === "letter_spelling";
+                    const {data,error} = await admin.rpc(spellingRequest ? "reserve_speaking_azure_spelling_request_v1" : "reserve_speaking_azure_alphabet_request_v1", {
                         p_student_id:Number(user.id),p_question_set_id:question.questionSetId,p_question_id:question.questionId,
                         p_audio_seconds:Math.ceil(body.audio_seconds),p_client_session_id:adminDemo ? null : challengeSessionId });
                     if (error) throw error;
                     if (data?.allowed !== true || !data.request_id) throw Object.assign(new Error(data?.code === "speaking_daily_limit_reached" ? "今天已開始 10 輪，明天再繼續" : data?.code === "alphabet_letter_daily_limit_reached" ? "這個字母今天已評分三次，可以先錄音回聽，明天再挑戰。" : data?.code === "speaking_level_completed_today" ? "這一關今天已完成，可以錄音回聽，明天再評分。" : "短時間送評較多，請稍候"),{status:429,code:data?.code || "rate_limited"});
-                    alphabetUsage = { letter: data.letter, remaining: data.letter_remaining, daily_limit: 3 };
+                    alphabetUsage = spellingRequest ? null : { letter: data.letter, remaining: data.letter_remaining, daily_limit: 3 };
                     challengeUsage = data.challenge_usage; return String(data.request_id);
                 }
                 const reserved = await reserveProviderRequest(admin, Number(user.id), question,
-                    adminDemo ? null : challengeSessionId);
+                    null);
                 challengeUsage = reserved.challengeUsage;
                 return reserved.requestId;
             },
             assess: async () => ({ ok: true as const, value: azureRequest ? await assessAzureAlphabet(audioBuffer!,question.answerTemplate,
-                Deno.env.get("AZURE_SPEECH_KEY") || "",String(Deno.env.get("AZURE_SPEECH_REGION") || "").trim().toLowerCase()) : localResult! }),
+                Deno.env.get("AZURE_SPEECH_KEY") || "",String(Deno.env.get("AZURE_SPEECH_REGION") || "").trim().toLowerCase(),question.interactionType) : localResult! }),
             saveAttempt: adminDemo ? async () => null : !foundationRoundId ? async normalized => {
                 const { data: attempt, error: saveError } = await admin.from("speaking_pronunciation_attempts").insert({
                     student_id: user.id, question_set_id: question.questionSetId, question_id: question.questionId,
@@ -275,7 +274,7 @@ Deno.serve(async (req: Request) => {
                 let foundationAssessment = null;
                 let roundError = null;
                 for (let tryIndex = 0; tryIndex < 2; tryIndex += 1) {
-                    const result = await admin.rpc("record_speaking_foundation_assessment_v3", {
+                    const result = await admin.rpc("record_speaking_foundation_challenge_v4", {
                         p_student_id: Number(user.id),
                         p_round_id: foundationRoundId,
                         p_question_id: question.questionId,

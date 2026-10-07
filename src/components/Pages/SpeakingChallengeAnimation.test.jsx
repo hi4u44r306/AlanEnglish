@@ -9,7 +9,7 @@ describe("SpeakingChallengeCompletion", () => {
     afterEach(() => { jest.useRealTimers(); window.matchMedia = originalMatchMedia; });
     it("shows actual awards, counts to their final values, and keeps the result open", () => {
         const onReturn = jest.fn();
-        render(<SpeakingChallengeCompletion notice={{ xp_awarded: 30, ae_points_awarded: 3 }} mode="easy" reference="Workbook 1 · P.11" onReturn={onReturn} />);
+        render(<SpeakingChallengeCompletion notice={{ xp_awarded: 30, ae_points_awarded: 3 }} mode="challenge" reference="Workbook 1 · P.11" onReturn={onReturn} />);
         const dialog = screen.getByRole("dialog", { name: "闖關成功！" });
         expect(within(dialog).getByText("全部完成！")).toBeInTheDocument();
         expect(dialog.querySelector('.speaking-celebration-stars')).toHaveAttribute('aria-hidden', 'true');
@@ -20,7 +20,7 @@ describe("SpeakingChallengeCompletion", () => {
     });
     it.each([
         ["challenge", { xp_awarded: 0, ae_points_awarded: 0 }, 0, 0],
-        ["easy", { xp_awarded: 30, ae_points_awarded: 0 }, 30, 0],
+        ["easy", { xp_awarded: 30, ae_points_awarded: 0 }, 0, 0],
         ["easy", {}, 0, 0],
         ["easy", { xp_awarded: -10, ae_points_awarded: "invalid" }, 0, 0]
     ])("does not invent rewards for %s %j", (mode, notice, xp, points) => {

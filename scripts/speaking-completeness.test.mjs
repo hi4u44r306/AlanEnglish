@@ -2,6 +2,11 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { assessReadingCompleteness as assess, readingCoverage } from "../supabase/functions/_shared/speaking-completeness.ts";
 const question = (answerTemplate = "I like apples.", interactionType = "", acceptedAnswers = []) => ({ answerTemplate, interactionType, acceptedAnswers });
+test('一般朗讀以 70 分為門檻，69 分以下不通過',()=>{
+ const q=question('one two three four five six seven eight nine ten');
+ const pass=assess(q,'one two three four five six seven');assert.equal(pass.scores.completeness,70);assert.equal(pass.answer_match,true);
+ assert.equal(assess(q,'one two three four five six').answer_match,false);
+});
 test("完整朗讀 100 分；漏字依順序計算，不測量發音", () => {
     const result = assess(question(), "I like apples!");
     assert.equal(result.scores.completeness, 100); assert.equal(result.scores.pronunciation, null);

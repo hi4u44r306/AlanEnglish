@@ -30,7 +30,8 @@ describe("speakingChallengeService", () => {
 
         expect(callEdgeFunction).toHaveBeenCalledWith("speaking-challenge", firebaseUser, {
             action: "start_foundation_round",
-            question_set_id: 7
+            question_set_id: 7,
+            mode: "challenge"
         });
     });
 

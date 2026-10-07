@@ -10,7 +10,7 @@ export const getSpeakingChallengeSet = (firebaseUser, questionSetId, mode = "eas
 export const revealSpeakingChallengeHint = (firebaseUser, questionSetId, questionId, challengeSessionId) => callChallenge(firebaseUser, "reveal_hint", {
     question_set_id: questionSetId, question_id: questionId, challenge_session_id: challengeSessionId, mode: "challenge"
 });
-export const startSpeakingFoundationRound = (firebaseUser, questionSetId) => callChallenge(firebaseUser, "start_foundation_round", { question_set_id: questionSetId });
+export const startSpeakingFoundationRound = (firebaseUser, questionSetId) => callChallenge(firebaseUser, "start_foundation_round", { question_set_id: questionSetId, mode: "challenge" });
 export const startAlphabetIntroListen = (firebaseUser, questionSetId) => callChallenge(firebaseUser, "start_alphabet_intro_listen", { question_set_id: questionSetId });
 export const completeAlphabetIntroListen = (firebaseUser, questionSetId, listenSessionId) => callChallenge(firebaseUser, "complete_alphabet_intro_listen", {
     question_set_id: questionSetId,

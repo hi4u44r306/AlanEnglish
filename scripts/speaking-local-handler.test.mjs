@@ -13,7 +13,7 @@ import * as azure from "../supabase/functions/_shared/speaking-azure-alphabet.ts
 import * as wav from "../supabase/functions/_shared/speaking-pcm-wav.ts";
 const compiled = ts.transpileModule(readFileSync(new URL("../supabase/functions/pronunciation-coach/index.ts", import.meta.url), "utf8"),
     { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
-function harness({ authorized = true, entitled = true, active = true, role = "student", hint = false, alphabet = false, providerFailure = false, denied = null, answerTemplate = "I like apples." } = {}) {
+function harness({ authorized = true, entitled = true, active = true, role = "student", hint = false, alphabet = false, spelling = false, providerFailure = false, denied = null, answerTemplate = "I like apples." } = {}) {
     let handler; const writes = [], reservations = [];
     const client = {
         rpc: async (name, args) => { reservations.push({ name, args });
@@ -32,8 +32,8 @@ function harness({ authorized = true, entitled = true, active = true, role = "st
                 async maybeSingle() {
                     if (value) return { data: value };
                     if (table === "speaking_questions") return { data: columns.includes("speaking_question_sets")
-                        ? { id: 1, question_set_id: 10, speaking_question_sets: { id: 10, version: 1, generation_metadata: alphabet ? {interaction_type:"alphabet_round"} : {}, books: { id: 2 } } }
-                        : { model_answer: alphabet ? "A" : answerTemplate, accepted_intents: [] } };
+                        ? { id: 1, question_set_id: 10, speaking_question_sets: { id: 10, version: 1, generation_metadata: alphabet ? {interaction_type:"alphabet_round"} : spelling ? {interaction_type:"letter_spelling"} : {}, books: { id: 2 } } }
+                        : { model_answer: alphabet ? "A" : spelling ? "C A T" : answerTemplate, accepted_intents: [] } };
                     if (table === "speaking_foundation_rounds") return {data:{id:"00000000-0000-4000-8000-000000000002",student_id:5,question_set_id:10,question_set_version:1,question_order:[1],next_index:0,status:"open",expires_at:new Date(Date.now()+3600000).toISOString()}};
                     if (table === "speaking_challenge_hint_reveals") return { data: hint ? { question_id: 1 } : null };
                     return { data: null };
@@ -112,11 +112,26 @@ test("管理員示範不寫學生進度；提示狀態由伺服器決定", async
     const h = harness({ hint: true }); const hinted = await (await h.handler(request({ challenge_mode: "challenge", hint_used: false }))).json();
     assert.equal(hinted.hint_used, true);
 });
-const alphabetRequest=()=>{
+const alphabetRequest=(patch={})=>{
  const samples=16000,bytes=new ArrayBuffer(44+samples*2),v=new DataView(bytes);const text=(at,value)=>[...value].forEach((c,i)=>v.setUint8(at+i,c.charCodeAt(0)));
  text(0,'RIFF');text(8,'WAVE');text(12,'fmt ');text(36,'data');v.setUint32(4,bytes.byteLength-8,true);v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);v.setUint32(24,16000,true);v.setUint32(28,32000,true);v.setUint16(32,2,true);v.setUint16(34,16,true);v.setUint32(40,samples*2,true);for(let i=44;i<bytes.byteLength;i+=2)v.setInt16(i,10000,true);
- const form=new FormData();for(const[k,value]of Object.entries({assessment_kind:'azure_alphabet_v1',question_id:'1',foundation_round_id:'00000000-0000-4000-8000-000000000002',challenge_session_id:'00000000-0000-4000-8000-000000000001',challenge_mode:'easy'}))form.set(k,value);form.set('audio',new Blob([bytes],{type:'audio/wav'}),'alphabet.wav');return new Request('https://example.invalid',{method:'POST',body:form});
+ const form=new FormData();for(const[k,value]of Object.entries({assessment_kind:'azure_alphabet_v1',question_id:'1',foundation_round_id:'00000000-0000-4000-8000-000000000002',challenge_session_id:'00000000-0000-4000-8000-000000000001',challenge_mode:'challenge',...patch}))form.set(k,value);form.set('audio',new Blob([bytes],{type:'audio/wav'}),'alphabet.wav');return new Request('https://example.invalid',{method:'POST',body:form});
 };
+test('拼字 Azure 使用月額度 ledger；不接受本機文字，也不建立 A–Z round',async()=>{
+ const h=harness({spelling:true});const response=await h.handler(alphabetRequest({foundation_round_id:''}));assert.equal(response.status,200);
+ assert.deepEqual(h.reservations.map(x=>x.name),['reserve_speaking_azure_spelling_request_v1']);
+ assert.equal(h.writes.find(x=>x.table==='speaking_pronunciation_attempts').value.challenge_mode,'challenge');
+ assert.equal((await harness({spelling:true}).handler(request())).status,409);
+});
+test('A–Z 練習評分不建立或完成正式 round',async()=>{
+ const h=harness({alphabet:true});const response=await h.handler(alphabetRequest({challenge_mode:'easy',foundation_round_id:''}));assert.equal(response.status,200);
+ assert.equal(h.reservations.some(x=>x.name.startsWith('claim_')||x.name.startsWith('record_')),false);
+ assert.equal(h.writes.find(x=>x.table==='speaking_pronunciation_attempts').value.challenge_mode,'easy');
+});
+test('本機題不再使用 Azure 日輪次 reservation',async()=>{
+ const h=harness();assert.equal((await h.handler(request())).status,200);
+ assert.equal(h.reservations[0].args.p_client_session_id,null);
+});
 test('今日通關及字母三次上限在 Azure 前拒絕，釋放 claim 且不寫 attempt',async()=>{
  for(const denied of ['speaking_level_completed_today','alphabet_letter_daily_limit_reached']){
   const h=harness({alphabet:true,denied});const response=await h.handler(alphabetRequest());
@@ -132,6 +147,6 @@ test('Azure 僅限 A–Z；一般題 multipart 與 A–Z 本機文字皆拒絕',
  const alpha=harness({alphabet:true});assert.equal((await alpha.handler(request())).status,409);assert.equal(alpha.reservations.length,0);
 });
 test('A–Z Azure 必須經錄音驗證、claim、十輪 reservation 及原本 round 交易',async()=>{
- const h=harness({alphabet:true});const response=await h.handler(alphabetRequest());assert.equal(response.status,200);const result=await response.json();assert.equal(result.scores.pronunciation,86);assert.equal(result.scores.prosody,null);assert.deepEqual(h.reservations.map(x=>x.name),['claim_speaking_foundation_round_question_v1','reserve_speaking_azure_alphabet_request_v1','record_speaking_foundation_assessment_v3']);assert.equal(h.reservations[1].args.p_audio_seconds,1);assert.equal(h.writes.at(-1).table,'speaking_pronunciation_requests');
+ const h=harness({alphabet:true});const response=await h.handler(alphabetRequest());assert.equal(response.status,200);const result=await response.json();assert.equal(result.scores.pronunciation,86);assert.equal(result.scores.prosody,null);assert.deepEqual(h.reservations.map(x=>x.name),['claim_speaking_foundation_round_question_v1','reserve_speaking_azure_alphabet_request_v1','record_speaking_foundation_challenge_v4']);assert.equal(h.reservations[1].args.p_audio_seconds,1);assert.equal(h.writes.at(-1).table,'speaking_pronunciation_requests');
  const failed=harness({alphabet:true,providerFailure:true});assert.equal((await failed.handler(alphabetRequest())).status,502);assert.ok(failed.reservations.some(x=>x.name.startsWith('release_')));assert.equal(failed.reservations.some(x=>x.name.startsWith('record_')),false);
 });
