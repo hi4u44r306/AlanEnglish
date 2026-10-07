@@ -6,7 +6,7 @@ import WorkbookOneFoundationChallenge from "./WorkbookOneFoundationChallenge";
 let mockFoundationScoreCalls = 0;
 let mockAutomaticRecorderMounts = 0;
 
-jest.mock("./AlphabetAutomaticRecorder", () => function AutomaticRecorder({ question, foundationRoundId, paused, onScored, onRoundInvalid }) {
+jest.mock("./AlphabetAutomaticRecorder", () => function AutomaticRecorder({ question, foundationRoundId, paused, waitingForRetry, onRetryReading, onScored, onRoundInvalid }) {
     const MockReact = require("react");
     MockReact.useEffect(() => {
         mockAutomaticRecorderMounts += 1;
@@ -15,6 +15,7 @@ jest.mock("./AlphabetAutomaticRecorder", () => function AutomaticRecorder({ ques
         <span data-testid="round-id">{foundationRoundId}</span>
         <span data-testid="practice-question-id">{question.id}</span>
         <span>麥克風已開啟</span>
+        {waitingForRetry && <button type="button" onClick={onRetryReading}>再唸一次</button>}
         <button type="button" disabled={paused} onClick={() => {
             mockFoundationScoreCalls += 1;
             onScored({
@@ -183,7 +184,7 @@ describe("WorkbookOneFoundationChallenge", () => {
         expect(screen.getByRole("button", { name: "開始挑戰" })).toBeEnabled();
     });
 
-    it("第一次答錯會先清楚提示同一題，再自動恢復持續收音", async () => {
+    it("第一次答錯停在同一題，按再唸一次才恢復收音且不重建麥克風元件", async () => {
         render(<WorkbookOneFoundationChallenge
             challenge={alphabetChallenge}
             firebaseUser={{ uid: "student" }}
@@ -200,8 +201,16 @@ describe("WorkbookOneFoundationChallenge", () => {
         fireEvent.click(screen.getByRole("button", { name: "模擬自動再試" }));
         expect(screen.getByText("沒關係，再試一次！")).toBeInTheDocument();
         expect(screen.getByText(/系統剛剛聽到「B」/)).toBeInTheDocument();
-        await act(async () => jest.advanceTimersByTime(3000));
+        const questionId = screen.getByTestId("practice-question-id").textContent;
+        const mounts = mockAutomaticRecorderMounts;
+        await act(async () => jest.advanceTimersByTime(30000));
+        expect(screen.getByText("沒關係，再試一次！")).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "模擬自動答對" })).toBeDisabled();
+        fireEvent.click(screen.getByRole("button", { name: "再唸一次" }));
         expect(screen.queryByText("沒關係，再試一次！")).not.toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "模擬自動答對" })).toBeEnabled();
+        expect(screen.getByTestId("practice-question-id")).toHaveTextContent(questionId);
+        expect(mockAutomaticRecorderMounts).toBe(mounts);
         expect(screen.getByText("麥克風已開啟")).toBeInTheDocument();
     });
 

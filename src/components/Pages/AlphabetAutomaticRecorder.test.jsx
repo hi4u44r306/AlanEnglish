@@ -32,7 +32,7 @@ describe("AlphabetAutomaticRecorder", () => {
     beforeEach(() => {
         jest.clearAllMocks();
         const nativeTimeout = global.setTimeout;
-        global.setTimeout = (fn, ms, ...args) => nativeTimeout(fn, ms === 4000 ? 0 : ms, ...args);
+        global.setTimeout = (fn, ms, ...args) => nativeTimeout(fn, ms === 900 ? 0 : ms, ...args);
         now = 0;
         level = 0;
         frames = new Map();
@@ -112,7 +112,7 @@ describe("AlphabetAutomaticRecorder", () => {
     });
     it.each([true, false])("字母結果依後端答對狀態顯示勾叉，不顯示分數：%s", async answerMatch => {
         let finishFeedback;
-        global.setTimeout = (fn, ms, ...args) => ms === 4000
+        global.setTimeout = (fn, ms, ...args) => ms === 900
             ? (finishFeedback = fn, 1) : originalTimeout(fn, ms, ...args);
         submitAlphabetPronunciationAttempt.mockResolvedValue({ assessment_kind: "azure_pronunciation", answer_match: answerMatch, scores: { pronunciation: 85 }, foundation_round: { status: answerMatch ? "open" : "retry" } });
         const view = await mount();
@@ -120,9 +120,43 @@ describe("AlphabetAutomaticRecorder", () => {
         expect(await screen.findByText(answerMatch ? "通過！" : "再唸一次")).toBeInTheDocument();
         expect(view.container.querySelector(answerMatch ? ".is-passed" : ".is-incorrect")).toBeInTheDocument();
         expect(screen.queryByText(/85|字母發音|朗讀完整度/)).not.toBeInTheDocument();
-        expect(callbacks.onScored).not.toHaveBeenCalled();
-        await act(async () => finishFeedback());
+        if (answerMatch) {
+            expect(callbacks.onScored).not.toHaveBeenCalled();
+            await act(async () => finishFeedback());
+        } else {
+            expect(finishFeedback).toBeUndefined();
+        }
         expect(callbacks.onScored).toHaveBeenCalledWith(expect.objectContaining({ answer_match: answerMatch }));
+    });
+    it("重唸等待不錄環境音，按鈕由關卡啟動同一題，不重送舊音檔", async () => {
+        const onRetryReading = jest.fn();
+        const view = await mount();
+        view.rerender(<AlphabetAutomaticRecorder {...props} paused waitingForRetry onRetryReading={onRetryReading} />);
+        const count = recorders.length;
+        await frame(20000, 0.2);
+        expect(recorders).toHaveLength(count);
+        expect(recorders[count - 1].state).toBe("inactive");
+        expect(submitAlphabetPronunciationAttempt).not.toHaveBeenCalled();
+        expect(screen.getByText("準備好後，按下方按鈕再唸。")).toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "再唸一次" }));
+        expect(onRetryReading).toHaveBeenCalledTimes(1);
+        view.rerender(<AlphabetAutomaticRecorder {...props} onRetryReading={onRetryReading} />);
+        expect(recorders).toHaveLength(count + 1);
+        expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalledTimes(1);
+        expect(submitAlphabetPronunciationAttempt).not.toHaveBeenCalled();
+    });
+    it("慢速判別顯示等待提示，不另錄音或自動再送評", async () => {
+        let showSlowHint;
+        global.setTimeout = (fn, ms, ...args) => ms === 15000
+            ? (showSlowHint = fn, 1) : originalTimeout(fn, ms, ...args);
+        submitAlphabetPronunciationAttempt.mockImplementationOnce(() => new Promise(() => {}));
+        await mount();
+        await speak();
+        await act(async () => showSlowHint());
+        expect(screen.getByText(/這次等待較久/)).toBeInTheDocument();
+        expect(submitAlphabetPronunciationAttempt).toHaveBeenCalledTimes(1);
+        expect(recorders).toHaveLength(1);
+        expect(screen.queryByRole("button", { name: "重試評分" })).not.toBeInTheDocument();
     });
     it("字母額度用完即轉回聽模式，不判通關或自動重送", async () => {
         submitAlphabetPronunciationAttempt.mockRejectedValueOnce(Object.assign(new Error("明天再挑戰"), { code: "alphabet_letter_daily_limit_reached" }));
