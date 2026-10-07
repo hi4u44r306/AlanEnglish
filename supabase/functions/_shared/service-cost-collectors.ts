@@ -194,14 +194,18 @@ export async function collectCloudflareR2(month: string, io: CostIO): Promise<Co
     const { account, key } = cloudflareConfig(io);
     const bucket = identifier(required(io, 'COST_CLOUDFLARE_R2_BUCKET'), /^[a-zA-Z0-9_.-]+$/);
     const variables = { account, start: period.start, end: period.end, bucket };
-    const [operationsResponse, storageResponse] = await Promise.all([
-        cloudflareAnalytics(io, key, `query($account:string!,$start:Time!,$end:Time!,$bucket:string!){viewer{accounts(filter:{accountTag:$account}){
+    let operationsResponse: any;
+    let storageResponse: any;
+    try {
+        operationsResponse = await cloudflareAnalytics(io, key, `query($account:string!,$start:Time!,$end:Time!,$bucket:string!){viewer{accounts(filter:{accountTag:$account}){
       r2OperationsAdaptiveGroups(limit:10000,filter:{datetime_geq:$start,datetime_leq:$end,bucketName:$bucket}){sum{requests} dimensions{actionType}}
-    }}}`, variables),
-        cloudflareAnalytics(io, key, `query($account:string!,$start:Time!,$end:Time!,$bucket:string!){viewer{accounts(filter:{accountTag:$account}){
+    }}}`, variables);
+    } catch { return fail('provider_r2_operations_failed'); }
+    try {
+        storageResponse = await cloudflareAnalytics(io, key, `query($account:string!,$start:Time!,$end:Time!,$bucket:string!){viewer{accounts(filter:{accountTag:$account}){
       r2StorageAdaptiveGroups(limit:1,filter:{datetime_geq:$start,datetime_leq:$end,bucketName:$bucket},orderBy:[datetime_DESC]){max{payloadSize metadataSize objectCount}}
-    }}}`, variables)
-    ]);
+    }}}`, variables);
+    } catch { return fail('provider_r2_storage_failed'); }
     const operationsRow = list(operationsResponse.data?.viewer?.accounts)[0];
     const storageRow = list(storageResponse.data?.viewer?.accounts)[0];
     if (!operationsRow || !storageRow) return fail('invalid_response');
@@ -246,5 +250,5 @@ export const costCollectors = [
 ];
 export function costError(error: unknown) {
     const code = error instanceof Error ? error.message : '';
-    return /^(missing_configuration|invalid_configuration|invalid_response|unsupported_currency|incomplete_pagination|incomplete_query|billing_export_empty|historical_usage_unavailable|provider_(?:query|auth|account|schema)_failed|test_mode_only|collection_timeout|provider_http_\d{3})$/.test(code) ? code : 'collection_failed';
+    return /^(missing_configuration|invalid_configuration|invalid_response|unsupported_currency|incomplete_pagination|incomplete_query|billing_export_empty|historical_usage_unavailable|provider_(?:(?:query|auth|account|schema)|r2_(?:operations|storage))_failed|test_mode_only|collection_timeout|provider_http_\d{3})$/.test(code) ? code : 'collection_failed';
 }

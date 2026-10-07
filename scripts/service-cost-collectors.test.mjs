@@ -58,9 +58,15 @@ test('Cloudflare uses analytics and does not label usage or bytes as a bill',asy
 test('Cloudflare errors expose only safe diagnostic categories',async()=>{
     const env={COST_CLOUDFLARE_ACCOUNT_ID:'a'.repeat(32),COST_CLOUDFLARE_READ_TOKEN:'mock',COST_CLOUDFLARE_WORKER_NAME:'alanenglish',COST_CLOUDFLARE_R2_BUCKET:'alanenglish-audio'};
     await assert.rejects(collectCloudflareWorkers('2026-10',io(env,async()=>response({errors:[{message:'user does not have access to account secret-account'}]}))),/provider_auth_failed/);
-    await assert.rejects(collectCloudflareR2('2026-10',io(env,async()=>response({errors:[{message:'Cannot query field hiddenField on type Account'}]}))),/provider_schema_failed/);
+    await assert.rejects(collectCloudflareWorkers('2026-10',io(env,async()=>response({errors:[{message:'Cannot query field hiddenField on type Account'}]}))),/provider_schema_failed/);
     assert.equal(costError(new Error('provider_auth_failed')),'provider_auth_failed');
     assert.equal(costError(new Error('secret-account token=hidden')),'collection_failed');
+});
+test('Cloudflare R2 reports which documented dataset failed without upstream details',async()=>{
+    const env={COST_CLOUDFLARE_ACCOUNT_ID:'a'.repeat(32),COST_CLOUDFLARE_READ_TOKEN:'mock',COST_CLOUDFLARE_R2_BUCKET:'alanenglish-audio'};
+    await assert.rejects(collectCloudflareR2('2026-10',io(env,async()=>response({errors:[{message:'private upstream detail'}]}))),/provider_r2_operations_failed/);
+    let calls=0;await assert.rejects(collectCloudflareR2('2026-10',io(env,async()=>++calls===1?response({data:{viewer:{accounts:[{r2OperationsAdaptiveGroups:[]}]}}}):response({errors:[{message:'private upstream detail'}]}))),/provider_r2_storage_failed/);
+    assert.equal(costError(new Error('provider_r2_storage_failed')),'provider_r2_storage_failed');
 });
 test('collection errors reveal no raw tokens or response bodies',()=>{
     assert.equal(costError(new Error('token=secret PII response')),'collection_failed');
