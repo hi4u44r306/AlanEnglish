@@ -609,6 +609,17 @@ describe("MainNavbar student navigation", () => {
         expect(markStudentNotificationRead).toHaveBeenCalledWith({ uid: "student-test" }, 10);
     });
 
+    it.each([["admin", "/admin/class-materials"], ["teacher", "/teacher/class-materials"]])("links %s to the appropriate class materials page in both menus", async (role, path) => {
+        useAuth.mockReturnValue({ firebaseUser: { uid: `${role}-test` }, role, isAuthenticated: true, logout: jest.fn(), studentProfile: { name: "教職員" } });
+        render(<MemoryRouter><MainNavbar /></MemoryRouter>);
+        fireEvent.click(screen.getByRole("button", { name: "管理" }));
+        expect(screen.getByRole("link", { name: "班級教材設定" })).toHaveAttribute("href", path);
+        fireEvent.click(screen.getByRole("button", { name: "開啟全部功能選單" }));
+        const links = await screen.findAllByRole("link", { name: "班級教材設定" });
+        expect(links).toHaveLength(2);
+        links.forEach(link => expect(link).toHaveAttribute("href", path));
+    });
+
     it("highlights the active student route in the full menu", () => {
         render(<MemoryRouter initialEntries={["/student/membership"]}><MainNavbar /></MemoryRouter>);
         fireEvent.click(screen.getByRole("button", { name: "開啟功能選單" }));
