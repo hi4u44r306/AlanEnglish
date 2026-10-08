@@ -2,12 +2,13 @@
 
 最後更新：2026-10-08
 
-### 六冊口說道路接縫修補（2026-10-08，本機完成／待發布）
+### 六冊口說道路接縫修補（2026-10-08，已部署／實機待驗）
 
 - 基準 main df03c1ad，分支 codex/speaking-road-seams；沿用乾淨副本 output/speaking-70-release-status，保留原目錄未提交草稿。原十二張完整地圖保留，新增十二張局部 WebP 修補圖（合計 2,014,678 bytes），每冊只需自己的兩張，重複接縫復用網址與快取；附近才掛載圖片、失敗保留重試。
 - 道路與兩側場景的折角／重影／矩形痕跡經 imagegen 局部修補；500×世界高度比例、80 單位圓牌維持，接縫附近中心線與安全範圍依修補結果校準。沒有後端、資料庫、題庫、登入、學習進度或獎勵修改。
 - 三個 targeted suites／38 tests、六檔 ESLint 與 diff check 通過；十二種接法合成前後對照及完整寬景已檢查。實際 JSX／SCSS 隔離頁成功編譯並可由本機 HTTP 讀取；Browser Use 因 saved browser permissions could not be verified 阻擋，未使用其他瀏覽器或間接方法繞過。桌面／412px 按現行比例检查，正式登入及 iPhone 待驗。採 Cloudflare 唯一 production build，不重複本機完整 build 或全套測試。
 - 對照、提示詞與 raw PNG 位於 output/map-seam-repair-20261008；正式可引用素材已保存到 src/components/assets/speaking-map。發布紀錄、範圍與回復方式見 docs/SPEAKING_MAP_JOIN_REPAIR.md。
+- PR #467／main cc139f90；Cloudflare build 38c9cc33-4a80-4fcc-a09e-e51da330006e 於 11:40:51 台灣時間 success。11:43 正式 main.64743a7d.js、口說 967.a1570ea0.chunk.js、967.99efc240.chunk.css 全部 HTTP 200，包含新接縫 renderer／樣式；十二張 WebP 全部 200、SHA-256 與發布副本一致。chunk 編號由 719 改為 967，以正式 manifest 重新定位，沒有誤判為部署失敗。證據 output/map-seam-repair-20261008/production-verification.json；沒有登入或正式資料寫入，桌面／412px 實際瀏覽器、捲動及 iPhone 仍待實機驗收。下一步重新整理後檢查六冊道路轉接處；純文件發布紀錄不觸發第二次前端建置。
 
 ### 我的設定與頭貼快取補齊（2026-10-08，已部署／實機待驗）
 
