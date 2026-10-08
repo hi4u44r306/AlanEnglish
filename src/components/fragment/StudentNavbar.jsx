@@ -18,7 +18,6 @@ import {
     FiLock,
     FiLogOut,
     FiMenu,
-    FiMic,
     FiSettings,
     FiStar,
     FiTrendingUp,
@@ -153,11 +152,6 @@ const StudentNavbar = ({
 
     const speakingLinks = (
         <div className="ae-student-choice-list">
-            <button type="button" disabled aria-label="口說教練，準備中">
-                <span className="is-blue"><FiMic /></span>
-                <span><strong>口說教練</strong><small>準備中，完成測試後開放</small></span>
-                <b>準備中</b>
-            </button>
             {hasSpeakingChallengeAccess ? <InstantDrawerLink to="/student/speaking-challenges" onNavigate={closeDrawerThenNavigate}>
                 <span className="is-orange"><FiStar /></span>
                 <span><strong>口說大挑戰</strong><small>選擇教材，開始闖關</small></span>
