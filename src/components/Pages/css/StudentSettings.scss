@@ -135,6 +135,47 @@
 .student-settings-premium.active > svg { color: #db9d1e; }
 
 .student-settings-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; margin-bottom: 22px; }
+.student-settings-shortcuts { margin-bottom: 22px; }
+.student-settings-shortcuts .student-settings-learning-links { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.student-settings-group {
+    margin-bottom: 16px;
+    border: 1px solid #dce5f2;
+    border-radius: 18px;
+    background: #fff;
+    overflow: hidden;
+
+    > summary {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        min-height: 64px;
+        padding: 16px 20px;
+        color: #193a75;
+        cursor: pointer;
+        list-style: none;
+        &::-webkit-details-marker { display: none; }
+        &:hover { background: #f4f7fc; }
+        &:focus-visible { outline: 3px solid #245fc5; outline-offset: -4px; border-radius: 16px; }
+        > span { min-width: 0; }
+        strong, small { display: block; overflow-wrap: anywhere; }
+        strong { font-size: 18px; font-weight: 850; }
+        small { margin-top: 5px; color: #62718d; font-size: 13px; line-height: 1.6; }
+        > svg { flex: 0 0 auto; width: 22px; height: 22px; transition: transform .15s; }
+    }
+    &[open] > summary { border-bottom: 1px solid #e5eaf2; background: #f4f7fc; > svg { transform: rotate(180deg); } }
+}
+.student-settings-group-content {
+    padding: 20px;
+    .student-settings-grid { margin-bottom: 0; }
+    .student-settings-panel { min-width: 0; box-shadow: none; }
+    .student-settings-data-list dd { min-width: 0; overflow-wrap: anywhere; }
+}
+@media (max-width: 600px) {
+    .student-settings-shortcuts .student-settings-learning-links { grid-template-columns: 1fr; }
+    .student-settings-group > summary { padding: 14px 16px; }
+    .student-settings-group-content { padding: 12px; }
+}
 .student-settings-panel { padding: 23px; }
 .student-settings-panel > header { display: flex; align-items: center; gap: 11px; margin-bottom: 19px; }
 .student-settings-panel > header > svg { width: 28px; height: 28px; padding: 6px; border-radius: 10px; color: #3655ad; background: #edf2ff; }

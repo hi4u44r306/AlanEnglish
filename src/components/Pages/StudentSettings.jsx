@@ -22,6 +22,7 @@ import { validatePublicNickname } from "../../utils/nicknameValidation";
 import BirthdaySelect from "../fragment/BirthdaySelect";
 import StudentAvatarImage from "../fragment/StudentAvatarImage";
 import StudentGrowthCard from "../fragment/StudentGrowthCard";
+import StudentSettingsGroup from "../fragment/StudentSettingsGroup";
 import "./css/StudentSettings.scss";
 
 const initial = name => String(name || "A").trim().charAt(0).toUpperCase() || "A";
@@ -617,17 +618,6 @@ function StudentSettings() {
                 </details>
             </section>
 
-            <section className="student-settings-push-panel" aria-labelledby="student-settings-push-heading">
-                <div>
-                    <h2 id="student-settings-push-heading"><FiBell /> 手機推播通知</h2>
-                    <p>登入時選擇「稍後再說」也能在這裡開啟。新班級作業與教材期限提醒會送到此裝置；晚上 9 點至早上 8 點不發送，每裝置每日最多三則。</p>
-                    <small aria-live="polite">{pushStatus?.reason || (pushConfig?.enabled === false ? "推播服務暫時未開放；網站內通知仍可使用。" : pushStatus?.active ? "此裝置已開啟推播" : "此裝置尚未開啟推播")}</small>
-                </div>
-                <button type="button" onClick={togglePush} disabled={pushBusy || !pushConfig?.enabled || (!pushStatus?.active && !pushStatus?.supported)}>
-                    {pushBusy ? "設定中…" : pushStatus?.active ? "關閉此裝置推播" : "開啟此裝置推播"}
-                </button>
-            </section>
-
             {
                 avatarDraft && !avatarConfirmation && (
                     <div className="student-avatar-editor-backdrop" role="presentation">
@@ -714,7 +704,7 @@ function StudentSettings() {
                 )
             }
 
-            <section className="student-settings-grid">
+            <section className="student-settings-shortcuts">
                 <article className="student-settings-panel">
                     <header><FiUser /><div><h2>學習與成長</h2></div></header>
                     <div className="student-settings-learning-links">
@@ -724,9 +714,12 @@ function StudentSettings() {
                     </div>
                     <p>XP 記錄你的學習成長；有效在校生可累積 AE Points，兌換獎品。</p>
                 </article>
+            </section>
 
+            <StudentSettingsGroup title="教材與方案" description="班級與在校資訊、教材來源、會員使用期限">
+            <section className="student-settings-grid">
                 <article className="student-settings-panel">
-                    <header><FiCreditCard /><div><span>MEMBERSHIP</span><h2>教材與方案</h2></div></header>
+                    <header><FiCreditCard /><div><span>MEMBERSHIP</span><h2>在校與帳號資格</h2></div></header>
                     <dl className="student-settings-data-list">
                         <div><dt>AI Premium 資格</dt><dd>{hasAiPremium ? isActiveAcademyStudent ? "英文班方案已包含" : "已加購" : "未開通"}</dd></div>
                         <div><dt>AI 教材與發音練習</dt><dd>{hasAiMaterials ? "兩項皆可使用" : "目前不可使用"}</dd></div>
@@ -737,9 +730,6 @@ function StudentSettings() {
                         <div><dt>實際離校</dt><dd>{enrollmentRecord?.departed_at || "—"}</dd></div>
                     </dl>
                 </article>
-            </section>
-
-            <section className="student-settings-grid">
                 <article className="student-settings-panel">
                     <header><FiGift /><div><span>BOOK OWNERSHIP</span><h2>教材權限來源</h2></div></header>
                     <dl className="student-settings-data-list">
@@ -758,7 +748,9 @@ function StudentSettings() {
                     </dl>
                 </article>
             </section>
+            </StudentSettingsGroup>
 
+            <StudentSettingsGroup title="個人資料與紀錄" description="姓名與登入帳號、生日、暱稱更改紀錄">
             <section className="student-settings-grid">
                 <article className="student-settings-panel student-settings-nickname-panel">
                     <header><FiClock /><div><span>NICKNAME HISTORY</span><h2>暱稱更改紀錄</h2></div></header>
@@ -789,9 +781,8 @@ function StudentSettings() {
                         <div><dt>班級</dt><dd>{profile.class ? `${profile.class} 班` : "尚未分班"}</dd></div>
                         <div><dt>登入帳號</dt><dd>{profile.login_username || firebaseUser?.email || "—"}</dd></div>
                     </dl>
-                    <p className="student-settings-readonly"><FiLock /> 中文姓名、英文姓名、班級與登入帳號由英文班／帳號管理維護；公開暱稱可在左側自行修改。</p>
+                    <p className="student-settings-readonly"><FiLock /> 中文姓名、英文姓名、班級與登入帳號由英文班／帳號管理維護；公開暱稱可在上方自行修改。</p>
                 </article>
-
                 <article className="student-settings-panel">
                     <header><FiGift /><div><span>BIRTHDAY</span><h2>出生年月日</h2></div></header>
                     <p>生日會影響生日獎勵，不會顯示在排行榜。為避免獎勵紀錄錯誤，設定後學生不能自行修改。</p>
@@ -808,6 +799,20 @@ function StudentSettings() {
                     )}
                 </article>
 
+            </section>
+            </StudentSettingsGroup>
+
+            <StudentSettingsGroup title="通知與家長聯絡" description="家長 Email 驗證與本裝置推播設定">
+                <section className="student-settings-push-panel" aria-labelledby="student-settings-push-heading">
+                    <div>
+                        <h2 id="student-settings-push-heading"><FiBell /> 手機推播通知</h2>
+                        <p>登入時選擇「稍後再說」也能在這裡開啟。新班級作業與教材期限提醒會送到此裝置；晚上 9 點至早上 8 點不發送，每裝置每日最多三則。</p>
+                        <small aria-live="polite">{pushStatus?.reason || (pushConfig?.enabled === false ? "推播服務暫時未開放；網站內通知仍可使用。" : pushStatus?.active ? "此裝置已開啟推播" : "此裝置尚未開啟推播")}</small>
+                    </div>
+                    <button type="button" onClick={togglePush} disabled={pushBusy || !pushConfig?.enabled || (!pushStatus?.active && !pushStatus?.supported)}>
+                        {pushBusy ? "設定中…" : pushStatus?.active ? "關閉此裝置推播" : "開啟此裝置推播"}
+                    </button>
+                </section>
                 <article className="student-settings-panel">
                     <header><FiCreditCard /><div><span>GUARDIAN</span><h2>家長 Email</h2></div></header>
                     <p>付款與重要通知只會寄到已驗證的家長 Email。更換時，驗證成功前仍保留原本的信箱。</p>
@@ -831,7 +836,7 @@ function StudentSettings() {
                         </form>
                     )}
                 </article>
-            </section>
+            </StudentSettingsGroup>
         </main >
     );
 }
