@@ -434,7 +434,7 @@ describe("MainNavbar student navigation", () => {
         expect(screen.queryByRole("link", { name: "每週報告" })).not.toBeInTheDocument();
     });
 
-    it("opens entitled student challenges while keeping the coach disabled", async () => {
+    it.each(["desktop", "mobile"])("opens entitled student challenges with no unfinished coach entry on %s", async surface => {
         useAuth.mockReturnValue({
             firebaseUser: { uid: "academy-all-access" },
             role: "student",
@@ -455,8 +455,9 @@ describe("MainNavbar student navigation", () => {
 
         render(<MemoryRouter initialEntries={["/student/dashboard"]}><MainNavbar /></MemoryRouter>);
 
-        fireEvent.click(screen.getAllByRole("button", { name: "冒險" })[0]);
-        expect(screen.getByRole("button", { name: "口說教練，準備中" })).toBeDisabled();
+        fireEvent.click(screen.getByRole("button", { name: surface === "desktop" ? "口說冒險" : "冒險" }));
+        expect(screen.queryByRole("button", { name: /口說教練/, hidden: true })).not.toBeInTheDocument();
+        expect(screen.queryByText("準備中，完成測試後開放")).not.toBeInTheDocument();
         expect(screen.getByRole("link", { name: /口說大挑戰/ })).toHaveAttribute("href", "/student/speaking-challenges");
         expect(screen.queryByRole("link", { name: /口說教練/ })).not.toBeInTheDocument();
         fireEvent.click(screen.getByRole("button", { name: "開啟功能選單" }));
@@ -464,9 +465,11 @@ describe("MainNavbar student navigation", () => {
     });
 
     it.each([
-        ["no pronunciation entitlement", true, false],
-        ["inactive membership", false, true]
-    ])("keeps challenges disabled for students with %s", (_label, isActive, pronunciation) => {
+        ["no pronunciation entitlement", true, false, "desktop"],
+        ["no pronunciation entitlement", true, false, "mobile"],
+        ["inactive membership", false, true, "desktop"],
+        ["inactive membership", false, true, "mobile"]
+    ])("keeps challenges disabled for students with %s (case %#)", (_label, isActive, pronunciation, surface) => {
         useAuth.mockReturnValue({
             firebaseUser: { uid: "speaking-entry-test" },
             role: "student",
@@ -482,9 +485,20 @@ describe("MainNavbar student navigation", () => {
         });
 
         render(<MemoryRouter initialEntries={["/student/dashboard"]}><MainNavbar /></MemoryRouter>);
-        fireEvent.click(screen.getAllByRole("button", { name: "冒險" })[0]);
+        fireEvent.click(screen.getByRole("button", { name: surface === "desktop" ? "口說冒險" : "冒險" }));
+        expect(screen.queryByText("口說教練")).not.toBeInTheDocument();
         expect(screen.getByRole("button", { name: "口說大挑戰，需要有效發音練習權限" })).toBeDisabled();
         expect(screen.queryByRole("link", { name: /口說大挑戰/ })).not.toBeInTheDocument();
+    });
+
+    it.each(["admin", "teacher"])("preserves the coach destination in desktop and mobile menus for %s", async role => {
+        useAuth.mockReturnValue({ firebaseUser: { uid: `${role}-coach-test` }, role, isAuthenticated: true, logout: jest.fn(), studentProfile: { name: "教職員" } });
+        getAccessibleCatalog.mockResolvedValue({ categories: [] });
+        render(<MemoryRouter initialEntries={[`/${role}/dashboard`]}><MainNavbar /></MemoryRouter>);
+        const coachName = "發音教練示範";
+        expect(screen.getByRole("link", { name: coachName })).toHaveAttribute("href", "/student/pronunciation");
+        fireEvent.click(screen.getByRole("button", { name: "開啟全部功能選單" }));
+        expect(await screen.findAllByRole("link", { name: coachName })).toHaveLength(2);
     });
 
     it("shows one music-management link and the links admin entry to admins", async () => {
