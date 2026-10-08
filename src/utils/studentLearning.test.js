@@ -1,4 +1,4 @@
-import { getAssignmentState, getLearningTasks, getStudentMaterialCategories } from "./studentLearning";
+import { getAssignmentState, getCurrentClassMaterials, getLearningTasks, getStudentMaterialCategories } from "./studentLearning";
 
 test("distinguishes overdue from completed and tolerates missing or invalid deadlines", () => {
     const now = Date.parse("2026-10-06T00:00:00Z");
@@ -20,4 +20,17 @@ test("matches student catalog visibility and filters locked content before group
         { code: "workbook", books: [{ code: "Workbook_1" }] }
     ]);
     expect(result.flatMap(category => category.books.map(book => book.code))).toEqual(["BasicReading_400_1", "Workbook_1"]);
+});
+
+test("current class list excludes historical grants and only opens authorized catalog matches", () => {
+    const profile = { enrollment_status: "active", current_enrollment: { status: "active" },
+        class_books: [{ id: 3, name: "Current" }, { id: 3, name: "Duplicate" }, { id: 4, code: "locked", name: "Locked" }],
+        direct_entitlements: [{ books: { id: 5, name: "History" } }] };
+    const categories = [{ name: "Workbook", books: [{ id: 3, code: "current", locked: false }, { id: 4, code: "locked", locked: true }, { id: 5, code: "history", locked: false }] }];
+    expect(getCurrentClassMaterials(profile, categories)).toEqual([
+        { id: 3, name: "Current", code: "current", categoryName: "Workbook", canOpen: true },
+        { id: 4, name: "Locked", code: "locked", categoryName: "Workbook", canOpen: false }
+    ]);
+    expect(getCurrentClassMaterials({ ...profile, current_enrollment: { status: "paused" } }, categories)).toEqual([]);
+    expect(getCurrentClassMaterials({ ...profile, enrollment_status: "departed" }, categories)).toEqual([]);
 });

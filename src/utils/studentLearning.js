@@ -1,5 +1,26 @@
 import { createBasicReadingCategory, isBasicReadingBook } from "../constants/basicReadingCatalog";
 
+export const getCurrentClassMaterials = (profile, categories = []) => {
+    const enrollment = profile?.current_enrollment;
+    if (!enrollment || enrollment.status !== "active" || !["active", "scheduled_departure"].includes(profile.enrollment_status)) return [];
+    const catalog = categories.flatMap(category => (category.books || []).map(book => ({ ...book, categoryName: category.name })));
+    const seen = new Set();
+    return (profile.class_books || []).filter(book => {
+        if (!book?.id || seen.has(String(book.id))) return false;
+        seen.add(String(book.id));
+        return true;
+    }).map(book => {
+        const authorizedBook = catalog.find(item => String(item.id) === String(book.id));
+        return {
+            ...book,
+            categoryName: authorizedBook?.categoryName,
+            // The commerce list identifies current materials; catalog still controls access.
+            canOpen: Boolean(authorizedBook?.code && !authorizedBook.locked),
+            code: authorizedBook?.code || book.code
+        };
+    });
+};
+
 // Match the existing student menu: only the backend-authorized, visible catalog.
 export const getStudentMaterialCategories = (categories = []) => {
     const regular = [];
