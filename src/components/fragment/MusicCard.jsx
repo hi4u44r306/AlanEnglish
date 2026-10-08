@@ -16,7 +16,8 @@ function MusicCard({
     playbackQueue = [],
     progress = {},
     index = 0,
-    progressStatus = "ready"
+    progressStatus = "ready",
+    onStart
 }) {
     const dispatch = useDispatch();
 
@@ -66,6 +67,8 @@ function MusicCard({
             );
             return;
         }
+
+        if (!isPlaying) onStart?.(music);
 
         dispatch(
             setCurrentMargin(

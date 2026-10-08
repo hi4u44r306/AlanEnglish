@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import { ArrowLeft, Check, Headphones } from "lucide-react";
 import MusicCard from "./MusicCard";
@@ -14,12 +14,14 @@ import { hasReachedListeningMastery } from "../../constants/listeningProgress";
 import { useDispatch, useSelector } from "react-redux";
 import { setPlayPauseStatus } from "../../actions/actions";
 import { speakingListeningContext } from "../../utils/speakingListening";
+import { studentPageScope } from "../../services/studentPageCache";
+import { saveStudentLearningResume } from "../../services/studentLearningResume";
 
 function Playlist() {
     const { playlistId } = useParams();
     const location = useLocation();
     const dispatch = useDispatch();
-    const { firebaseUser, role } = useAuth();
+    const { firebaseUser, role, studentProfile } = useAuth();
     const bookQuery = useStudentPageQuery(`book:${playlistId}`, () => getAccessibleBook(firebaseUser, playlistId));
     const book = bookQuery.data?.book;
     const tracks = useMemo(() => (bookQuery.data?.tracks || []).map(track => ({
@@ -110,6 +112,22 @@ function Playlist() {
     const homeworkTracks = useMemo(() => tracks.filter(track => homeworkTrackSet.has(String(track.id))), [tracks, homeworkTrackSet]);
     const speakingTracks = speakingContext ? tracks.filter(track => speakingContext.trackIds.has(String(track.id))) : [];
     const visibleTracks = homeworkContext.active ? homeworkTracks : speakingContext ? speakingTracks : tracks;
+    const resumeTrackId = new URLSearchParams(location.search).get("resume");
+    const resumeLocated = useRef("");
+    useEffect(() => {
+        const targetKey = `${progressOwner}:${location.search}`;
+        if (!resumeTrackId || homeworkContext.active || speakingContext || resumeLocated.current === targetKey
+            || !visibleTracks.some(track => String(track.id) === resumeTrackId)) return;
+        const target = document.getElementById(`listening-track-${resumeTrackId}`);
+        if (!target) return;
+        target.scrollIntoView?.({ block: "center", behavior: "auto" });
+        target.focus({ preventScroll: true });
+        resumeLocated.current = targetKey;
+    }, [resumeTrackId, progressOwner, location.search, homeworkContext.active, speakingContext, visibleTracks]);
+    const rememberTrack = track => {
+        if (role === "student") saveStudentLearningResume(studentPageScope(firebaseUser, role, studentProfile),
+            { id: book?.id, code: book?.code || playlistId }, track);
+    };
     const isHomeworkTrackCompleted = track => {
         const progress = progressMap[String(track.id)] || {};
         return Boolean(progress.completed) || Number(progress.playCount || 0) >= homeworkContext.requiredListens;
@@ -129,6 +147,7 @@ function Playlist() {
         <div className="playlist-page">
             <div className="playlist-content">
                 {bookQuery.error && bookQuery.data && <p role="status">目前顯示上次教材清單，播放網址暫時無法更新。<button type="button" onClick={() => bookQuery.refresh()}>重新讀取教材</button></p>}
+                {resumeTrackId && !homeworkContext.active && !speakingContext && <p role="status">{visibleTracks.some(track => String(track.id) === resumeTrackId) ? "已找到上次學習的音檔，按「播放」即可開始。" : "上次音檔目前不在教材清單中，請選擇其他音檔。"}</p>}
                 {speakingContext && <section className="playlist-speaking-preparation" aria-label="本關聽力準備">
                     <div><span><Headphones aria-hidden="true" size={18} />本關聽力準備</span><p>先把教材聽熟，再回到口說關卡試著自己回答。已完成的題目會保留，回去後重新載入本關。</p></div>
                     {speakingReturn}
@@ -208,6 +227,7 @@ function Playlist() {
                                     progress={progressMap[String(track.id)] || {}}
                                     index={index}
                                     progressStatus={role === "student" ? progressStatus : "ready"}
+                                    onStart={rememberTrack}
                                 />
                             </div>
                         )) : <div className="playlist-empty">{speakingContext ? "本關對應音檔目前無法載入，請回到口說關卡繼續練習。" : "目前沒有音檔"}</div>}

@@ -11,6 +11,8 @@ import { getGamificationSummary } from "../../services/gamificationService";
 import { getStudentAssignments, getStudentAssignmentsV2 } from "../../services/assignmentService";
 import { cacheStudentAvatarDisplayUrl } from "../../constants/studentAvatarCache";
 import { loadStudentCommerceProfile } from "../../services/commerceService";
+import { studentPageScope } from "../../services/studentPageCache";
+import { saveStudentLearningResume } from "../../services/studentLearningResume";
 
 jest.mock("../../auth/AuthContext", () => ({ useAuth: jest.fn() }));
 jest.mock("../../services/contentAccessService", () => ({ getAccessibleCatalog: jest.fn() }));
@@ -256,4 +258,42 @@ test("discards a previous learner's late response after switching accounts", asy
     await screen.findByRole("link", { name: "打開 Workbook 1" });
     resolveCatalog({ categories: [{ id: 99, name: "old", books: [{ code: "old", name: "前一個帳號的教材" }] }] });
     await waitFor(() => expect(screen.queryByText("前一個帳號的教材")).not.toBeInTheDocument());
+});
+
+test("resumes a currently assigned book at the last track without replacing pending assignments", async () => {
+    const auth = { firebaseUser: { uid: "learner-a" }, role: "student", studentProfile: profile(true) };
+    saveStudentLearningResume(studentPageScope(auth.firebaseUser, auth.role, auth.studentProfile),
+        { id: 10, code: "Workbook_1" }, { id: 22, title: "Unit 2", page: "P.22" });
+    const first = renderHome();
+    expect(await screen.findByRole("link", { name: "打開這份任務" })).toHaveAttribute("href", "/student/assignments?task=v1-2");
+    first.unmount();
+    clearStudentPageCache();
+    getStudentAssignments.mockResolvedValue({ assignments: [] });
+    saveStudentLearningResume(studentPageScope(auth.firebaseUser, auth.role, auth.studentProfile),
+        { id: 10, code: "Workbook_1" }, { id: 22, title: "Unit 2", page: "P.22" });
+    renderHome();
+    expect(await screen.findByRole("link", { name: "繼續 Workbook 1 · P.22" })).toHaveAttribute("href", "/student/books/Workbook_1?resume=22");
+    expect(screen.getByText(/上次音檔：Unit 2/)).toBeInTheDocument();
+});
+
+test("does not resume an old class, unavailable material or another student's bookmark", async () => {
+    getStudentAssignments.mockResolvedValue({ assignments: [] });
+    const scope = studentPageScope({ uid: "learner-a" }, "student", profile(true));
+    saveStudentLearningResume(scope, { id: 12, code: "Phonics_1" }, { id: 2, page: "P.2" });
+    const first = renderHome();
+    await screen.findByRole("link", { name: "打開 Workbook 1" });
+    expect(screen.queryByRole("link", { name: /繼續 Phonics/ })).not.toBeInTheDocument();
+    first.unmount();
+    useAuth.mockReturnValue({ firebaseUser: { uid: "learner-b" }, role: "student", studentProfile: profile(true) });
+    renderHome();
+    await screen.findByRole("link", { name: "打開 Workbook 1" });
+    expect(screen.queryByRole("link", { name: /^繼續 / })).not.toBeInTheDocument();
+});
+
+test("textbook customers can resume their authorized material", async () => {
+    useAuth.mockReturnValue({ firebaseUser: { uid: "customer" }, role: "student", studentProfile: profile(false) });
+    saveStudentLearningResume(studentPageScope({ uid: "customer" }, "student", profile(false)),
+        { id: 12, code: "Phonics_1" }, { id: 2, title: "Phonics Unit 1" });
+    renderHome();
+    expect(await screen.findByRole("link", { name: "繼續 Phonics 1" })).toHaveAttribute("href", "/student/books/Phonics_1?resume=2");
 });

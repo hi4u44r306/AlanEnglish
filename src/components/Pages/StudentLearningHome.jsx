@@ -10,6 +10,8 @@ import { getStudentAssignments, getStudentAssignmentsV2 } from "../../services/a
 import { getStudentAvatarDisplayUrl } from "../../constants/defaultStudentAvatars";
 import { useCachedStudentAvatarUrl } from "../../hooks/useCachedStudentAvatarUrl";
 import StudentAvatarImage from "../fragment/StudentAvatarImage";
+import useStudentLearningResume from "../../hooks/useStudentLearningResume";
+import { findResumeBook, learningResumePath } from "../../services/studentLearningResume";
 import { assignmentStateLabel, getCurrentClassMaterials, getLearningTasks, getStudentMaterialCategories } from "../../utils/studentLearning";
 import forestScene from "../assets/speaking-map/unified-forest-a-v1.webp";
 import "./css/StudentLearningHome.scss";
@@ -27,6 +29,7 @@ function StudentLearningHome() {
     const assignmentAccess = active && membership?.effective_access?.features?.assignments === true;
     const speakingAccess = active && membership?.effective_access?.features?.pronunciation === true;
     const academyStudent = active && studentProfile?.learner_type === "academy_student";
+    const learningResume = useStudentLearningResume();
     const classQuery = useStudentPageQuery(STUDENT_COMMERCE_DISPLAY_KEY, () => loadStudentCommerceDisplay(firebaseUser), { enabled: academyStudent });
     const catalogQuery = useStudentPageQuery("catalog", () => getAccessibleCatalog(firebaseUser), { enabled: active });
     const summaryQuery = useStudentPageQuery("summary", () => getGamificationSummary(firebaseUser), { enabled: active });
@@ -63,9 +66,10 @@ function StudentLearningHome() {
         sourceKey: studentProfile?.user_image || studentProfile?.userimage
     });
     const avatar = getStudentAvatarDisplayUrl(cachedAvatar, 96);
-    const heroBook = academyStudent ? currentClassBooks.find(book => book.canOpen) : books[0];
-    const heroTitle = nextTask ? nextTask.title : heroBook && academyStudent ? `一起學習 ${heroBook.name}` : "今天，從一本教材開始";
-    const heroPath = nextTask ? taskPath(nextTask) : heroBook ? bookPath(heroBook) : null;
+    const resumeBook = findResumeBook(learningResume, academyStudent ? currentClassBooks : books);
+    const heroBook = resumeBook || (academyStudent ? currentClassBooks.find(book => book.canOpen) : books[0]);
+    const heroTitle = nextTask ? nextTask.title : resumeBook ? `繼續學習 ${resumeBook.name}` : heroBook && academyStudent ? `一起學習 ${heroBook.name}` : "今天，從一本教材開始";
+    const heroPath = nextTask ? taskPath(nextTask) : resumeBook ? learningResumePath(resumeBook, learningResume) : heroBook ? bookPath(heroBook) : null;
     const classNotice = !academyStudent ? null : classQuery.error
         ? classQuery.data ? "目前顯示上次班級教材，暫時無法更新，請按「更新進度」重試。" : "班級教材暫時無法讀取，請按「更新進度」重試。"
         : nextTask ? null : classQuery.loading ? "正在讀取目前班級教材…"
@@ -91,7 +95,8 @@ function StudentLearningHome() {
                         <span className="learning-home__tag"><FiCompass aria-hidden="true" />{nextTask ? "老師的任務" : "我的學習旅程"}</span>
                         <h2 id="today-goal">{loading ? "正在準備你的學習…" : heroTitle}</h2>
                         <p>{nextTask ? "從這份任務開始，一步一步完成老師的練習。" : "先聽一聽，再試著說出來。每次練習都向前一點。"}</p>
-                        {!loading && heroPath && <Link className="learning-home__primary" to={heroPath}>{nextTask ? "打開這份任務" : `打開 ${heroBook.name}`}<FiArrowRight aria-hidden="true" /></Link>}
+                        {!loading && heroPath && <Link className="learning-home__primary" to={heroPath}>{nextTask ? "打開這份任務" : resumeBook ? `繼續 ${heroBook.name}${learningResume.page ? ` · ${learningResume.page}` : ""}` : `打開 ${heroBook.name}`}<FiArrowRight aria-hidden="true" /></Link>}
+                        {!nextTask && resumeBook && <small>上次音檔：{learningResume.trackTitle || learningResume.page || "教材音檔"}；點開後按播放開始。</small>}
                         {!loading && !heroPath && <a className="learning-home__primary" href="#learning-books">{data?.catalogError ? "查看教材讀取狀態" : "查看我的教材"}<FiArrowRight aria-hidden="true" /></a>}
                         {classNotice && <small role="status">{classNotice}</small>}
                         {nextTask?.due_at && <small>{formatDeadline(nextTask.due_at)} 截止；詳細時間請看作業</small>}

@@ -25,6 +25,21 @@ describe("MusicCard", () => {
         jest.clearAllMocks();
     });
 
+    it("records the explicit start callback only when starting or resuming playable audio", () => {
+        const onStart = jest.fn();
+        useSelector.mockImplementation(selector => selector({ musicReducer: { playing: music, playingStatus: true } }));
+        const view = render(<MusicCard music={music} onStart={onStart} />);
+        fireEvent.click(screen.getByRole("button", { name: "暫停 P22" }));
+        expect(onStart).not.toHaveBeenCalled();
+        useSelector.mockImplementation(selector => selector({ musicReducer: { playing: music, playingStatus: false } }));
+        view.rerender(<MusicCard music={music} onStart={onStart} />);
+        fireEvent.click(screen.getByRole("button", { name: "播放 P22" }));
+        expect(onStart).toHaveBeenCalledWith(music);
+        view.rerender(<MusicCard music={{ ...music, audioURL: null }} onStart={onStart} />);
+        fireEvent.click(screen.getByRole("button", { name: "音檔暫時無法播放 P22" }));
+        expect(onStart).toHaveBeenCalledTimes(1);
+    });
+
     it("播放中以符合按鈕尺寸的四條音樂等化器顯示狀態", () => {
         useSelector.mockImplementation(selector => selector({
             musicReducer: {
