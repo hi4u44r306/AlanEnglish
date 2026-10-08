@@ -1,8 +1,10 @@
 # 一般口說完成並評分發布清單
 
-日期：2026-10-08。階段 6，基準 main 7fb83bf，分支 codex/speaking-finish-assess。狀態：本機已實作，隔離測試通過，待該批正式發布授權，尚未部署。
+日期：2026-10-08。階段 6，基準 main 7fb83bf，分支 codex/speaking-finish-assess。狀態：隔離測試通過，已取得本批明確同意，已部署／實機待驗。
 
-可審核 checkpoint：9182762，[草稿 PR #486](https://github.com/hi4u44r306/AlanEnglish/pull/486)。尚未合併 main，沒有觸發正式站部署。
+可審核 checkpoint：9182762／head a713ab7，[PR #486](https://github.com/hi4u44r306/AlanEnglish/pull/486) 已在使用者回覆「同意」後合併 main 8c871b3cb1695b78bf5acf0b36bce35352d8f04f。
+
+唯一 Cloudflare production build 01877515-e23f-4e4e-9ffb-b7391c5a7453 於 16:54:39 台灣時間成功。16:55:25 正式 manifest、967.7d7bf681.chunk.js／967.084d0818.chunk.css 及 /student/speaking-challenges HTTP 200，五個完成並評分／兩種回聽／鍵盤焦點標記核對通過；證據 output/speaking-finish-assess-production.json。此為正式靜態資產及路由核對，不代替真實帳號的錄音、評分、保存、獎勵與裝置驗收。
 
 ## 使用者操作與邊界
 
@@ -22,11 +24,11 @@
 
 ## 正式操作閘門及回復
 
-- 本批改變錄音完成觸發送評的時機，涉及核心錄音／評分事件及同步防重送。依 AGENTS §16.1 High Risk 與 §13.2，正式合併／部署前取得此批明確同意；先完成本機驗證與可審核 PR。
-- 正式授權後合併最新 main，等待唯一 Cloudflare production build，核對主要操作／回聽／重試資產及關卡 SPA 路由，更新三份文件；HTTP 不代替真實錄音及進度驗收。
+- 本批改變錄音完成觸發送評的時機，涉及核心錄音／評分事件及同步防重送。依 AGENTS §16.1 High Risk 與 §13.2，先完成隔離驗證及可審核 PR，2026-10-08 使用者明確回覆「同意」後才正式合併／部署，授權閘門已完成。
+- 已合併 main、等待唯一 Cloudflare production build 成功、核對主要操作／回聽／焦點資產及關卡 SPA 路由，更新產品邏輯、專案狀態及手冊；HTTP 不代替真實錄音及進度驗收。
 - 上線後請依上述兩種流程各測一次一般題，再測快速連按、服務失敗手動重試、到期／額度提示及 A–Z 原流程。請使用獲授權測試帳號；不要為了驗收大量上傳或修改學生資料。
 - 如出現重複送評、權限或保存問題立即停止新功能，revert 此前端 PR 由 main 重新發布。沒有資料庫／Function 回復；已發生的原服務用量不會因前端回復自動歸零。
 
 ## 教學文件
 
-手冊 v3.75 已同步並標記尚未部署；素材 SPEAKING-FINISH-ASSESS-01-D/M、SPEAKING-REPLAY-02-D/M 截圖／影片及真實裝置驗收待完成。
+手冊 v3.75 已同步並標記已部署／實機待驗；素材 SPEAKING-FINISH-ASSESS-01-D/M、SPEAKING-REPLAY-02-D/M 截圖／影片及真實裝置驗收待完成。
