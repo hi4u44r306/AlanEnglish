@@ -1,6 +1,6 @@
 # 六冊口說道路接縫修補
 
-日期：2026-10-08。基準 main `df03c1ad`，分支 `codex/speaking-road-seams`。狀態：本機完成、待正式發布。
+日期：2026-10-08。實作基準 main `df03c1ad`，發布前同步最新 main `80fb0d18`，分支 `codex/speaking-road-seams`。狀態：已正式部署，真實瀏覽器與 iPhone 待驗收。
 
 ## 實作範圍
 
@@ -32,4 +32,8 @@ Use case: precise-object-edit. Edit the provided 1500x500 landscape game-map sea
 
 ## 發布與回復
 
-本批是局部前端顯示修正，依 AGENTS.md 的持續發布授權進入 PR、main 與 Cloudflare 發布。合併後必須核對正式修補圖、口說 chunk／CSS 與 HTTP 狀態，再更新發布紀錄。回復可 revert 本批前端 PR，原始完整地圖、資料庫、題庫及成績不需回復。
+本批是局部前端顯示修正，依 AGENTS.md 的持續發布授權完成 PR #467，合併 main `cc139f90ece2a43aae475ec6c1882b7c2364693d`。Cloudflare production build `38c9cc33-4a80-4fcc-a09e-e51da330006e` 於 2026-10-08 11:40:51 台灣時間 success。
+
+11:43 正式首頁、`main.64743a7d.js`、口說 `967.a1570ea0.chunk.js` 與 `967.99efc240.chunk.css` 全部 HTTP 200；新接縫 renderer／樣式存在。十二張修補 WebP 全部 HTTP 200、SHA-256 與本機發布副本一致。chunk 編號因新建置由 719 改為 967，依正式 manifest 找到新 renderer，未以舊編號推論部署失敗。核對證據：本機 `output/map-seam-repair-20261008/production-verification.json`。未登入、未寫入學生資料，HTTP 素材驗收不代替手機／桌面瀏覽器實際捲動。
+
+下一步重新整理網站，從口說大挑戰進入 Workbook 1–6 檢查道路轉接；iPhone Safari 及真實登入畫面待補。回復可 revert PR #467，原始完整地圖、資料庫、題庫及成績不需回復。此發布紀錄只更新 Markdown，依 Cloudflare Watch Paths 不再觸發前端 build。
