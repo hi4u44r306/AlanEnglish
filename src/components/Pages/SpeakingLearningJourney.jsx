@@ -11,7 +11,7 @@ export default function SpeakingLearningJourney({ phase = "ready", canListen = f
     ];
     const detail = {
         ready: canListen ? "需要時先聽示範，再用自己的聲音練習。" : "看清楚題目，準備好就按麥克風。",
-        recording: "正在收音，說完後按完成錄音。",
+        recording: "正在收音，說完後選擇完成並評分，或先停止並回聽。",
         preparing: "正在整理錄音，請稍候。",
         review: "先回聽自己的回答，確認清楚再送出。",
         assessing: "正在處理這次回答，請稍候。",

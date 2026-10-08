@@ -74,6 +74,10 @@
 .speaking-recording-preview { display: grid; gap: 12px; width: min(480px, 100%); }
 .speaking-recording-preview audio { width: 100%; }
 .speaking-recording-preview > div { display: flex; flex-wrap: wrap; gap: 9px; justify-content: center; }
+.speaking-result-replay { width: min(480px, 100%); text-align: left; }
+.speaking-result-replay summary { min-height: 44px; padding: 10px 12px; border-radius: 12px; color: #245eaf; background: #fff; font-weight: 900; cursor: pointer; }
+.speaking-result-replay summary:focus-visible { outline: 3px solid #f6be2e; outline-offset: 3px; }
+.speaking-result-replay audio { width: 100%; margin-top: 10px; }
 
 .speaking-pronunciation button:not(.speaking-pronunciation-mic) {
   display: inline-flex;

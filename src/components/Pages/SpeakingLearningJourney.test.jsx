@@ -14,4 +14,5 @@ it.each([["ready", 0], ["recording", 1], ["review", 1], ["assessing", 1], ["feed
     expect(items[index]).toHaveAttribute("aria-current", "step");
     expect(container.querySelectorAll('[aria-current="step"]')).toHaveLength(1);
     expect(screen.queryByText(/已通關/)).not.toBeInTheDocument();
+    if (phase === "recording") expect(screen.getByText(/選擇完成並評分，或先停止並回聽/)).toBeInTheDocument();
 });
