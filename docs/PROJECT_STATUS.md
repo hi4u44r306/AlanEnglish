@@ -1,6 +1,13 @@
 # Alan English 專案狀態
 
-最後更新：2026-10-07
+最後更新：2026-10-08
+
+### 70 分挑戰正式發布接續（2026-10-08，已部署／實機待驗）
+
+- PR #453 合併 main 64010c67；使用者已同意原批次。migration 20261007155958 已套用，新完成表 RLS／前端無權限與三個 service-only RPC 已核對；現有資料、舊獎勵保留。
+- Cloudflare GitHub check a2779530-1f41-4b44-aaf8-5146a990efaa 長時間 in_progress，使用者提供 00:09:20.528 Build completed 日誌。正式 main.3796792e.js／719.144f57bf.chunk.js HTTP 200，Unicode 解碼後確認自由練習、70 分、再次挑戰、練習完成與舊回聽文案移除；check 未終態不能用來否定已發布資產，main hash 因環境不同也不能直接判定版本。
+- 曾因未解碼資產而誤判前端未發布，暫時回復兩支口說 Function；自動核准要求補充具體部署授權後，使用者再次明確同意。已由最新 main 副本重新部署 pronunciation-coach／speaking-challenge，相關檔案與測試通過的 64010c67 diff 為空；CLI 成功、兩支 ACTIVE，正式未登入請求均 401。前端、後端及既有 migration 已配套。
+- 此次不重跑 migration、不變更 Firebase／Secret／既有 verify_jwt=false 配置；Function 內部仍驗證 Firebase Token。沿用原批次已通過的 React、後端、隔離 SQL、lint、TypeScript 與 production build；本次僅補部署與文件，未重跑付費送評或建立學生紀錄。真實 Azure 錄音、登入保存、跨裝置、桌面／412px／iPhone 待驗。下方原草稿段落為實作與隔離驗證歷史，部署狀態以本段為準。
 
 ### 70 分挑戰規則與 Azure 拼字（2026-10-07，隔離驗證完成／尚未部署）
 

@@ -1,6 +1,14 @@
 # 70 分挑戰流程發布審閱
 
-日期：2026-10-07。基準 main `1982d0af`；分支 `codex/speaking-challenge-70-review`。狀態：本機草稿、正式操作未執行。
+日期：2026-10-08。原實作基準 main `1982d0af`；PR #453 合併 main `64010c67`。狀態：正式前後端與 migration 已部署，實機流程待驗收。
+
+## 正式發布紀錄
+
+- 使用者已明確同意本批 migration、Function 與正式前端發布，並於 2026-10-08 再次同意重新部署兩支配套 Function。
+- 正式 migration `20261007155958_speaking_challenge_only_reassessment` 已套用；完成表 RLS、前端無資料權限及三個 service-only RPC 已核對。未刪除、回填或追回既有紀錄／獎勵。
+- Cloudflare build `a2779530-1f41-4b44-aaf8-5146a990efaa` 的使用者提供日誌顯示 `00:09:20.528 Build completed`。正式 `main.3796792e.js`、`719.144f57bf.chunk.js` HTTP 200；解碼後核對自由練習、70 分、再次挑戰、練習完成及舊回聽限制文案移除。GitHub check 仍顯示 in_progress，未以此否定已發布資產。
+- 曾因資產核對方式錯誤而暫時回復後端；現在已從最新 main 副本重新部署 `pronunciation-coach`／`speaking-challenge`，相關檔案與測試通過的 `64010c67` 完全相同。CLI 成功、兩支 ACTIVE，未登入正式請求均 401。未重跑 migration，Firebase 驗證及既有 Secret／verify_jwt 配置保留。
+- 沿用原批次已通過的隔離驗證與 build，本次補充正式 HTTP／資產核對及文件 diff check。尚未以真實學生完成 Azure 錄音、登入後保存、跨裝置或 iPhone／412px／桌面操作驗收；HTTP 與資產核對不能代替這些測試。
 
 ## 行為與影響
 
@@ -31,4 +39,4 @@
 - 新表與新 RPC 保留，避免刪除新紀錄。若要恢復舊日輪次行為，以另一個 additive migration 恢復先前 `reserve_speaking_challenge_session_v1` 函式內容，不執行資料清除。
 - 舊獎勵 source key 仍負責冪等，不用修改餘額。恢復舊地圖讀取規則可恢復先前簡單模式解鎖外觀。
 
-依 AGENTS.md 第 13、14、16 節，本批正式 migration、學習進度／獎勵操作須在隔離驗證後取得針對此批的明確同意。
+依 AGENTS.md 第 13、14、16 節，本批已完成隔離驗證並取得使用者明確發布同意；上述正式操作已執行，未完成的實機驗收列於正式發布紀錄。
