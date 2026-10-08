@@ -8,6 +8,8 @@ import { Provider } from "react-redux";
 import { configureStore } from "@reduxjs/toolkit";
 import musicReducer from "../../reducers/musicReducer";
 import { setPlayPauseStatus } from "../../actions/actions";
+import { readStudentLearningResume } from "../../services/studentLearningResume";
+import { studentPageScope } from "../../services/studentPageCache";
 import Playlist from "./Playlist";
 import { getAccessibleBook } from "../../services/contentAccessService";
 import { getBookPlaybackProgress } from "../../services/listeningService";
@@ -16,7 +18,7 @@ jest.mock("../../services/listeningService", () => ({ getBookPlaybackProgress: j
 const mockUser = { uid: "test" };
 let mockRole = "student";
 jest.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ firebaseUser: mockUser, role: mockRole }) }));
-jest.mock("./MusicCard", () => function Card({ music, playbackQueue, progressStatus }) { return <div data-testid={`track-${music.id}`} data-progress-status={progressStatus} data-queue={playbackQueue.map(item => item.id).join(",")}>{music.title}</div>; });
+jest.mock("./MusicCard", () => function Card({ music, playbackQueue, progressStatus, onStart }) { return <div data-testid={`track-${music.id}`} data-progress-status={progressStatus} data-queue={playbackQueue.map(item => item.id).join(",")}>{music.title}<button onClick={() => onStart?.(music)}>播放 {music.title}</button></div>; });
 const Probe = () => { const location = useLocation(); return <output data-testid="route">{location.pathname}{location.search}</output>; };
 const result = { book: { id: 1, name: "Workbook 1" }, tracks: [1, 2].map(id => ({ id, book_id: 1, title: `Track ${id}`, music_name: `Track ${id}`, page: `P.${id}`, audio_url: "signed-audio" })) };
 const mount = search => {
@@ -25,6 +27,40 @@ const mount = search => {
     return store;
 };
 beforeEach(() => { mockRole = "student"; sessionStorage.clear(); getAccessibleBook.mockReset().mockResolvedValue(result); getBookPlaybackProgress.mockReset().mockResolvedValue({ progress: [] }); });
+it("locates the resumed track after asynchronous loading without playing or changing the queue", async () => {
+    const store = mount("?resume=1");
+    await screen.findByText("已找到上次學習的音檔，按「播放」即可開始。");
+    expect(document.activeElement).toBe(document.getElementById("listening-track-1"));
+    expect(store.getState().musicReducer.playing).toEqual({ id: 2 });
+    expect(screen.getByTestId("track-1")).toHaveAttribute("data-queue", "1,2");
+});
+it("records only navigation metadata on an explicit student play, never on loading", async () => {
+    mount("");
+    await screen.findByTestId("track-1");
+    const scope = studentPageScope(mockUser, "student");
+    expect(readStudentLearningResume(scope)).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "播放 Track 1" }));
+    expect(readStudentLearningResume(scope)).toMatchObject({ bookId: "1", bookCode: "W1", trackId: "1", page: "P.1" });
+    expect(JSON.stringify(readStudentLearningResume(scope))).not.toContain("signed-audio");
+});
+it("missing resume tracks stay recoverable and do not enlarge an assignment selection", async () => {
+    mount("?resume=99&assignment=4&tracks=1");
+    await screen.findByTestId("track-1");
+    expect(screen.queryByText(/上次音檔/)).not.toBeInTheDocument();
+    expect(screen.queryByTestId("track-2")).not.toBeInTheDocument();
+});
+it("a removed track shows a fallback instead of selecting another track automatically", async () => {
+    mount("?resume=99");
+    await screen.findByText("上次音檔目前不在教材清單中，請選擇其他音檔。");
+    expect(screen.getByTestId("track-1")).toBeInTheDocument();
+});
+it("staff playback does not create a student bookmark", async () => {
+    mockRole = "teacher";
+    mount("");
+    await screen.findByTestId("track-1");
+    fireEvent.click(screen.getByRole("button", { name: "播放 Track 1" }));
+    expect(readStudentLearningResume(studentPageScope(mockUser, "student"))).toBeNull();
+});
 it("filters both cards and playback queue, then pauses audio when returning in the original mode", async () => {
     const store = mount("?speaking=7&mode=challenge&tracks=2");
     expect(await screen.findByTestId("track-2")).toHaveAttribute("data-queue", "2");
