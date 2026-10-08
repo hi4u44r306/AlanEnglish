@@ -1,15 +1,16 @@
 # Alan English 專案狀態
 
-最後更新：2026-10-08
+最後更新：2026-10-09
 
-### 生日月 XP ×2 與可調整生日禮（2026-10-08，尚未部署）
+### 生日月 XP ×2 與可調整生日禮（2026-10-09，已部署／實機待驗）
 
 - 基準 main `d471e86a`；功能分支 `codex/birthday-month-rewards`，使用目前既有 worktree，沒有另建 worktree。新增四份 additive migration、gamification 生日摘要／管理員設定 action、獎品管理設定卡與學生首頁提示，預設生日禮 100 AE Points，管理員可調整 0～10,000 點；沿用有效在校生點數資格，每人每年一次，已領金額不補發或追回，生日鎖定／原有效學習、升等與領獎次數維持。
 - 隔離 PostgreSQL 生日／共用 XP／舊聽力／遊戲／口說 22 項通過，真實 V2／V3 聽力 session、十次自主熟練及作業 4 項通過；真實 handler 加 Firebase／DB 替身 6 項通過；前端設定、提示、首頁及服務 36 項通過，合計 68 項。替身錯誤與重送 Session 測試預期已修正，沒有因此放寬應用規則。相關 ESLint、Function 語法與 diff check 通過。未跑無關全套測試。
 - Production build 在同一工作區實際 D 路徑成功（C junction 曾被工具錯誤解析為 C:/D:/，無程式原因）；SEO 與 Cloudflare 資產準備成功。後續僅補 input border-box，最終 SCSS 已由 Sass 編譯與瀏覽器驗證，不重跑無關 JS 測試或重複完整 build；正式 Cloudflare 仍須對最終 commit 完整建置。
 - 新元件用真實 JSX／SCSS 與隔離示範替身完成 1440px／412px headless 驗收、100→150 點儲存、44px 操作及無水平溢位／無 pageerror；截圖及紀錄位於忽略的 `output/birthday-preview/`。這不是完整網站、真實帳號、Firebase、麥克風或 iPhone Safari 驗收。Browser 受控連線不可用，改用獨立暫存 headless profile，未讀取使用者瀏覽器 session。
 - 初次一次準備多支核心 SQL 被自動審核拒絕；已依理由拆成生日禮、共用 XP 及分項相容修正，每一項先隔離驗證再整合，後續本機操作均通過審核，沒有正式資料異動。
-- 核心 checkpoint `a825b222` 已推送，草稿 PR #488 已建立，等待本批正式操作同意。未執行正式 migration、未部署 Function、未合併 main 或發布正式站。高風險資料／獎勵結算依 AGENTS 第 13–14 節仍需本批明確正式操作同意。手冊 v3.76 與發布／回復清單已同步；下一步為審核並授權此批正式發布，待發獎与裝置驗收後再標記已部署。
+- 使用者已明確同意本批正式操作。PR #488 已合併 main `d37c85cb20f441c7ab67adc1c0a4d5782d8eff40`；六支正式原函式與已測試來源一致，生日 immutable trigger 保留。四份 migration 以單一交易套用並登記原版本，設定 enabled=true／100點／version=1；新表 RLS、瀏覽器無權限及 RPC 僅 service_role 通過。首次防覆寫檢查參數格式錯誤使交易回滾，修正檢查後成功，未部分套用或修改學生生日／回填獎勵。
+- gamification v36 ACTIVE，兩個遠端來源檔與 main 一致，維持既有 Firebase 驗證／verify_jwt=false；OPTIONS 200、未登入與偽造管理員請求 401。唯一 Cloudflare production build `67bf7cdd-f43f-4456-b412-e62a94f53157` 於 2026-10-09 07:52:58 台灣時間 success；07:54:33 首頁、/admin/rewards、/student/dashboard 與全部27個 JS／CSS HTTP 200，七個生日文案／API／樣式標記存在。證據 `output/birthday-release/`；HTTP 不代替正式登入、真實發獎、跨連線併發或裝置操作。手冊 v3.76 與發布／回復清單同步更新，下一步是正式測試帳號及 iPhone Safari 驗收；純 Markdown 紀錄不觸發第二次前端 build。
 
 
 ### 六項流程優化目標（2026-10-08）

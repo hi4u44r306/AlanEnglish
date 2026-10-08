@@ -1,6 +1,8 @@
 # 生日月活動發布與回復清單
 
-日期：2026-10-08；基準 main d471e86a；分支 codex/birthday-month-rewards。尚未部署。本批須依 AGENTS.md 第13–14節取得正式資料庫／後端與站台發布明確同意。
+更新：2026-10-09；原基準 main d471e86a；PR #488 已合併 main d37c85cb。使用者已明確同意本批正式操作，四份 migration、gamification v36 與 Cloudflare production 已部署，正式帳號／装置仍待實機驗收。
+
+發布核對：六支原正式函式與 Git 來源一致，生日 immutable trigger 保留。四份 SQL／原版本登記在單一交易完成，無資料回填，enabled=true／gift_points=100／version=1。RLS 與服務角色專用 RPC 通過；後端兩檔與 main 一致，OPTIONS 200／未登入及偽造管理員 401。Cloudflare build 67bf7cdd-f43f-4456-b412-e62a94f53157 於07:52:58台灣時間成功，07:54:33正式三個路由與27項資產 HTTP 200、七個生日標記通過。證據及發布前函式快照位於 output/birthday-release（忽略、不含個資）；首次檢查語法失敗整批回滾後已修正重試，沒有部分套用。以下保留原發布及回復檢查表供後續驗收。
 
 ## 可審核成果
 
@@ -23,7 +25,7 @@ SQL重新宣告現有函式是為使版本可重現，必須逐函式比較正�
 - 前端4套36項：BirthdayRewardSettings、BirthdayRewardNotice、StudentLearningHome、gamificationService。
 - 五個應用檔ESLint、gamification TypeScript syntax、Production build、SEO與Cloudflare資產準備成功；最終局部border-box樣式由Sass編譯／瀏覽器重驗。未跑無關全套。
 - 真實新JSX／SCSS搭配示範替身：1440／412px無水平溢位，儲存按鈕44px，100→150點儲存成功，无pageerror。證據 output/birthday-preview/checks.json 與 birthday-1440.png／birthday-412.png。不是正式網站／登入／真實學生發獎驗收。
-- 未驗證：真實Firebase帳號、完整網站 Navbar／Sidebar、iPhone Safari與實際safe area、跨資料庫連線併發、正式資料資格與Cloudflare發布。
+- 未驗證：真實Firebase帳號、完整網站 Navbar／Sidebar、iPhone Safari與實際safe area、跨資料庫連線併發與正式資料資格；Cloudflare發布及HTTP資產核對已完成。
 
 ## 授權後發布次序
 
