@@ -164,6 +164,7 @@ describe("StudentSettings", () => {
         render(<StudentSettings />);
 
         fireEvent.change(screen.getByLabelText("出生年"), { target: { value: "2015" } });
+        fireEvent.click(screen.getByText("個人資料與紀錄"));
         fireEvent.change(screen.getByLabelText("出生月"), { target: { value: "06" } });
         fireEvent.change(screen.getByLabelText("出生日"), { target: { value: "01" } });
         updateStudentProfile.mockResolvedValue({ profile: { date_of_birth: "2015-06-01" } });
@@ -265,6 +266,7 @@ describe("StudentSettings", () => {
 
         expect(await screen.findByText("parent@example.com")).toBeInTheDocument();
         expect(screen.getByText("已驗證")).toBeInTheDocument();
+        fireEvent.click(screen.getByText("通知與家長聯絡"));
         fireEvent.change(screen.getByLabelText("新的家長 Email"), {
             target: { value: "new-parent@example.com" }
         });
@@ -486,6 +488,7 @@ describe("StudentSettings", () => {
             .mockResolvedValueOnce({ supported: true, active: false });
         render(<StudentSettings />);
 
+        fireEvent.click(screen.getByText("通知與家長聯絡"));
         const enable = await screen.findByRole("button", { name: "開啟此裝置推播" });
         await waitFor(() => expect(enable).toBeEnabled());
         expect(enableWebPush).not.toHaveBeenCalled();
@@ -561,6 +564,28 @@ describe("StudentSettings", () => {
         fireEvent.change(input, { target: { value: "My New Name" } });
         await act(async () => finish({ profile: { nickname: "Previous Name" }, nickname_history: [] }));
         expect(input).toHaveValue("My New Name");
+    });
+
+    it("groups infrequent settings, keeps nickname visible, and expansion does not refetch", async () => {
+        render(<StudentSettings />);
+        await screen.findByDisplayValue("Sunny Fox");
+        expect(screen.getByLabelText("公開暱稱")).toBeVisible();
+        const calls = [getGamificationSummary.mock.calls.length, loadStudentCommerceProfile.mock.calls.length, getNicknameSettings.mock.calls.length, getCurrentWebPushStatus.mock.calls.length];
+        for (const title of ["教材與方案", "個人資料與紀錄", "通知與家長聯絡"]) {
+            const summary = screen.getByText(title).closest("summary");
+            expect(summary.closest("details")).not.toHaveAttribute("open");
+            fireEvent.click(summary);
+            expect(summary.closest("details")).toHaveAttribute("open");
+        }
+        expect(screen.getByRole("heading", { name: "出生年月日" }).closest(".student-settings-group")).toHaveTextContent("個人資料與紀錄");
+        fireEvent.change(screen.getByLabelText("新的家長 Email"), { target: { value: "draft@example.com" } });
+        fireEvent.click(screen.getByText("通知與家長聯絡"));
+        expect(screen.getByLabelText("新的家長 Email")).not.toBeVisible();
+        fireEvent.click(screen.getByText("通知與家長聯絡"));
+        expect(screen.getByLabelText("新的家長 Email")).toHaveValue("draft@example.com");
+        expect([getGamificationSummary.mock.calls.length, loadStudentCommerceProfile.mock.calls.length, getNicknameSettings.mock.calls.length, getCurrentWebPushStatus.mock.calls.length]).toEqual(calls);
+        expect(requestGuardianEmailVerification).not.toHaveBeenCalled();
+        expect(updateStudentProfile).not.toHaveBeenCalled();
     });
 
     it("loads preset thumbnails only after expanding the picker", async () => {
