@@ -48,7 +48,6 @@ function StudentLearningHome() {
     const refreshing = [catalogQuery, summaryQuery, assignmentsQuery, assignmentsV2Query, classQuery].some(query => query.refreshing);
     const categories = useMemo(() => getStudentMaterialCategories(catalogQuery.data?.categories), [catalogQuery.data]);
     const currentClassBooks = getCurrentClassMaterials(classQuery.data, catalogQuery.data?.categories);
-    const currentClassCode = classQuery.data?.current_enrollment?.status === "active" ? classQuery.data.current_enrollment.academy_classes?.code : null;
     const books = categories.flatMap(category => category.books.map(book => ({ ...book, categoryId: String(category.id), categoryName: category.name })));
     const selectedCategory = categories.some(category => String(category.id) === categoryId) ? categoryId : "all";
     const visibleBooks = books.filter(book => (selectedCategory === "all" || book.categoryId === selectedCategory)
@@ -67,6 +66,12 @@ function StudentLearningHome() {
     const heroBook = academyStudent ? currentClassBooks.find(book => book.canOpen) : books[0];
     const heroTitle = nextTask ? nextTask.title : heroBook && academyStudent ? `一起學習 ${heroBook.name}` : "今天，從一本教材開始";
     const heroPath = nextTask ? taskPath(nextTask) : heroBook ? bookPath(heroBook) : null;
+    const classNotice = !academyStudent ? null : classQuery.error
+        ? classQuery.data ? "目前顯示上次班級教材，暫時無法更新，請按「更新進度」重試。" : "班級教材暫時無法讀取，請按「更新進度」重試。"
+        : nextTask ? null : classQuery.loading ? "正在讀取目前班級教材…"
+        : !currentClassBooks.length ? classQuery.data?.current_enrollment?.status === "active"
+            ? "班級目前尚未設定學習教材，請老師確認。" : "目前沒有有效在校班級；已取得的教材仍可從下方書架開啟。"
+        : !heroBook && !loading ? "目前班級教材無法開啟，請按「更新進度」重試或請老師確認。" : null;
     const refresh = () => [catalogQuery, summaryQuery, assignmentsQuery, assignmentsV2Query, classQuery].forEach(query => query.refresh());
 
     if (!active) return <main className="learning-home"><h1>今日學習</h1><p>先確認目前可使用的教材與功能。</p><Link className="learning-home__secondary" to="/student/membership">查看會員與功能</Link></main>;
@@ -79,18 +84,6 @@ function StudentLearningHome() {
             </header>
             {[catalogQuery, summaryQuery, assignmentsQuery, assignmentsV2Query].some(query => query.error && query.data) && <p role="status">目前顯示上次資料，最新進度暫時無法同步，請稍後按「更新進度」。</p>}
 
-            {academyStudent && <section className="learning-home__books learning-home__class-books" id="class-learning-books" aria-labelledby="home-class-books-heading">
-                <div className="learning-home__section-heading"><div><h2 id="home-class-books-heading">{currentClassCode ? `${currentClassCode} 班目前學習的教材` : "目前班級教材"}</h2><p>上課正在使用的教材都在這裡，選一本就能開始。</p></div></div>
-                {classQuery.error && <div className="learning-home__notice" role="status">{classQuery.data ? "目前顯示上次班級教材，暫時無法更新。" : "班級教材暫時無法讀取。"}<button type="button" onClick={() => classQuery.refresh()}>重新讀取班級教材</button></div>}
-                {classQuery.loading ? <p role="status">正在讀取目前班級教材…</p> : currentClassBooks.length ? <>
-                    <div className="learning-home__book-grid">{currentClassBooks.map((book, index) => {
-                        const content = <><span className="learning-home__book-art" aria-hidden="true"><FiBookOpen /><span>本班教材</span></span><span className="learning-home__book-copy"><small>本班正在學</small><strong>{book.name}</strong><span>{book.canOpen ? <>開始學習 <FiArrowRight aria-hidden="true" /></> : loading ? "正在確認教材…" : "目前無法開啟，請老師確認"}</span></span></>;
-                        return book.canOpen ? <Link className={`learning-home__book tone-${index % 3}`} key={book.id} to={bookPath(book)}>{content}</Link> : <article className={`learning-home__book tone-${index % 3}`} key={book.id}>{content}</article>;
-                    })}</div>
-                    {data?.catalogError && <p role="status">教材開啟狀態暫時無法確認，請按「更新進度」重試。</p>}
-                </> : !classQuery.error && <p className="learning-home__empty">{classQuery.data?.current_enrollment?.status === "active" ? "班級目前尚未設定學習教材，請老師確認。" : "目前沒有有效在校班級；已取得的教材仍可從下方書架開啟。"}</p>}
-            </section>}
-
             <div className="learning-home__overview">
                 <section className="learning-home__mission" aria-labelledby="today-goal">
                     <img className="learning-home__scene" src={forestScene} alt="" fetchpriority="high" />
@@ -99,7 +92,8 @@ function StudentLearningHome() {
                         <h2 id="today-goal">{loading ? "正在準備你的學習…" : heroTitle}</h2>
                         <p>{nextTask ? "從這份任務開始，一步一步完成老師的練習。" : "先聽一聽，再試著說出來。每次練習都向前一點。"}</p>
                         {!loading && heroPath && <Link className="learning-home__primary" to={heroPath}>{nextTask ? "打開這份任務" : `打開 ${heroBook.name}`}<FiArrowRight aria-hidden="true" /></Link>}
-                        {!loading && !heroPath && <a className="learning-home__primary" href={academyStudent ? "#class-learning-books" : "#learning-books"}>{data?.catalogError ? "查看教材讀取狀態" : academyStudent ? "查看班級教材" : "查看我的教材"}<FiArrowRight aria-hidden="true" /></a>}
+                        {!loading && !heroPath && <a className="learning-home__primary" href="#learning-books">{data?.catalogError ? "查看教材讀取狀態" : "查看我的教材"}<FiArrowRight aria-hidden="true" /></a>}
+                        {classNotice && <small role="status">{classNotice}</small>}
                         {nextTask?.due_at && <small>{formatDeadline(nextTask.due_at)} 截止；詳細時間請看作業</small>}
                         {data?.taskError && <small role="status">部分作業未能讀取，請更新進度再確認。</small>}
                     </div>
