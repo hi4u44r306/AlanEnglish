@@ -3,6 +3,7 @@ import { authentication } from "../components/Pages/firebase-config";
 import { recordLoginActivity } from "../services/learningActivityService";
 import { getMembershipProfile } from "../services/membershipService";
 import { clearAppShellCache } from "../services/appShellCache";
+import { clearStudentPageCache } from "../services/studentPageCache";
 import { cacheStudentAvatarDisplayUrl, clearStudentAvatarCache } from "../constants/studentAvatarCache";
 
 const PROFILE_CACHE_KEY = "ae-profile-cache-v2";
@@ -22,6 +23,8 @@ const STORAGE_KEYS = [
 ];
 
 export const saveStudentSession = (firebaseUser, student) => {
+    const previousUid = localStorage.getItem("ae-useruid");
+    if (previousUid && previousUid !== firebaseUser.uid) clearStudentPageCache(previousUid);
     const normalizedProfile = {
         ...student,
         firebase_uid: student.firebase_uid || firebaseUser.uid,
@@ -72,6 +75,7 @@ export const getCachedStudentProfile = firebaseUid => {
 export const clearStudentSession = () => {
     const firebaseUid = localStorage.getItem("ae-useruid");
     if (firebaseUid) clearAppShellCache(firebaseUid);
+    clearStudentPageCache(firebaseUid || undefined);
     STORAGE_KEYS.forEach(key => localStorage.removeItem(key));
 };
 

@@ -1,4 +1,5 @@
 import { supabaseKey, supabaseUrl } from "../components/Pages/supabase-config";
+import { invalidateStudentPageCache } from "./studentPageCache";
 
 const callAssignmentFunction = async (firebaseUser, body = {}) => {
     if (!firebaseUser) throw new Error("請先登入 Alan English");
@@ -14,7 +15,12 @@ const callAssignmentFunction = async (firebaseUser, body = {}) => {
     });
 
     const result = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(result?.error || "作業服務暫時無法使用");
+    if (!response.ok) {
+        const error = new Error(result?.error || "作業服務暫時無法使用");
+        error.status = response.status;
+        throw error;
+    }
+    if (["submit_assignment", "submit_assignment_v2_ai"].includes(body.action)) invalidateStudentPageCache(firebaseUser.uid);
     return result;
 };
 

@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { FiAward, FiBookOpen, FiCheck, FiChevronLeft, FiChevronRight, FiMic, FiVolume2 } from "react-icons/fi";
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import useStudentPageQuery from "../../hooks/useStudentPageQuery";
 import { useAuth } from "../../auth/AuthContext";
 import { completeAlphabetIntroListen, completeSpeakingChallengeQuestion, getSpeakingChallengeCatalog, getSpeakingChallengeSet, revealSpeakingChallengeHint, startAlphabetIntroListen, startSpeakingFoundationRound } from "../../services/speakingChallengeService";
 import SpeakingPracticeSteps from "./SpeakingPracticeSteps";
@@ -39,6 +40,8 @@ const TOPIC_TEMPLATE_KEYS = new Set([
     "workbook_1_colors_objects_v1",
     "workbook_1_numbers_math_v1"
 ]);
+
+const EMPTY_LIST = [];
 
 const catalogSection = item => {
     if (CATALOG_SECTION_COPY[item.catalog_section]) return item.catalog_section;
@@ -105,11 +108,15 @@ export default function TextbookSpeakingChallenge() {
     const challengeMode = searchParams.get("mode") === "challenge" ? "challenge" : "easy";
     const navigate = useNavigate();
     const location = useLocation();
-    const [catalog, setCatalog] = useState([]);
-    const [catalogRewardPolicy, setCatalogRewardPolicy] = useState(null);
-    const [challengePolicy, setChallengePolicy] = useState(null);
-    const [catalogLoading, setCatalogLoading] = useState(!questionSetId);
-    const [loadedCatalogPath, setLoadedCatalogPath] = useState("");
+    const catalogQuery = useStudentPageQuery("speaking:catalog", () => getSpeakingChallengeCatalog(firebaseUser), { enabled: !questionSetId });
+    const catalog = catalogQuery.data?.challenges || EMPTY_LIST;
+    const catalogLoading = catalogQuery.loading;
+    const catalogRewardPolicy = catalogQuery.data?.reward_policy || null;
+
+    const [questionPolicy, setChallengePolicy] = useState(null);
+    const challengePolicy = questionSetId ? questionPolicy : catalogQuery.data?.challenge_policy;
+
+
     const [challenge, setChallenge] = useState(null);
     const [loadedChallengeKey, setLoadedChallengeKey] = useState("");
     const [error, setError] = useState("");
@@ -307,7 +314,7 @@ export default function TextbookSpeakingChallenge() {
     }, [selectedLesson]);
 
     useEffect(() => {
-        if (!firebaseUser) return;
+        if (!firebaseUser || !questionSetId) return;
         let cancelled = false;
         setError("");
         setAudioError("");
@@ -332,23 +339,8 @@ export default function TextbookSpeakingChallenge() {
                         setChallengePolicy(challengeResponse.challenge_policy || null);
                     }
                 }
-                else {
-                    setCatalogLoading(true);
-                    setChallengePolicy(null);
-                    const catalogResponse = await getSpeakingChallengeCatalog(firebaseUser);
-                    const nextCatalog = catalogResponse.challenges || [];
-                    if (!cancelled && !leavingRef.current) {
-                        setCatalog(nextCatalog);
-                        setLoadedCatalogPath(location.pathname);
-                        setCatalogRewardPolicy(catalogResponse.reward_policy || null);
-                        setChallengePolicy(catalogResponse.challenge_policy || null);
-                    }
-                }
             } catch (loadError) {
                 if (!cancelled && !leavingRef.current) setError(loadError.message || "口說大挑戰載入失敗");
-            }
-            finally {
-                if (!cancelled && !leavingRef.current && !questionSetId) setCatalogLoading(false);
             }
         };
         load();
@@ -397,10 +389,11 @@ export default function TextbookSpeakingChallenge() {
         audio.play().catch(() => { clear(); setAudioError("示範暫時無法播放，請再按一次試聽；你仍可直接錄音。"); });
     };
 
-    if (error) return <main className="speaking-challenge-page"><section className="speaking-challenge-empty"><FiMic /><h1>口說大挑戰暫時無法開啟</h1><p>{error}</p><Link to="/student/membership">查看方案與功能</Link></section></main>;
+    const loadError = questionSetId ? error : !catalogQuery.data ? catalogQuery.error?.message : "";
+    if (loadError) return <main className="speaking-challenge-page"><section className="speaking-challenge-empty"><FiMic /><h1>口說大挑戰暫時無法開啟</h1><p>{loadError}</p>{!questionSetId && <button type="button" onClick={() => catalogQuery.refresh()}>重新讀取</button>}<Link to="/student/membership">查看方案與功能</Link></section></main>;
     if (!questionSetId) {
         const selectedBook = bookKey ? catalogGroups.find(group => group.id === bookKey || encodeURIComponent(group.id) === bookKey) : null;
-        if (bookKey && (catalogLoading || loadedCatalogPath !== location.pathname)) {
+        if (bookKey && catalogLoading) {
             const entry = location.state?.speakingBookEntry;
             const routeLabel = /^book-\d+$/.test(bookKey) ? `Workbook ${bookKey.slice(5)}` : bookKey.replace(/^book-/, "");
             return renderScene(<SpeakingChallengeLoading workbookEntry
@@ -440,6 +433,7 @@ export default function TextbookSpeakingChallenge() {
                 </span>
             </header>}
             {!staffPreview && !selectedBook && <details className="speaking-catalog-help"><summary>查看今日額度與練習說明</summary><SpeakingChallengeRules policy={challengePolicy} loading={catalogLoading} /></details>}
+            {catalogQuery.error && <p role="status">{catalogQuery.data ? "目前顯示上次口說目錄，最新進度暫時無法同步。" : "口說目錄暫時無法讀取。"}<button type="button" onClick={() => catalogQuery.refresh()}>重新讀取</button></p>}
             <section className="speaking-challenge-grid" aria-busy={catalogLoading}>
                 {catalogLoading && <div className="speaking-challenge-loading-status" role="status">正在準備口說大挑戰…</div>}
                 {!catalogLoading && !selectedBook && catalogGroups.map((group, index) => <SpeakingBookCard key={group.id} group={group} index={index} rewardPolicy={catalogRewardPolicy} onOpen={() => navigate(`/student/speaking-challenges/book/${encodeURIComponent(group.id)}`, { state: { speakingBookEntry: { bookKey: group.id, bookLabel: group.label } } })} />)}
@@ -448,7 +442,7 @@ export default function TextbookSpeakingChallenge() {
                         {mapLessons.map((lesson, index) => <ChallengeLesson key={lesson.item.id} item={lesson.item} section={lesson.section} staffPreview={staffPreview} current={lesson.current} nextTarget={lesson === nextTarget} mapNode={mapRoute.nodes[index]} levelNumber={index + 1} topicNumber={lesson.topicNumber} onOpen={event => openMapLesson(lesson, event.currentTarget)} />)}
                     </SegmentedSpeakingMap>
                 </section>}
-                {!catalogLoading && !catalog.length && <div className="speaking-challenge-empty"><FiBookOpen /><h2>還沒有可挑戰的教材</h2><p>老師發布題庫後，會在這裡出現。</p></div>}
+                {!catalogLoading && !catalogQuery.error && !catalog.length && <div className="speaking-challenge-empty"><FiBookOpen /><h2>還沒有可挑戰的教材</h2><p>老師發布題庫後，會在這裡出現。</p></div>}
             </section>
             {!catalogLoading && selectedBook && selectedBook.itemCount > 0 && <SpeakingMapGoal target={nextTarget} pages={nextTarget ? levelReference(nextTarget.item) : ""} completed={selectedBookCompleted} total={selectedBook.itemCount} staffPreview={staffPreview} onOpen={event => openMapLesson(nextTarget, event.currentTarget)} />}
             {selectedLesson && <ChallengePreviewDialog item={selectedLesson.item} section={selectedLesson.section} sectionCopy={CATALOG_SECTION_COPY[selectedLesson.section] || CATALOG_SECTION_COPY.textbook} pages={levelReference(selectedLesson.item)} staffPreview={staffPreview} dialogRef={levelDialogRef} onClose={() => setSelectedLesson(null)} onEnter={mode => navigate(`/student/speaking-challenges/${selectedLesson.item.id}?mode=${mode}`, { state: { speakingEntry: {

@@ -1,3 +1,5 @@
+import { clearStudentPageCache } from "../../services/studentPageCache";
+beforeEach(() => clearStudentPageCache());
 import React from "react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
@@ -29,6 +31,27 @@ beforeEach(() => {
         { id: 2, title: "這週的聽力", due_at: "2099-01-01T00:00:00Z", progress: {} }
     ] });
     getStudentAssignmentsV2.mockResolvedValue({ assignments: [] });
+});
+
+test("the material shelf appears without waiting for slow summary or assignment responses", async () => {
+    getGamificationSummary.mockReturnValue(new Promise(() => {}));
+    getStudentAssignments.mockReturnValue(new Promise(() => {}));
+    getStudentAssignmentsV2.mockReturnValue(new Promise(() => {}));
+    renderHome();
+    expect(await screen.findByRole("link", { name: /Workbook Workbook 1/ })).toBeInTheDocument();
+    expect(screen.getByText("正在整理作業…")).toBeInTheDocument();
+    expect(screen.getByText("正在讀取成長資料…")).toBeInTheDocument();
+});
+
+test("returning to the home renders the existing shelf and tasks synchronously", async () => {
+    const first = renderHome();
+    await screen.findByRole("link", { name: "打開這份任務" });
+    await screen.findByText("180 XP");
+    first.unmount();
+    renderHome();
+    expect(screen.getByRole("link", { name: /Workbook Workbook 1/ })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "打開這份任務" })).toBeInTheDocument();
+    await waitFor(() => expect(getAccessibleCatalog).toHaveBeenCalledTimes(1));
 });
 
 test("recommends an active task, keeps overdue tasks separate, and preserves the task destination", async () => {

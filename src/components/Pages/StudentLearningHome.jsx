@@ -1,7 +1,8 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { FiArrowRight, FiBookOpen, FiCheckCircle, FiCompass, FiHeadphones, FiRefreshCw, FiSearch, FiStar, FiTrendingUp } from "react-icons/fi";
 import { useAuth } from "../../auth/AuthContext";
+import useStudentPageQuery from "../../hooks/useStudentPageQuery";
 import { getAccessibleCatalog } from "../../services/contentAccessService";
 import { getGamificationSummary } from "../../services/gamificationService";
 import { getStudentAssignments, getStudentAssignmentsV2 } from "../../services/assignmentService";
@@ -23,48 +24,25 @@ function StudentLearningHome() {
     const active = role === "student" && membership?.is_active === true;
     const assignmentAccess = active && membership?.effective_access?.features?.assignments === true;
     const speakingAccess = active && membership?.effective_access?.features?.pronunciation === true;
-    const owner = `${firebaseUser?.uid || ""}:${active}:${assignmentAccess}`;
-    const [snapshot, setSnapshot] = useState(null);
-    const [revision, setRevision] = useState(0);
+    const catalogQuery = useStudentPageQuery("catalog", () => getAccessibleCatalog(firebaseUser), { enabled: active });
+    const summaryQuery = useStudentPageQuery("summary", () => getGamificationSummary(firebaseUser), { enabled: active });
+    const assignmentsQuery = useStudentPageQuery("assignments:v1", () => getStudentAssignments(firebaseUser), { enabled: assignmentAccess });
+    const assignmentsV2Query = useStudentPageQuery("assignments:v2", () => getStudentAssignmentsV2(firebaseUser), { enabled: assignmentAccess });
     const [categoryId, setCategoryId] = useState("all");
     const [search, setSearch] = useState("");
     const [taskFilter, setTaskFilter] = useState("pending");
 
-    useEffect(() => {
-        if (!firebaseUser || !active) return undefined;
-        let cancelled = false;
-        setSnapshot(null);
-        const requests = [getAccessibleCatalog(firebaseUser), getGamificationSummary(firebaseUser)];
-        if (assignmentAccess) requests.push(getStudentAssignments(firebaseUser), getStudentAssignmentsV2(firebaseUser));
-        Promise.allSettled(requests).then(results => {
-            if (cancelled) return;
-            const value = index => results[index]?.status === "fulfilled" ? results[index].value : null;
-            setSnapshot({
-                owner,
-                categories: value(0)?.categories || [],
-                summary: value(1),
-                tasks: getLearningTasks(value(2)?.assignments, value(3)?.assignments),
-                catalogError: results[0].status === "rejected",
-                summaryError: results[1].status === "rejected",
-                taskError: assignmentAccess && results.slice(2).some(result => result.status === "rejected")
-            });
-        });
-        return () => { cancelled = true; };
-    }, [firebaseUser, active, assignmentAccess, owner, revision]);
-
-    useEffect(() => {
-        const refresh = () => setRevision(value => value + 1);
-        window.addEventListener("ae:track-progress-updated", refresh);
-        window.addEventListener("ae:gamification-updated", refresh);
-        return () => {
-            window.removeEventListener("ae:track-progress-updated", refresh);
-            window.removeEventListener("ae:gamification-updated", refresh);
-        };
-    }, []);
-
-    const data = snapshot?.owner === owner ? snapshot : null;
-    const loading = active && !data;
-    const categories = useMemo(() => getStudentMaterialCategories(data?.categories), [data]);
+    const data = {
+        summary: summaryQuery.data,
+        tasks: getLearningTasks(assignmentsQuery.data?.assignments, assignmentsV2Query.data?.assignments),
+        catalogError: catalogQuery.error && !catalogQuery.data,
+        summaryError: summaryQuery.error,
+        taskError: assignmentAccess && (assignmentsQuery.error || assignmentsV2Query.error)
+    };
+    const loading = catalogQuery.loading;
+    const tasksLoading = assignmentsQuery.loading || assignmentsV2Query.loading;
+    const refreshing = [catalogQuery, summaryQuery, assignmentsQuery, assignmentsV2Query].some(query => query.refreshing);
+    const categories = useMemo(() => getStudentMaterialCategories(catalogQuery.data?.categories), [catalogQuery.data]);
     const books = categories.flatMap(category => category.books.map(book => ({ ...book, categoryId: String(category.id), categoryName: category.name })));
     const selectedCategory = categories.some(category => String(category.id) === categoryId) ? categoryId : "all";
     const visibleBooks = books.filter(book => (selectedCategory === "all" || book.categoryId === selectedCategory)
@@ -78,7 +56,7 @@ function StudentLearningHome() {
     const avatar = getStudentAvatarDisplayUrl(data?.summary?.profile?.avatar_url || studentProfile?.avatar_url, 96);
     const heroTitle = nextTask ? nextTask.title : "今天，從一本教材開始";
     const heroPath = nextTask ? taskPath(nextTask) : books[0] ? bookPath(books[0]) : null;
-    const refresh = () => setRevision(value => value + 1);
+    const refresh = () => [catalogQuery, summaryQuery, assignmentsQuery, assignmentsV2Query].forEach(query => query.refresh());
 
     if (!active) return <main className="learning-home"><h1>今日學習</h1><p>先確認目前可使用的教材與功能。</p><Link className="learning-home__secondary" to="/student/membership">查看會員與功能</Link></main>;
 
@@ -86,8 +64,9 @@ function StudentLearningHome() {
         <div className="learning-home__shell">
             <header className="learning-home__greeting">
                 <div><span>歡迎回來，{name}</span><h1>今天，一起探索英文！</h1></div>
-                <button className="learning-home__refresh" type="button" onClick={refresh} disabled={loading} aria-label="重新整理學習進度"><FiRefreshCw aria-hidden="true" /><span>{loading ? "讀取中" : "更新進度"}</span></button>
+                <button className="learning-home__refresh" type="button" onClick={refresh} disabled={refreshing} aria-label="重新整理學習進度"><FiRefreshCw aria-hidden="true" /><span>{refreshing ? "更新中" : "更新進度"}</span></button>
             </header>
+            {[catalogQuery, summaryQuery, assignmentsQuery, assignmentsV2Query].some(query => query.error && query.data) && <p role="status">目前顯示上次資料，最新進度暫時無法同步，請稍後按「更新進度」。</p>}
 
             <div className="learning-home__overview">
                 <section className="learning-home__mission" aria-labelledby="today-goal">
@@ -120,7 +99,7 @@ function StudentLearningHome() {
             {assignmentAccess && <section className="learning-home__tasks" aria-labelledby="home-tasks-heading">
                 <div className="learning-home__section-heading"><div><h2 id="home-tasks-heading">老師的任務</h2><p>依自己的步調，完成每個練習。</p></div><Link to="/student/assignments">全部作業<FiArrowRight aria-hidden="true" /></Link></div>
                 <div className="learning-home__filters" role="group" aria-label="篩選作業狀態">{Object.entries(assignmentStateLabel).map(([key, label]) => <button type="button" key={key} aria-pressed={taskFilter === key} onClick={() => setTaskFilter(key)}>{label}{data && !data.taskError ? ` ${tasks.filter(task => task.state === key).length}` : ""}</button>)}</div>
-                {loading ? <p role="status">正在整理作業…</p> : <>
+                {tasksLoading && !tasks.length ? <p role="status">正在整理作業…</p> : <>
                     {data?.taskError && <div className="learning-home__notice" role="status">部分作業未能讀取，這裡可能不是完整清單。<button type="button" onClick={refresh}>重新讀取</button></div>}
                     {filteredTasks.slice(0, 3).map(task => <Link className="learning-home__task" to={taskPath(task)} key={task.taskKey}><span className={`learning-home__task-icon is-${task.state}`}><FiCheckCircle /></span><span><strong>{task.title}</strong><small>{assignmentStateLabel[task.state]}{formatDeadline(task.due_at) ? ` · ${formatDeadline(task.due_at)} 截止` : ""}</small></span><FiArrowRight aria-hidden="true" /></Link>)}
                     {!filteredTasks.length && !data?.taskError && <p className="learning-home__empty">{taskFilter === "completed" ? "完成的任務會出現在這裡。" : taskFilter === "overdue" ? "目前沒有逾期任務。" : "目前沒有進行中的任務，可以從下面的教材開始。"}</p>}

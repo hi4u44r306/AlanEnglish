@@ -6,6 +6,7 @@ import ListeningLearningPanel from "./ListeningLearningPanel";
 import "../assets/scss/Playlist.scss";
 import "../Pages/css/SpeakingAdventureSession.scss";
 import "../assets/scss/ListeningLearning.scss";
+import useStudentPageQuery from "../../hooks/useStudentPageQuery";
 import { useAuth } from "../../auth/AuthContext";
 import { getBookPlaybackProgress } from "../../services/listeningService";
 import { getAccessibleBook } from "../../services/contentAccessService";
@@ -14,47 +15,42 @@ import { useDispatch, useSelector } from "react-redux";
 import { setPlayPauseStatus } from "../../actions/actions";
 import { speakingListeningContext } from "../../utils/speakingListening";
 
-const PLAYLIST_CACHE_PREFIX = "ae-playlist-cache:";
-const PLAYLIST_CACHE_TTL = 45 * 60 * 1000;
-const getPlaylistCacheKey = playlistId => `${PLAYLIST_CACHE_PREFIX}${playlistId}`;
-
-function readPlaylistCache(playlistId) {
-    try {
-        const raw = sessionStorage.getItem(getPlaylistCacheKey(playlistId));
-        if (!raw) return null;
-        const parsed = JSON.parse(raw);
-        if (!parsed || !parsed.book || !Array.isArray(parsed.tracks)) return null;
-        if (!parsed.cachedAt || Date.now() - parsed.cachedAt > PLAYLIST_CACHE_TTL) {
-            sessionStorage.removeItem(getPlaylistCacheKey(playlistId));
-            return null;
-        }
-        return parsed;
-    } catch (error) {
-        console.warn("讀取 Playlist 快取失敗:", error);
-        return null;
-    }
-}
-
-function writePlaylistCache(playlistId, book, tracks) {
-    try {
-        sessionStorage.setItem(getPlaylistCacheKey(playlistId), JSON.stringify({ book, tracks, cachedAt: Date.now() }));
-    } catch (error) {
-        console.warn("寫入 Playlist 快取失敗:", error);
-    }
-}
-
 function Playlist() {
     const { playlistId } = useParams();
     const location = useLocation();
     const dispatch = useDispatch();
     const { firebaseUser, role } = useAuth();
-    const [book, setBook] = useState(null);
-    const [tracks, setTracks] = useState([]);
-    const [progressMap, setProgressMap] = useState({});
-    const [loading, setLoading] = useState(true);
-    const [errorMessage, setErrorMessage] = useState("");
-    const [progressStatus, setProgressStatus] = useState("loading");
-    const [progressRetry, setProgressRetry] = useState(0);
+    const bookQuery = useStudentPageQuery(`book:${playlistId}`, () => getAccessibleBook(firebaseUser, playlistId));
+    const book = bookQuery.data?.book;
+    const tracks = useMemo(() => (bookQuery.data?.tracks || []).map(track => ({
+        ...track, bookname: book?.name, type: playlistId, musicName: track.music_name,
+        audioURL: track.audio_url, audio_url: track.audio_url
+    })), [bookQuery.data, book?.name, playlistId]);
+    const progressQuery = useStudentPageQuery(`progress:${book?.id || playlistId}`, () => getBookPlaybackProgress(firebaseUser, book.id), {
+        enabled: Boolean(book?.id && firebaseUser && role === "student")
+    });
+    const progressStatus = role !== "student" || progressQuery.data ? "ready" : progressQuery.error ? "error" : "loading";
+    const loading = bookQuery.loading;
+    const errorMessage = bookQuery.error?.message || "";
+
+    const progressOwner = `${firebaseUser?.uid}:${playlistId}`;
+    const [progressUpdates, setProgressUpdates] = useState({ owner: progressOwner, items: {} });
+    const progressMap = useMemo(() => {
+        const next = {};
+        (progressQuery.data?.progress || []).forEach(item => {
+            next[String(item.track_id)] = {
+                playCount: Number(item.play_count) || 0,
+                completed: hasReachedListeningMastery(item),
+                completedAt: item.completed_at || null,
+                lastPlayedAt: item.last_played_at || null
+            };
+        });
+        return { ...next, ...(progressUpdates.owner === progressOwner ? progressUpdates.items : {}) };
+    }, [progressQuery.data, progressUpdates, progressOwner]);
+
+
+
+
     const [confirmedListen, setConfirmedListen] = useState(null);
     const { playing, playingStatus } = useSelector(state => state.musicReducer);
 
@@ -75,77 +71,10 @@ function Playlist() {
     }, [speakingContext, dispatch]);
 
     useEffect(() => {
-        let cancelled = false;
-        const fetchPlaylist = async () => {
-            if (!playlistId) return;
-            setErrorMessage("");
-            setProgressStatus("loading");
-            setProgressMap({});
-            setConfirmedListen(null);
-            const cached = readPlaylistCache(playlistId);
-            if (cached) {
-                setBook(cached.book);
-                setTracks(cached.tracks);
-                setLoading(false);
-            } else {
-                setLoading(true);
-            }
-            try {
-                const result = await getAccessibleBook(firebaseUser, playlistId);
-                if (cancelled) return;
-                const bookData = result?.book;
-                if (!bookData) throw new Error("找不到這本教材");
-                const convertedTracks = (result?.tracks || []).map(track => ({
-                    ...track,
-                    bookname: bookData.name,
-                    type: playlistId,
-                    musicName: track.music_name,
-                    audioURL: track.audio_url,
-                    audio_url: track.audio_url
-                }));
-                if (cancelled) return;
-                setBook(bookData);
-                setTracks(convertedTracks);
-                setLoading(false);
-                writePlaylistCache(playlistId, bookData, convertedTracks);
-                if (firebaseUser && role === "student") {
-                    getBookPlaybackProgress(firebaseUser, bookData.id).then(result => {
-                        if (cancelled) return;
-                        const nextProgressMap = {};
-                        (result?.progress || []).forEach(item => {
-                            nextProgressMap[String(item.track_id)] = {
-                                playCount: Number(item.play_count) || 0,
-                                completed: hasReachedListeningMastery(item),
-                                completedAt: item.completed_at || null,
-                                lastPlayedAt: item.last_played_at || null
-                            };
-                        });
-                        setProgressMap(nextProgressMap);
-                        setProgressStatus("ready");
-                    }).catch(progressError => {
-                        if (cancelled) return;
-                        setProgressStatus("error");
-                        console.error("背景讀取播放紀錄失敗:", progressError);
-                    });
-                } else {
-                    setProgressMap({});
-                    setProgressStatus("ready");
-                }
-            } catch (error) {
-                console.error("Playlist 載入失敗:", error);
-                setProgressStatus("error");
-                if (!cached) {
-                    setErrorMessage(error?.message || "教材載入失敗");
-                    setBook(null);
-                    setTracks([]);
-                    setLoading(false);
-                }
-            }
-        };
-        fetchPlaylist();
-        return () => { cancelled = true; };
-    }, [playlistId, firebaseUser, role, progressRetry]);
+        setProgressUpdates({ owner: progressOwner, items: {} });
+    }, [progressQuery.data, progressOwner]);
 
+    useEffect(() => { setConfirmedListen(null); }, [playlistId, firebaseUser?.uid]);
     useEffect(() => {
         const handleProgressUpdated = event => {
             const progress = event?.detail;
@@ -155,21 +84,20 @@ function Playlist() {
             if (role === "student" && progress.listen_counted === true) {
                 setConfirmedListen({ trackId: String(trackId), playCount: Number(progress.play_count) || 0 });
             }
-            setProgressMap(current => ({
-                ...current,
-                [String(trackId)]: {
-                    ...current[String(trackId)],
+            setProgressUpdates(current => ({
+                owner: progressOwner,
+                items: { ...(current.owner === progressOwner ? current.items : {}), [String(trackId)]: {
                     playCount: Number(progress.play_count) || 0,
                     completed: hasReachedListeningMastery(progress),
                     dailyCount: Number(progress.daily_count) || 0,
                     monthlyCount: Number(progress.monthly_count) || 0,
                     totalCount: Number(progress.total_count) || 0
-                }
+                } }
             }));
         };
         window.addEventListener("ae:track-progress-updated", handleProgressUpdated);
         return () => window.removeEventListener("ae:track-progress-updated", handleProgressUpdated);
-    }, [role]);
+    }, [role, progressOwner]);
 
     useEffect(() => { setConfirmedListen(null); }, [location.search]);
 
@@ -200,6 +128,7 @@ function Playlist() {
     return (
         <div className="playlist-page">
             <div className="playlist-content">
+                {bookQuery.error && bookQuery.data && <p role="status">目前顯示上次教材清單，播放網址暫時無法更新。<button type="button" onClick={() => bookQuery.refresh()}>重新讀取教材</button></p>}
                 {speakingContext && <section className="playlist-speaking-preparation" aria-label="本關聽力準備">
                     <div><span><Headphones aria-hidden="true" size={18} />本關聽力準備</span><p>先把教材聽熟，再回到口說關卡試著自己回答。已完成的題目會保留，回去後重新載入本關。</p></div>
                     {speakingReturn}
@@ -256,7 +185,7 @@ function Playlist() {
                     </section>
                 )}
 
-                {role === "student" && progressStatus === "error" && <div className="playlist-progress-error" role="alert"><span>暫時讀不到聆聽紀錄，你仍可播放音檔；這不代表沒有練習過。</span><button type="button" onClick={() => setProgressRetry(value => value + 1)}>重新讀取紀錄</button></div>}
+                {role === "student" && progressQuery.error && <div className="playlist-progress-error" role="alert"><span>{progressQuery.data ? "目前顯示上次聆聽紀錄，最新次數暫時無法同步。" : "暫時讀不到聆聽紀錄，你仍可播放音檔；這不代表沒有練習過。"}</span><button type="button" onClick={() => progressQuery.refresh()}>重新讀取紀錄</button></div>}
 
                 {confirmedTrack && <section className="playlist-listening-confirmed" aria-label="本次聆聽紀錄">
                     <div role="status"><Check aria-hidden="true" size={22} /><div><strong>已記下這次有效聆聽！</strong><p>{confirmedTrack.title || confirmedTrack.music_name || confirmedTrack.page || "教材音檔"} · 累計 {confirmedListen.playCount} 次</p></div></div>

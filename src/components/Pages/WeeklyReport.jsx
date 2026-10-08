@@ -21,6 +21,7 @@ import WeeklyLineChart from "./WeeklyLineChart";
 import WeeklyReportOverview from "./WeeklyReportOverview";
 import { getWeeklyChartDays } from "../../utils/weeklyReportChart";
 import { useAuth } from "../../auth/AuthContext";
+import useStudentPageQuery from "../../hooks/useStudentPageQuery";
 import { markGuardianNotificationSent } from "../../services/learningActivityService";
 import {
     createWeeklyReportGuardianDraft,
@@ -55,6 +56,8 @@ const copyText = async value => {
     document.body.removeChild(textarea);
 };
 
+const currentTaipeiWeek = () => Math.floor((Date.now() + 8 * 3600000 + 3 * 86400000) / (7 * 86400000));
+
 const WeeklyReport = () => {
     const { firebaseUser, role, studentProfile } = useAuth();
     const [searchParams, setSearchParams] = useSearchParams();
@@ -63,10 +66,14 @@ const WeeklyReport = () => {
     const initialWeekOffset = Math.max(-12, Math.min(0, Number(searchParams.get("week") || 0) || 0));
     const [selectedStudentId, setSelectedStudentId] = useState(initialStudentId);
     const [weekOffset, setWeekOffset] = useState(initialWeekOffset);
-    const [students, setStudents] = useState([]);
-    const [report, setReport] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState("");
+    const weekKey = currentTaipeiWeek() + weekOffset;
+    const reportQuery = useStudentPageQuery(`weekly:${weekKey}:${selectedStudentId || "self"}`, () => getWeeklyReport(firebaseUser, {
+        studentId: selectedStudentId || undefined, weekOffset: Math.max(-12, Math.min(0, weekKey - currentTaipeiWeek()))
+    }), { persist: !isManager });
+    const report = reportQuery.data?.report;
+    const students = reportQuery.data?.students || [];
+    const loading = reportQuery.loading;
+    const error = reportQuery.error?.message;
     const [message, setMessage] = useState("");
     const [emailLoading, setEmailLoading] = useState(false);
     const [emailDraft, setEmailDraft] = useState(null);
@@ -83,39 +90,18 @@ const WeeklyReport = () => {
         setSearchParams(next, { replace: true });
     }, [isManager, setSearchParams]);
 
-    const loadReport = useCallback(async () => {
-        if (!firebaseUser) return;
-
-        setLoading(true);
-        setError("");
+    const loadReport = () => {
         setMessage("");
-
-        try {
-            const result = await getWeeklyReport(firebaseUser, {
-                studentId: selectedStudentId || undefined,
-                weekOffset
-            });
-            const nextReport = result?.report || null;
-            setReport(nextReport);
-            setStudents(Array.isArray(result?.students) ? result.students : []);
-
-            if (isManager && nextReport?.student?.id && !selectedStudentId) {
-                const nextStudentId = String(nextReport.student.id);
-                setSelectedStudentId(nextStudentId);
-                updateQuery(nextStudentId, weekOffset);
-            }
-        } catch (loadError) {
-            console.error("Weekly report load error:", loadError);
-            setError(loadError.message || "每週學習報告載入失敗");
-            setReport(null);
-        } finally {
-            setLoading(false);
-        }
-    }, [firebaseUser, isManager, selectedStudentId, updateQuery, weekOffset]);
+        reportQuery.refresh();
+    };
 
     useEffect(() => {
-        loadReport();
-    }, [loadReport]);
+        if (isManager && report?.student?.id && !selectedStudentId) {
+            const nextStudentId = String(report.student.id);
+            setSelectedStudentId(nextStudentId);
+            updateQuery(nextStudentId, weekOffset);
+        }
+    }, [isManager, report, selectedStudentId, updateQuery, weekOffset]);
 
     const chartDays = useMemo(() => getWeeklyChartDays(report), [report]);
 
@@ -193,7 +179,7 @@ const WeeklyReport = () => {
         );
     }
 
-    if (error || !report) {
+    if (!report) {
         return (
             <main className="weekly-report-page">
                 <div className="weekly-report-state weekly-report-state--error">
@@ -216,7 +202,7 @@ const WeeklyReport = () => {
                 <nav className="weekly-report-toolbar" aria-label="週報工具列">
                     <Link to={backPath}><FiArrowLeft /> 返回{isManager ? "管理首頁" : "學習首頁"}</Link>
                     <div className="weekly-report-toolbar__actions">
-                        <button type="button" onClick={handleCopy}><FiCopy /> 複製文字摘要</button>
+                        <button type="button" onClick={handleCopy} disabled={!report.family_message}><FiCopy /> 複製文字摘要</button>
                         <button type="button" onClick={() => window.print()}><FiPrinter /> 列印／存 PDF</button>
                     </div>
                 </nav>
@@ -238,6 +224,7 @@ const WeeklyReport = () => {
                 )}
 
                 {message && <div className="weekly-report-message">{message}</div>}
+                {error && <div className="weekly-report-message" role="status">目前顯示上次週報，最新資料暫時無法同步。<button type="button" onClick={loadReport}>重新整理</button></div>}
 
                 <header className="weekly-report-hero weekly-report-hero--parent">
                     <div className="weekly-report-hero__copy">
@@ -377,7 +364,7 @@ const WeeklyReport = () => {
                             )}
                         </div>
                     </div>
-                    <pre>{report.family_message}</pre>
+                    <pre>{report.family_message || "正在同步文字摘要，完成後即可複製。"}</pre>
                     {isManager && !report.guardian.configured && (
                         <p className="weekly-report-family__notice">
                             <FiAlertCircle /> 尚未設定家長 Email；可先複製摘要，或回管理首頁補上家長資料。

@@ -1,3 +1,5 @@
+import { clearStudentPageCache } from "../../services/studentPageCache";
+beforeEach(() => clearStudentPageCache());
 import React, { lazy, Suspense } from "react";
 import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import "@testing-library/jest-dom";

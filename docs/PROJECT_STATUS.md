@@ -2,6 +2,13 @@
 
 最後更新：2026-10-08
 
+### 學生切頁與刷新快取（2026-10-08，前端驗證通過／尚未部署）
+
+- 基準 main 8ce801c3，分支 codex/student-page-cache；使用既有乾淨副本 output/speaking-70-release-status，保留原工作目錄未提交草稿，不新增 worktree。這批只改前端顯示資料與失效通知，無 migration、Function、Secret 或權限規則調整。
+- 新增 studentPageCache／useStudentPageQuery；首頁、MainNavbar、Playlist、StudentAssignments、TextbookSpeakingChallenge 目錄、WeeklyReport 使用共用快取與 LocalStorage 快照。首頁各區獨立呈現、刷新不先清空已有內容；登出／換帳號清理、延遲回應隔離、成功提交／聆聽／口說失效、錯誤保留／拒絕清除已接上。更新手冊 v3.65，題目工作階段與私有播放網址仍即時取得。
+- 最終 128 項相關 React／cache／提交失效測試通過；十二個應用檔案 ESLint 無 errors／warnings，git diff --check 通過。使用實際首頁／Navbar／作業／聽力／週報 JSX 與 SCSS 的隔離替身頁面已成功編譯（output/student-cache-preview）；Browser Use 因無法核對保存的瀏覽器權限而阻擋 localhost，未繞過。桌面／412px 實際畫面、真實帳號與 iPhone 音檔／錄音仍待驗。採 Cloudflare 唯一 production build，不重複本機完整 build 或全套測試。
+- 下一步：完成新案例、diff 與前端驗證後建立 Git checkpoint／PR，依既有前端發布授權由最新 main 的唯一 Cloudflare production build 發布；正式結果再補本段。回復可 revert 此前端 PR，無資料格式／後端回復需求。
+
 ### 70 分挑戰正式發布接續（2026-10-08，已部署／實機待驗）
 
 - PR #453 合併 main 64010c67；使用者已同意原批次。migration 20261007155958 已套用，新完成表 RLS／前端無權限與三個 service-only RPC 已核對；現有資料、舊獎勵保留。

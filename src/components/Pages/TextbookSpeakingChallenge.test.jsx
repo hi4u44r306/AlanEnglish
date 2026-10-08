@@ -1,3 +1,5 @@
+import { clearStudentPageCache } from "../../services/studentPageCache";
+beforeEach(() => clearStudentPageCache());
 import "@testing-library/jest-dom";
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { Link, MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
@@ -77,6 +79,7 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(first.container.querySelectorAll('[aria-current="step"]')).toHaveLength(1);
         expect(first.container.querySelector('[aria-current="step"]')).toHaveAttribute("data-question-set-id", "1");
         first.unmount();
+        clearStudentPageCache(); // The mock server changed outside the rendered page.
         getSpeakingChallengeCatalog.mockResolvedValue({ challenges: items.map(item => ({ ...item, is_completed: true, completed_count: 2 })) });
         const completed = mountMap();
         await screen.findByText("這本已全部通關！");
@@ -681,20 +684,18 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
     });
 
-    it("從教材列表進入另一冊，載入期間不閃現舊清單或地圖", async () => {
-        let resolveCatalog;
+    it("從教材列表進入同一份目錄中的另一冊，直接復用已讀取地圖", async () => {
         const challenges = [{ id: 71, title: "P4 問候", source_pages: [4], book: { id: 3, name: "Workbook 3" }, question_count: 1 }];
-        getSpeakingChallengeCatalog.mockResolvedValueOnce({ challenges }).mockImplementationOnce(() => new Promise(resolve => { resolveCatalog = resolve; }));
+        getSpeakingChallengeCatalog.mockResolvedValue({ challenges });
         render(<MemoryRouter initialEntries={["/student/speaking-challenges"]}><Routes>
             <Route path="/student/speaking-challenges" element={<TextbookSpeakingChallenge />} />
             <Route path="/student/speaking-challenges/book/:bookKey" element={<TextbookSpeakingChallenge />} />
         </Routes></MemoryRouter>);
         fireEvent.click(await screen.findByRole("button", { name: /開啟 Workbook 3/ }));
-        expect(screen.getByRole("heading", { name: "正在進入 Workbook 3 口說大挑戰…" })).toBeInTheDocument();
         expect(screen.queryByRole("button", { name: /開啟 Workbook 3/ })).not.toBeInTheDocument();
-        expect(screen.queryByRole("button", { name: /P.4，問候/ })).not.toBeInTheDocument();
-        await act(async () => resolveCatalog({ challenges }));
         expect(screen.getByRole("button", { name: /P.4，問候/ })).toBeInTheDocument();
+        expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
+        expect(getSpeakingChallengeCatalog).toHaveBeenCalledTimes(1);
     });
 
     it("Workbook 讀取中返回教材列表，忽略晚到的關卡", async () => {
