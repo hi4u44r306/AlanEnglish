@@ -10,6 +10,7 @@ import { getStudentAssignments, getStudentAssignmentsV2 } from "../../services/a
 import { getStudentAvatarDisplayUrl } from "../../constants/defaultStudentAvatars";
 import { useCachedStudentAvatarUrl } from "../../hooks/useCachedStudentAvatarUrl";
 import StudentAvatarImage from "../fragment/StudentAvatarImage";
+import BirthdayRewardNotice from "../fragment/BirthdayRewardNotice";
 import useStudentLearningResume from "../../hooks/useStudentLearningResume";
 import { findResumeBook, learningResumePath } from "../../services/studentLearningResume";
 import { assignmentStateLabel, getCurrentClassMaterials, getLearningTasks, getStudentMaterialCategories } from "../../utils/studentLearning";
@@ -87,6 +88,8 @@ function StudentLearningHome() {
                 <button className="learning-home__refresh" type="button" onClick={refresh} disabled={refreshing} aria-label="重新整理學習進度"><FiRefreshCw aria-hidden="true" /><span>{refreshing ? "更新中" : "更新進度"}</span></button>
             </header>
             {[catalogQuery, summaryQuery, assignmentsQuery, assignmentsV2Query].some(query => query.error && query.data) && <p role="status">目前顯示上次資料，最新進度暫時無法同步，請稍後按「更新進度」。</p>}
+
+            <BirthdayRewardNotice birthday={summaryQuery.error ? null : data?.summary?.birthday} />
 
             <div className="learning-home__overview">
                 <section className="learning-home__mission" aria-labelledby="today-goal">

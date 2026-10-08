@@ -39,6 +39,10 @@ export const recordGameResult = (firebaseUser, { gameKey, sessionKey, won = fals
     })
 );
 export const getRewardAdminCatalog = firebaseUser => callGamification(firebaseUser, "admin_catalog");
+export const getBirthdayRewardSettings = firebaseUser => callGamification(firebaseUser, "admin_birthday_settings");
+export const saveBirthdayRewardSettings = (firebaseUser, settings) => (
+    callGamification(firebaseUser, "admin_save_birthday_settings", { settings })
+);
 export const saveReward = (firebaseUser, reward) => callGamification(firebaseUser, "admin_save_reward", { reward });
 export const deleteReward = (firebaseUser, rewardId) => callGamification(firebaseUser, "admin_delete_reward", { reward_id: rewardId });
 export const updateRewardRedemption = (firebaseUser, redemptionId, status, note = "") => (

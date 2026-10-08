@@ -297,3 +297,12 @@ test("textbook customers can resume their authorized material", async () => {
     renderHome();
     expect(await screen.findByRole("link", { name: "繼續 Phonics 1" })).toHaveAttribute("href", "/student/books/Phonics_1?resume=2");
 });
+
+test("home displays the server birthday benefit without adding another endpoint request", async () => {
+    const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Taipei", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+    getGamificationSummary.mockResolvedValue({ balance: { level: 2, total_xp: 180 }, birthday: { enabled: true, is_birthday_month: true, evaluated_on: today, ends_on: "2026-10-31", xp_multiplier: 2, gift_status: "received", gift_points: 150 } });
+    renderHome();
+    await screen.findByText("生日月快樂！");
+    expect(screen.getByText("150 AE Points")).toBeInTheDocument();
+    expect(getGamificationSummary).toHaveBeenCalledTimes(1);
+});
