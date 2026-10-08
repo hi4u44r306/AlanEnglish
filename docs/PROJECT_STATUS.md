@@ -2,6 +2,12 @@
 
 最後更新：2026-10-08
 
+### 口說地圖起點路牌（2026-10-08，本機修改／待發布）
+
+- 使用者要求改善起點旗子；基準 main 34c4e6f9，分支 codex/speaking-start-marker，沿用 output/speaking-70-release-status 乾淨副本。共用 SegmentedSpeakingMap 將細長小旗改成短木樁、木框深藍箭頭面板與「起點」文字，六冊同步套用；SVG 裝飾沒有點擊功能，沿用既有定位及關卡互動。
+- 本批為局部 SVG 外觀修改；採元件 lint、diff 與素材合成／座標檢查，不重跑全套測試或本機 production build，正式 build 交由 Cloudflare。原目錄未提交修改保留。瀏覽器保存權限核對先前受阻，真實登入及 iPhone 仍待驗。
+- 既有元件斷言隨 class 名稱更新，單一元件檔 13 tests 通過；ESLint 與 diff check 通過。實際 React SVG 已編譯及轉圖目視確認（output/map-start-marker-preview.png）；六冊起點皆在畫布範圍，412px 比例約 58.5px 寬，與第一關圓牌保持間距。合成圖不等同實機截圖；SVG 渲染器僅字型快取目錄警告，仍成功輸出文字與圖像。
+
 ### 六冊口說道路接縫修補（2026-10-08，已部署／實機待驗）
 
 - 基準 main df03c1ad，分支 codex/speaking-road-seams；沿用乾淨副本 output/speaking-70-release-status，保留原目錄未提交草稿。原十二張完整地圖保留，新增十二張局部 WebP 修補圖（合計 2,014,678 bytes），每冊只需自己的兩張，重複接縫復用網址與快取；附近才掛載圖片、失敗保留重試。
