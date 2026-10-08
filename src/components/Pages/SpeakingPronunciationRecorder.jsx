@@ -42,6 +42,7 @@ export default function SpeakingPronunciationRecorder({
 }) {
     const maxRecordingSeconds = speakingRecordingSeconds(interactionType || question.interaction_type);
     const azureLetters = ["alphabet_round", "letter_spelling"].includes(interactionType || question.interaction_type);
+    const canFinishAndAssess = !practiceOnly && (interactionType || question.interaction_type) !== "alphabet_round";
     const [recording, setRecording] = useState(false);
     const [recordedBlob, setRecordedBlob] = useState(null);
     const [previewUrl, setPreviewUrl] = useState("");
@@ -59,6 +60,12 @@ export default function SpeakingPronunciationRecorder({
     const generationRef = useRef(0);
     const previewRef = useRef("");
     const transcriptionRef = useRef(null);
+    const assessOnStopRef = useRef(false);
+    const stoppingRef = useRef(false);
+    const recordingFailedRef = useRef(false);
+    const submittingRef = useRef(false);
+    const submissionGateRef = useRef(null);
+    submissionGateRef.current = { practiceOnly, budgetBlocked, disabled: Boolean(disabledReason) };
     useEffect(() => {
         if (practiceOnly) { setEngineReady(true); setEngineInfo("錄音回聽練習，不送出評分。"); return undefined; }
         if (azureLetters) { setEngineReady(true); setEngineInfo("字母與拼字評分 · 70 分通過"); return undefined; }
@@ -109,6 +116,7 @@ export default function SpeakingPronunciationRecorder({
     };
     const reset = () => {
         generationRef.current++;
+        assessOnStopRef.current = false; stoppingRef.current = false; recordingFailedRef.current = false; submittingRef.current = false;
         if (recorderRef.current?.state === "recording") { recorderRef.current.onstop = null; recorderRef.current.stop(); }
         release();
         if (previewRef.current) URL.revokeObjectURL(previewRef.current);
@@ -117,9 +125,19 @@ export default function SpeakingPronunciationRecorder({
         setPreviewUrl(""); setRecordedBlob(null); setResult(null); setError(""); setBudgetBlocked(false); setElapsed(0); setRecording(false); setPreparing(false); setSubmitting(false); setVoiceDetected(false);
     };
     useEffect(() => () => release(), []);
-    useEffect(() => reset, [question.id]); // eslint-disable-line react-hooks/exhaustive-deps
+    useEffect(() => reset, [question.id, firebaseUser?.uid, foundationRoundId, challengeSessionId, challengeMode, practiceOnly]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    const stop = () => { if (recorderRef.current?.state === "recording") recorderRef.current.stop(); };
+    const stop = (assess = false) => {
+        if (recorderRef.current?.state !== "recording" || stoppingRef.current) return;
+        stoppingRef.current = true;
+        assessOnStopRef.current = assess && canFinishAndAssess && !recordingFailedRef.current;
+        setPreparing(true);
+        try { recorderRef.current.stop(); }
+        catch {
+            assessOnStopRef.current = false; stoppingRef.current = false;
+            setPreparing(false); setError("錄音暫時無法停止，請再按一次停止並回聽。");
+        }
+    };
     const prepareEngine = async () => {
         const token = generationRef.current;
         setPreparing(true); setError("");
@@ -131,11 +149,13 @@ export default function SpeakingPronunciationRecorder({
         } finally { if (token === generationRef.current) setPreparing(false); }
     };
     const start = async () => {
+        if (submittingRef.current || recording || preparing || disabledReason) return;
         if (!practiceOnly && !azureLetters && !engineRef.current?.ready) return prepareEngine();
         reset();
         const token = generationRef.current;
         onRetry?.();
         if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) return setError("這個瀏覽器不支援錄音，請使用新版 Chrome 或 Safari");
+        setPreparing(true);
         try {
             const stream = await navigator.mediaDevices.getUserMedia({
                 audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true }
@@ -161,13 +181,23 @@ export default function SpeakingPronunciationRecorder({
             const type = recordingMimeType();
             const recorder = type ? new MediaRecorder(stream, { mimeType: type }) : new MediaRecorder(stream);
             recorderRef.current = recorder;
-            recorder.ondataavailable = event => { if (event.data?.size) chunksRef.current.push(event.data); };
-            recorder.onerror = () => setError("錄音發生問題，請重新允許麥克風後再試一次");
+            recorder.ondataavailable = event => { if (token === generationRef.current && event.data?.size) chunksRef.current.push(event.data); };
+            recorder.onerror = () => {
+                if (token !== generationRef.current) return;
+                recordingFailedRef.current = true;
+                assessOnStopRef.current = false;
+                setError("錄音發生問題，請重新允許麥克風後再試一次");
+            };
             recorder.onstop = async () => {
                 if (token !== generationRef.current) return;
                 const blob = new Blob(chunksRef.current, { type: recorder.mimeType || "audio/webm" });
                 release(); setRecording(false);
-                if (blob.size < 1000) return setError("沒有收到清楚的錄音，請靠近麥克風再試一次");
+                const shouldAssess = assessOnStopRef.current;
+                assessOnStopRef.current = false;
+                if (blob.size < 1000) {
+                    setPreparing(false);
+                    return setError("沒有收到清楚的錄音，請靠近麥克風再試一次");
+                }
                 setPreparing(true);
                 try {
                     // 回聽與送評使用同一份 16 kHz PCM WAV，避免原始錄音正常、轉檔後卻無聲。
@@ -175,32 +205,35 @@ export default function SpeakingPronunciationRecorder({
                     if (token !== generationRef.current) return;
                     previewRef.current = URL.createObjectURL(wav);
                     setRecordedBlob(wav); setPreviewUrl(previewRef.current);
+                    if (shouldAssess) await submit(wav, token);
                 } catch (cause) {
-                    setError(cause?.message || "錄音轉換失敗，請重新錄音後再試一次");
+                    if (token === generationRef.current) setError(cause?.message || "錄音轉換失敗，請重新錄音後再試一次");
                 } finally {
                     if (token === generationRef.current) setPreparing(false);
                 }
             };
             recorder.start(250); setRecording(true); setElapsed(0);
             elapsedTimerRef.current = window.setInterval(() => setElapsed(current => Math.min(maxRecordingSeconds, current + 1)), 1000);
-            stopTimerRef.current = window.setTimeout(stop, maxRecordingSeconds * 1000);
+            stopTimerRef.current = window.setTimeout(() => stop(), maxRecordingSeconds * 1000);
         } catch (cause) {
             if (token !== generationRef.current) return;
             release(); setRecording(false);
             setError(cause?.name === "NotAllowedError" ? "請允許麥克風權限，才能練習發音" : "目前無法啟動麥克風，請確認瀏覽器設定後再試一次");
-        }
+        } finally { if (token === generationRef.current) setPreparing(false); }
     };
-    const submit = async () => {
-        if (practiceOnly || !recordedBlob || submitting || budgetBlocked) return;
-        prepareSpeakingFeedbackSound();
+    const submit = async (audio = recordedBlob, token = generationRef.current) => {
+        const gate = submissionGateRef.current;
+        if (token !== generationRef.current || gate.practiceOnly || !audio || submittingRef.current || gate.budgetBlocked || gate.disabled) return;
+        submittingRef.current = true;
         setSubmitting(true); setError(""); setResult(null);
-        const token = generationRef.current;
         try {
-            const transcription = azureLetters ? null : transcriptionRef.current || await engineRef.current.transcribe(recordedBlob, maxRecordingSeconds);
-            if (token !== generationRef.current) return;
+            prepareSpeakingFeedbackSound();
+            const transcription = azureLetters ? null : transcriptionRef.current || await engineRef.current.transcribe(audio, maxRecordingSeconds);
+            const currentGate = submissionGateRef.current;
+            if (token !== generationRef.current || currentGate.practiceOnly || currentGate.budgetBlocked || currentGate.disabled) return;
             transcriptionRef.current = transcription;
             const score = azureLetters
-                ? await submitAlphabetPronunciationAttempt({ firebaseUser, questionId: question.id, audio: recordedBlob, foundationRoundId, challengeSessionId, challengeMode })
+                ? await submitAlphabetPronunciationAttempt({ firebaseUser, questionId: question.id, audio, foundationRoundId, challengeSessionId, challengeMode })
                 : await submitSpeakingPronunciationAttempt({ firebaseUser, questionId: question.id, ...transcription, foundationRoundId, challengeSessionId, challengeMode });
             if (token !== generationRef.current) return;
             const measuredScore = azureLetters ? score?.scores?.pronunciation : score?.scores?.completeness;
@@ -231,7 +264,7 @@ export default function SpeakingPronunciationRecorder({
                     ? cause.message : "朗讀結果暫時無法完成。錄音仍保留，請重試評分。");
             if (ROUND_RESET_ERROR_CODES.has(String(cause?.code || ""))) onRoundInvalid?.(cause);
         }
-        finally { if (token === generationRef.current) setSubmitting(false); }
+        finally { if (token === generationRef.current) { submittingRef.current = false; setSubmitting(false); } }
     };
 
     const pronunciationScore = Math.round((azureLetters ? result?.scores?.pronunciation : result?.scores?.completeness) || 0);
@@ -254,26 +287,28 @@ export default function SpeakingPronunciationRecorder({
         {!result && <>
             <div className="speaking-recording-heading">
                 <strong>{submitting ? "正在聽你的回答…" : recording ? (voiceDetected ? "聽到你的聲音了" : "麥克風已啟用，直接開口說") : preparing ? engineReady ? "正在準備評分音檔…" : "正在準備語音辨識…" : recordedBlob ? "錄音完成，先聽聽看送評的聲音" : practiceOnly ? "啟用麥克風錄音練習" : "啟用麥克風開始挑戰"}</strong>
-                <span>{submitting ? "請稍候，完成後會顯示練習結果。" : recording ? `最長 ${maxRecordingSeconds} 秒，說完後按完成錄音。` : preparing ? "請稍候，不需要重新錄音。" : recordedBlob ? practiceOnly ? "聽聽自己的聲音，想再練可以重新錄音。" : "確認清楚後，再交給 AI 評分。" : `每次最長 ${maxRecordingSeconds} 秒；本題會立刻開始收音。`}</span>
+                <span>{submitting ? "請稍候，完成後會顯示練習結果。" : recording ? `最長 ${maxRecordingSeconds} 秒，說完後按${canFinishAndAssess ? "完成並評分；也可以先停止並回聽" : "完成錄音"}。` : preparing ? "請稍候，不需要重新錄音。" : recordedBlob ? practiceOnly ? "聽聽自己的聲音，想再練可以重新錄音。" : "確認清楚後，再交給 AI 評分。" : `每次最長 ${maxRecordingSeconds} 秒；本題會立刻開始收音。`}</span>
             </div>
             {recording && <div className="speaking-recording-countdown" role="timer" aria-label={`錄音剩餘 ${remainingSeconds} 秒`}><strong>{remainingSeconds}</strong><span>秒</span></div>}
-            {disabledReason && !recordedBlob && <p className="speaking-pronunciation-notice">{disabledReason}</p>}
+            {disabledReason && <p className="speaking-pronunciation-notice">{disabledReason}</p>}
             {!recordedBlob && <button
                 type="button"
                 className="speaking-pronunciation-mic"
-                onClick={recording ? stop : start}
-                disabled={!engineReady || preparing || Boolean(disabledReason)}
-                aria-label={recording ? "完成錄音" : "開始錄音"}
+                onClick={recording ? () => stop(canFinishAndAssess) : start}
+                disabled={!engineReady || preparing || submitting || Boolean(disabledReason)}
+                aria-label={recording ? canFinishAndAssess ? "完成並評分" : "完成錄音" : "開始錄音"}
             >
                 {recording ? <FiSend aria-hidden="true" /> : <FiMic aria-hidden="true" />}
-                <span>{recording ? "完成錄音" : preparing ? "準備中…" : "啟用麥克風"}</span>
+                <span>{recording ? canFinishAndAssess ? "完成並評分" : "完成錄音" : preparing ? "準備中…" : "啟用麥克風"}</span>
             </button>}
-            {previewUrl && <div className="speaking-recording-preview"><audio controls src={previewUrl}>你的瀏覽器不支援錄音播放。</audio><div><button type="button" className="secondary" onClick={start} disabled={submitting}><FiRefreshCw />重新錄音</button>{!practiceOnly && <button type="button" onClick={submit} disabled={submitting || budgetBlocked}><FiSend />{submitting ? "AI 評分中…" : error ? "重試評分" : "送出評分"}</button>}</div></div>}
+            {recording && canFinishAndAssess && <button type="button" className="secondary" onClick={() => stop()} disabled={preparing || submitting || Boolean(disabledReason)}><FiVolume2 aria-hidden="true" />先停止並回聽</button>}
+            {previewUrl && <div className="speaking-recording-preview"><audio controls src={previewUrl} aria-label="回聽我的錄音">你的瀏覽器不支援錄音播放。</audio><div><button type="button" className="secondary" onClick={start} disabled={submitting || preparing || Boolean(disabledReason)}><FiRefreshCw />重新錄音</button>{!practiceOnly && <button type="button" onClick={() => submit()} disabled={submitting || preparing || budgetBlocked || Boolean(disabledReason)}><FiSend />{submitting ? "AI 評分中…" : error ? "重試評分" : "送出評分"}</button>}</div></div>}
             <small className="speaking-recording-privacy">{practiceOnly ? "錄音只留在這個頁面供回聽，不上傳、不評分，也不增加通關或獎勵。" : azureLetters ? "字母與拼字錄音送至 Azure 評分；答案正確且達 70 分即可通過。" : "錄音在這台裝置辨識，只傳送辨識文字供核對及儲存。分數是朗讀完整度，不是發音準確度。"}</small>
         </>}
         {result && <div className={`speaking-pronunciation-result is-${resultTone}`} role="status" aria-live="polite" aria-atomic="true">
             <header>{answerMatched ? <FiCheckCircle aria-hidden="true" /> : <FiAlertCircle aria-hidden="true" />}<span>本次練習結果</span><strong>{answerMatched ? scoreLabel(pronunciationScore) : assessmentUncertain ? "系統沒有聽清楚" : "回答方式還差一點"}</strong></header>
             <p className="speaking-completeness-score"><span>{azureLetters ? "字母發音" : "朗讀完整度"}</span><strong>{pronunciationScore} 分</strong></p>
+            {previewUrl && <details className="speaking-result-replay"><summary>回聽我的錄音</summary><audio controls src={previewUrl} aria-label="回聽我的錄音">你的瀏覽器不支援錄音播放。</audio></details>}
             {assessmentUncertain && <p className="speaking-pronunciation-feedback"><span>{result.feedback || "這次沒有聽清楚，不算你答錯，請再試一次。"}</span></p>}
             <div className="speaking-result-actions">
                 {onListenAgain && <button type="button" className="secondary" onClick={onListenAgain} disabled={audioWorking || submitting}><FiVolume2 aria-hidden="true" />{audioWorking ? "示範播放中…" : "再聽示範"}</button>}
