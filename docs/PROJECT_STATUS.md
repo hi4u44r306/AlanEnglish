@@ -2,12 +2,12 @@
 
 最後更新：2026-10-08
 
-### 學生切頁與刷新快取（2026-10-08，前端驗證通過／尚未部署）
+### 學生切頁與刷新快取（2026-10-08，已部署／實機待驗）
 
 - 基準 main 8ce801c3，分支 codex/student-page-cache；使用既有乾淨副本 output/speaking-70-release-status，保留原工作目錄未提交草稿，不新增 worktree。這批只改前端顯示資料與失效通知，無 migration、Function、Secret 或權限規則調整。
 - 新增 studentPageCache／useStudentPageQuery；首頁、MainNavbar、Playlist、StudentAssignments、TextbookSpeakingChallenge 目錄、WeeklyReport 使用共用快取與 LocalStorage 快照。首頁各區獨立呈現、刷新不先清空已有內容；登出／換帳號清理、延遲回應隔離、成功提交／聆聽／口說失效、錯誤保留／拒絕清除已接上。更新手冊 v3.65，題目工作階段與私有播放網址仍即時取得。
 - 最終 128 項相關 React／cache／提交失效測試通過；十二個應用檔案 ESLint 無 errors／warnings，git diff --check 通過。使用實際首頁／Navbar／作業／聽力／週報 JSX 與 SCSS 的隔離替身頁面已成功編譯（output/student-cache-preview）；Browser Use 因無法核對保存的瀏覽器權限而阻擋 localhost，未繞過。桌面／412px 實際畫面、真實帳號與 iPhone 音檔／錄音仍待驗。採 Cloudflare 唯一 production build，不重複本機完整 build 或全套測試。
-- 下一步：完成新案例、diff 與前端驗證後建立 Git checkpoint／PR，依既有前端發布授權由最新 main 的唯一 Cloudflare production build 發布；正式結果再補本段。回復可 revert 此前端 PR，無資料格式／後端回復需求。
+- PR #464 合併 main df03c1ad；Cloudflare build 4ec25d6e-7a37-4d33-9631-54fa2cfb6e47 於 10:59:22 台灣時間 success。11:00 正式資產 main.3aae4660.js、719.ccde41d5、433.d058165f、673.cace9077 均 HTTP 200，確認新快取前綴與首頁／聽力／作業／口說目錄／週報更新訊息；六個 SPA 路由與 manifest 回應 200，manifest 所列 JS 全部 200，Unicode 解碼後七個預期標記皆存在。證據 output/student-cache-preview/production-verification.json。沒有正式資料寫入或登入驗收；實際切頁速度、412px／iPhone 仍待帳號與裝置驗收。下一步先重新整理網站取得新版，首輪讀取後比較切頁／刷新與進度更新。回復可 revert PR #464，無資料格式／後端回復需求。
 
 ### 70 分挑戰正式發布接續（2026-10-08，已部署／實機待驗）
 
