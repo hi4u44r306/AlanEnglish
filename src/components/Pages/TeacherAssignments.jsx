@@ -23,6 +23,8 @@ import {
     removeTrackIds
 } from "./assignmentTrackSelection";
 import "./css/Assignments.scss";
+import AssignmentCopyEditor, { copyItemProblems } from "./AssignmentCopyEditor";
+import { readTeacherAssignmentDraft, saveTeacherAssignmentDraft, clearTeacherAssignmentDraft, sanitizeCopyItems, hasAssignmentDraft } from "../../services/teacherAssignmentDraft";
 
 const todayTaiwan = () => new Intl.DateTimeFormat("en-CA", {
     timeZone: "Asia/Taipei",
@@ -90,7 +92,7 @@ const resultSummary = (assignment, row) => {
     return (row.completed_count || 0) + " / " + (row.total_tracks || 0) + " 個音檔";
 };
 
-const TeacherAssignments = () => {
+const TeacherAssignmentsEditor = () => {
     const { firebaseUser } = useAuth();
     const [classes, setClasses] = useState([]);
     const [tracks, setTracks] = useState([]);
@@ -116,6 +118,9 @@ const TeacherAssignments = () => {
     const [selectedAiMaterialId, setSelectedAiMaterialId] = useState("");
     const [selectedPromptKeys, setSelectedPromptKeys] = useState([]);
     const [preview, setPreview] = useState(null);
+    const [copiedItems, setCopiedItems] = useState(null);
+    const [pendingDraft, setPendingDraft] = useState(() => readTeacherAssignmentDraft(firebaseUser?.uid));
+    const [draftStatus, setDraftStatus] = useState(null);
     const [savingSource, setSavingSource] = useState(false);
     const [sourceForm, setSourceForm] = useState({
         page_label: "",
@@ -132,11 +137,61 @@ const TeacherAssignments = () => {
         required_listens: 3
     });
 
+    const draft = useMemo(() => ({ form, bookId, trackIds, rangeStart, rangeEnd, mixedMode,
+        includeAiQuiz, includePronunciation, sourceBookId, selectedPageContentIds,
+        selectedAiMaterialId, selectedPromptKeys, sourceForm, copiedItems }), [form, bookId, trackIds,
+        rangeStart, rangeEnd, mixedMode, includeAiQuiz, includePronunciation, sourceBookId,
+        selectedPageContentIds, selectedAiMaterialId, selectedPromptKeys, sourceForm, copiedItems]);
+
+    useEffect(() => {
+        if (!loading && !pendingDraft && firebaseUser?.uid) setDraftStatus(saveTeacherAssignmentDraft(firebaseUser.uid, draft));
+    }, [draft, firebaseUser?.uid, loading, pendingDraft]);
+
+    useEffect(() => { setPreview(null); }, [draft]);
+
+    const applyDraft = saved => {
+        setForm(saved.form);
+        setBookId(saved.bookId); setTrackIds(saved.trackIds);
+        setRangeStart(saved.rangeStart); setRangeEnd(saved.rangeEnd);
+        setMixedMode(saved.mixedMode); setIncludeAiQuiz(saved.includeAiQuiz); setIncludePronunciation(saved.includePronunciation);
+        setSourceBookId(saved.sourceBookId); setSelectedPageContentIds(saved.selectedPageContentIds);
+        setSelectedAiMaterialId(saved.selectedAiMaterialId); setSelectedPromptKeys(saved.selectedPromptKeys);
+        setSourceForm(saved.sourceForm); setCopiedItems(saved.copiedItems); setPreview(null);
+        setPendingDraft(null);
+    };
+
+    const resetDraft = () => {
+        applyDraft({ form: { title: "", description: "", source_type: "music_track", target_class: form.target_class,
+            assigned_date: todayTaiwan(), due_date: todayTaiwan(), required_listens: 3 },
+        bookId: "", trackIds: [], rangeStart: "", rangeEnd: "", mixedMode: false, includeAiQuiz: false,
+        includePronunciation: false, sourceBookId: "", selectedPageContentIds: [], selectedAiMaterialId: "",
+        selectedPromptKeys: [], sourceForm: { page_label: "", source_text: "", pronunciation_prompts: "" }, copiedItems: null });
+        clearTeacherAssignmentDraft(firebaseUser?.uid); setDraftStatus(null);
+    };
+
+    const copyAssignment = assignment => {
+        if (!assignment.copy_template) {
+            setMessage("此歷史作業的模式已停用或複製設定尚未提供，請建立新作業；不會省略活動後發布。");
+            return;
+        }
+        if ((pendingDraft || hasAssignmentDraft(draft)) && !window.confirm("複製作業會取代目前尚未發布的草稿，確定繼續嗎？")) return;
+        resetDraft();
+        const template = assignment.copy_template;
+        setForm({ title: (assignment.title + "（副本）").slice(0, 200), description: assignment.description || "",
+            source_type: "music_track", target_class: assignment.target_class,
+            assigned_date: todayTaiwan(), due_date: todayTaiwan(), required_listens: template.required_listens || 3 });
+        if (template.source_type === "multi_activity_v2") { setCopiedItems(sanitizeCopyItems(template.items)); setMixedMode(true); }
+        else { setTrackIds(template.track_ids || []); setBookId(String(tracks.find(track => template.track_ids?.includes(track.id))?.book_id || "")); }
+        setMessage("已複製到新草稿，日期已設為今天。請確認班級、內容及截止日期後再發布。");
+        document.getElementById("assignment-draft-title")?.focus();
+    };
+
     const books = useMemo(() => {
         const map = new Map();
         tracks.forEach(track => {
             if (track.book) map.set(String(track.book.id), track.book);
         });
+        classMaterials.forEach(item => (item.books || []).forEach(book => map.set(String(book.id), book)));
         const target = classMaterials.find(item => item.class_code === form.target_class);
         const allowedIds = new Set((target?.books || []).map(book => String(book.id)));
         return Array.from(map.values()).filter(book => !form.target_class || allowedIds.has(String(book.id)));
@@ -315,11 +370,19 @@ const TeacherAssignments = () => {
         }
 
         const selectedTrackGroupsForV2 = groupSelectedTracks(tracks, trackIds);
-        if (mixedMode && trackIds.length && selectedTrackGroupsForV2.length > 1) {
+        if (copiedItems && (!copiedItems.length || copyItemProblems(copiedItems, books, tracks, pageContent, aiMaterials).length)) {
+            setMessage("請先修正複製活動中提示的教材、音檔或頁面來源，至少保留一個活動。");
+            return;
+        }
+        if (!classes.includes(form.target_class)) { setMessage("請選擇目前有權發布的班級。"); return; }
+        if (!mixedMode && trackIds.some(id => !tracks.some(track => track.id === id && books.some(book => Number(book.id) === Number(track.book_id))))) {
+            setMessage("草稿中有音檔已停用或不在本班教材中，請重新選擇。"); return;
+        }
+        if (!copiedItems && mixedMode && trackIds.length && selectedTrackGroupsForV2.length > 1) {
             setMessage("混合作業 V2 的聽力活動目前一次請選擇同一本教材；可拆成兩份作業發布。");
             return;
         }
-        if (mixedMode && (includeAiQuiz || includePronunciation) && !selectedPageContentIds.length) {
+        if (!copiedItems && mixedMode && (includeAiQuiz || includePronunciation) && !selectedPageContentIds.length) {
             setMessage("AI 或發音活動必須先選擇已發布的教材頁面來源。");
             return;
         }
@@ -374,8 +437,8 @@ const TeacherAssignments = () => {
                         max_scored_attempts: 3
                     });
                 }
-                const created = await createAssignmentV2(firebaseUser, { ...basePayload, items });
-                setMessage("混合作業已發布，共 " + (created.preview?.total_items || items.length) + " 個活動。");
+                const created = await createAssignmentV2(firebaseUser, { ...basePayload, items: copiedItems || items });
+                setMessage("混合作業已發布，共 " + (created.preview?.total_items || (copiedItems || items).length) + " 個活動。");
             } else {
                 await createAssignment(firebaseUser, {
                     ...basePayload,
@@ -386,19 +449,7 @@ const TeacherAssignments = () => {
                 setMessage("聽力作業已發布，共 " + trackIds.length + " 個音檔。");
             }
 
-            setForm(current => ({
-                ...current,
-                title: "",
-                description: ""
-            }));
-            setTrackIds([]);
-            setBookId("");
-            setRangeStart("");
-            setRangeEnd("");
-            setSelectedPageContentIds([]);
-            setSelectedPromptKeys([]);
-            setSelectedAiMaterialId("");
-            setPreview(null);
+            resetDraft();
             await load();
         } catch (error) {
             setMessage(error.message);
@@ -435,7 +486,7 @@ const TeacherAssignments = () => {
             page_content_ids: selectedPageContentIds, prompt_keys: selectedPromptKeys,
             completion_mode: "practice", max_scored_attempts: 3
         });
-        if (!items.length) {
+        if (!(copiedItems || items).length) {
             setMessage("請至少加入一個活動後再預覽。");
             return;
         }
@@ -446,7 +497,7 @@ const TeacherAssignments = () => {
                 title: form.title.trim(), description: form.description.trim(),
                 target_class: form.target_class, assigned_date: form.assigned_date,
                 due_at: form.due_date ? new Date(form.due_date + "T23:59:00+08:00").toISOString() : null,
-                items
+                items: copiedItems || items
             });
             setPreview(response.preview || null);
             setMessage("已完成唯讀預覽，確認後再發布作業。");
@@ -521,7 +572,7 @@ const TeacherAssignments = () => {
         }
     };
 
-    const taskCount = mixedMode
+    const taskCount = copiedItems ? copiedItems.length : mixedMode
         ? Number(trackIds.length > 0) + Number(includeAiQuiz) + Number(includePronunciation)
         : 1;
 
@@ -543,20 +594,28 @@ const TeacherAssignments = () => {
 
             <section className="assignment-layout">
                 <form className="assignment-card assignment-form" onSubmit={submit}>
+                    <section className="assignment-draft-tools" aria-label="未發布草稿">
+                        {pendingDraft ? <>
+                            <p>找到未發布草稿（{formatDateTime(pendingDraft.savedAt)}）。恢復後請核對日期與教材。</p>
+                            <button type="button" disabled={loading || saving} onClick={() => { applyDraft(pendingDraft.draft); setMessage("已恢復草稿，請核對班級、日期與活動內容。"); }}>恢復草稿</button>
+                        </> : <p role="status">{draftStatus ? draftStatus.persistent ? `草稿已自動儲存 · ${formatDateTime(draftStatus.savedAt)}` : "本機儲存不可用；草稿只暫存於此頁，刷新前請先複製文字。" : "未發布內容會自動儲存在這個瀏覽器，保留 30 天。"}</p>}
+                        <button type="button" disabled={saving || savingSource} onClick={() => { if (window.confirm("確定捨棄尚未發布的草稿？此操作不會刪除已發布作業。")) resetDraft(); }}>捨棄草稿</button>
+                    </section>
+                    <fieldset className="assignment-authoring-fields" disabled={saving || savingSource || loading || Boolean(pendingDraft)}>
                     <div className="assignment-card-heading">
                         <span>NEW MISSION</span>
                         <h2>建立新的學習任務</h2>
                         <p>在校英文班學生已包含 AI 與發音練習；V2 會將教師核准的共用題組與發音提示一併發布。</p>
                     </div>
 
-                    <div className="assignment-source-tabs" aria-label="作業模式">
+                    {!copiedItems && <div className="assignment-source-tabs" aria-label="作業模式">
                         <button type="button" className={!mixedMode ? "active" : ""} onClick={() => setMixedMode(false)}>
                             純聽力作業
                         </button>
                         <button type="button" className={mixedMode ? "active" : ""} onClick={() => setMixedMode(true)}>
                             混合作業 V2
                         </button>
-                    </div>
+                    </div>}
 
                     {!mixedMode && <div className="assignment-listening-only-note">
                         <Headphones aria-hidden="true" size={21} />
@@ -577,6 +636,7 @@ const TeacherAssignments = () => {
                         <label>
                             <span>作業名稱</span>
                             <input
+                                id="assignment-draft-title"
                                 value={form.title}
                                 onChange={event => updateForm("title", event.target.value)}
                                 placeholder="例如：Workbook 1 P22～P32 課後任務"
@@ -610,7 +670,8 @@ const TeacherAssignments = () => {
                         </label>
                     </div>
 
-                    <div className="assignment-form-section assignment-form-section--listening">
+                    {copiedItems && <AssignmentCopyEditor items={copiedItems} onChange={setCopiedItems} books={books} tracks={tracks} pages={pageContent} aiMaterials={aiMaterials} disabled={saving || loading} />}
+                    {!copiedItems && <div className="assignment-form-section assignment-form-section--listening">
                             <div className="assignment-form-section__heading">
                                 <span>2</span>
                                 <div>
@@ -760,9 +821,9 @@ const TeacherAssignments = () => {
                                     </>
                                 )}
                             </div>
-                    </div>
+                    </div>}
 
-                    {mixedMode && <div className="assignment-form-section assignment-form-section--mixed">
+                    {!copiedItems && mixedMode && <div className="assignment-form-section assignment-form-section--mixed">
                         <div className="assignment-form-section__heading">
                             <span>3</span>
                             <div>
@@ -841,17 +902,17 @@ const TeacherAssignments = () => {
                         </div>
 
                         <div className="assignment-form-grid">
-                            <label>
+                            {!copiedItems && <label>
                                 <span>每個音檔需聽</span>
                                 <select
                                     value={form.required_listens}
                                     onChange={event => updateForm("required_listens", event.target.value)}
                                 >
-                                    {[1, 2, 3, 4, 5, 6, 7, 8, 10].map(number => (
+                                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(number => (
                                         <option key={number} value={number}>{number} 次</option>
                                     ))}
                                 </select>
-                            </label>
+                            </label>}
 
                             <label>
                                 <span>發布日期</span>
@@ -878,7 +939,7 @@ const TeacherAssignments = () => {
                             <CheckCircle2 aria-hidden="true" size={21} />
                             <span>
                                 <strong>{taskCount} 個完成條件</strong>
-                                <small>{trackIds.length} 個音檔{mixedMode ? ` · ${selectedPageContentIds.length} 個頁面來源` : ""}</small>
+                                <small>{copiedItems ? "請核對上方各活動的完成條件" : `${trackIds.length} 個音檔${mixedMode ? ` · ${selectedPageContentIds.length} 個頁面來源` : ""}`}</small>
                             </span>
                         </div>
                         <div className="assignment-history-buttons">
@@ -893,6 +954,7 @@ const TeacherAssignments = () => {
                         <div className="assignment-selected-tracks__heading"><div><strong>發布預覽</strong><span>{preview.target_class} 班 · {preview.total_items} 個活動</span></div></div>
                         {(preview.items || []).map(item => <p key={item.sort_order}>{item.sort_order + 1}. {item.item_type === "listening" ? `聽力 ${item.track_count} 檔，每檔 ${item.config?.required_listens} 次` : item.item_type === "ai_quiz" ? `AI 選擇題 ${item.question_count} 題` : `發音練習 ${item.pronunciation_prompt_count} 句`}</p>)}
                     </section>}
+                    </fieldset>
                 </form>
 
                 <section className="assignment-card assignment-history">
@@ -923,6 +985,7 @@ const TeacherAssignments = () => {
                                             {sourceLabel(assignment)}
                                         </span>
                                         <div className="assignment-history-buttons">
+                                            <button type="button" disabled={saving || savingSource || loading || Boolean(pendingDraft)} onClick={() => copyAssignment(assignment)}>複製作業</button>
                                             <button type="button" onClick={() => openResults(assignment)}>
                                                 查看進度
                                             </button>
@@ -1034,4 +1097,8 @@ const TeacherAssignments = () => {
     );
 };
 
+const TeacherAssignments = () => {
+    const { firebaseUser } = useAuth();
+    return <TeacherAssignmentsEditor key={firebaseUser?.uid || "anonymous"} />;
+};
 export default TeacherAssignments;

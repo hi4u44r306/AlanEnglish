@@ -1,5 +1,6 @@
 // Display snapshots only. Tokens, playback URLs and live challenge sessions never persist.
 import { clearStudentLearningResume } from "./studentLearningResume";
+import { clearTeacherAssignmentDraft } from "./teacherAssignmentDraft";
 const PREFIX = "ae-student-pages-v1:";
 const KEEP_MS = 24 * 60 * 60 * 1000;
 const FRESH_MS = 60 * 1000;
@@ -153,6 +154,7 @@ export const invalidateStudentPageCache = (uid, groups = ["assignments", "progre
 };
 
 export const clearStudentPageCache = uid => {
+    clearTeacherAssignmentDraft(uid);
     clearStudentLearningResume(uid);
     const prefix = uid ? `${PREFIX}${encodeURIComponent(`${uid}|`)}` : PREFIX;
     new Set([...entries.keys(), ...requests.keys(), ...listeners.keys(), ...keysOnDisk()]).forEach(id => {
