@@ -9,7 +9,7 @@
 - Production build 在同一工作區實際 D 路徑成功（C junction 曾被工具錯誤解析為 C:/D:/，無程式原因）；SEO 與 Cloudflare 資產準備成功。後續僅補 input border-box，最終 SCSS 已由 Sass 編譯與瀏覽器驗證，不重跑無關 JS 測試或重複完整 build；正式 Cloudflare 仍須對最終 commit 完整建置。
 - 新元件用真實 JSX／SCSS 與隔離示範替身完成 1440px／412px headless 驗收、100→150 點儲存、44px 操作及無水平溢位／無 pageerror；截圖及紀錄位於忽略的 `output/birthday-preview/`。這不是完整網站、真實帳號、Firebase、麥克風或 iPhone Safari 驗收。Browser 受控連線不可用，改用獨立暫存 headless profile，未讀取使用者瀏覽器 session。
 - 初次一次準備多支核心 SQL 被自動審核拒絕；已依理由拆成生日禮、共用 XP 及分項相容修正，每一項先隔離驗證再整合，後續本機操作均通過審核，沒有正式資料異動。
-- 本批未執行正式 migration、未部署 Function、未合併 main 或發布正式站。高風險資料／獎勵結算依 AGENTS 第 13–14 節仍需本批明確正式操作同意。手冊 v3.76 與發布／回復清單已同步；下一步為審核並授權此批正式發布，待發獎与裝置驗收後再標記已部署。
+- 核心 checkpoint `a825b222` 已推送，草稿 PR #488 已建立，等待本批正式操作同意。未執行正式 migration、未部署 Function、未合併 main 或發布正式站。高風險資料／獎勵結算依 AGENTS 第 13–14 節仍需本批明確正式操作同意。手冊 v3.76 與發布／回復清單已同步；下一步為審核並授權此批正式發布，待發獎与裝置驗收後再標記已部署。
 
 
 ### 六項流程優化目標（2026-10-08）
