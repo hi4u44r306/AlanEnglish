@@ -129,12 +129,15 @@ export default function SegmentedSpeakingMap({ route, initialLevelIndex = 0, chi
                 </>}
                 {route.isPilot && route.bridge && <PilotBridge bridge={route.bridge} width={route.roadWidth} />}
                 </>}
-                {start && <g className="speaking-map-start-flag" transform={`translate(${start.worldX - 90} ${start.worldY + (route.isPilot || route.isCartoon ? -100 : 20)})`}>
-                    <ellipse cx="0" cy="75" rx="17" ry="5" fill="#456c38" opacity=".4" />
-                    <path d="M0 0V75" stroke="#754826" strokeWidth="6" strokeLinecap="round" />
-                    <circle cy="-2" r="5" fill="#efbd53" />
-                    <path d="M3 3 Q19 -3 36 3L32 21Q17 16 3 22Z" fill="#326fbb" stroke="#164379" strokeWidth="1.5" />
-                    <path d="m18 5 2.4 5 5.6.8-4 3.8.9 5.4-4.9-2.5-4.9 2.5.9-5.4-4-3.8 5.6-.8Z" fill="#fff7d4" />
+                {start && <g className="speaking-map-start-sign" transform={`translate(${start.worldX - 90} ${start.worldY + (route.isPilot || route.isCartoon ? -100 : 20)})`}>
+                    <ellipse cx="20" cy="72" rx="24" ry="5" fill="#243c34" opacity=".2" />
+                    <path d="M15 35H26V69Q20 74 15 69Z" fill="#956036" stroke="#684326" strokeWidth="2" />
+                    <path d="M18 42V67" stroke="#d3a36a" strokeWidth="2" strokeLinecap="round" />
+                    <path d="M-12 8Q-16 8-16 13V43Q-16 48-11 48H40L55 28 40 8Z" fill="#714723" />
+                    <path d="M-12 3Q-16 3-16 8V38Q-16 43-11 43H40L55 23 40 3Z" fill="#ddb477" stroke="#986439" strokeWidth="2" strokeLinejoin="round" />
+                    <path d="M-9 9H37L47 23 37 37H-9Z" fill="#234e62" />
+                    <path d="M-10 6H38" stroke="#f7d9a6" strokeWidth="2" strokeLinecap="round" />
+                    <text x="16" y="29" textAnchor="middle" fill="#fff5dd" fontFamily="'Noto Sans TC', sans-serif" fontSize="17" fontWeight="800" letterSpacing="2">起點</text>
                 </g>}
                 {!route.isPilot && <g className="speaking-map-finish" transform={route.isCartoon ? "translate(380 125)" : "translate(275 135)"}>
                     <path d="M0 0V90" stroke="#714723" strokeWidth="6" strokeLinecap="round" />

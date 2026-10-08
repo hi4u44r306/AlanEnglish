@@ -102,7 +102,7 @@ describe("segmented scene loading", () => {
         expect(container.querySelector('.speaking-map-centerline')).toHaveAttribute('stroke', 'none');
         expect(container.querySelector('.speaking-continuous-road__surface')).toBeNull();
         expect(container.querySelector('.speaking-map-pilot-bridge')).toBeNull();
-        expect(container.querySelector('.speaking-map-start-flag')).not.toBeNull();
+        expect(container.querySelector('.speaking-map-start-sign')).toHaveTextContent('起點');
     });
 
     test("initial target loads only nearby images; entering another section loads that image", () => {
