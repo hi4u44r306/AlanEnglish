@@ -14,14 +14,17 @@ export const useCachedStudentAvatarUrl = (fallback, { ownerUid, sourceKey } = {}
         ownerUid: normalizedOwnerUid,
         sourceKey: normalizedSourceKey
     }), [normalizedFallback, normalizedOwnerUid, normalizedSourceKey]);
-    const [avatarUrl, setAvatarUrl] = useState(readAvatar);
+    const [, setRevision] = useState(0);
 
     useEffect(() => {
-        const syncAvatar = () => setAvatarUrl(readAvatar());
-        syncAvatar();
+        const syncAvatar = () => setRevision(revision => revision + 1);
         window.addEventListener(STUDENT_AVATAR_CACHE_UPDATED_EVENT, syncAvatar);
-        return () => window.removeEventListener(STUDENT_AVATAR_CACHE_UPDATED_EVENT, syncAvatar);
+        window.addEventListener("storage", syncAvatar);
+        return () => {
+            window.removeEventListener(STUDENT_AVATAR_CACHE_UPDATED_EVENT, syncAvatar);
+            window.removeEventListener("storage", syncAvatar);
+        };
     }, [readAvatar]);
 
-    return avatarUrl;
+    return readAvatar();
 };

@@ -4,6 +4,7 @@ const AVATAR_CACHE_VERSION = 2;
 const REMOTE_URL_TTL_MS = 10 * 60 * 1000;
 const MAX_LOCAL_PREVIEW_BYTES = 360 * 1024;
 const LOCAL_PREVIEW_MAX_EDGE = 192;
+const previewRequests = new Map();
 
 export const STUDENT_AVATAR_CACHE_UPDATED_EVENT = "ae:student-avatar-cache-updated";
 
@@ -18,6 +19,7 @@ const storage = () => {
 
 const normalizeOwnerUid = value => String(value || "").trim();
 const normalizeSourceKey = value => String(value || "").trim();
+const removeCacheRecord = () => { try { storage()?.removeItem(AVATAR_CACHE_KEY); } catch { /* Storage may be disabled. */ } };
 
 export const isStudentAvatarDisplayUrl = value => {
     const url = String(value || "").trim();
@@ -29,13 +31,14 @@ export const isStudentAvatarDisplayUrl = value => {
 const readCacheRecord = () => {
     const localStorage = storage();
     if (!localStorage) return null;
-    const raw = localStorage.getItem(AVATAR_CACHE_KEY);
+    let raw;
+    try { raw = localStorage.getItem(AVATAR_CACHE_KEY); } catch { return null; }
     if (!raw) return null;
 
     // 舊版只存一段網址；預設頭貼可直接沿用，短效網址則等待背景重新快取。
     if (!raw.startsWith("{")) {
         if (raw.startsWith("/default-avatars/")) return { version: 1, displayUrl: raw };
-        localStorage.removeItem(AVATAR_CACHE_KEY);
+        removeCacheRecord();
         return null;
     }
 
@@ -43,7 +46,7 @@ const readCacheRecord = () => {
         const parsed = JSON.parse(raw);
         return parsed && typeof parsed === "object" ? parsed : null;
     } catch (error) {
-        localStorage.removeItem(AVATAR_CACHE_KEY);
+        removeCacheRecord();
         return null;
     }
 };
@@ -97,7 +100,7 @@ const createCompactPreviewBlob = async blob => {
     }
 };
 
-const persistLocalPreview = async (imageUrl, record, previewBlob) => {
+const persistLocalPreview = async (imageUrl, record, previewBlob, requestKey, job) => {
     try {
         const blob = previewBlob || await fetch(imageUrl, { cache: "force-cache", credentials: "omit" }).then(response => {
             if (!response.ok) throw new Error("頭貼下載失敗");
@@ -110,8 +113,8 @@ const persistLocalPreview = async (imageUrl, record, previewBlob) => {
 
         const current = readCacheRecord();
         if (!current
+            || previewRequests.get(requestKey) !== job
             || current.ownerUid !== record.ownerUid
-            || current.remoteUrl !== record.remoteUrl
             || current.sourceKey !== record.sourceKey) return;
         writeCacheRecord({ ...current, previewDataUrl, cachedAt: Date.now() });
     } catch (error) {
@@ -131,8 +134,9 @@ export const getCachedStudentAvatarUrl = (fallback, { ownerUid, sourceKey } = {}
     if (record?.version === 1) return record.displayUrl;
     if (record?.version === AVATAR_CACHE_VERSION) {
         if (expectedOwner && record.ownerUid !== expectedOwner) {
-            storage()?.removeItem(AVATAR_CACHE_KEY);
-        } else if (!expectedSource || !record.sourceKey || record.sourceKey === expectedSource) {
+            removeCacheRecord();
+            previewRequests.clear();
+        } else if (!expectedSource || record.sourceKey === expectedSource) {
             if (isStudentAvatarDisplayUrl(record.previewDataUrl)) return record.previewDataUrl;
             if (isStudentAvatarDisplayUrl(record.displayUrl)) return record.displayUrl;
             if (Number(record.remoteExpiresAt || 0) > Date.now() && isStudentAvatarDisplayUrl(record.remoteUrl)) {
@@ -150,7 +154,8 @@ export const clearStudentAvatarCache = ownerUid => {
     const expectedOwner = normalizeOwnerUid(ownerUid);
     const record = readCacheRecord();
     if (!expectedOwner || !record?.ownerUid || record.ownerUid === expectedOwner) {
-        localStorage.removeItem(AVATAR_CACHE_KEY);
+        removeCacheRecord();
+        previewRequests.clear();
     }
 };
 
@@ -164,7 +169,7 @@ export const cacheStudentAvatarDisplayUrl = (imageUrl, { ownerUid, sourceKey, pr
     const current = readCacheRecord();
     const sameAvatar = current?.version === AVATAR_CACHE_VERSION
         && current.ownerUid === normalizedOwner
-        && (!normalizedSource || !current.sourceKey || current.sourceKey === normalizedSource);
+        && (normalizedSource ? current.sourceKey === normalizedSource : current.remoteUrl === normalizedUrl);
 
     if (normalizedUrl.startsWith("/default-avatars/") || normalizedUrl.startsWith("data:image/")) {
         writeCacheRecord({
@@ -181,7 +186,7 @@ export const cacheStudentAvatarDisplayUrl = (imageUrl, { ownerUid, sourceKey, pr
     const record = {
         version: AVATAR_CACHE_VERSION,
         ownerUid: normalizedOwner,
-        sourceKey: normalizedSource || current?.sourceKey || "",
+        sourceKey: normalizedSource || (sameAvatar ? current?.sourceKey : "") || "",
         displayUrl: sameAvatar ? current.displayUrl || null : null,
         previewDataUrl: sameAvatar ? current.previewDataUrl || null : null,
         remoteUrl: normalizedUrl,
@@ -189,7 +194,17 @@ export const cacheStudentAvatarDisplayUrl = (imageUrl, { ownerUid, sourceKey, pr
         cachedAt: sameAvatar ? current.cachedAt || Date.now() : Date.now()
     };
     writeCacheRecord(record);
-    return persistLocalPreview(normalizedUrl, record, previewBlob).then(() => normalizedUrl);
+    // Signed URLs rotate while the underlying image is unchanged. Keep its pixels.
+    if (!previewBlob && sameAvatar && current.previewDataUrl?.startsWith("data:image/")) return Promise.resolve(normalizedUrl);
+    const requestKey = `${normalizedOwner}|${record.sourceKey || normalizedUrl}`;
+    if (!previewBlob && previewRequests.has(requestKey)) return previewRequests.get(requestKey).promise;
+    const job = {};
+    previewRequests.set(requestKey, job);
+    job.promise = persistLocalPreview(normalizedUrl, record, previewBlob, requestKey, job)
+        .then(() => normalizedUrl).finally(() => {
+            if (previewRequests.get(requestKey) === job) previewRequests.delete(requestKey);
+        });
+    return job.promise;
 };
 
 export const updateStudentAvatarCache = (profile, { imageUrl, path, ownerUid, previewBlob }) => {

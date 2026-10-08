@@ -2,6 +2,12 @@
 
 最後更新：2026-10-08
 
+### 我的設定與頭貼快取補齊（2026-10-08，驗證完成／尚未部署）
+
+- 使用者驗收前批切頁改善後回報我的設定及頭貼仍重讀；基準 main 90fec304，分支 codex/student-settings-cache，以 output/student-settings-cache-20261008 乾淨 clone 實作，保留原目錄所有未提交修改，未新增 worktree。
+- 設定頁接上 summary／settings:commerce／settings:nickname 顯示快取與背景更新；商務快照限制畫面欄位、家長 Email 不持久化；失敗保留已讀資料、拒絕清除、編輯暱稱不被背景更新覆蓋。頭貼來源相同復用本機像素、下載合併及登出延遲隔離；首頁讀本人快取。25 張 256px WebP 共 318,104 bytes（原圖 11,356,776 bytes），選單按需掛載與 lazy loading，版本化 HTTP 快取；原圖／後端保存／Firebase／權限不變。
+- 縮圖已逐檔解碼與拼圖目視核對；最終九個既有測試檔共 78 項通過（設定、首頁、Navbar、Auth、圖片元件、兩個 avatar helpers 與共用 query），五個應用檔案 ESLint、git diff --check 通過。測試命令另誤列不存在的 StudentNavbar.test.jsx，因此整體 exit 1；九套实际測試皆 PASS，無重跑已通過套件。瀏覽器先前保存權限核對限制未繞過，桌面／412px／iPhone 與真實帳號待驗；前端中風險只跑相關測試、lint、diff，正式編譯交由 Cloudflare，無 migration／Function／Secret 修改。回復可 revert 本批前端 PR，原始圖片保留。
+
 ### 學生切頁與刷新快取（2026-10-08，已部署／實機待驗）
 
 - 基準 main 8ce801c3，分支 codex/student-page-cache；使用既有乾淨副本 output/speaking-70-release-status，保留原工作目錄未提交草稿，不新增 worktree。這批只改前端顯示資料與失效通知，無 migration、Function、Secret 或權限規則調整。

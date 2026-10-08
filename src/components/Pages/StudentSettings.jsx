@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { FiBell, FiCamera, FiClock, FiCreditCard, FiGift, FiImage, FiLock, FiMove, FiUser, FiX, FiZap, FiZoomIn } from "react-icons/fi";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -6,6 +6,8 @@ import { useAuth } from "../../auth/AuthContext";
 import { cacheStudentAvatarDisplayUrl, updateStudentAvatarCache } from "../../constants/studentAvatarCache";
 import { DEFAULT_STUDENT_AVATARS, getStudentAvatarDisplayUrl } from "../../constants/defaultStudentAvatars";
 import { useCachedStudentAvatarUrl } from "../../hooks/useCachedStudentAvatarUrl";
+import useStudentPageQuery from "../../hooks/useStudentPageQuery";
+import { invalidateStudentPageCache } from "../../services/studentPageCache";
 import { createSquareAvatarImage, getGamificationSummary, prepareAvatarImage, selectStudentAvatarPreset, uploadGamificationImage } from "../../services/gamificationService";
 import {
     confirmGuardianEmailVerification,
@@ -86,15 +88,53 @@ const getCropPosition = (draft, offsetX, offsetY, zoom = draft?.zoom || 1) => {
     };
 };
 
+// Keep only fields displayed here; payment/provider identifiers are not snapshots.
+const settingsCommerceDisplay = profile => ({
+    enrollment_status: profile?.enrollment_status,
+    current_enrollment: profile?.current_enrollment && enrollmentDisplay(profile.current_enrollment),
+    enrollment_history: profile?.enrollment_history?.map(enrollmentDisplay) || [],
+    class_books: profile?.class_books?.map(book => ({ name: book.name })) || [],
+    direct_entitlements: profile?.direct_entitlements?.map(item => ({ source: item.source, books: { name: item.books?.name } })) || [],
+    plans: profile?.plans?.map(plan => ({
+        id: plan.id, status: plan.status, current_period_end: plan.current_period_end,
+        ends_at: plan.ends_at, cancel_at_period_end: plan.cancel_at_period_end,
+        stripe_subscription_status: plan.stripe_subscription_status,
+        subscription_plans: Array.isArray(plan.subscription_plans)
+            ? plan.subscription_plans.map(({ code, name }) => ({ code, name }))
+            : plan.subscription_plans && { code: plan.subscription_plans.code, name: plan.subscription_plans.name }
+    })) || [],
+    // The shared cache strips guardian entirely before writing LocalStorage.
+    guardian: profile?.guardian && { email: profile.guardian.email, email_verified_at: profile.guardian.email_verified_at }
+});
+const enrollmentDisplay = record => ({
+    enrolled_at: record.enrolled_at, scheduled_departure_at: record.scheduled_departure_at, departed_at: record.departed_at
+});
+
 function StudentSettings() {
     const { firebaseUser, studentProfile, setStudentProfile, refreshStudentProfile } = useAuth();
     const fileInputRef = useRef(null);
-    const [summary, setSummary] = useState(null);
-    const [summaryLoading, setSummaryLoading] = useState(true);
-    const [summaryError, setSummaryError] = useState(false);
-    const [commerce, setCommerce] = useState(null);
-    const [nicknameSettings, setNicknameSettings] = useState({ profile: null, nickname_history: [] });
+    const enabled = Boolean(firebaseUser);
+    const summaryQuery = useStudentPageQuery("summary", () => getGamificationSummary(firebaseUser), { enabled });
+    const commerceQuery = useStudentPageQuery("settings:commerce", async () => {
+        const result = await loadStudentCommerceProfile(firebaseUser);
+        if (!result?.profile) throw new Error("設定資料讀取失敗");
+        return settingsCommerceDisplay(result?.profile);
+    }, { enabled });
+    const nicknameQuery = useStudentPageQuery("settings:nickname", async () => {
+        const result = await getNicknameSettings(firebaseUser);
+        return {
+            profile: { nickname: result?.profile?.nickname || "" },
+            nickname_history: result?.nickname_history?.map(({ id, previous_nickname, new_nickname, changed_at }) => ({ id, previous_nickname, new_nickname, changed_at })) || [],
+            nickname_change_available_at: result?.nickname_change_available_at || null
+        };
+    }, { enabled });
+    const summary = summaryQuery.data;
+    const commerce = commerceQuery.data;
+    const nicknameSettings = nicknameQuery.data || { profile: null, nickname_history: [] };
+    const setSummary = summaryQuery.update;
+    const setNicknameSettings = nicknameQuery.update;
     const [nicknameDraft, setNicknameDraft] = useState(studentProfile?.nickname || "");
+    const nicknameEditedRef = useRef(false);
     const [nicknameError, setNicknameError] = useState("");
     const [nicknameConfirmation, setNicknameConfirmation] = useState(null);
     const [savingNickname, setSavingNickname] = useState(false);
@@ -110,6 +150,7 @@ function StudentSettings() {
     const [pushBusy, setPushBusy] = useState(false);
     const [avatarDraft, setAvatarDraft] = useState(null);
     const [avatarConfirmation, setAvatarConfirmation] = useState(null);
+    const [showAvatarPresets, setShowAvatarPresets] = useState(false);
     const avatarDragRef = useRef(null);
     const nicknameAvailableAt = nicknameChangeAvailableAt(nicknameSettings);
     const nicknameCooldownActive = nicknameAvailableAt > nicknameClock;
@@ -117,42 +158,18 @@ function StudentSettings() {
         ? formatNicknameCountdown(nicknameAvailableAt - nicknameClock)
         : "";
 
-    const load = useCallback(async () => {
-        if (!firebaseUser) return;
-        setSummaryLoading(true);
-        try {
-            const [summaryResult, commerceResult, nicknameResult] = await Promise.allSettled([
-                getGamificationSummary(firebaseUser),
-                loadStudentCommerceProfile(firebaseUser),
-                getNicknameSettings(firebaseUser)
-            ]);
-            setSummaryError(summaryResult.status === "rejected" || !summaryResult.value?.balance);
-            if (summaryResult.status === "fulfilled") {
-                const summary = summaryResult.value || null;
-                cacheStudentAvatarDisplayUrl(summary?.profile?.avatar_url, {
-                    ownerUid: firebaseUser.uid,
-                    sourceKey: studentProfile?.user_image || studentProfile?.userimage
-                });
-                setSummary(summary);
-            }
-            if (commerceResult.status === "fulfilled") setCommerce(commerceResult.value?.profile || null);
-            if (nicknameResult.status === "fulfilled") {
-                const nextSettings = nicknameResult.value || { profile: null, nickname_history: [] };
-                setNicknameSettings(nextSettings);
-                setNicknameDraft(nextSettings.profile?.nickname || studentProfile?.nickname || "");
-                setNicknameError("");
-            } else {
-                setNicknameError(friendlyNicknameError(nicknameResult.reason));
-            }
-            if (summaryResult.status === "rejected" && commerceResult.status === "rejected" && nicknameResult.status === "rejected") throw summaryResult.reason;
-        } catch (error) {
-            toast.error(error.message || "設定資料讀取失敗");
-        } finally {
-            setSummaryLoading(false);
+    const load = () => Promise.all([summaryQuery.refresh(), commerceQuery.refresh(), nicknameQuery.refresh()]);
+    useEffect(() => {
+        if (!nicknameEditedRef.current) setNicknameDraft(nicknameSettings.profile?.nickname || studentProfile?.nickname || "");
+    }, [nicknameSettings.profile?.nickname, studentProfile?.nickname]);
+    useEffect(() => {
+        if (summary?.profile?.avatar_url && firebaseUser?.uid) {
+            cacheStudentAvatarDisplayUrl(summary.profile.avatar_url, {
+                ownerUid: firebaseUser.uid,
+                sourceKey: studentProfile?.user_image || studentProfile?.userimage
+            });
         }
-    }, [firebaseUser, studentProfile?.nickname, studentProfile?.user_image, studentProfile?.userimage]);
-
-    useEffect(() => { load(); }, [load]);
+    }, [summary, firebaseUser?.uid, studentProfile?.user_image, studentProfile?.userimage]);
     useEffect(() => {
         if (!firebaseUser) return undefined;
         let cancelled = false;
@@ -293,6 +310,7 @@ function StudentSettings() {
                 previewBlob: avatarConfirmation.kind === "upload" ? avatarConfirmation.file : undefined
             });
             setStudentProfile(nextProfile);
+            invalidateStudentPageCache(firebaseUser.uid, ["summary"]);
             setAvatarConfirmation(null);
             closeAvatarEditor();
             toast.success(avatarConfirmation.kind === "preset" ? `已套用${avatarConfirmation.label}` : "頭像已更新");
@@ -426,12 +444,14 @@ function StudentSettings() {
         try {
             const result = await updateNickname(firebaseUser, nicknameConfirmation.nextNickname);
             const savedNickname = result?.profile?.nickname || nicknameConfirmation.nextNickname;
+            nicknameEditedRef.current = false;
             setNicknameDraft(savedNickname);
-            setNicknameSettings({
+            setNicknameSettings(() => ({
                 profile: result?.profile || { nickname: savedNickname },
                 nickname_history: result?.nickname_history || [],
                 nickname_change_available_at: result?.nickname_change_available_at || null
-            });
+            }));
+            invalidateStudentPageCache(firebaseUser.uid, ["settings:nickname"]);
             setNicknameClock(Date.now());
             setStudentProfile(current => current ? { ...current, nickname: savedNickname } : current);
             setNicknameConfirmation(null);
@@ -503,7 +523,7 @@ function StudentSettings() {
     const hasAiPremium = hasAiPremiumAccess(effectiveAccess);
     const hasAiMaterials = profile?.membership?.effective_access?.features?.ai_materials === true;
     const isActiveAcademyStudent = effectiveAccess?.plan_codes?.includes("academy_internal") === true;
-    const statusLabel = commerce?.enrollment_status === "active" ? "在校" : commerce?.enrollment_status === "scheduled_departure" ? "預定離校" : commerce?.enrollment_status === "departed" ? "離校" : "非在校生";
+    const statusLabel = !commerce ? commerceQuery.loading ? "讀取中…" : "暫時無法讀取" : commerce.enrollment_status === "active" ? "在校" : commerce.enrollment_status === "scheduled_departure" ? "預定離校" : commerce.enrollment_status === "departed" ? "離校" : "非在校生";
     const currentEnrollment = commerce?.current_enrollment || null;
     const enrollmentRecord = currentEnrollment || commerce?.enrollment_history?.[0] || null;
     const directBooks = commerce?.direct_entitlements || [];
@@ -549,7 +569,8 @@ function StudentSettings() {
                 <p>看看自己的成長，選一個陪你學習的角色。</p>
             </section>
 
-            <StudentGrowthCard balance={summary?.balance} loading={summaryLoading} error={summaryError} pointsAccess={profile.learner_type === "academy_student" && isActiveAcademyStudent} onRetry={load}>
+            {(commerceQuery.error || nicknameQuery.error) && <p role="status">部分設定暫時無法更新，已有資料會保留。<button type="button" onClick={load}>重新讀取設定</button></p>}
+            <StudentGrowthCard balance={summary?.balance} loading={summaryQuery.loading} error={Boolean(summaryQuery.error || (!summaryQuery.loading && !summary?.balance))} pointsAccess={profile.learner_type === "academy_student" && isActiveAcademyStudent} onRetry={load}>
                 <Link to="/student/dashboard">繼續今日學習</Link>
                 <Link to="/student/weekly-report">看看本週進步</Link>
                 {profile.learner_type === "academy_student" && isActiveAcademyStudent && <Link to="/student/rewards">挑選獎品目標</Link>}
@@ -584,7 +605,7 @@ function StudentSettings() {
                             <input
                                 id="student-settings-nickname"
                                 value={nicknameDraft}
-                                onChange={event => { setNicknameDraft(event.target.value); if (nicknameError) setNicknameError(""); }}
+                                onChange={event => { nicknameEditedRef.current = true; setNicknameDraft(event.target.value); if (nicknameError) setNicknameError(""); }}
                                 maxLength="20"
                                 placeholder="例如 Alan Fox"
                                 aria-invalid={Boolean(nicknameError)}
@@ -595,7 +616,7 @@ function StudentSettings() {
                             <button type="submit" disabled={savingNickname || nicknameCooldownActive}>{savingNickname ? "儲存中…" : nicknameCooldownActive ? "暫時無法改名" : "儲存暱稱"}</button>
                         </div>
                         <small id="student-settings-nickname-help" className={nicknameError ? "is-error" : ""}>
-                            {nicknameError || (nicknameCooldownActive ? (
+                            {nicknameError || (nicknameQuery.error && friendlyNicknameError(nicknameQuery.error)) || (nicknameCooldownActive ? (
                                 <span className="student-settings-nickname-countdown" role="status">
                                     <FiLock />距離下次修改還有 <strong>{nicknameCountdown}</strong><br />
                                     可於台灣時間 {formatNicknameAvailableAt(nicknameAvailableAt)} 後再次修改。
@@ -609,12 +630,12 @@ function StudentSettings() {
                         </small>
                     </form>
                 </div>
-                <details className="student-settings-avatar-presets">
+                <details className="student-settings-avatar-presets" onToggle={event => setShowAvatarPresets(event.currentTarget.open)}>
                     <summary>選擇預設頭像<span>換個角色陪我學習</span></summary>
                     <div className="student-settings-avatar-preset-grid">
-                        {DEFAULT_STUDENT_AVATARS.map(avatar => (
+                        {showAvatarPresets && DEFAULT_STUDENT_AVATARS.map(avatar => (
                             <button key={avatar.id} type="button" onClick={() => reviewPresetAvatar(avatar)} disabled={uploading} aria-pressed={avatarUrl === avatar.path} aria-label={`使用${avatar.name}頭像`}>
-                                <StudentAvatarImage className="student-settings-avatar-preset-image" src={getStudentAvatarDisplayUrl(avatar.path, 160)} alt="" />
+                                <StudentAvatarImage className="student-settings-avatar-preset-image" src={getStudentAvatarDisplayUrl(avatar.path, 160)} alt="" loading="lazy" decoding="async" />
                                 <span>{avatar.name}</span>
                             </button>
                         ))}
@@ -759,7 +780,7 @@ function StudentSettings() {
                 <article className="student-settings-panel">
                     <header><FiCreditCard /><div><span>PLAN STATUS</span><h2>基本會員與 AI 方案</h2></div></header>
                     <dl className="student-settings-data-list">
-                        {visiblePlans.length ? visiblePlans.map(plan => <div key={plan.id}><dt>{planName(plan)}</dt><dd>{planStatus(plan)}</dd></div>) : <div><dt>方案</dt><dd>目前無基本會員或 AI 教材與發音練習方案</dd></div>}
+                        {visiblePlans.length ? visiblePlans.map(plan => <div key={plan.id}><dt>{planName(plan)}</dt><dd>{planStatus(plan)}</dd></div>) : <div><dt>方案</dt><dd>{!commerce ? commerceQuery.loading ? "讀取中…" : "暫時無法讀取" : "目前無基本會員或 AI 教材與發音練習方案"}</dd></div>}
                     </dl>
                 </article>
             </section>

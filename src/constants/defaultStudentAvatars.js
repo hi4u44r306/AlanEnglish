@@ -29,7 +29,10 @@ export const DEFAULT_STUDENT_AVATARS = [
 export const isDefaultStudentAvatar = value => DEFAULT_STUDENT_AVATARS.some(avatar => avatar.path === value);
 
 // Cloudflare serves these bundled files directly.
-export const getStudentAvatarDisplayUrl = value => {
+export const getStudentAvatarDisplayUrl = (value, size) => {
     const path = String(value || "").trim();
-    return path && isDefaultStudentAvatar(path) ? path : path || null;
+    if (isDefaultStudentAvatar(path) && size > 0 && size <= 256) {
+        return path.replace(/\/([^/]+)\.(png|jpg)$/, "/thumbs-v1/$1.webp");
+    }
+    return path || null;
 };

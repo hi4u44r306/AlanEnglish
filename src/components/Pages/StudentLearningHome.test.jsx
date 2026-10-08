@@ -9,6 +9,7 @@ import { useAuth } from "../../auth/AuthContext";
 import { getAccessibleCatalog } from "../../services/contentAccessService";
 import { getGamificationSummary } from "../../services/gamificationService";
 import { getStudentAssignments, getStudentAssignmentsV2 } from "../../services/assignmentService";
+import { cacheStudentAvatarDisplayUrl } from "../../constants/studentAvatarCache";
 
 jest.mock("../../auth/AuthContext", () => ({ useAuth: jest.fn() }));
 jest.mock("../../services/contentAccessService", () => ({ getAccessibleCatalog: jest.fn() }));
@@ -19,6 +20,7 @@ const renderHome = () => render(<MemoryRouter><StudentLearningHome /></MemoryRou
 const profile = assignments => ({ name: "小探險家", learner_type: assignments ? "academy_student" : "textbook_customer", membership: { is_active: true, effective_access: { features: { assignments, pronunciation: false } } } });
 
 beforeEach(() => {
+    localStorage.clear();
     jest.clearAllMocks();
     useAuth.mockReturnValue({ firebaseUser: { uid: "learner-a" }, role: "student", studentProfile: profile(true) });
     getAccessibleCatalog.mockResolvedValue({ categories: [
@@ -31,6 +33,17 @@ beforeEach(() => {
         { id: 2, title: "這週的聽力", due_at: "2099-01-01T00:00:00Z", progress: {} }
     ] });
     getStudentAssignmentsV2.mockResolvedValue({ assignments: [] });
+});
+
+test("shows the current student's local avatar pixels immediately on the home page", async () => {
+    await cacheStudentAvatarDisplayUrl("https://example.com/photo.webp", {
+        ownerUid: "learner-a", sourceKey: "avatars/photo.webp",
+        previewBlob: new Blob(["avatar"], { type: "image/webp" })
+    });
+    useAuth.mockReturnValue({ firebaseUser: { uid: "learner-a" }, role: "student", studentProfile: { ...profile(true), user_image: "avatars/photo.webp" } });
+    const view = renderHome();
+    expect(view.container.querySelector(".ae-student-avatar-image img").getAttribute("src")).toMatch(/^data:image\/webp/);
+    await screen.findByRole("link", { name: "打開這份任務" });
 });
 
 test("the material shelf appears without waiting for slow summary or assignment responses", async () => {
