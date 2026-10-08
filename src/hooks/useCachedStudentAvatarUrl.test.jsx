@@ -27,4 +27,11 @@ describe("useCachedStudentAvatarUrl", () => {
 
         await waitFor(() => expect(screen.getByText(/^data:image\/webp;base64,/)).toBeInTheDocument());
     });
+    it("uses the new account and source immediately on rerender", async () => {
+        await cacheStudentAvatarDisplayUrl("/default-avatars/alan-owl.png", { ownerUid: "student-1", sourceKey: "/default-avatars/alan-owl.png" });
+        const view = render(<CachedAvatar ownerUid="student-1" sourceKey="/default-avatars/alan-owl.png" />);
+        view.rerender(<CachedAvatar ownerUid="student-2" fallback="https://example.com/second.webp" sourceKey="avatars/second.webp" />);
+        expect(screen.getByText("https://example.com/second.webp")).toBeInTheDocument();
+        expect(screen.queryByText("/default-avatars/alan-owl.png")).not.toBeInTheDocument();
+    });
 });
