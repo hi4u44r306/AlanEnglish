@@ -519,8 +519,58 @@
 
 .assignment-history-buttons {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     gap: 8px;
+}
+
+.assignment-authoring-fields {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+.assignment-draft-tools {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    padding: 14px;
+    margin-bottom: 18px;
+    border-radius: 12px;
+    background: #edf4ff;
+    p { flex: 1 1 100%; margin: 0; overflow-wrap: anywhere; }
+}
+
+.assignment-draft-tools button,
+.assignment-copy-editor button,
+.teacher-assignment-page .assignment-history-buttons button {
+    min-height: 44px;
+    padding: 8px 12px;
+    border: 1px solid #c5d4ee;
+    border-radius: 10px;
+    background: #fff;
+    color: #173967;
+    cursor: pointer;
+    &:disabled { opacity: .55; cursor: default; }
+}
+
+.assignment-copy-editor {
+    min-width: 0;
+    h3 { font-size: 1.1rem; }
+    legend { width: auto; font-size: 1rem; font-weight: 700; }
+    .assignment-track-list label { min-height: 44px; overflow-wrap: anywhere; }
+    .assignment-form-section { min-width: 0; }
+    .assignment-copy-problems {
+        padding: 12px;
+        border: 1px solid #e7c76b;
+        border-radius: 10px;
+        background: #fff8df;
+        color: #5d4511;
+        overflow-wrap: anywhere;
+        p:last-child { margin-bottom: 0; }
+    }
 }
 
 .assignment-history-actions .assignment-delete {

@@ -1,6 +1,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 import { createRemoteJWKSet, jwtVerify } from "npm:jose@5";
 import { loadEffectiveAccess } from "../_shared/effective-access.ts";
+import { assignmentCopyTemplate } from "../_shared/assignment-copy-template.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -1043,6 +1044,7 @@ Deno.serve(async (req: Request) => {
                     .from("assignment_track_items")
                     .select("assignment_id,track_id,required_listens")
                     .in("assignment_id", listeningAssignmentIds)
+                    .order("sort_order")
                 : { data: [], error: null };
 
             if (itemError) throw itemError;
@@ -1053,10 +1055,20 @@ Deno.serve(async (req: Request) => {
             const { data: v2Items, error: v2ItemError } = v2AssignmentIds.length
                 ? await admin
                     .from("assignment_items")
-                    .select("assignment_id,item_type")
+                    .select("id,assignment_id,item_type,book_id_snapshot,config,content_snapshot,page_from_label,page_to_label")
                     .in("assignment_id", v2AssignmentIds)
+                    .order("sort_order")
                 : { data: [], error: null };
             if (v2ItemError) throw v2ItemError;
+
+            // Restrict child reads to assignments already filtered by creator and managed class.
+            const copyItemIds = (v2Items || []).map((item: any) => item.id);
+            const [copyAi, copyPrompts] = copyItemIds.length ? await Promise.all([
+                admin.from("assignment_ai_items").select("assignment_item_id,ai_material_id,passing_score").in("assignment_item_id", copyItemIds),
+                admin.from("assignment_pronunciation_prompts").select("assignment_item_id,prompt_key").in("assignment_item_id", copyItemIds).order("sort_order")
+            ]) : [{ data: [], error: null }, { data: [], error: null }];
+            if (copyAi.error) throw copyAi.error;
+            if (copyPrompts.error) throw copyPrompts.error;
 
             const counts = new Map<number, number>();
             for (const item of items || []) {
@@ -1076,6 +1088,7 @@ Deno.serve(async (req: Request) => {
                 success: true,
                 assignments: visibleAssignments.map((assignment: any) => ({
                     ...assignment,
+                    copy_template: assignmentCopyTemplate(assignment, v2Items || [], copyAi.data || [], copyPrompts.data || [], items || []),
                     track_count: assignment.source_type === "multi_activity_v2"
                         ? (v2Counts.get(Number(assignment.id))?.listening || 0)
                         : (counts.get(Number(assignment.id)) || 0),
