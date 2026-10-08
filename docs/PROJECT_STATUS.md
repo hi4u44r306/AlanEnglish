@@ -2,11 +2,12 @@
 
 最後更新：2026-10-08
 
-### 學生首頁目前班級教材（2026-10-08，驗證完成／尚未部署）
+### 學生首頁目前班級教材（2026-10-08，已部署／實機待驗）
 
 - 使用者確認要首頁直接顯示目前班級教材；基準 main b7f43a8c，分支 codex/class-materials-home，復用 output/student-settings-cache-20261008 乾淨副本，保留原目錄草稿。來源核對既有 commerce-manager currentClassSetting／student_profile，沿用管理員「班級教材設定」，無正式資料修改或後端變更。
+- PR #472／main 49714ff5；Cloudflare build 2e630c82-e893-4058-84a0-7a8d165c48ae 於 12:33:10 台灣時間 success。12:33 正式 main.afe4e971.js／main.06d8eaff.css 與三個 SPA 路由 HTTP 200；v2 商務快取、目前班級區塊、班級教材標題／重試／可用提示六個程式標記及 SCSS selector 均存在。證據 output/class-home-production-verification.json。沒有真實帳號或班級資料寫入；HTTP 不替代登入／手機實測。下一步由管理員在既有班級教材設定核對各班清單，再比對不同班學生首頁及更新進度／刷新。純文件發布紀錄不觸發第二次前端建置。
 - 首頁新增目前班級所有教材，catalog 確認可用才顯示開啟連結，無作業時優先本班可用教材；原書架保留。抽出 studentCommerceDisplay 與設定頁共用 v2 快取，保留目前班級／教材識別及顯示欄位，家長聯絡／付款識別不持久化；無班級、未設定、載入、暫時失敗及拒絕分別處理。
-- 6 套 56 項相關 React／helper／cache 測試通過；首輪 55 項全數 PASS，補上班級查詢等待狀態後僅重跑首頁 16 項，其他已通過套件未重跑。涵蓋班級與歷史分開、多本／鎖定／停用、非英文班、作業優先、換班延遲回應、刷新及同步更新；四檔 ESLint、git diff --check 通過。沿用原書架手機一欄與 44px 互動樣式，新增 SCSS 僅間距；真實登入、412px／桌面及 iPhone 待驗，先前 Browser Use 權限限制未繞過。中風險前端批次，Cloudflare 唯一 production build 負責正式編譯，不跑無關全套；無 migration／RLS／Secret／Function 部署。下一步發布後驗收靜態資產與本人帳號；回復可 revert 本批前端 PR。
+- 6 套 56 項相關 React／helper／cache 測試通過；首輪 55 項全數 PASS，補上班級查詢等待狀態後僅重跑首頁 16 項，其他已通過套件未重跑。涵蓋班級與歷史分開、多本／鎖定／停用、非英文班、作業優先、換班延遲回應、刷新及同步更新；四檔 ESLint、git diff --check 通過。沿用原書架手機一欄與 44px 互動樣式，新增 SCSS 僅間距；真實登入、412px／桌面及 iPhone 待驗，先前 Browser Use 權限限制未繞過。中風險前端批次，Cloudflare 唯一 production build 已成功，不跑無關全套；無 migration／RLS／Secret／Function 部署。回復可 revert PR #472。
 
 ### 口說地圖起點路牌（2026-10-08，已部署／實機待驗）
 
