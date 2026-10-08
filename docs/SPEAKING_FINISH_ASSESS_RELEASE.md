@@ -2,6 +2,8 @@
 
 日期：2026-10-08。階段 6，基準 main 7fb83bf，分支 codex/speaking-finish-assess。狀態：本機已實作，隔離測試通過，待該批正式發布授權，尚未部署。
 
+可審核 checkpoint：9182762，[草稿 PR #486](https://github.com/hi4u44r306/AlanEnglish/pull/486)。尚未合併 main，沒有觸發正式站部署。
+
 ## 使用者操作與邊界
 
 - 句子、問答及逐字母拼字：開始錄音 → 完成並評分；保留先停止並回聽 → 手動送評。
