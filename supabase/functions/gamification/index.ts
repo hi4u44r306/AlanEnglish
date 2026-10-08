@@ -250,6 +250,12 @@ Deno.serve(async (req: Request) => {
         };
 
         if (action === "summary") {
+            let birthday = null;
+            if (student.role === "student") {
+                const { data, error } = await admin.rpc("claim_student_birthday_reward_v1", { p_student_id: student.id });
+                if (error) throw error;
+                birthday = { ...data, xp_multiplier: data?.enabled === true && data?.is_birthday_month === true ? 2 : 1 };
+            }
             const [{ data: balance, error: balanceError }, { data: ledger, error: ledgerError }, { data: socialProfile, error: socialProfileError }] = await Promise.all([
                 admin.from("student_gamification_balances").select("student_id,total_xp,points_balance,updated_at").eq("student_id", student.id).maybeSingle(),
                 admin.from("student_gamification_ledger").select("id,xp_delta,points_delta,source_type,description,created_at").eq("student_id", student.id).order("created_at", { ascending: false }).limit(12),
@@ -273,7 +279,8 @@ Deno.serve(async (req: Request) => {
                     points_balance: Number(balance?.points_balance || 0),
                     ...getLevelInfo(totalXp)
                 },
-                recent_ledger: ledger || []
+                recent_ledger: ledger || [],
+                birthday
             });
         }
 
@@ -421,6 +428,30 @@ Deno.serve(async (req: Request) => {
         if (action.startsWith("admin_")) {
             if (student.role !== ADMIN_ROLE) return json(403, { error: "只有管理員可以管理獎品" });
 
+            if (action === "admin_birthday_settings") {
+                const { data, error } = await admin.from("birthday_reward_settings")
+                    .select("enabled,gift_points,version,updated_at").eq("singleton", true).single();
+                if (error) throw error;
+                return json(200, { success: true, settings: data });
+            }
+            if (action === "admin_save_birthday_settings") {
+                const settings = body?.settings;
+                if (!settings || typeof settings.gift_points !== "number" || !Number.isInteger(settings.gift_points)
+                    || settings.gift_points < 0 || settings.gift_points > 10000 || typeof settings.enabled !== "boolean"
+                    || !Number.isInteger(settings.version) || settings.version < 1) {
+                    return json(400, { error: "生日禮請填寫 0～10,000 的整數點數，並重新確認活動設定。" });
+                }
+                const { data, error } = await admin.rpc("save_birthday_reward_settings_v1", {
+                    p_admin_id: student.id, p_gift_points: settings.gift_points,
+                    p_enabled: settings.enabled, p_expected_version: settings.version
+                });
+                if (error) {
+                    if (error.message?.includes("BIRTHDAY_SETTINGS_CHANGED")) return json(409, { error: "設定已被其他管理員更新，請重新讀取後再儲存。" });
+                    if (error.message?.includes("BIRTHDAY_ADMIN_REQUIRED")) return json(403, { error: "只有有效管理員可以調整生日活動。" });
+                    throw error;
+                }
+                return json(200, { success: true, settings: data });
+            }
             if (action === "admin_catalog") {
                 const [{ data: rewards, error: rewardError }, { data: redemptions, error: redemptionError }] = await Promise.all([
                     admin.from("rewards").select("*").order("sort_order", { ascending: true }).order("id", { ascending: true }),

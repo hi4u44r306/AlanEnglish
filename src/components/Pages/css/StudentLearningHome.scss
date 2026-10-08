@@ -140,3 +140,9 @@
     .learning-home__filters button { padding: 8px 14px; }
 }
 @media (prefers-reduced-motion: reduce) { .learning-home a { transition: none; transform: none !important; } }
+
+.birthday-notice { margin-bottom: 24px; padding: 20px; border: 2px solid #ead68d; border-radius: 22px; background: #fff9de; color: #17365d; overflow-wrap: anywhere;
+    h2 { font-size: 22px; margin-bottom: 8px; }
+    p + p { margin-top: 8px; }
+    @media (max-width: 600px) { padding: 16px; h2 { font-size: 20px; } }
+}

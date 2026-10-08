@@ -860,3 +860,23 @@
     .gamification-ranking-row.is-top-1 .gamification-avatar { width: 42px; height: 42px; }
     .gamification-student-copy strong { font-size: 14px; }
 }
+
+.birthday-settings {
+    margin-bottom: 22px;
+    padding: 24px;
+    border: 1px solid #cbdcec;
+    border-radius: 24px;
+    background: #f3f8ff;
+    color: #17365d;
+    h2 { font-size: 22px; font-weight: 800; }
+    p, small { overflow-wrap: anywhere; }
+    form { display: grid; gap: 12px; max-width: 640px; }
+    small { display: block; line-height: 1.7; }
+    button, input[type="number"] { box-sizing: border-box; max-width: 100%; min-height: 44px; border: 1px solid #aac2df; border-radius: 12px; padding: 10px 14px; font: inherit; }
+    button { background: #245fc5; color: white; }
+    button:disabled { opacity: .65; }
+    button:focus-visible, input:focus-visible { outline: 3px solid #17365d; outline-offset: 3px; }
+    &__toggle { display: flex; align-items: center; gap: 10px; min-height: 44px; }
+    &__controls { display: flex; flex-wrap: wrap; gap: 12px; input { width: min(100%, 200px); } }
+    @media (max-width: 600px) { padding: 20px; h2 { font-size: 20px; } &__controls { flex-direction: column; input, button { width: 100%; } } }
+}

@@ -9,6 +9,7 @@ import {
     updateRewardRedemption,
     uploadGamificationImage
 } from "../../services/gamificationService";
+import BirthdayRewardSettings from "../fragment/BirthdayRewardSettings";
 import "./css/Gamification.scss";
 
 const CLASS_OPTIONS = ["E1", "E3", "E5", "E7"];
@@ -178,6 +179,8 @@ function RewardsAdmin() {
                 </div>
                 <button className="gamification-refresh" type="button" onClick={load} disabled={loading}><FiRefreshCw className={loading ? "is-spinning" : ""} />更新</button>
             </section>
+
+            <BirthdayRewardSettings key={firebaseUser?.uid} />
 
             <div className="gamification-admin-tabs">
                 <button type="button" className={tab === "rewards" ? "active" : ""} onClick={() => setTab("rewards")}><FiGift />獎品管理</button>
