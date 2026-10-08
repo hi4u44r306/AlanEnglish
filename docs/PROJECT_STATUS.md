@@ -2,6 +2,12 @@
 
 最後更新：2026-10-08
 
+### 學生首頁班級教材入口簡化（2026-10-08，尚未部署）
+
+- 使用者確認主任務卡已清楚顯示目前教材，要求移除重複 learning-home__books learning-home__class-books 區塊。基準 main 004a2136，分支 codex/simplify-class-materials-home；復用既有乾淨發布副本，原工作目錄草稿保留。
+- 移除獨立班級教材清單及專用間距，保留主任務卡優先本班教材／作業、共用快取及完整書架；原班級載入／未設定／失敗／不可開啟提示收進主卡，「更新進度」重試，沒有教材時導向 #learning-books。同步產品規則與手冊 v3.69。只改首頁前端，無後端／資料／權限變更。
+- 首頁定向 17 項測試、元件 ESLint 與 diff check 通過，涵蓋主卡正確選書、移除重複區塊、作業優先、鎖定／停用／未設定、失敗恢復、刷新快取及帳號隔離。正式發布待完成；正式編譯交由 Cloudflare，不跑無關全套或本機完整 build。真實登入、桌面／412px／iPhone 仍待驗，先前瀏覽器保存權限限制未繞過。回復可 revert 此前端批次。
+
 ### 學生首頁目前班級教材（2026-10-08，已部署／實機待驗）
 
 - 使用者確認要首頁直接顯示目前班級教材；基準 main b7f43a8c，分支 codex/class-materials-home，復用 output/student-settings-cache-20261008 乾淨副本，保留原目錄草稿。來源核對既有 commerce-manager currentClassSetting／student_profile，沿用管理員「班級教材設定」，無正式資料修改或後端變更。
