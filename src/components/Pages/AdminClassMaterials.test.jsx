@@ -34,6 +34,8 @@ const adminData = {
         version: 1,
         note: "2026 春季",
         effective_from: "2026-02-01",
+        is_active: true,
+        effective_to: null,
         academy_class_material_books: [{ book_id: 1 }]
     }],
     audit: []
@@ -61,11 +63,63 @@ describe("AdminClassMaterials term rollover wizard", () => {
         window.confirm = jest.fn(() => true);
     });
 
+    it("shows current books per class and switches locally while invalidating the preview", async () => {
+        loadCommerceAdmin.mockResolvedValue({ ...adminData, classes: [...adminData.classes, { id: 3, code: "E3" }],
+            settings: [...adminData.settings, { ...adminData.settings[0], id: 30, class_id: 3, academy_class_material_books: [{ book_id: 2 }] }] });
+        render(<AdminClassMaterials />);
+        expect(screen.getByRole("heading", { name: "班級教材設定", level: 1 })).toBeInTheDocument();
+        const e1 = await screen.findByRole("button", { name: "查看 E1 班目前教材" });
+        await waitFor(() => expect(e1).toBeEnabled());
+        expect(e1).toHaveTextContent("Workbook 1");
+        expect(screen.getByRole("button", { name: "查看 E3 班目前教材" })).toHaveTextContent("Workbook 2");
+        fireEvent.click(screen.getByRole("button", { name: "預覽換版影響" }));
+        await screen.findByText("換版影響預覽");
+        fireEvent.click(screen.getByRole("button", { name: "查看 E3 班目前教材" }));
+        expect(screen.getByLabelText("班級")).toHaveValue("E3");
+        expect(screen.queryByText("換版影響預覽")).not.toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "二次確認並建立版本" })).toBeDisabled();
+        expect(loadCommerceAdmin).toHaveBeenCalledTimes(1);
+        expect(saveClassMaterials).not.toHaveBeenCalled();
+    });
+
+    it("keeps teacher viewing read-only and only shows returned authorized classes", async () => {
+        loadCommerceAdmin.mockResolvedValue({ ...adminData, read_only: true, classes: [{ id: 1, code: "E3" }],
+            settings: [{ ...adminData.settings[0], class_id: 1 }] });
+        render(<AdminClassMaterials />);
+        await screen.findByText("老師為唯讀模式，不能修改班級教材設定。");
+        expect(screen.queryByRole("button", { name: "查看 E1 班目前教材" })).not.toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "查看 E3 班目前教材" })).toBeInTheDocument();
+        screen.getAllByRole("checkbox").forEach(input => expect(input).toBeDisabled());
+        expect(screen.queryByRole("button", { name: "預覽換版影響" })).not.toBeInTheDocument();
+        expect(loadCommerceAdmin).toHaveBeenCalledTimes(1);
+    });
+
+    it("requires confirmation after preview and does not save when canceled", async () => {
+        window.confirm.mockReturnValue(false);
+        render(<AdminClassMaterials />);
+        await screen.findByText("E1 第 1 版");
+        expect(screen.getByRole("button", { name: "二次確認並建立版本" })).toBeDisabled();
+        fireEvent.click(screen.getByRole("button", { name: "預覽換版影響" }));
+        await screen.findByText("換版影響預覽");
+        fireEvent.click(screen.getByRole("button", { name: "二次確認並建立版本" }));
+        expect(window.confirm).toHaveBeenCalledTimes(1);
+        expect(saveClassMaterials).not.toHaveBeenCalled();
+    });
+
+    it("distinguishes a loading failure from an unconfigured class and supports retry", async () => {
+        loadCommerceAdmin.mockRejectedValueOnce(new Error("連線失敗"));
+        render(<AdminClassMaterials />);
+        expect(await screen.findByRole("alert")).toHaveTextContent("連線失敗");
+        expect(screen.queryByRole("button", { name: "查看 E1 班目前教材" })).not.toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "重新讀取班級教材" }));
+        expect(await screen.findByRole("button", { name: "查看 E1 班目前教材" })).toHaveTextContent("Workbook 1");
+    });
+
     it("separates retained old books from the new term selection", async () => {
         render(<AdminClassMaterials />);
 
         expect(await screen.findByText("E1 第 1 版")).toBeInTheDocument();
-        expect(screen.getByText(/2026 春季/)).toBeInTheDocument();
+        expect(screen.getByText(/2026 春季/, { selector: ".commerce-current-term span" })).toBeInTheDocument();
 
         fireEvent.click(screen.getByRole("checkbox", { name: /Workbook 2/ }));
         fireEvent.click(screen.getByRole("button", { name: "預覽換版影響" }));

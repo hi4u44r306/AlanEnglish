@@ -10,6 +10,7 @@ import {
     saveClassMaterials
 } from "../../services/commerceService";
 import "./css/Commerce.scss";
+import { currentClassMaterialNames, currentClassMaterialSetting } from "./classMaterialDisplay";
 
 const today = () => new Intl.DateTimeFormat("en-CA", {
     timeZone: "Asia/Taipei", year: "numeric", month: "2-digit", day: "2-digit"
@@ -25,6 +26,8 @@ const relationOne = value => Array.isArray(value) ? value[0] : value;
 function AdminClassMaterials() {
     const { firebaseUser } = useAuth();
     const [data, setData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [loadError, setLoadError] = useState("");
     const [classCode, setClassCode] = useState("E1");
     const [effectiveFrom, setEffectiveFrom] = useState(today());
     const [termLabel, setTermLabel] = useState(defaultTermLabel());
@@ -35,14 +38,18 @@ function AdminClassMaterials() {
     const [busy, setBusy] = useState(false);
     const load = useCallback(async () => {
         if (!firebaseUser) return;
+        setLoading(true); setLoadError("");
         try {
             const result = await loadCommerceAdmin(firebaseUser); setData(result);
-            if (result.classes?.[0] && !result.classes.some(item => item.code === classCode)) setClassCode(result.classes[0].code);
-        } catch (error) { toast.error(error.message || "班級教材設定載入失敗"); }
-    }, [firebaseUser, classCode]);
+            setClassCode(current => result.classes?.some(item => item.code === current) ? current : result.classes?.[0]?.code || "");
+        } catch (error) { setLoadError(error.message || "班級教材設定載入失敗"); toast.error(error.message || "班級教材設定載入失敗"); }
+        finally { setLoading(false); }
+    }, [firebaseUser]);
     useEffect(() => { load(); }, [load]);
 
     const classRow = data?.classes?.find(item => item.code === classCode);
+    const displayDate = new Date().toISOString().slice(0, 10);
+    const currentSetting = currentClassMaterialSetting(data?.settings, classRow?.id, displayDate);
     const latest = useMemo(() => (data?.settings || []).filter(item => Number(item.class_id) === Number(classRow?.id)).sort((a, b) => b.version - a.version)[0], [data, classRow]);
     const canCorrectLatest = Boolean(latest && latest.effective_from === today());
     const canCreateVersion = !latest || latest.effective_from < today();
@@ -106,21 +113,34 @@ function AdminClassMaterials() {
     const auditLabel = action => ({ created: "建立版本", activated: "啟用版本", replaced: "學期換版", deactivated: "停用版本", corrected: "修正目前版本" }[action] || action);
 
     return <main className="commerce-page commerce-admin">
-        <section className="commerce-hero"><div><span>TERM MATERIAL ROLLOVER</span><h1>新學期教材換版精靈</h1><p>新學期只選現在要使用的教材。上一學期教材會永久保留給實際在校使用過的學生，新加入學生不會取得入學前的舊教材。</p></div><aside><FiShield /><strong>一次完成，不會只換一半</strong><span>永久保存舊教材、結束舊版本與啟用新版本會在同一筆資料庫交易完成。</span></aside></section>
+        <section className="commerce-hero"><div><span>CLASS MATERIALS</span><h1>班級教材設定</h1><p>先查看各班目前生效教材，再選班級調整。確認後，學生首頁會依班級設定顯示目前學習的教材；舊學期教材仍保留給曾在校使用的學生。</p></div><aside><FiShield /><strong>預覽後再二次確認</strong><span>換版與修正沿用既有權限與版本流程，查看班級不會直接修改教材。</span></aside></section>
+        <section className="commerce-admin-panel commerce-class-overview" aria-label="各班目前生效教材">
+            <header><FiBookOpen /><h2>各班目前教材</h2></header>
+            <p>選擇班級即可查看下方版本與教材內容。</p>
+            {loading && <p role="status">{data ? "正在更新班級教材…" : "正在讀取班級教材…"}</p>}
+            {loadError && <div role="alert"><p>{loadError} {data ? "暫時顯示先前讀取的資料。" : ""}</p><button type="button" onClick={load}>重新讀取班級教材</button></div>}
+            <div className="commerce-class-cards">{(data?.classes || []).map(row => {
+                const setting = currentClassMaterialSetting(data.settings, row.id, displayDate);
+                return <button type="button" key={row.id} aria-label={`查看 ${row.code} 班目前教材`} aria-pressed={classCode === row.code} disabled={loading || busy} onClick={() => { setClassCode(row.code); setPreview(null); }}>
+                    <strong>{row.code} 班</strong><span>{currentClassMaterialNames(setting, data.books)}</span><small>{setting ? `${setting.note || "目前版本"} · 第 ${setting.version} 版` : "請由管理員設定教材"}</small>
+                </button>;
+            })}</div>
+            {!loading && !loadError && data && !data.classes?.length && <p>目前沒有可查看的班級。</p>}
+        </section>
         <section className="commerce-admin-panel">
-            <ol className="commerce-wizard-steps" aria-label="換版步驟">
-                <li className="is-active"><span>1</span><strong>設定學期</strong></li><li className={selected.length ? "is-active" : ""}><span>2</span><strong>選新教材</strong></li><li className={preview ? "is-active" : ""}><span>3</span><strong>預覽並確認</strong></li>
-            </ol>
+            {!data?.read_only && <ol className="commerce-wizard-steps" aria-label="教材設定步驟">
+                <li className="is-active"><span>1</span><strong>選班級與版本操作</strong></li><li className={selected.length ? "is-active" : ""}><span>2</span><strong>選教材</strong></li><li className={preview ? "is-active" : ""}><span>3</span><strong>預覽並確認</strong></li>
+            </ol>}
             <div className="commerce-current-term">
-                <div><small>目前班級版本</small><strong>{latest ? `${classCode} 第 ${latest.version} 版` : `${classCode} 尚未設定`}</strong><span>{latest?.note || "尚無學期名稱"} · {latest?.effective_from || "—"} 起</span></div>
-                <div><small>目前教材</small><strong>{bookNames(currentBookIds)}</strong></div>
+                <div><small>最近設定版本</small><strong>{latest ? `${classCode} 第 ${latest.version} 版` : `${classCode || "班級"} 尚未設定`}</strong><span>{latest?.note || "尚無學期名稱"} · {latest?.effective_from || "—"} 起</span></div>
+                <div><small>目前生效教材</small><strong>{currentClassMaterialNames(currentSetting, allBooks)}</strong></div>
             </div>
             {!data?.read_only && <div className="commerce-operation-mode" role="group" aria-label="教材版本操作">
                 <button type="button" className={operationMode === "rollover" ? "is-active" : ""} disabled={!canCreateVersion} onClick={() => selectOperationMode("rollover")}>建立新學期版本</button>
                 <button type="button" className={operationMode === "correction" ? "is-active" : ""} disabled={!canCorrectLatest} onClick={() => selectOperationMode("correction")}>修正目前版本</button>
             </div>}
             {canCorrectLatest && !data?.read_only && <p className="commerce-admin-notice">{classCode} 今天已建立第 {latest.version} 版；若教材選錯，請使用「修正目前版本」。今天可以重複修正，但每次都必須重新預覽與二次確認。</p>}
-            <div className="commerce-admin-toolbar commerce-rollover-toolbar"><label>班級<select value={classCode} onChange={event => setClassCode(event.target.value)}>{(data?.classes || []).map(item => <option key={item.code}>{item.code}</option>)}</select></label><label>{operationMode === "correction" ? "目前學期名稱" : "新學期名稱"}<input value={termLabel} disabled={data?.read_only} placeholder="例如：2026 秋季" onChange={event => { setTermLabel(event.target.value); invalidatePreview(); }} /></label><label>生效日<input type="date" value={effectiveFrom} disabled /></label><strong>{operationMode === "correction" ? "修正後" : "新學期"} {selected.length} 本</strong></div>
+            <div className="commerce-admin-toolbar commerce-rollover-toolbar"><label>班級<select value={classCode} disabled={busy || loading} onChange={event => { setClassCode(event.target.value); invalidatePreview(); }}>{(data?.classes || []).map(item => <option key={item.code}>{item.code}</option>)}</select></label><label>{operationMode === "correction" ? "目前學期名稱" : "新學期名稱"}<input value={termLabel} disabled={data?.read_only} placeholder="例如：2026 秋季" onChange={event => { setTermLabel(event.target.value); invalidatePreview(); }} /></label><label>生效日<input type="date" value={effectiveFrom} disabled /></label><strong>{operationMode === "correction" ? "修正後" : "新學期"} {selected.length} 本</strong></div>
             <p className="commerce-admin-hint">{operationMode === "correction" ? "今天誤選的教材可以取消勾選或從下方已選清單移除；確認後，學生不再透過目前班級版本取得該教材。自行購買、管理員贈送或真正的歷史教材權限不會被撤銷。" : "為避免漏掉生效日前新加入的學生，換版只允許在實際生效當天執行。若新學期仍會使用部分舊教材，請繼續勾選那些教材。"}</p>
             {operationMode === "correction" && <section className="commerce-selected-books" aria-label="修正後已選教材">
                 <header><div><strong>修正後保留的教材</strong><span>請先加入正確教材，再移除誤選教材；下列清單就是確認後學生會透過此班級版本看到的內容。</span></div><strong>{selected.length} 本</strong></header>
@@ -131,7 +151,7 @@ function AdminClassMaterials() {
                 })}</div>
                 {selected.length === 0 && <p>目前沒有教材。請至少加入一本正確教材後再預覽。</p>}
             </section>}
-            <div className="commerce-rollover-tools"><label className="is-search"><FiSearch /><input placeholder="搜尋新學期教材" value={search} onChange={event => setSearch(event.target.value)} /></label>{!data?.read_only && <><button type="button" onClick={() => { setSelected(currentBookIds); invalidatePreview(); }}><FiRefreshCw />沿用目前教材</button><button type="button" onClick={() => { setSelected([]); invalidatePreview(); }}>清空重選</button></>}</div>
+            <div className="commerce-rollover-tools"><label className="is-search"><FiSearch /><input placeholder="搜尋教材" value={search} onChange={event => setSearch(event.target.value)} /></label>{!data?.read_only && <><button type="button" onClick={() => { setSelected(currentBookIds); invalidatePreview(); }}><FiRefreshCw />沿用最近版本教材</button><button type="button" onClick={() => { setSelected([]); invalidatePreview(); }}>清空重選</button></>}</div>
             {data?.read_only && <p className="commerce-admin-notice">老師為唯讀模式，不能修改班級教材設定。</p>}
             <div className="commerce-book-groups">{Object.entries(grouped).map(([category, rows]) => <section key={category}><h2>{category}</h2><div>{rows.map(book => <label key={book.id}><input type="checkbox" disabled={data?.read_only} checked={selected.includes(Number(book.id))} onChange={event => { setSelected(current => event.target.checked ? [...current, Number(book.id)] : current.filter(id => id !== Number(book.id))); invalidatePreview(); }} /><span><FiBookOpen /><strong>{book.name}</strong><small>{book.code}</small></span></label>)}</div></section>)}</div>
             {!data?.read_only && <div className="commerce-admin-actions"><button type="button" onClick={doPreview} disabled={busy || selected.length === 0}><FiEye />{operationMode === "correction" ? "預覽修正影響" : "預覽換版影響"}</button><button type="button" className="primary" onClick={save} disabled={busy || !preview || preview.has_changes === false}><FiCheck />{operationMode === "correction" ? "二次確認並修正目前版本" : "二次確認並建立版本"}</button></div>}
