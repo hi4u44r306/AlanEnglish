@@ -1,6 +1,6 @@
 # Alan English 專案邏輯
 
-## 班級教材管理入口與目前教材概覽（2026-10-08，尚未部署）
+## 班級教材管理入口與目前教材概覽（2026-10-08，已部署／實機待驗）
 
 - 頁面名稱統一為「班級教材設定」。桌面／手機管理選單的管理員直接進 /admin/class-materials，老師進既有唯讀 /teacher/class-materials；不改 ProtectedRoute、Firebase 或後端管理權限。
 - 頁首先呈現服務實際回傳的授權班級及目前生效教材，再選班級查看最近設定版本與原編輯流程。概覽沿用 commerce-manager currentClassSetting 的 is_active、起訖日及最高版本規則／UTC 日期參數，區分目前生效教材與最近設定，不將未生效、已停用或已結束版本當成正在學習教材。教材名稱可用已授權 join 資料顯示，不受教材搜尋欄影響。
