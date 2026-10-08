@@ -1,5 +1,5 @@
 import React from "react";
-import { fireEvent, render as renderView, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render as renderView, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import "@testing-library/jest-dom";
 import StudentSettings from "./StudentSettings";
@@ -13,6 +13,7 @@ import {
 import { loadStudentCommerceProfile } from "../../services/commerceService";
 import { getNicknameSettings, updateNickname } from "../../services/studentSocialService";
 import { disableWebPush, enableWebPush, getCurrentWebPushStatus, getWebPushAvailability, getWebPushConfig } from "../../services/webPushService";
+import { clearStudentPageCache, invalidateStudentPageCache } from "../../services/studentPageCache";
 
 const render = element => renderView(<MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>{element}</MemoryRouter>);
 
@@ -46,6 +47,8 @@ describe("StudentSettings", () => {
     const refreshStudentProfile = jest.fn();
 
     beforeEach(() => {
+        clearStudentPageCache();
+        localStorage.clear();
         jest.clearAllMocks();
         getWebPushAvailability.mockReturnValue({ supported: false, reason: "此裝置不支援推播" });
         getWebPushConfig.mockResolvedValue({ enabled: false });
@@ -57,6 +60,7 @@ describe("StudentSettings", () => {
         Object.defineProperty(URL, "revokeObjectURL", { writable: true, value: jest.fn() });
         useAuth.mockReturnValue({
             firebaseUser: { uid: "student-1" },
+            role: "student",
             setStudentProfile,
             refreshStudentProfile,
             studentProfile: {
@@ -173,7 +177,7 @@ describe("StudentSettings", () => {
     });
 
     it("allows the student to change a nickname and shows their own change history", async () => {
-        updateNickname.mockResolvedValue({
+        const savedSettings = {
             profile: { nickname: "Brave Owl" },
             nickname_history: [
                 {
@@ -191,11 +195,15 @@ describe("StudentSettings", () => {
                     changed_at: "2026-09-18T02:00:00Z"
                 }
             ]
+        };
+        updateNickname.mockImplementation(async () => {
+            getNicknameSettings.mockResolvedValue(savedSettings);
+            return savedSettings;
         });
         render(<StudentSettings />);
 
         const nicknameInput = await screen.findByLabelText("公開暱稱");
-        expect(nicknameInput).toHaveValue("Sunny Fox");
+        await waitFor(() => expect(nicknameInput).toHaveValue("Sunny Fox"));
         expect(nicknameInput.closest(".student-settings-profile-card")).not.toBeNull();
         expect(screen.getByText(/7 天.*只能修改一次/)).toBeInTheDocument();
         expect(screen.getByText("首次設定")).toBeInTheDocument();
@@ -384,6 +392,9 @@ describe("StudentSettings", () => {
         render(<StudentSettings />);
         await screen.findByRole("heading", { name: "我的設定" });
         fireEvent.click(screen.getByText("選擇預設頭像"));
+        const presets = screen.getByText("選擇預設頭像").closest("details");
+        presets.open = true;
+        fireEvent(presets, new Event("toggle"));
 
         expect(screen.getAllByRole("button", { name: /使用.+頭像/ })).toHaveLength(25);
         expect(screen.getByRole("button", { name: "使用好奇科學家頭像" })).toBeInTheDocument();
@@ -484,5 +495,86 @@ describe("StudentSettings", () => {
         const disable = await screen.findByRole("button", { name: "關閉此裝置推播" });
         fireEvent.click(disable);
         await waitFor(() => expect(disableWebPush).toHaveBeenCalledWith({ uid: "student-1" }));
+    });
+
+    it("reuses growth, commerce and nickname data immediately when returning", async () => {
+        const first = render(<StudentSettings />);
+        await screen.findByText("Lv.3");
+        await screen.findByText("在校");
+        await waitFor(() => expect(screen.getByLabelText("公開暱稱")).toHaveValue("Sunny Fox"));
+        first.unmount();
+        render(<StudentSettings />);
+        expect(screen.getByText("390 XP")).toBeInTheDocument();
+        expect(screen.getByText("在校")).toBeInTheDocument();
+        expect(screen.getByLabelText("公開暱稱")).toHaveValue("Sunny Fox");
+        await act(async () => {});
+        expect(getGamificationSummary).toHaveBeenCalledTimes(1);
+        expect(loadStudentCommerceProfile).toHaveBeenCalledTimes(1);
+        expect(getNicknameSettings).toHaveBeenCalledTimes(1);
+    });
+
+    it("restores snapshots on reload without persisting guardian contact details", async () => {
+        const first = render(<StudentSettings />);
+        await screen.findByText("parent@example.com");
+        await screen.findByText("Lv.3");
+        await waitFor(() => expect(screen.getByLabelText("公開暱稱")).toHaveValue("Sunny Fox"));
+        first.unmount();
+        const records = Object.keys(localStorage).filter(key => key.startsWith("ae-student-pages-v1:")).map(key => [key, localStorage.getItem(key)]);
+        expect(records.length).toBe(3);
+        expect(JSON.stringify(records)).not.toContain("parent@example.com");
+        clearStudentPageCache();
+        records.forEach(([key, value]) => localStorage.setItem(key, value));
+        getGamificationSummary.mockImplementation(() => new Promise(() => {}));
+        loadStudentCommerceProfile.mockImplementation(() => new Promise(() => {}));
+        getNicknameSettings.mockImplementation(() => new Promise(() => {}));
+        render(<StudentSettings />);
+        expect(screen.getByText("390 XP")).toBeInTheDocument();
+        expect(screen.getByText("在校")).toBeInTheDocument();
+        expect(screen.getByLabelText("公開暱稱")).toHaveValue("Sunny Fox");
+        expect(screen.queryByText("parent@example.com")).not.toBeInTheDocument();
+        expect(screen.queryByText("正在讀取成長資料…")).not.toBeInTheDocument();
+        await act(async () => {});
+        expect(loadStudentCommerceProfile).toHaveBeenCalledTimes(2);
+    });
+
+    it("keeps cached data after a network failure but clears a forbidden commerce response", async () => {
+        render(<StudentSettings />);
+        await screen.findByText("在校");
+        getGamificationSummary.mockRejectedValue(new Error("offline"));
+        loadStudentCommerceProfile.mockRejectedValue(new Error("offline"));
+        act(() => invalidateStudentPageCache("student-1", ["summary", "settings:commerce"]));
+        await screen.findByText(/部分設定暫時無法更新/);
+        expect(screen.getByText("390 XP")).toBeInTheDocument();
+        expect(screen.getByText("在校")).toBeInTheDocument();
+        loadStudentCommerceProfile.mockRejectedValue(Object.assign(new Error("forbidden"), { status: 403 }));
+        fireEvent.click(screen.getByRole("button", { name: "重新讀取設定" }));
+        await waitFor(() => expect(screen.queryByText("在校")).not.toBeInTheDocument());
+        expect(screen.getAllByText("暫時無法讀取").length).toBeGreaterThan(0);
+        expect(screen.queryByText("非在校生")).not.toBeInTheDocument();
+    });
+
+    it("does not overwrite a nickname being edited when background data arrives", async () => {
+        let finish;
+        getNicknameSettings.mockImplementation(() => new Promise(resolve => { finish = resolve; }));
+        render(<StudentSettings />);
+        const input = screen.getByLabelText("公開暱稱");
+        fireEvent.change(input, { target: { value: "My New Name" } });
+        await act(async () => finish({ profile: { nickname: "Previous Name" }, nickname_history: [] }));
+        expect(input).toHaveValue("My New Name");
+    });
+
+    it("loads preset thumbnails only after expanding the picker", async () => {
+        const { container } = render(<StudentSettings />);
+        expect(container.querySelectorAll(".student-settings-avatar-preset-image img")).toHaveLength(0);
+        const presets = screen.getByText("選擇預設頭像").closest("details");
+        presets.open = true;
+        fireEvent(presets, new Event("toggle"));
+        const images = container.querySelectorAll(".student-settings-avatar-preset-image img");
+        expect(images).toHaveLength(25);
+        images.forEach(image => {
+            expect(image.getAttribute("src")).toMatch(/^\/default-avatars\/thumbs-v1\/.+\.webp$/);
+            expect(image).toHaveAttribute("loading", "lazy");
+        });
+        await act(async () => {});
     });
 });

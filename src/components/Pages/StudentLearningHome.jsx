@@ -7,6 +7,7 @@ import { getAccessibleCatalog } from "../../services/contentAccessService";
 import { getGamificationSummary } from "../../services/gamificationService";
 import { getStudentAssignments, getStudentAssignmentsV2 } from "../../services/assignmentService";
 import { getStudentAvatarDisplayUrl } from "../../constants/defaultStudentAvatars";
+import { useCachedStudentAvatarUrl } from "../../hooks/useCachedStudentAvatarUrl";
 import StudentAvatarImage from "../fragment/StudentAvatarImage";
 import { assignmentStateLabel, getLearningTasks, getStudentMaterialCategories } from "../../utils/studentLearning";
 import forestScene from "../assets/speaking-map/unified-forest-a-v1.webp";
@@ -53,7 +54,11 @@ function StudentLearningHome() {
     const balance = data?.summary?.balance;
     const progress = Math.min(100, Math.max(0, Number(balance?.progress_percent) || 0));
     const name = studentProfile?.nickname || studentProfile?.name || "小小探險家";
-    const avatar = getStudentAvatarDisplayUrl(data?.summary?.profile?.avatar_url || studentProfile?.avatar_url, 96);
+    const cachedAvatar = useCachedStudentAvatarUrl(data?.summary?.profile?.avatar_url || studentProfile?.avatar_url, {
+        ownerUid: firebaseUser?.uid,
+        sourceKey: studentProfile?.user_image || studentProfile?.userimage
+    });
+    const avatar = getStudentAvatarDisplayUrl(cachedAvatar, 96);
     const heroTitle = nextTask ? nextTask.title : "今天，從一本教材開始";
     const heroPath = nextTask ? taskPath(nextTask) : books[0] ? bookPath(books[0]) : null;
     const refresh = () => [catalogQuery, summaryQuery, assignmentsQuery, assignmentsV2Query].forEach(query => query.refresh());
