@@ -14,7 +14,7 @@ import {
     requestGuardianEmailVerification,
     updateStudentProfile
 } from "../../services/membershipService";
-import { loadStudentCommerceProfile } from "../../services/commerceService";
+import { loadStudentCommerceDisplay, STUDENT_COMMERCE_DISPLAY_KEY } from "../../services/studentCommerceDisplay";
 import { getNicknameSettings, updateNickname } from "../../services/studentSocialService";
 import { disableWebPush, enableWebPush, getCurrentWebPushStatus, getWebPushAvailability, getWebPushConfig } from "../../services/webPushService";
 import { hasAiPremiumAccess } from "../../constants/membershipPlans";
@@ -88,38 +88,12 @@ const getCropPosition = (draft, offsetX, offsetY, zoom = draft?.zoom || 1) => {
     };
 };
 
-// Keep only fields displayed here; payment/provider identifiers are not snapshots.
-const settingsCommerceDisplay = profile => ({
-    enrollment_status: profile?.enrollment_status,
-    current_enrollment: profile?.current_enrollment && enrollmentDisplay(profile.current_enrollment),
-    enrollment_history: profile?.enrollment_history?.map(enrollmentDisplay) || [],
-    class_books: profile?.class_books?.map(book => ({ name: book.name })) || [],
-    direct_entitlements: profile?.direct_entitlements?.map(item => ({ source: item.source, books: { name: item.books?.name } })) || [],
-    plans: profile?.plans?.map(plan => ({
-        id: plan.id, status: plan.status, current_period_end: plan.current_period_end,
-        ends_at: plan.ends_at, cancel_at_period_end: plan.cancel_at_period_end,
-        stripe_subscription_status: plan.stripe_subscription_status,
-        subscription_plans: Array.isArray(plan.subscription_plans)
-            ? plan.subscription_plans.map(({ code, name }) => ({ code, name }))
-            : plan.subscription_plans && { code: plan.subscription_plans.code, name: plan.subscription_plans.name }
-    })) || [],
-    // The shared cache strips guardian entirely before writing LocalStorage.
-    guardian: profile?.guardian && { email: profile.guardian.email, email_verified_at: profile.guardian.email_verified_at }
-});
-const enrollmentDisplay = record => ({
-    enrolled_at: record.enrolled_at, scheduled_departure_at: record.scheduled_departure_at, departed_at: record.departed_at
-});
-
 function StudentSettings() {
     const { firebaseUser, studentProfile, setStudentProfile, refreshStudentProfile } = useAuth();
     const fileInputRef = useRef(null);
     const enabled = Boolean(firebaseUser);
     const summaryQuery = useStudentPageQuery("summary", () => getGamificationSummary(firebaseUser), { enabled });
-    const commerceQuery = useStudentPageQuery("settings:commerce", async () => {
-        const result = await loadStudentCommerceProfile(firebaseUser);
-        if (!result?.profile) throw new Error("設定資料讀取失敗");
-        return settingsCommerceDisplay(result?.profile);
-    }, { enabled });
+    const commerceQuery = useStudentPageQuery(STUDENT_COMMERCE_DISPLAY_KEY, () => loadStudentCommerceDisplay(firebaseUser), { enabled });
     const nicknameQuery = useStudentPageQuery("settings:nickname", async () => {
         const result = await getNicknameSettings(firebaseUser);
         return {

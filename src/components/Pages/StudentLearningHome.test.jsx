@@ -1,7 +1,7 @@
 import { clearStudentPageCache } from "../../services/studentPageCache";
 beforeEach(() => clearStudentPageCache());
 import React from "react";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { MemoryRouter } from "react-router-dom";
 import StudentLearningHome from "./StudentLearningHome";
@@ -10,11 +10,13 @@ import { getAccessibleCatalog } from "../../services/contentAccessService";
 import { getGamificationSummary } from "../../services/gamificationService";
 import { getStudentAssignments, getStudentAssignmentsV2 } from "../../services/assignmentService";
 import { cacheStudentAvatarDisplayUrl } from "../../constants/studentAvatarCache";
+import { loadStudentCommerceProfile } from "../../services/commerceService";
 
 jest.mock("../../auth/AuthContext", () => ({ useAuth: jest.fn() }));
 jest.mock("../../services/contentAccessService", () => ({ getAccessibleCatalog: jest.fn() }));
 jest.mock("../../services/gamificationService", () => ({ getGamificationSummary: jest.fn() }));
 jest.mock("../../services/assignmentService", () => ({ getStudentAssignments: jest.fn(), getStudentAssignmentsV2: jest.fn() }));
+jest.mock("../../services/commerceService", () => ({ loadStudentCommerceProfile: jest.fn() }));
 
 const renderHome = () => render(<MemoryRouter><StudentLearningHome /></MemoryRouter>);
 const profile = assignments => ({ name: "小探險家", learner_type: assignments ? "academy_student" : "textbook_customer", membership: { is_active: true, effective_access: { features: { assignments, pronunciation: false } } } });
@@ -33,6 +35,11 @@ beforeEach(() => {
         { id: 2, title: "這週的聽力", due_at: "2099-01-01T00:00:00Z", progress: {} }
     ] });
     getStudentAssignmentsV2.mockResolvedValue({ assignments: [] });
+    loadStudentCommerceProfile.mockResolvedValue({ profile: {
+        enrollment_status: "active",
+        current_enrollment: { status: "active", academy_classes: { code: "E5" } },
+        class_books: [{ id: 10, code: "Workbook_1", name: "Workbook 1" }]
+    } });
 });
 
 test("shows the current student's local avatar pixels immediately on the home page", async () => {
@@ -93,8 +100,113 @@ test("does not request or expose assignments to a textbook customer", async () =
     await screen.findByRole("link", { name: "打開 Workbook 1" });
     expect(getStudentAssignments).not.toHaveBeenCalled();
     expect(getStudentAssignmentsV2).not.toHaveBeenCalled();
+    expect(loadStudentCommerceProfile).not.toHaveBeenCalled();
+    expect(screen.queryByRole("heading", { name: /目前.*教材/ })).not.toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "老師的任務" })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: /口說冒險/ })).not.toBeInTheDocument();
+});
+
+test("a slow class lookup does not block the other shelf and keeps refresh busy", async () => {
+    loadStudentCommerceProfile.mockImplementation(() => new Promise(() => {}));
+    renderHome();
+    await screen.findByRole("link", { name: /Workbook Workbook 1/ });
+    expect(screen.getByText("正在讀取目前班級教材…")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "重新整理學習進度" })).toBeDisabled();
+});
+
+test("shows every current class material separately from previously owned books", async () => {
+    loadStudentCommerceProfile.mockResolvedValue({ profile: {
+        enrollment_status: "active", current_enrollment: { status: "active", academy_classes: { code: "E3" } },
+        class_books: [{ id: 12, code: "Phonics_1", name: "Phonics 1" }],
+        direct_entitlements: [{ source: "academy_history", books: { id: 10, name: "Workbook 1" } }]
+    } });
+    getStudentAssignments.mockResolvedValue({ assignments: [] });
+    renderHome();
+    const classroom = await screen.findByRole("region", { name: "E3 班目前學習的教材" });
+    expect(within(classroom).getByRole("link", { name: /Phonics 1/ })).toHaveAttribute("href", "/student/books/Phonics_1");
+    expect(within(classroom).queryByText("Workbook 1")).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "打開 Phonics 1" })).toHaveAttribute("href", "/student/books/Phonics_1");
+    expect(within(screen.getByRole("region", { name: "我的教材小書架" })).getByText("Workbook 1")).toBeInTheDocument();
+});
+
+test("keeps assignment priority and only links class books authorized by the catalog", async () => {
+    loadStudentCommerceProfile.mockResolvedValue({ profile: {
+        enrollment_status: "active", current_enrollment: { status: "active", academy_classes: { code: "E5" } },
+        class_books: [{ id: 10, name: "Workbook 1" }, { id: 11, name: "未授權教材" }, { id: 99, name: "停用教材" }]
+    } });
+    renderHome();
+    const classroom = await screen.findByRole("region", { name: "E5 班目前學習的教材" });
+    await waitFor(() => expect(within(classroom).getByRole("link", { name: /Workbook 1/ })).toBeInTheDocument());
+    expect(within(classroom).getByText("未授權教材")).toBeInTheDocument();
+    expect(within(classroom).getByText("停用教材")).toBeInTheDocument();
+    expect(within(classroom).getAllByRole("link")).toHaveLength(1);
+    expect(screen.getByRole("link", { name: "打開這份任務" })).toHaveAttribute("href", "/student/assignments?task=v1-2");
+});
+
+test("does not label paused or departed enrollment materials as currently learning", async () => {
+    loadStudentCommerceProfile.mockResolvedValue({ profile: {
+        enrollment_status: "departed", current_enrollment: null,
+        class_books: [{ id: 10, name: "Workbook 1" }]
+    } });
+    getStudentAssignments.mockResolvedValue({ assignments: [] });
+    renderHome();
+    await screen.findByText(/目前沒有有效在校班級/);
+    expect(within(screen.getByRole("region", { name: "目前班級教材" })).queryByRole("link")).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "打開 Workbook 1" })).not.toBeInTheDocument();
+});
+
+test("updates the class list after settings change and preserves it on temporary failure", async () => {
+    renderHome();
+    const classroom = await screen.findByRole("region", { name: "E5 班目前學習的教材" });
+    loadStudentCommerceProfile.mockResolvedValue({ profile: {
+        enrollment_status: "active", current_enrollment: { status: "active", academy_classes: { code: "E5" } },
+        class_books: [{ id: 12, code: "Phonics_1", name: "Phonics 1" }]
+    } });
+    await waitFor(() => expect(screen.getByRole("button", { name: "重新整理學習進度" })).toBeEnabled());
+    fireEvent.click(screen.getByRole("button", { name: "重新整理學習進度" }));
+    await within(classroom).findByText("Phonics 1");
+    expect(within(classroom).queryByText("Workbook 1")).not.toBeInTheDocument();
+    loadStudentCommerceProfile.mockRejectedValue(new Error("offline"));
+    await waitFor(() => expect(screen.getByRole("button", { name: "重新整理學習進度" })).toBeEnabled());
+    fireEvent.click(screen.getByRole("button", { name: "重新整理學習進度" }));
+    await within(classroom).findByText(/目前顯示上次班級教材/);
+    expect(within(classroom).getByText("Phonics 1")).toBeInTheDocument();
+    loadStudentCommerceProfile.mockRejectedValue(Object.assign(new Error("forbidden"), { status: 403 }));
+    fireEvent.click(screen.getByRole("button", { name: "重新讀取班級教材" }));
+    await waitFor(() => expect(within(classroom).queryByText("Phonics 1")).not.toBeInTheDocument());
+});
+
+test("restores the class list on reload while waiting for current data", async () => {
+    const first = renderHome();
+    await screen.findByRole("region", { name: "E5 班目前學習的教材" });
+    await screen.findByRole("link", { name: "打開這份任務" });
+    await act(async () => {});
+    first.unmount();
+    const snapshots = Object.keys(localStorage).filter(key => key.startsWith("ae-student-pages-v1:")).map(key => [key, localStorage.getItem(key)]);
+    clearStudentPageCache();
+    snapshots.forEach(([key, value]) => localStorage.setItem(key, value));
+    loadStudentCommerceProfile.mockImplementation(() => new Promise(() => {}));
+    renderHome();
+    const classroom = screen.getByRole("region", { name: "E5 班目前學習的教材" });
+    expect(within(classroom).getByRole("link", { name: /Workbook 1/ })).toBeInTheDocument();
+    await act(async () => {});
+    expect(loadStudentCommerceProfile).toHaveBeenCalledTimes(2);
+});
+
+test("does not display another class's delayed response after switching learners", async () => {
+    let finish;
+    loadStudentCommerceProfile.mockImplementationOnce(() => new Promise(resolve => { finish = resolve; }));
+    const view = renderHome();
+    loadStudentCommerceProfile.mockResolvedValue({ profile: {
+        enrollment_status: "active", current_enrollment: { status: "active", academy_classes: { code: "E7" } },
+        class_books: [{ id: 12, name: "Phonics 1" }]
+    } });
+    useAuth.mockReturnValue({ firebaseUser: { uid: "learner-b" }, role: "student", studentProfile: profile(true) });
+    view.rerender(<MemoryRouter><StudentLearningHome /></MemoryRouter>);
+    const classroom = await screen.findByRole("region", { name: "E7 班目前學習的教材" });
+    await act(async () => finish({ profile: { enrollment_status: "active", current_enrollment: { status: "active", academy_classes: { code: "E1" } }, class_books: [{ id: 10, name: "Workbook 1" }] } }));
+    expect(within(classroom).queryByText("Workbook 1")).not.toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: "E1 班目前學習的教材" })).not.toBeInTheDocument();
 });
 
 test("does not turn a partial assignment failure into an all-complete message", async () => {
