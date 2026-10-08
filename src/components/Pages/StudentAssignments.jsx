@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import {
     ArrowRight,
@@ -14,6 +14,7 @@ import {
     Trophy
 } from "lucide-react";
 import { useAuth } from "../../auth/AuthContext";
+import useStudentPageQuery from "../../hooks/useStudentPageQuery";
 import {
     getStudentAssignments,
     getStudentAssignmentsV2,
@@ -25,6 +26,8 @@ import { assignmentStateLabel, getAssignmentState } from "../../utils/studentLea
 import "./css/Assignments.scss";
 import "./css/StudentAssignments.scss";
 import "./css/StudentAssignmentsJourney.scss";
+
+const EMPTY_LIST = [];
 
 const formatDateTime = value => {
     if (!value) return "—";
@@ -173,14 +176,17 @@ const ListeningTrackList = ({ tracks }) => (
 
 const StudentAssignments = () => {
     const { firebaseUser } = useAuth();
-    const [assignments, setAssignments] = useState([]);
-    const [v2Assignments, setV2Assignments] = useState([]);
-    const [today, setToday] = useState("");
+    const assignmentsQuery = useStudentPageQuery("assignments:v1", () => getStudentAssignments(firebaseUser));
+    const v2Query = useStudentPageQuery("assignments:v2", () => getStudentAssignmentsV2(firebaseUser));
+    const assignments = assignmentsQuery.data?.assignments || EMPTY_LIST;
+    const v2Assignments = v2Query.data?.assignments || EMPTY_LIST;
+    const today = assignmentsQuery.data?.today || "";
     const [searchParams] = useSearchParams();
     const requestedTask = searchParams.get("task");
     const [taskFilter, setTaskFilter] = useState("all");
-    const [partialError, setPartialError] = useState(false);
-    const [loading, setLoading] = useState(true);
+    const partialError = Boolean(v2Query.error || assignmentsQuery.error);
+    const incomplete = partialError || assignmentsQuery.loading || v2Query.loading;
+    const loading = assignmentsQuery.loading && v2Query.loading;
     const [message, setMessage] = useState("");
     const [activeAssignment, setActiveAssignment] = useState(null);
     const [answers, setAnswers] = useState([]);
@@ -190,50 +196,18 @@ const StudentAssignments = () => {
     const [v2Answers, setV2Answers] = useState([]);
     const [v2Result, setV2Result] = useState(null);
 
-    const load = useCallback(async ({ silent = false } = {}) => {
-        if (!firebaseUser) return;
-        if (!silent) setLoading(true);
+    const load = () => {
         setMessage("");
-        setPartialError(false);
-        try {
-            const [response, v2Response] = await Promise.all([
-                getStudentAssignments(firebaseUser),
-                typeof getStudentAssignmentsV2 === "function"
-                    ? getStudentAssignmentsV2(firebaseUser).catch(() => { setPartialError(true); return { assignments: [] }; })
-                    : Promise.resolve({ assignments: [] })
-            ]);
-            setAssignments(response.assignments || []);
-            setV2Assignments(v2Response.assignments || []);
-            setToday(response.today || "");
-            setActiveAssignment(current => {
-                if (!current) return current;
-                return (
-                    (response.assignments || []).find(item => item.id === current.id)
-                    || current
-                );
-            });
-        } catch (error) {
-            setMessage(error.message);
-            setAssignments([]);
-            setV2Assignments([]);
-        } finally {
-            if (!silent) setLoading(false);
-        }
-    }, [firebaseUser]);
+        assignmentsQuery.refresh();
+        v2Query.refresh();
+    };
 
     useEffect(() => {
-        load();
-    }, [load]);
-
-    useEffect(() => {
-        const refresh = () => load({ silent: true });
-        window.addEventListener("focus", refresh);
-        window.addEventListener("ae:track-progress-updated", refresh);
-        return () => {
-            window.removeEventListener("focus", refresh);
-            window.removeEventListener("ae:track-progress-updated", refresh);
-        };
-    }, [load]);
+        setActiveAssignment(null);
+        setActiveV2Quiz(null);
+        setResult(null);
+        setV2Result(null);
+    }, [firebaseUser?.uid]);
 
     const counts = useMemo(() => ({
         total: assignments.length + v2Assignments.length,
@@ -292,11 +266,10 @@ const StudentAssignments = () => {
                 answers
             );
             setResult(response);
-            setAssignments(current => current.map(item => (
-                item.id === activeAssignment.id
-                    ? { ...item, progress: response.progress }
-                    : item
-            )));
+            assignmentsQuery.update(current => ({ ...current, assignments: (current.assignments || []).map(item => (
+                item.id === activeAssignment.id ? { ...item, progress: response.progress } : item
+            )) }));
+            assignmentsQuery.refresh();
             setActiveAssignment(current => (
                 current
                     ? { ...current, progress: response.progress }
@@ -326,7 +299,7 @@ const StudentAssignments = () => {
         try {
             const response = await submitAssignmentV2Ai(firebaseUser, activeV2Quiz.assignment.id, activeV2Quiz.activity.id, v2Answers);
             setV2Result(response);
-            setV2Assignments(current => current.map(assignment => assignment.id === activeV2Quiz.assignment.id
+            v2Query.update(current => ({ ...current, assignments: (current.assignments || []).map(assignment => assignment.id === activeV2Quiz.assignment.id
                 ? {
                     ...assignment,
                     activities: assignment.activities.map(activity => activity.id === activeV2Quiz.activity.id
@@ -334,7 +307,8 @@ const StudentAssignments = () => {
                         : activity),
                     progress: { ...assignment.progress, task_completed_count: assignment.activities.filter(activity => activity.id === activeV2Quiz.activity.id ? response.passed : activity.progress?.status === "completed").length }
                 }
-                : assignment));
+                : assignment) }));
+            v2Query.refresh();
         } catch (error) {
             setMessage(error.message);
         } finally {
@@ -363,7 +337,7 @@ const StudentAssignments = () => {
                         </p>
                     </div>
 
-                    {!loading && !message && !partialError && <div
+                    {!loading && !message && !incomplete && <div
                         className="student-homework-progress"
                         role="progressbar"
                         aria-label="已載入作業完成進度"
@@ -387,7 +361,7 @@ const StudentAssignments = () => {
                     </div>}
                 </section>
 
-                {!loading && !message && !partialError && <section className="student-homework-summary" aria-label="作業統計">
+                {!loading && !message && !incomplete && <section className="student-homework-summary" aria-label="作業統計">
                     <div className="student-homework-summary__item pending">
                         <span><Clock3 aria-hidden="true" size={18} />待完成</span>
                         <strong>{counts.pending}</strong>
@@ -404,7 +378,8 @@ const StudentAssignments = () => {
                     </div>
                 </section>}
 
-                {message && <div className="assignment-message" role="alert">{message}<button type="button" onClick={() => load()}>重新讀取</button></div>}
+                {(message || assignmentsQuery.error) && <div className="assignment-message" role="alert">{message || (assignmentsQuery.data ? "目前顯示上次作業，最新資料暫時無法同步。" : assignmentsQuery.error.message)}<button type="button" onClick={() => load()}>重新讀取</button></div>}
+                {(assignmentsQuery.loading || v2Query.loading) && !loading && <p role="status">部分任務仍在讀取中…</p>}
                 {partialError && <div className="assignment-message" role="status">部分任務暫時無法讀取，清單可能不完整。<button type="button" onClick={() => load()}>重新讀取</button></div>}
 
                 <section className="student-homework-tasks">
@@ -412,12 +387,12 @@ const StudentAssignments = () => {
                         <div>
                             <h2>老師的任務</h2>
                         </div>
-                        <span>{partialError ? "已載入 " : ""}{counts.total} 份作業</span>
+                        <span>{incomplete ? "已載入 " : ""}{counts.total} 份作業</span>
                     </div>
 
                     <div className="student-homework-filters" role="group" aria-label="篩選作業狀態">
                         <button type="button" aria-pressed={taskFilter === "all"} onClick={() => setTaskFilter("all")}>全部</button>
-                        {Object.entries(assignmentStateLabel).map(([state, label]) => <button type="button" key={state} aria-pressed={taskFilter === state} onClick={() => setTaskFilter(state)}>{label}{!loading && !message && !partialError ? ` ${filterCounts[state]}` : ""}</button>)}
+                        {Object.entries(assignmentStateLabel).map(([state, label]) => <button type="button" key={state} aria-pressed={taskFilter === state} onClick={() => setTaskFilter(state)}>{label}{!loading && !message && !incomplete ? ` ${filterCounts[state]}` : ""}</button>)}
                     </div>
                     <div className="student-homework-task-list">
                         {loading ? (
@@ -426,7 +401,7 @@ const StudentAssignments = () => {
                                 <strong>正在整理今天的作業</strong>
                                 <p>馬上就好，請稍候一下。</p>
                             </div>
-                        ) : !message && !partialError && visibleAssignments.length === 0 && visibleV2Assignments.length === 0 ? (
+                        ) : !message && !incomplete && visibleAssignments.length === 0 && visibleV2Assignments.length === 0 ? (
                             <div className="student-homework-state empty">
                                 <span className="student-homework-state__icon">
                                     <BookOpenCheck aria-hidden="true" size={30} />

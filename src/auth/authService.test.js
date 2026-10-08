@@ -1,5 +1,6 @@
 import { getMembershipProfile } from "../services/membershipService";
-import { loadStudentProfile, normalizeLoginIdentifier } from "./authService";
+import { clearStudentSession, loadStudentProfile, normalizeLoginIdentifier, saveStudentSession } from "./authService";
+import { clearStudentPageCache, fetchStudentPageCache, readStudentPageCache } from "../services/studentPageCache";
 import { readFileSync } from "fs";
 import { join } from "path";
 
@@ -12,6 +13,19 @@ jest.mock("firebase/auth", () => ({
 jest.mock("../components/Pages/firebase-config", () => ({ authentication: {} }));
 jest.mock("../services/learningActivityService", () => ({ recordLoginActivity: jest.fn() }));
 jest.mock("../services/membershipService", () => ({ getMembershipProfile: jest.fn() }));
+
+test("logout and switching accounts clear the previous account's page cache", async () => {
+    clearStudentPageCache();
+    localStorage.clear();
+    saveStudentSession({ uid: "old-user" }, { id: 1, role: "student" });
+    await fetchStudentPageCache("old-user|student|1", "catalog", () => ({ categories: [1] }));
+    saveStudentSession({ uid: "new-user" }, { id: 2, role: "student" });
+    expect(readStudentPageCache("old-user|student|1", "catalog")).toBeNull();
+    await fetchStudentPageCache("new-user|student|1", "catalog", () => ({ categories: [2] }));
+    clearStudentSession();
+    expect(readStudentPageCache("new-user|student|1", "catalog")).toBeNull();
+    expect(localStorage.getItem("ae-useruid")).toBeNull();
+});
 
 describe("loadStudentProfile", () => {
     beforeEach(() => {

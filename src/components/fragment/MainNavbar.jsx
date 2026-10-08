@@ -11,6 +11,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { FiAward, FiBarChart2, FiBell, FiBookOpen, FiCreditCard, FiGift, FiHelpCircle, FiHome, FiLink, FiLock, FiLogOut, FiMic, FiRefreshCw, FiSettings, FiStar, FiTrendingUp, FiUpload, FiUsers, FiZap } from "react-icons/fi";
 import { HiOutlineBars3 } from "react-icons/hi2";
 import Brand from "./Brand";
+import useStudentPageQuery from "../../hooks/useStudentPageQuery";
 import { useAuth } from "../../auth/AuthContext";
 import { getRoleHome } from "../../auth/RoleHomeRedirect";
 import { getAccessibleCatalog } from "../../services/contentAccessService";
@@ -18,7 +19,7 @@ import { getGamificationSummary } from "../../services/gamificationService";
 import { getStudentNotifications, markStudentNotificationRead } from "../../services/membershipService";
 import { hasAiPremiumAccess } from "../../constants/membershipPlans";
 import { cacheStudentAvatarDisplayUrl } from "../../constants/studentAvatarCache";
-import { readAppShellCache, readAppShellCacheEntry, scheduleWhenIdle, writeAppShellCache } from "../../services/appShellCache";
+import { readAppShellCache, scheduleWhenIdle, writeAppShellCache } from "../../services/appShellCache";
 import StudentNavbar from "./StudentNavbar";
 import MaterialsNavigator from "./MaterialsNavigator";
 import { sendSocialHeartbeat } from "../../services/studentSocialService";
@@ -62,18 +63,20 @@ const isListeningCategory = category => (
     || String(category?.name || "").trim() === "聽力本"
 );
 
+const EMPTY_LIST = [];
+
 function MainNavbar() {
     const [scrolled, setScrolled] = useState(false);
-    const [categories, setCategories] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [navError, setNavError] = useState(null);
+
+
+
     const [loggingOut, setLoggingOut] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
     const [desktopMaterialsOpen, setDesktopMaterialsOpen] = useState(false);
     const [materialsResetToken, setMaterialsResetToken] = useState(0);
     const mobileBodyRef = useRef(null);
     const pendingMobileNavigationRef = useRef("");
-    const [gamificationSummary, setGamificationSummary] = useState(null);
+
     const [notifications, setNotifications] = useState([]);
     const navigate = useNavigate();
     const location = useLocation();
@@ -81,6 +84,12 @@ function MainNavbar() {
     const isTeacher = role === "teacher" || role === "admin";
     const isAdmin = role === "admin";
     const isStudent = role === "student";
+    const catalogQuery = useStudentPageQuery("catalog", () => getAccessibleCatalog(firebaseUser), { enabled: Boolean(firebaseUser) });
+    const summaryQuery = useStudentPageQuery("summary", () => getGamificationSummary(firebaseUser), { enabled: Boolean(firebaseUser && isStudent) });
+    const categories = catalogQuery.data?.categories || EMPTY_LIST;
+    const loading = catalogQuery.loading;
+    const navError = catalogQuery.error?.message;
+    const gamificationSummary = summaryQuery.data;
     const effectiveAccess = studentProfile?.membership?.effective_access;
     const hasActiveStudentMembership = isStudent && studentProfile?.membership?.is_active === true;
     const hasActiveAcademyAccess = isStudent
@@ -198,48 +207,13 @@ function MainNavbar() {
     useEffect(() => () => restoreDocumentScroll(), []);
 
     useEffect(() => {
-        if (!firebaseUser || !isStudent) {
-            setGamificationSummary(null);
-            return undefined;
+        if (gamificationSummary?.profile?.avatar_url && firebaseUser?.uid) {
+            cacheStudentAvatarDisplayUrl(gamificationSummary.profile.avatar_url, {
+                ownerUid: firebaseUser.uid,
+                sourceKey: studentProfile?.user_image || studentProfile?.userimage
+            });
         }
-        let cancelled = false;
-        const cacheEntry = readAppShellCacheEntry(firebaseUser.uid, "gamification", {
-            freshForMs: 5 * 60 * 1000,
-            keepForMs: 24 * 60 * 60 * 1000
-        });
-        const cachedSummary = cacheEntry?.value;
-        if (cachedSummary) setGamificationSummary(cachedSummary);
-        const refreshGamification = () => {
-            getGamificationSummary(firebaseUser)
-                .then(result => {
-                    if (!cancelled) {
-                        const summary = result || null;
-                        cacheStudentAvatarDisplayUrl(summary?.profile?.avatar_url, {
-                            ownerUid: firebaseUser.uid,
-                            sourceKey: studentProfile?.user_image || studentProfile?.userimage
-                        });
-                        setGamificationSummary(summary);
-                        writeAppShellCache(firebaseUser.uid, "gamification", summary);
-                    }
-                })
-                .catch(() => {
-                    if (!cancelled) setGamificationSummary(null);
-                });
-        };
-        const cancelIdleRefresh = cachedSummary && !cacheEntry.isStale
-            ? scheduleWhenIdle(refreshGamification)
-            : (() => {
-                refreshGamification();
-                return () => { };
-            })();
-        window.addEventListener("ae:gamification-updated", refreshGamification);
-        return () => {
-            cancelled = true;
-            cancelIdleRefresh();
-            window.removeEventListener("ae:gamification-updated", refreshGamification);
-        };
-    }, [firebaseUser, isStudent, studentProfile?.user_image, studentProfile?.userimage]);
-
+    }, [gamificationSummary, firebaseUser?.uid, studentProfile?.user_image, studentProfile?.userimage]);
     useEffect(() => {
         if (!firebaseUser || !isStudent) {
             setNotifications([]);
@@ -272,51 +246,6 @@ function MainNavbar() {
             cancelIdleRefresh();
         };
     }, [firebaseUser, isStudent]);
-
-    useEffect(() => {
-        if (!firebaseUser) {
-            setCategories([]);
-            setLoading(false);
-            return undefined;
-        }
-        let cancelled = false;
-        const cacheEntry = readAppShellCacheEntry(firebaseUser.uid, "catalog", {
-            freshForMs: 10 * 60 * 1000,
-            keepForMs: 30 * 60 * 1000
-        });
-        const cachedCategories = cacheEntry?.value;
-        if (cachedCategories) {
-            setCategories(cachedCategories);
-            setLoading(false);
-        }
-        const fetchNavbarData = async () => {
-            try {
-                if (!cachedCategories) setLoading(true);
-                setNavError(null);
-                const result = await getAccessibleCatalog(firebaseUser);
-                if (!cancelled) {
-                    const nextCategories = result?.categories || [];
-                    setCategories(nextCategories);
-                    writeAppShellCache(firebaseUser.uid, "catalog", nextCategories);
-                }
-            } catch (error) {
-                console.error("MainNavbar 載入失敗:", error);
-                if (!cancelled) setNavError(error?.message || "教材載入失敗");
-            } finally {
-                if (!cancelled) setLoading(false);
-            }
-        };
-        const cancelIdleRefresh = cachedCategories && !cacheEntry.isStale
-            ? scheduleWhenIdle(fetchNavbarData)
-            : (() => {
-                fetchNavbarData();
-                return () => { };
-            })();
-        return () => {
-            cancelled = true;
-            cancelIdleRefresh();
-        };
-    }, [firebaseUser]);
 
     const closeMobileMenu = () => setMobileOpen(false);
     const handleMobileMenuNavigation = event => {

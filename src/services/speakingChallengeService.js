@@ -1,8 +1,11 @@
 import { callEdgeFunction } from "./edgeFunctionClient";
+import { invalidateStudentPageCache } from "./studentPageCache";
 
-const callChallenge = (firebaseUser, action, payload = {}) => (
-    callEdgeFunction("speaking-challenge", firebaseUser, { action, ...payload })
-);
+const callChallenge = async (firebaseUser, action, payload = {}) => {
+    const result = await callEdgeFunction("speaking-challenge", firebaseUser, { action, ...payload });
+    if (["complete_question", "complete_alphabet_intro_listen"].includes(action)) invalidateStudentPageCache(firebaseUser?.uid);
+    return result;
+};
 
 export const getSpeakingChallengeCatalog = firebaseUser => callChallenge(firebaseUser, "catalog");
 export const getSpeakingAlphabetCostUsage = firebaseUser => callChallenge(firebaseUser, "alphabet_cost_usage");

@@ -32,10 +32,12 @@ const callListeningFunction = async (
         .catch(() => ({}));
 
     if (!response.ok) {
-        throw new Error(
+        const error = new Error(
             result?.error ||
             `${functionName} 執行失敗`
         );
+        error.status = response.status;
+        throw error;
     }
 
     return result;
