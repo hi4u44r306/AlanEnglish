@@ -2,6 +2,13 @@
 
 最後更新：2026-10-08
 
+### 六冊口說道路接縫修補（2026-10-08，本機完成／待發布）
+
+- 基準 main df03c1ad，分支 codex/speaking-road-seams；沿用乾淨副本 output/speaking-70-release-status，保留原目錄未提交草稿。原十二張完整地圖保留，新增十二張局部 WebP 修補圖（合計 2,014,678 bytes），每冊只需自己的兩張，重複接縫復用網址與快取；附近才掛載圖片、失敗保留重試。
+- 道路與兩側場景的折角／重影／矩形痕跡經 imagegen 局部修補；500×世界高度比例、80 單位圓牌維持，接縫附近中心線與安全範圍依修補結果校準。沒有後端、資料庫、題庫、登入、學習進度或獎勵修改。
+- 三個 targeted suites／38 tests、六檔 ESLint 與 diff check 通過；十二種接法合成前後對照及完整寬景已檢查。實際 JSX／SCSS 隔離頁成功編譯並可由本機 HTTP 讀取；Browser Use 因 saved browser permissions could not be verified 阻擋，未使用其他瀏覽器或間接方法繞過。桌面／412px 按現行比例检查，正式登入及 iPhone 待驗。採 Cloudflare 唯一 production build，不重複本機完整 build 或全套測試。
+- 對照、提示詞與 raw PNG 位於 output/map-seam-repair-20261008；正式可引用素材已保存到 src/components/assets/speaking-map。發布紀錄、範圍與回復方式見 docs/SPEAKING_MAP_JOIN_REPAIR.md。
+
 ### 學生切頁與刷新快取（2026-10-08，已部署／實機待驗）
 
 - 基準 main 8ce801c3，分支 codex/student-page-cache；使用既有乾淨副本 output/speaking-70-release-status，保留原工作目錄未提交草稿，不新增 worktree。這批只改前端顯示資料與失效通知，無 migration、Function、Secret 或權限規則調整。

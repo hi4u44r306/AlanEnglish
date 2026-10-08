@@ -30,7 +30,7 @@
   .speaking-scene-layer, .speaking-continuous-road { position: absolute; inset: 0; width: 100%; height: 100%; }
   .speaking-scene-layer { z-index: 0; }
   .speaking-continuous-road { z-index: 1; pointer-events: none; }
-  .speaking-scene-tile {
+  .speaking-scene-tile, .speaking-scene-join {
     position: absolute;
     left: 0;
     width: 100%;

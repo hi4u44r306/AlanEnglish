@@ -8,9 +8,11 @@ import pilotMeadow from "../assets/speaking-map/pilot-meadow-v6.webp";
 import pilotForest from "../assets/speaking-map/pilot-forest-v6.webp";
 import { CARTOON_ASSETS, CARTOON_SIDE_ASSETS } from "./speakingCartoonAssets";
 import { UNIFIED_MAP_ASSETS } from "./speakingUnifiedAssets";
+import { SPEAKING_MAP_JOIN_ASSETS } from "./speakingMapJoinAssets";
+import { SPEAKING_JOIN_FEATHER } from "../../utils/speakingMapJoins";
 
 const SCENES = { meadow, forest, snow, volcano, pilotMeadow, pilotForest, ...CARTOON_ASSETS,
-    ...UNIFIED_MAP_ASSETS };
+    ...UNIFIED_MAP_ASSETS, ...SPEAKING_MAP_JOIN_ASSETS };
 
 function terrainMask(cut, overlap) {
     if (!cut) return undefined;
@@ -25,7 +27,9 @@ function SceneTile({ scene, route, eager, scenery = false }) {
     const [nearby, setNearby] = useState(eager);
     const [failed, setFailed] = useState(false);
     const [attempt, setAttempt] = useState(0);
-    const seamMask = useMemo(() => terrainMask(scene.seamCut, scene.overlap), [scene.seamCut, scene.overlap]);
+    const seamMask = useMemo(() => scene.isJoin
+        ? `linear-gradient(transparent, #000 ${SPEAKING_JOIN_FEATHER / scene.height * 100}%, #000 ${100 - SPEAKING_JOIN_FEATHER / scene.height * 100}%, transparent)`
+        : terrainMask(scene.seamCut, scene.overlap), [scene.isJoin, scene.height, scene.seamCut, scene.overlap]);
     useEffect(() => {
         if (nearby) return;
         if (typeof IntersectionObserver === "undefined") { setNearby(true); return; }
@@ -35,10 +39,10 @@ function SceneTile({ scene, route, eager, scenery = false }) {
         observer.observe(container.current);
         return () => observer.disconnect();
     }, [nearby]);
-    return <div ref={container} className={`speaking-scene-tile ${scenery ? "is-side-scenery" : ""} is-${scene.biome} ${scene.first ? "is-first" : ""} ${scene.last ? "is-last" : ""}`}
-        data-scene-index={scenery ? undefined : scene.index} style={{ "--scene-overlap": `${(scene.fadeOverlap ?? scene.overlap ?? SPEAKING_SCENE_OVERLAP) / scene.height * 100}%`, top: `${scene.top / route.height * 100}%`, height: `${scene.height / route.height * 100}%`,
+    return <div ref={container} className={`${scene.isJoin ? "speaking-scene-join" : "speaking-scene-tile"} ${scenery ? "is-side-scenery" : ""} is-${scene.biome} ${scene.first ? "is-first" : ""} ${scene.last ? "is-last" : ""}`}
+        data-scene-index={scenery || scene.isJoin ? undefined : scene.index} data-join-index={scene.isJoin ? scene.index : undefined} style={{ "--scene-overlap": `${(scene.fadeOverlap ?? scene.overlap ?? SPEAKING_SCENE_OVERLAP) / scene.height * 100}%`, top: `${scene.top / route.height * 100}%`, height: `${scene.height / route.height * 100}%`,
             maskImage: seamMask, WebkitMaskImage: seamMask, maskSize: "100% 100%", WebkitMaskSize: "100% 100%" }}>
-        {nearby && !failed && <img key={attempt} src={scenery ? CARTOON_SIDE_ASSETS[scene.biome] : SCENES[scene.asset]} alt="" width={scenery || scene.unified ? "1536" : "887"} height={scenery || scene.unified ? "1024" : "1774"} decoding="async" loading={eager ? "eager" : "lazy"} onError={() => setFailed(true)} />}
+        {nearby && !failed && <img key={attempt} src={scenery ? CARTOON_SIDE_ASSETS[scene.biome] : SCENES[scene.asset]} alt="" width={scene.isJoin ? "1500" : scenery || scene.unified ? "1536" : "887"} height={scene.isJoin ? "500" : scenery || scene.unified ? "1024" : "1774"} decoding="async" loading={eager ? "eager" : "lazy"} onError={() => setFailed(true)} />}
         {failed && !scenery && <button className="speaking-scene-retry" type="button" onClick={() => { setFailed(false); setAttempt(value => value + 1); }}>重試載入場景</button>}
     </div>;
 }
@@ -90,6 +94,8 @@ export default function SegmentedSpeakingMap({ route, initialLevelIndex = 0, chi
         {route.isCartoon && !route.isUnifiedMap && <WideScenery route={route} initialY={initialY} />}
         {route.isUnifiedMap && <div className="speaking-unified-scene-layer">
             {route.scenes.map(scene => <SceneTile key={scene.id} scene={scene} route={route}
+                eager={scene.top < initialY + 700 && scene.top + scene.height > initialY - 700} />)}
+            {(route.joins ?? []).map(scene => <SceneTile key={scene.id} scene={scene} route={route}
                 eager={scene.top < initialY + 700 && scene.top + scene.height > initialY - 700} />)}
         </div>}
         <div className="speaking-map-canvas speaking-segmented-canvas" style={{ "--map-aspect-ratio": route.aspectRatio, "--map-scene-background": route.theme?.ground,

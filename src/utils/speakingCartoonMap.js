@@ -1,6 +1,7 @@
 import traces from "./speakingCartoonTraces.json";
 import unifiedTraces from "./speakingUnifiedTraces.json";
 import unifiedSeams from "./speakingUnifiedSeams.json";
+import { buildSpeakingMapJoins, repairSpeakingMapPoints } from "./speakingMapJoins";
 
 // Traces follow the final painted assets; no visible SVG road is added.
 export const CARTOON_WIDTH = 500;
@@ -117,7 +118,9 @@ export function buildCartoonSpeakingRoute(bookId, lessons = [], { unified = true
     }
     // Place markers over the entire journey, not a subset of four slots per tile.
     // Clearance is sampled on the final visible road, including the terrain joins.
-    const available = points.filter(p => p.safe && p.y <= height - 320 && p.y >= 175);
+    const joins = isUnifiedMap ? buildSpeakingMapJoins(scenes) : [];
+    const roadPoints = isUnifiedMap ? repairSpeakingMapPoints(points, joins) : points;
+    const available = roadPoints.filter(p => p.safe && p.y <= height - 320 && p.y >= 175);
     const distributed = distributeAlongRoad(available, count);
     const nodes = lessons.map((lesson, i) => {
         const slotIndex = count <= 1 ? 0 : Math.round(i * (slots.length - 1) / (count - 1));
@@ -128,6 +131,7 @@ export function buildCartoonSpeakingRoute(bookId, lessons = [], { unified = true
     });
     return { bookId, theme, width: CARTOON_WIDTH, height, aspectRatio: CARTOON_WIDTH + " / " + height,
         roadWidth: CARTOON_ROAD_WIDTH, markerDiameter: CARTOON_ROAD_WIDTH * 2 / 3,
-        isCartoon: true, isUnifiedMap, paintedRoad: true, scenes, nodes, length: distance, bridge: null, startsAtBottom: true,
-        path: points.map((p, i) => (i ? "L" : "M") + p.x.toFixed(3) + "," + p.y.toFixed(3)).join(" ") };
+        isCartoon: true, isUnifiedMap, paintedRoad: true, scenes, joins, nodes,
+        length: roadPoints[roadPoints.length - 1]?.distance ?? distance, bridge: null, startsAtBottom: true,
+        path: roadPoints.map((p, i) => (i ? "L" : "M") + p.x.toFixed(3) + "," + p.y.toFixed(3)).join(" ") };
 }

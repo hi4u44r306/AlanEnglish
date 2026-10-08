@@ -58,7 +58,7 @@ describe("segmented scene loading", () => {
         expect(container.querySelector(".speaking-map-side-scenery")).toBeNull();
         expect(container.querySelector(".speaking-scene-layer")).toBeNull();
         const layer = container.querySelector(".speaking-unified-scene-layer");
-        expect(layer.querySelectorAll("img").length).toBeLessThan(4);
+        expect(layer.querySelectorAll("img").length).toBeLessThan(8);
         const image = layer.querySelector("img");
         expect(image).toHaveAttribute("width", "1536");
         fireEvent.error(image);
@@ -74,8 +74,25 @@ describe("segmented scene loading", () => {
         expect(container.querySelector('.speaking-map-centerline')).toHaveAttribute('stroke', 'none');
         expect(container.querySelector('.speaking-continuous-road__surface')).toBeNull();
         expect(container.querySelectorAll('.speaking-scene-tile')).toHaveLength(13);
-        expect(container.querySelectorAll('img').length).toBeLessThan(4);
-        expect(container.querySelectorAll('.is-sky')).toHaveLength(13);
+        expect(container.querySelectorAll('.speaking-scene-tile img').length).toBeLessThan(4);
+        expect(container.querySelectorAll('.speaking-scene-tile.is-sky')).toHaveLength(13);
+    });
+
+    test("repair images load near the current level and retry without replacing the base scenery", () => {
+        const cartoon = buildCartoonSpeakingRoute("book-6", Array.from({ length: 50 }, (_, id) => ({ id })));
+        const { container } = render(<SegmentedSpeakingMap route={cartoon} />);
+        const originalImages = container.querySelectorAll(".speaking-scene-tile img").length;
+        expect(container.querySelectorAll(".speaking-scene-join")).toHaveLength(12);
+        expect(container.querySelector('[data-join-index="1"] img')).toBeNull();
+        const near = container.querySelector('[data-join-index="12"]');
+        const image = near.querySelector("img");
+        expect(image).toHaveAttribute("height", "500");
+        expect(near.style.maskImage).toContain("12%");
+        fireEvent.error(image);
+        expect(container.querySelectorAll(".speaking-scene-tile img")).toHaveLength(originalImages);
+        fireEvent.click(screen.getByRole("button", { name: "重試載入場景" }));
+        expect(near.querySelector("img")).toBeInTheDocument();
+        expect(container.querySelector(".speaking-map-centerline")).toHaveAttribute("stroke", "none");
     });
 
     test("painted pilot keeps the invisible centerline without a second visible road or bridge", () => {
