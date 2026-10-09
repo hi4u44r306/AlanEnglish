@@ -57,3 +57,10 @@ test('manual review is saved per user and month without converting unknown costs
         expect(JSON.parse(localStorage.getItem('ae-cost-review-v1:admin:2026-10')).supabase).toMatchObject(review);
     } finally { jest.useRealTimers(); }
 });
+
+test('snapshot ranges use Taiwan time and do not claim to be the supplier billing cycle', () => {
+    const providers = [provider('azure', { period_start: '2026-09-30T16:00:00Z', period_end: '2026-10-09T08:00:00Z' })];
+    render(<CostOverview providers={providers} scale={calculateScaleCosts(providers, { active_students: 1 }, '2026-10', {}, now)} month="2026-10" rate={33} userId="admin" />);
+    expect(screen.getByText(/資料範圍（台灣時間）/)).toHaveTextContent('2026/10/1');
+    expect(screen.queryByText(/帳期：/)).not.toBeInTheDocument();
+});
