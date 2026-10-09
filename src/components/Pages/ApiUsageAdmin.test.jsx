@@ -38,16 +38,17 @@ describe("ApiUsageAdmin", () => {
         render(<ApiUsageAdmin />);
         expect(await screen.findByRole("heading", { name: "網站成本與服務用量" })).toBeInTheDocument();
         expect(await screen.findByRole("progressbar", { name: "本月網站預算使用率" })).toHaveAttribute("aria-valuenow", "13");
-        expect(screen.getByText("帳務資料缺口")).toBeInTheDocument();
+        expect(screen.getByText("2 項服務")).toBeInTheDocument();
         expect(screen.queryByText("月底費用可能超標")).not.toBeInTheDocument();
-        expect(screen.getAllByText("OpenAI · AI 教材")).toHaveLength(2);
-        expect(screen.getAllByText("Supabase")).toHaveLength(2);
+        const ledger = within(screen.getByRole('table', { name: '逐項成本總覽' }));
+        expect(ledger.getByText("OpenAI · AI 教材")).toBeInTheDocument();
+        expect(ledger.getByText("Supabase")).toBeInTheDocument();
         expect(screen.getAllByText("需補資料").length).toBeGreaterThan(0);
     });
 
     it("filters providers and saves the budget", async () => {
         render(<ApiUsageAdmin />);
-        await screen.findByRole('heading', { name: '依目前人數估算每月成本' });
+        await screen.findByRole('heading', { name: '每項服務，現在花多少？' });
         fireEvent.click(screen.getByRole("button", { name: "需補資料" }));
         const serviceCards = within(document.querySelector('.api-provider-grid'));
         expect(serviceCards.queryByText("OpenAI · AI 教材")).not.toBeInTheDocument();
@@ -70,13 +71,13 @@ describe("ApiUsageAdmin", () => {
         getServiceCostDashboard.mockRejectedValueOnce(new Error('帳務資料讀取失敗'));
         render(<ApiUsageAdmin />);
         expect(await screen.findByRole('alert')).toHaveTextContent('尚無可用成本資料');
-        expect(screen.queryByText('本月已知成本合計')).not.toBeInTheDocument();
+        expect(screen.queryByText('目前已花費（已取得部分）')).not.toBeInTheDocument();
     });
 
     it('discards a previous month response that arrives after a month switch',async()=>{
         let finishOld;getServiceCostDashboard.mockImplementationOnce(()=>new Promise(resolve=>{finishOld=resolve;}));
         render(<ApiUsageAdmin />);fireEvent.change(screen.getByLabelText('查詢月份'),{target:{value:'2026-09'}});
-        await screen.findByText('本月已知成本合計');
+        await screen.findByText('目前已花費（已取得部分）');
         finishOld({...dashboard,summary:{...dashboard.summary,total_cost_usd:999}});
         await waitFor(()=>expect(getServiceCostDashboard).toHaveBeenCalledTimes(2));
         expect(screen.queryByText('999.00')).not.toBeInTheDocument();

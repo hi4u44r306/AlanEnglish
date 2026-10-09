@@ -93,7 +93,35 @@
 .api-provider-facts span { padding: 5px 8px; border-radius: 8px; color: #344054; background: #f1f4f8; font-size: 11px; }
 @keyframes api-spin { to { transform: rotate(360deg); } }
 .api-scale { margin: 18px 0; }
+.api-cost-overview > h2 { margin: 0; font-size: 24px; color: #13264b; }
+.api-cost-overview > p { max-width: 75ch; }
+.api-alert-cost-basis { display: grid; gap: 6px; padding: 16px 20px; margin: 16px 0; border-left: 4px solid #2f6fed; background: #edf4ff; font-size: 14px; line-height: 1.6; }
+.api-scale-assumptions { margin-top: 22px; }
+.api-scale-assumptions > summary, .api-review-editor > summary { min-height: 44px; padding: 12px 0; cursor: pointer; font-weight: 700; color: #175cd3; }
+.api-scale-assumptions > .platform-section-title { margin-top: 20px; }
+.api-cost-ledger { margin-top: 20px; border-top: 2px solid #13264b; }
+.api-cost-ledger-head, .api-cost-ledger-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, .9fr) minmax(0, .9fr) minmax(0, 1.4fr); gap: 18px; padding: 18px 10px; border-bottom: 1px solid #dce5ef; }
+.api-cost-ledger-head { background: #f3f6fb; font-weight: 700; color: #13264b; font-size: 14px; }
+.api-cost-ledger-row > div { display: flex; flex-direction: column; gap: 7px; min-width: 0; overflow-wrap: anywhere; }
+.api-cost-ledger-row strong { color: #13264b; font-size: 16px; font-variant-numeric: tabular-nums; }
+.api-cost-ledger-row.is-excluded { opacity: .7; }
+.api-cost-status { align-self: start; border: 1px solid #c7d3e5; border-radius: 6px; padding: 4px 8px; font-size: 12px; color: #475467; }
+.api-cost-status.is-free { border-color: #75e0a7; color: #067647; background: #f0fdf4; }
+.api-review-editor form { display: grid; gap: 10px; }
+.api-review-editor label { display: grid; gap: 6px; font-size: 12px; }
+.api-review-editor input, .api-review-editor select, .api-review-editor textarea { box-sizing: border-box; width: 100%; min-width: 0; min-height: 44px; padding: 8px; border: 1px solid #b9c8da; border-radius: 8px; background: #fff; font: inherit; }
+.api-review-editor textarea { min-height: 110px; resize: vertical; }
+.api-service-amount { display: grid; gap: 3px; text-align: right; }
+.api-ledger-mobile-label { display: none; }
+.api-cost-overview :is(button, summary, input, select, textarea):focus-visible { outline: 3px solid #2f6fed; outline-offset: 3px; }
+@media (max-width: 800px) {
+    .api-cost-ledger-head { display: none; }
+    .api-cost-ledger-row { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; padding: 20px 0; }
+    .api-cost-ledger-row > div:first-child, .api-cost-ledger-row > div:last-child { grid-column: 1 / -1; }
+    .api-ledger-mobile-label { display: block; color: #667085; font-size: 12px; }
+}
 .api-scale p, .api-scale small { color: #667085; line-height: 1.65; overflow-wrap: anywhere; }
+.api-scale .api-overview-primary small { color: #e0eaff; }
 .api-scale-total { display: grid; gap: 6px; margin-top: 16px; padding: 18px; border-radius: 15px; color: #163e79; background: #edf4ff; }
 .api-scale-total strong { font-size: 26px; overflow-wrap: anywhere; }
 .api-scale-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 18px; }

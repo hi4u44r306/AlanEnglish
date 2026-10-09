@@ -36,6 +36,7 @@ test('shared generation extrapolates only current month and never multiplies a s
 test('edits update itemized totals and react to refreshed counts; restore uses provider defaults', () => {
     const props = { providers: [provider('supabase')], population, month: '2026-10', rate: 32, userId: 'admin' };
     const { rerender } = render(<CostScalePanel {...props} />);
+    fireEvent.click(screen.getByText('調整每人用量與月底預算假設'));
     fireEvent.change(screen.getByLabelText('supabase 固定／共用月費'), { target: { value: '25' } });
     fireEvent.change(screen.getByLabelText('supabase 每人每月用量費'), { target: { value: '0.5' } });
     expect(screen.getByText('US$ 45.00／月')).toBeInTheDocument();
@@ -48,5 +49,6 @@ test('edits update itemized totals and react to refreshed counts; restore uses p
 test('an unavailable population shows a warning and corrupt saved assumptions are ignored', () => {
     localStorage.setItem('ae-cost-scale-v1:admin:2026-10', 'corrupt');
     render(<CostScalePanel providers={[provider('supabase')]} month="2026-10" rate={32} userId="admin" />);
+    fireEvent.click(screen.getByText('調整每人用量與月底預算假設'));
     expect(screen.getByRole('alert')).toHaveTextContent('不當成 0 人');
 });
