@@ -15,7 +15,7 @@ it("shows exact server values in details and only eligible students get the rewa
     expect(within(modal).getByText("距離下一級還差 140 XP。")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "關閉詳情" }));
     fireEvent.click(screen.getByRole("button", { name: /查看點數詳情/ }));
-    expect(screen.getByText("1,280 AE Points")).toBeInTheDocument();
+    expect(screen.getByLabelText("1,280 AE Points")).toHaveTextContent("1,280AE Points");
     expect(screen.getByRole("link", { name: "查看獎品與兌換紀錄" })).toHaveAttribute("href", "/student/rewards");
     view.rerender(<MemoryRouter><StudentGrowthHeader summary={{ balance }} pointsAccess={false} /></MemoryRouter>);
     expect(screen.queryByRole("link", { name: "查看獎品與兌換紀錄" })).not.toBeInTheDocument();
@@ -41,7 +41,7 @@ it("replaces top and detailed values when the shared summary updates, with full 
     view.rerender(<MemoryRouter><StudentGrowthHeader summary={{ balance: { ...balance, level: 13, points_balance: 123456789 } }} /></MemoryRouter>);
     expect(screen.getByText("Lv.13")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /123,456,789 點/ }));
-    expect(screen.getByText("123,456,789 AE Points")).toBeInTheDocument();
+    expect(screen.getByLabelText("123,456,789 AE Points")).toHaveTextContent("123,456,789AE Points");
 });
 
 it("hides stale, failed, disabled and expired birthday confirmation including a Taipei midnight transition", () => {

@@ -3,6 +3,13 @@
 最後更新：2026-10-09
 
 
+### 學生成長資訊列與詳情視覺優化（2026-10-09，已驗證／待發布）
+
+- 使用者要求改善頂部成長列與點開詳情的設計。基準main `d4fc9623`，分支`codex/student-growth-header-polish`，沿用目前工作目錄。範圍僅StudentGrowthHeader／SCSS、StudentNavbar傳入原有頭貼及兩套局部測試與文件。頂部統一淡灰藍圓角、細分隔、小字級；成長詳情使用本人原有頭貼／等級／本級進度，點數詳情用淡黃餘額、兌換說明與主按鈕；手機底部面板、電腦／平板置中卡片，右上44px關閉按鈕。
+- 原summary快取、發獎更新、生日日期核對、missing／error／retry、UID隔離、pointsAccess與路由操作維持；未改後端、資料或權限。大數字仍頂部簡寫、詳情完整，四位數加入千分位。手冊v3.80同步。可revert本批前端回復，不影響學習／點數資料。
+- 兩套39項相關測試與JSX ESLint通過；真實元件12種寬度、詳情／側欄、Escape／背景鎖定、大數字及568×320橫向通過，無pageerror。首次截圖發現詳情關閉按鈕未靠右與示範頭貼缺WebP縮圖；已修正關閉按鈕樣式及補齊隔離素材，12種寬度與成長／點數截圖補驗通過，頭貼載入、詳情44px關閉按鈕靠右與畫面範圍核對通過。正式登入／iPhone Safari實機待驗；本機不跑無關全套或production build，發布由Cloudflare main唯一建置。
+
+
 ### 學生頂部成長資訊列發布（2026-10-09，已部署／實機待驗）
 
 - 使用者核准修訂預覽並要求正式發布。基準main `204c0353`，既有規劃分支轉為`codex/student-growth-header`，未新增worktree。範圍為MainNavbar／StudentNavbar、新StudentGrowthHeader／SCSS與局部測試；學生使用彩色AE、14～15px數字、綠色XP、淡黃點數、單列頂部。1279px以下延伸既有緊湊導覽與播放器避讓，保留通知與選單；固定shell預留safe area及邊線高度。
