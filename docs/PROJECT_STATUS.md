@@ -6,7 +6,8 @@
 ### 學生頂部等級與點數（2026-10-09，設計提案／尚未實作）
 
 - 基準 main `204c0353`；規劃分支 `codex/student-growth-header-plan`。依使用者修訂並確認彩色AE `public/ae-icon.jpeg`，品牌只留小圖示；電腦、手機和平板的Lv、XP條／升級距離、AE Points及有效生日月倍率全部同列放入最頂端Header。緊湊模式暫定1279px上限（現況1100px），待確認；底部學習導覽保留。
-- 只新增設計文件 `docs/STUDENT_GROWTH_HEADER_PLAN.md` 與獨立示意 `output/student-growth-header/index.html`，未修改src、後端、會員或網站。四張1440／1024／768／412圖已查看；11種320～1440寬度無頁面水平溢位，固定頂部、同列Header、彩色AE原圖載入、至少44px主要點按區、詳情／Escape／捲動鎖定／尺寸切換與無pageerror通過。示範資料不代表正式帳號；正式網站、錄音／播放器／Sidebar整合、兌換更新、大數字、iPhone Safari及safe area待實作與驗收。規劃不涉及應用執行，未跑無關全套測試或build，未部署。手機示意Header66px，相較上一版雙列省約55px；尚未改網站。下一步是確認修訂版位方向。
+- 只新增設計文件 `docs/STUDENT_GROWTH_HEADER_PLAN.md` 與獨立示意 `output/student-growth-header/index.html`，未修改src、後端、會員或網站。四張1440／1024／768／412圖已查看；11種320～1440寬度無頁面水平溢位，固定頂部、同列Header、彩色AE原圖載入、至少44px主要點按區、詳情／Escape／捲動鎖定／尺寸切換與無pageerror通過。示範資料不代表正式帳號；正式網站、錄音／播放器／Sidebar整合、兌換更新、大數字、iPhone Safari及safe area待實作與驗收。規劃不涉及應用執行，未跑無關全套測試或build，未部署。手機示意Header68px，相較上一版雙列省約53px；尚未改網站。下一步是確認修訂版位方向。
+- 配色修訂：核對公開首頁、管理員後台、學生導覽／首頁及既有成長卡後，Header採白／淺灰藍與深藍文字，XP沿用`#247a56`綠色，點數沿用`#fff6d7`淡黃底／細邊線；保留彩色AE小圖，移除原提案的大面積深藍成長底框。數字縮至14～15px、XP條4px；新版11種寬度、詳情互動及四張截圖核對通過。僅更新預覽與規劃，未更動網站；未跑不相關的應用測試或build。
 
 
 ### 目前人數逐項月費估算（2026-10-09，已部署／登入實機待驗）
