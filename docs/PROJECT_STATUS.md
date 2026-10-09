@@ -3,11 +3,12 @@
 最後更新：2026-10-09
 
 
-### 學生成長資訊列與詳情視覺優化（2026-10-09，已驗證／待發布）
+### 學生成長資訊列與詳情視覺優化（2026-10-09，已部署／實機待驗）
 
 - 使用者要求改善頂部成長列與點開詳情的設計。基準main `d4fc9623`，分支`codex/student-growth-header-polish`，沿用目前工作目錄。範圍僅StudentGrowthHeader／SCSS、StudentNavbar傳入原有頭貼及兩套局部測試與文件。頂部統一淡灰藍圓角、細分隔、小字級；成長詳情使用本人原有頭貼／等級／本級進度，點數詳情用淡黃餘額、兌換說明與主按鈕；手機底部面板、電腦／平板置中卡片，右上44px關閉按鈕。
 - 原summary快取、發獎更新、生日日期核對、missing／error／retry、UID隔離、pointsAccess與路由操作維持；未改後端、資料或權限。大數字仍頂部簡寫、詳情完整，四位數加入千分位。手冊v3.80同步。可revert本批前端回復，不影響學習／點數資料。
 - 兩套39項相關測試與JSX ESLint通過；真實元件12種寬度、詳情／側欄、Escape／背景鎖定、大數字及568×320橫向通過，無pageerror。首次截圖發現詳情關閉按鈕未靠右與示範頭貼缺WebP縮圖；已修正關閉按鈕樣式及補齊隔離素材，12種寬度與成長／點數截圖補驗通過，頭貼載入、詳情44px關閉按鈕靠右與畫面範圍核對通過。正式登入／iPhone Safari實機待驗；本機不跑無關全套或production build，發布由Cloudflare main唯一建置。
+- PR #496合併main `a7712d92cbb9ba51bbd33b59fa91ae33a9bcd63b`；唯一Cloudflare production build `ea1fe23d-4e19-47f5-97c9-f621b96e0ba3`於2026-10-09 16:02:23台灣時間success，Worker version `3e1b1d48-0e1b-4782-babb-ebe9abdaa3f2`。16:02:47正式首頁、學生首頁／設定、manifest及全部27個JS／CSS HTTP200，五個新詳情樣式與兩個文案標記存在，Logo校驗仍與核准原檔一致。證據output/student-growth-polish-release/production-http.json。獨立file預覽頭貼因根路徑限制改為嵌入既有示範縮圖後可開啟、手機尺寸切換及詳情／頭貼核對通過；只調整忽略的預覽，不改正式頭貼邏輯。可操作預覽output/student-growth-polish-preview/index.html。手冊v3.80已部署；正式學生登入、iPhone Safari、安全區及實際學習／兌換仍待實機驗收。純文件紀錄不重複建置。
 
 
 ### 學生頂部成長資訊列發布（2026-10-09，已部署／實機待驗）
