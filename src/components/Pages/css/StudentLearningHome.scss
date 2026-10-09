@@ -57,7 +57,7 @@
 .learning-home .learning-home__section-heading > a,
 .learning-home a.learning-home__secondary,
 .learning-home .learning-home__empty > a {
-    display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; max-width: 100%; padding: 10px 14px; border: 1px solid #adc5e3; border-radius: 12px; color: var(--learning-blue); background: #eef5fc; box-shadow: 0 2px 0 #c9d9ed; font-weight: 800; text-decoration: none; text-align: center; overflow-wrap: anywhere;
+    display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; max-width: 100%; padding: 10px 14px; border: 1px solid #adc5e3; border-radius: 12px; color: var(--learning-blue); background: #eef5fc; box-shadow: none; font-weight: 800; text-decoration: none; text-align: center; overflow-wrap: anywhere;
     &:hover { border-color: var(--learning-blue); background: #e1ecfb; }
     &:active { box-shadow: none; }
     svg { flex-shrink: 0; }
@@ -101,7 +101,7 @@
     small { color: #526780; } strong { font-size: 18px; line-height: 1.4; overflow-wrap: anywhere; } > span { font-size: 14px; color: var(--learning-blue); margin-top: 5px; }
 }
 .learning-home__notice, .learning-home__empty { padding: 22px; background: #fff; border: 1px dashed #adbed1; border-radius: 16px; color: #49617d;
-    button { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; max-width: 100%; padding: 8px 14px; background: #e4efff; border: 1px solid #adc5e3; border-radius: 12px; color: #17365d; margin: 8px 0; font-weight: 800; box-shadow: 0 2px 0 #c9d9ed; }
+    button { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; max-width: 100%; padding: 8px 14px; background: #e4efff; border: 1px solid #adc5e3; border-radius: 12px; color: #17365d; margin: 8px 0; font-weight: 800; box-shadow: none; }
     button:hover { border-color: #245fc5; background: #d8e7fb; }
     button:active { box-shadow: none; }
     a { display: inline-flex; min-height: 44px; align-items: center; text-decoration: underline; }

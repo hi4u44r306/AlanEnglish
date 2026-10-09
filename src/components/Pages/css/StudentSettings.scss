@@ -61,17 +61,17 @@
 .student-settings-avatar-wrap { position: relative; width: 112px; height: 112px; }
 .student-settings-avatar { width: 112px; height: 112px; display: grid; place-items: center; border: 4px solid #fff; border-radius: 22px; object-fit: cover; box-shadow: 0 3px 10px rgba(31, 50, 94, .1); }
 .student-settings-avatar.fallback { background: linear-gradient(145deg, #ffdb76, #ffaf4f); color: #503303; font-size: 31px; font-weight: 950; }
-.student-settings-avatar-button { position: absolute; right: -7px; bottom: -7px; width: 44px; height: 44px; display: grid; place-items: center; border: 3px solid #fff; border-radius: 50%; color: #fff; background: #1d3771; box-shadow: 0 5px 13px rgba(16, 30, 64, .23); cursor: pointer; }
+.student-settings-avatar-button { position: absolute; right: -7px; bottom: -7px; width: 44px; height: 44px; display: grid; place-items: center; border: 3px solid #fff; border-radius: 50%; color: #fff; background: #1d3771; box-shadow: none; cursor: pointer; }
 .student-settings-avatar-button:disabled { cursor: wait; opacity: .65; }
 .student-settings-avatar-presets { grid-column: 1 / -1; width: 100%; min-width: 0; padding-top: 10px; border-top: 1px solid #e8edf5; }
-.student-settings-avatar-presets > summary { box-sizing: border-box; min-height: 44px; padding: 12px 14px; border: 1px solid #adc5e3; border-radius: 12px; color: #245fc5; background: #eef5fc; box-shadow: 0 2px 0 #c9d9ed; font-size: 16px; font-weight: 850; cursor: pointer; }
+.student-settings-avatar-presets > summary { box-sizing: border-box; min-height: 44px; padding: 12px 14px; border: 1px solid #adc5e3; border-radius: 12px; color: #245fc5; background: #eef5fc; box-shadow: none; font-size: 16px; font-weight: 850; cursor: pointer; }
 .student-settings-avatar-presets > summary > span { margin-left: 12px; color: #526580; font-size: 13px; font-weight: 600; }
 .student-settings-avatar-presets[open] > summary { margin-bottom: 12px; border-color: #d8b747; background: #fff6d7; box-shadow: none; }
 .student-settings-avatar-presets > summary:hover { border-color: #245fc5; }
 .student-settings-avatar-presets > summary:active { box-shadow: none; }
 .student-settings-avatar-presets > summary:focus-visible, .student-settings-learning-links a:focus-visible { outline: 3px solid #245fc5; outline-offset: 4px; }
 .student-settings-learning-links { display: grid; gap: 8px; margin-bottom: 14px; }
-.student-settings-learning-links a { box-sizing: border-box; display: flex; align-items: center; min-height: 44px; padding: 10px 14px; border: 1px solid #adc5e3; border-radius: 12px; color: #245fc5; background: #eef5fc; box-shadow: 0 2px 0 #c9d9ed; font-weight: 800; text-decoration: none; }
+.student-settings-learning-links a { box-sizing: border-box; display: flex; align-items: center; min-height: 44px; padding: 10px 14px; border: 1px solid #adc5e3; border-radius: 12px; color: #245fc5; background: #eef5fc; box-shadow: none; font-weight: 800; text-decoration: none; }
 .student-settings-learning-links a:hover { border-color: #245fc5; background: #e1ecfb; }
 .student-settings-learning-links a:active { box-shadow: none; }
 .student-settings-avatar-presets > div:first-child { display: grid; gap: 3px; }
@@ -79,7 +79,7 @@
 .student-settings-avatar-presets > div:first-child span { color: #74819a; font-size: 12px; }
 .student-settings-avatar-preset-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; min-width: 0; }
 .student-settings-avatar-preset-grid button { display: grid; place-items: center; min-width: 0; gap: 7px; padding: 9px 5px; border: 2px solid transparent; border-radius: 16px; color: #52617a; background: #f5f7fb; font-size: 11px; font-weight: 800; cursor: pointer; }
-.student-settings-avatar-preset-grid button[aria-pressed="true"] { border-color: #e7b12e; color: #1d3771; background: #fff8df; box-shadow: 0 6px 16px rgba(42, 69, 126, .12); }
+.student-settings-avatar-preset-grid button[aria-pressed="true"] { border-color: #e7b12e; color: #1d3771; background: #fff8df; box-shadow: none; }
 .student-settings-avatar-preset-grid button:disabled { cursor: wait; opacity: .62; }
 .student-settings-avatar-preset-image { width: 64px; max-width: 100%; aspect-ratio: 1; border-radius: 16px; }
 
@@ -104,7 +104,7 @@
 .student-avatar-editor-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
 .student-avatar-editor-actions button { min-height: 44px; padding: 0 17px; border-radius: 12px; font-weight: 900; cursor: pointer; }
 .student-avatar-editor-cancel { border: 1px solid #dfe5ef; color: #53617a; background: #fff; }
-.student-avatar-editor-save { border: 0; color: #fff; background: #23447f; box-shadow: 0 8px 17px rgba(35, 68, 127, .2); }
+.student-avatar-editor-save { border: 0; color: #fff; background: #23447f; box-shadow: none; }
 .student-avatar-editor-actions button:disabled { cursor: wait; opacity: .6; }
 .student-avatar-confirmation-comparison { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 14px; padding: 18px; border: 1px solid #e3e8f1; border-radius: 20px; background: #f7f9fd; }
 .student-avatar-confirmation-comparison > div { display: grid; place-items: center; min-width: 0; gap: 8px; }
