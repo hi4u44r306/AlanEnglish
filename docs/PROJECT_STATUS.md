@@ -2,14 +2,17 @@
 
 最後更新：2026-10-09
 
-### 成本帳務與估算總覽（2026-10-09，已部署／日期呈現補驗）
+### 成本帳務與估算總覽（2026-10-09，已部署／正式管理員驗收通過）
 
 - 基準main `5131e7ac`，既有獨立副本output/cost-scale-20261009，分支codex/cost-overview-clarity；未改主工作目錄草稿。管理員成本頁新增14項並列目前費用／月底預估／資料範圍與更新時間，四格區分人工確認免費、已取得帳務部分合計、目前學生規模預估、資料缺口。固定費為0不再冒充完整帳單0，折抵保留；已花費只加reported_cost_usd，原後端提醒金額、五分鐘排程及確認流程維持。
 - 人工核對紀錄採既有前端估算相同的UID／月份localStorage範圍，註明來源、帳期、適用日期與核對時間；最多七天有效，免費條件仍須固定費0且沒有正數帳務。免費紀錄不消除帳務缺口，未新增DB／Function／Secret／權限變更。PROJECT_LOGIC與手冊v3.82同步；可revert此批前端回復，移除本地ae-cost-review-v1紀錄不影響帳單或通知。
-- 4套23項局部測試通過（首輪一項舊文案斷言更新後補驗）；JSX／helper ESLint通過。真實元件與SCSS在1440／412／320px的收合與展開均14列完整、無水平溢位、控制項至少44px、無pageerror。已檢視桌面／手機截圖並修正摘要說明對比；證據output/cost-overview-validation。正式管理員與Cloudflare build待本批發布驗收；不重跑無關全套或本機production build。
+- 4套23項局部測試通過（首輪一項舊文案斷言更新後補驗）；JSX／helper ESLint通過。真實元件與SCSS在1440／412／320px的收合與展開均14列完整、無水平溢位、控制項至少44px、無pageerror。已檢視桌面／手機截圖並修正摘要說明對比；證據output/cost-overview-validation。正式管理員與Cloudflare build已依下列紀錄驗收；不重跑無關全套或本機production build。
 
 
 - PR #500合併main `9bb6fb00a2c8a0d93512dfd3b7f5db60314681a0`，Cloudflare build `31f0fc5c-0e6d-42cf-9aa2-b9c58f78f0f5`於16:37:46台灣時間success；16:38正式首頁、成本路由、manifest、main JS／CSS均200且新標記存在。正式管理員登入看見14列、1位啟用學生、5項取得帳務US$0.0356、9項缺口及不完整預估US$0.6717。驗收發現UTC直接截日期易誤讀為帳期，改用既有台灣時間格式與「資料範圍」標籤，補1項回歸測試後6項總覽測試通過；此小修需獨立Cloudflare建置。
+
+- 日期修正PR #501合併main `7775d410c06f92bdb1cd68a403a805c691b4cf02`；Cloudflare build `77f43697-5bd9-4f38-98f7-b8a21157e954`於16:43:45台灣時間success。16:45首頁／成本路由／manifest／新main JS與CSS均200，正式管理員再登入核對10/1台灣午夜顯示正確。共24項相關測試；首批與補修各一次production build，未重複本機build。
+- 正式管理員完成四筆本地核對保存及重新整理持續存在：Supabase／Resend／Workers為3項免費方案，R2按量方案保留使用量與帳期快照、不標永久免費；仍9項帳務缺口、14項預估不完整，未覆蓋完整帳單。正式1280px無溢位、14列完整、估算區展開收合及提醒金額US$0.0356維持；412／320px依隔離真實元件驗收，iPhone Safari實機未驗。證據output/cost-overview-validation/production.json及D:/CodexData/home/visualizations/2026/10/07/01a116e6-f60f-7523-9b8d-df80c4aa830f/cost-overview-live-20261009.png；四筆紀錄只在此管理員內建瀏覽器，跨裝置不會同步。Email／LINE送達與確認的完整實測不屬本批，不以畫面代替。純文件結案不觸發第三次應用建置。
 
 ### 學生成長與冒險遊戲圖示（2026-10-09，已部署／實機待驗）
 
