@@ -6,6 +6,7 @@ import { useAuth } from "../../auth/AuthContext";
 import {
     archiveManagedAccount,
     getManagedAccounts,
+    getManagedBirthDateHistory,
     getManagedNicknameHistory,
     restoreManagedAccount
 } from "../../services/membershipService";
@@ -27,6 +28,8 @@ jest.mock("../../services/membershipService", () => ({
     getManagedAccounts: jest.fn(),
     getManagedNicknameHistory: jest.fn(),
     restoreManagedAccount: jest.fn(),
+    getManagedBirthDateHistory: jest.fn(),
+    correctManagedBirthDate: jest.fn(),
     updateManagedAccount: jest.fn()
 }));
 
@@ -343,4 +346,21 @@ describe("AccountManagement", () => {
             );
         });
     });
+});
+
+
+test("admin can open birthday correction for a student from account management", async () => {
+    useAuth.mockReturnValue({firebaseUser,role:"admin",studentProfile:{firebase_uid:firebaseUser.uid}});
+    getManagedAccounts.mockResolvedValue({accounts:[academyStudent]});listAcademyInvitations.mockResolvedValue([]);
+    getManagedBirthDateHistory.mockResolvedValue({student:{id:67,date_of_birth:"2016-03-02"},history:[]});
+    render(<MemoryRouter><AccountManagement /></MemoryRouter>);
+    fireEvent.click(await screen.findByRole("button",{name:"更正生日"}));
+    expect(await screen.findByRole("dialog",{name:"更正生日"})).toBeInTheDocument();
+    await waitFor(()=>expect(getManagedBirthDateHistory).toHaveBeenCalledWith(firebaseUser,67));
+});
+test("teacher account management has no birthday correction entry", async () => {
+    useAuth.mockReturnValue({firebaseUser,role:"teacher",studentProfile:{firebase_uid:firebaseUser.uid}});
+    getManagedAccounts.mockResolvedValue({accounts:[academyStudent]});listAcademyInvitations.mockResolvedValue([]);
+    render(<MemoryRouter><AccountManagement /></MemoryRouter>);await screen.findByText(academyStudent.name);
+    expect(screen.queryByRole("button",{name:"更正生日"})).not.toBeInTheDocument();
 });

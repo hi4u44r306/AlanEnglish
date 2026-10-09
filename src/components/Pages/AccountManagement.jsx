@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import QRCode from "qrcode";
+import AdminBirthDateDialog from "../fragment/AdminBirthDateDialog";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -96,6 +97,11 @@ function AccountManagement() {
     const [activationFilter, setActivationFilter] = useState("all");
     const [accountStatusFilter, setAccountStatusFilter] = useState("active");
     const [accessFilter, setAccessFilter] = useState("all");
+    const [birthdayTarget, setBirthdayTarget] = useState(null);
+    const closeBirthdayDialog = useCallback(() => setBirthdayTarget(null), []);
+    const saveBirthdayInList = useCallback(student => {
+        setAccounts(items => items.map(item => Number(item.id) === Number(student.id) ? { ...item, date_of_birth: student.date_of_birth } : item));
+    }, []);
     const [editingAccount, setEditingAccount] = useState(null);
     const [editForm, setEditForm] = useState({
         name: "",
@@ -682,6 +688,9 @@ function AccountManagement() {
                                                                     : account.account_status === "archived" ? "恢復" : "停用"}
                                                             </button>
                                                         )}
+                                                        {isAdmin && account.role === "student" && (
+                                                            <button type="button" className="management-edit-button" onClick={() => setBirthdayTarget(account)}>更正生日</button>
+                                                        )}
                                                         {isAdmin && account.role === "student" && (account.email || account.login_username) && (
                                                             <button
                                                                 type="button"
@@ -914,6 +923,8 @@ function AccountManagement() {
                     </section>
                 </div>
             )}
+
+            {isAdmin && birthdayTarget && <AdminBirthDateDialog key={birthdayTarget.id} account={birthdayTarget} onClose={closeBirthdayDialog} onSaved={saveBirthdayInList} />}
 
             {nicknameHistoryTarget && (
                 <div className="management-delete-backdrop" role="presentation">

@@ -933,3 +933,24 @@
     justify-items: start;
   }
 }
+
+.management-birth-date-dialog {
+  width: min(560px, 100%);
+  max-height: calc(100dvh - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  box-sizing: border-box;
+  overflow-y: auto;
+  border-color: #dce5f5;
+  h2 { color: #203f84; }
+  input, textarea { box-sizing: border-box; width: 100%; min-width: 0; min-height: 44px; }
+  textarea { min-height: 90px; padding: 10px; border: 1px solid #cbd6e5; border-radius: 8px; font: inherit; resize: vertical; }
+  .management-delete-dialog__actions { flex-wrap: wrap; }
+  .management-delete-dialog__actions button { min-height: 44px; }
+  .management-delete-dialog__actions button:last-child { background: #203f84; }
+  p, strong, small { overflow-wrap: anywhere; }
+}
+.management-birth-date-history {
+  margin: 0; padding: 0; list-style: none;
+  li { padding: 12px 0; border-bottom: 1px solid #e8edf5; }
+  p { margin: 6px 0; }
+  small { color: #64718a; }
+}

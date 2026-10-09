@@ -1232,6 +1232,59 @@ Deno.serve(async (req: Request) => {
             });
         }
 
+        if (action === "admin_birth_date_history" || action === "admin_correct_birth_date") {
+            if (caller.role !== "admin") return json(403, { error: "只有管理員可以更正生日或查看紀錄" });
+            const studentId = body?.student_id;
+            if (!Number.isSafeInteger(studentId) || studentId <= 0) {
+                return json(400, { error: "請選擇有效的學生帳號" });
+            }
+            if (action === "admin_birth_date_history") {
+                const { data: student, error: studentError } = await admin.from("students")
+                    .select("id,name,role,date_of_birth").eq("id", studentId).maybeSingle();
+                if (studentError) throw new Error("生日資料讀取失敗，請稍後重試");
+                if (!student || student.role !== "student") return json(404, { error: "找不到學生帳號" });
+                const { data: history, error: historyError } = await admin.from("admin_birth_date_corrections")
+                    .select("id,admin_id,previous_date_of_birth,new_date_of_birth,reason,created_at")
+                    .eq("student_id", studentId).order("created_at", { ascending: false })
+                    .order("id", { ascending: false }).limit(20);
+                if (historyError) throw new Error("生日更正紀錄讀取失敗，請稍後重試");
+                return json(200, { student: { id: student.id, name: student.name, date_of_birth: student.date_of_birth }, history: history || [] });
+            }
+            const reason = typeof body?.reason === "string" ? body.reason.trim() : "";
+            let dateOfBirth;
+            let expectedDate;
+            try {
+                if (typeof body?.date_of_birth !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(body.date_of_birth)
+                    || !Object.prototype.hasOwnProperty.call(body, "expected_date_of_birth")
+                    || (body.expected_date_of_birth !== null && (typeof body.expected_date_of_birth !== "string"
+                        || !/^\d{4}-\d{2}-\d{2}$/.test(body.expected_date_of_birth)))) {
+                    throw new Error("請重新讀取生日資料後再更正");
+                }
+                dateOfBirth = normalizeDateOfBirth(body.date_of_birth);
+                expectedDate = body.expected_date_of_birth === null ? null : normalizeDateOfBirth(body.expected_date_of_birth);
+                if (reason.length < 2 || reason.length > 500) throw new Error("更正原因請填寫 2～500 個字");
+            } catch (error) {
+                return json(400, { error: error instanceof Error ? error.message : "生日更正資料不完整" });
+            }
+            const { data, error } = await admin.rpc("admin_correct_student_birth_date_v1", {
+                p_admin_id: Number(caller.id), p_student_id: studentId,
+                p_expected_date_of_birth: expectedDate, p_date_of_birth: dateOfBirth, p_reason: reason
+            });
+            if (error) {
+                const messages = [
+                    ["BIRTH_DATE_CHANGED", 409, "生日已被其他操作修改，請重新讀取資料後再更正"],
+                    ["BIRTH_DATE_UNCHANGED", 400, "新生日與目前生日相同"],
+                    ["ADMIN_REQUIRED", 403, "只有有效的管理員可以更正生日"],
+                    ["STUDENT_NOT_FOUND", 404, "找不到學生帳號"],
+                    ["INVALID_BIRTH_DATE_CORRECTION", 400, "生日或更正原因不正確"]
+                ] as const;
+                const known = messages.find(([code]) => String(error.message || "").includes(code));
+                if (known) return json(known[1], { error: known[2], code: known[0] });
+                throw new Error("生日更正未完成，請稍後重試");
+            }
+            return json(200, { success: true, ...data });
+        }
+
         if (action === "update_account") {
             if (!STAFF_ROLES.has(caller.role)) return json(403, { error: "沒有帳號編輯權限" });
             const targetId = numberOrNull(body?.id);

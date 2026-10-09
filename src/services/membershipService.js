@@ -32,6 +32,12 @@ export const getManagedNicknameHistory = (firebaseUser, studentId) => callMember
     "nickname_history",
     { student_id: studentId }
 );
+export const getManagedBirthDateHistory = (firebaseUser, studentId) => callMembership(
+    firebaseUser, "admin_birth_date_history", { student_id: studentId }
+);
+export const correctManagedBirthDate = (firebaseUser, payload) => callMembership(
+    firebaseUser, "admin_correct_birth_date", payload
+);
 export const updateManagedAccount = (firebaseUser, account) => callMembership(firebaseUser, "update_account", account);
 export const archiveManagedAccount = (firebaseUser, accountId, reason = "") => callMembership(
     firebaseUser,
