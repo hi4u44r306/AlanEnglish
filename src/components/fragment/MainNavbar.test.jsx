@@ -80,6 +80,40 @@ describe("MainNavbar student navigation", () => {
         sendSocialHeartbeat.mockResolvedValue({ success: true });
     });
 
+    it("shares the summary with the header and refreshes XP and points after a reward event", async () => {
+        getGamificationSummary.mockResolvedValueOnce({ balance: { level: 2, total_xp: 180, next_level_xp: 250, progress_percent: 53, points_balance: 100 } });
+        render(<MemoryRouter><MainNavbar /></MemoryRouter>);
+        await screen.findByRole("button", { name: /可用 AE Points 100 點/ });
+        expect(getGamificationSummary).toHaveBeenCalledTimes(1);
+        getGamificationSummary.mockResolvedValue({ balance: { level: 3, total_xp: 260, next_level_xp: 450, progress_percent: 5, points_balance: 150 } });
+        act(() => window.dispatchEvent(new Event("ae:gamification-updated")));
+        await screen.findByRole("button", { name: /可用 AE Points 150 點/ });
+        expect(screen.getByText("Lv.3")).toBeInTheDocument();
+        expect(getGamificationSummary).toHaveBeenCalledTimes(2);
+    });
+
+    it("clears the previous account's header and details before a new summary arrives", async () => {
+        getGamificationSummary.mockResolvedValueOnce({ balance: { level: 12, total_xp: 1860, next_level_xp: 2000, points_balance: 1280 } });
+        const view = render(<MemoryRouter><MainNavbar /></MemoryRouter>);
+        await screen.findByRole("button", { name: /1,280 點/ });
+        fireEvent.click(screen.getByRole("button", { name: /查看點數詳情/ }));
+        expect(screen.getByText("1,280 AE Points")).toBeInTheDocument();
+        useAuth.mockReturnValue({ ...useAuth(), firebaseUser: { uid: "different-student" } });
+        getGamificationSummary.mockReturnValue(new Promise(() => {}));
+        view.rerender(<MemoryRouter><MainNavbar /></MemoryRouter>);
+        expect(screen.queryByText("Lv.12")).not.toBeInTheDocument();
+        expect(screen.queryByText("1,280 AE Points")).not.toBeInTheDocument();
+        expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+        expect(screen.getByRole("button", { name: /查看點數詳情，可用 AE Points 讀取中/ })).toBeInTheDocument();
+    });
+
+    it.each(["teacher", "admin"])("keeps the %s navbar without a student's growth header", role => {
+        useAuth.mockReturnValue({ firebaseUser: { uid: "staff" }, role, isAuthenticated: true, logout: jest.fn(), studentProfile: {} });
+        render(<MemoryRouter><MainNavbar /></MemoryRouter>);
+        expect(screen.queryByRole("button", { name: "查看成長詳情" })).not.toBeInTheDocument();
+        expect(getGamificationSummary).not.toHaveBeenCalled();
+    });
+
     it("keeps only the child-friendly primary destinations in the student navbar", async () => {
         render(<MemoryRouter initialEntries={["/student/dashboard"]}><MainNavbar /></MemoryRouter>);
 

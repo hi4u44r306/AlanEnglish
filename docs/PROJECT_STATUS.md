@@ -3,6 +3,13 @@
 最後更新：2026-10-09
 
 
+### 學生頂部成長資訊列發布（2026-10-09，已驗證／待正式部署）
+
+- 使用者核准修訂預覽並要求正式發布。基準main `204c0353`，既有規劃分支轉為`codex/student-growth-header`，未新增worktree。範圍為MainNavbar／StudentNavbar、新StudentGrowthHeader／SCSS與局部測試；學生使用彩色AE、14～15px數字、綠色XP、淡黃點數、單列頂部。1279px以下延伸既有緊湊導覽與播放器避讓，保留通知與選單；固定shell預留safe area及邊線高度。
+- 直接沿用原summary快取／UID與權限scope、獎勵更新事件，缺值不冒充0／Lv.1；錯誤保留成功資料並可重試。詳情提供完整XP／點數，原兌換資格才有商城入口；日期過期／失敗不延用生日倍率。沒有migration、Function、權限、獎勵計算或正式學生資料變更。手冊v3.79與PROJECT_LOGIC同步；回復可revert前端批次，不影響既有點數／XP。
+- 4套49項Header／MainNavbar／共用query／獎勵失效更新測試通過，相關JSX ESLint、SCSS编譯及diff check通過。真實StudentNavbar／GrowthHeader與隔離示範資料在320～1600px共12種寬度無水平溢位、單列固定頂部、內容偏移正確、彩色AE載入、4px XP條、至少44px主要點按區；大數字／缺值、詳情与側欄Escape／背景鎖定通過、無pageerror，四張電腦／平板／手機截圖已檢視。Header實際含邊線69px（1600px為75px）；播放器位置示意與底部導航不重疊，未播放音檔。證據output/student-growth-live-preview。正式學生登入、iPhone Safari／safe area實機仍待驗。前端build由合併後唯一Cloudflare production執行，不重複本機production build或全套測試；原React Router future／act提示非測試失敗。
+
+
 ### 學生頂部等級與點數（2026-10-09，設計提案／尚未實作）
 
 - 基準 main `204c0353`；規劃分支 `codex/student-growth-header-plan`。依使用者修訂並確認彩色AE `public/ae-icon.jpeg`，品牌只留小圖示；電腦、手機和平板的Lv、XP條／升級距離、AE Points及有效生日月倍率全部同列放入最頂端Header。緊湊模式暫定1279px上限（現況1100px），待確認；底部學習導覽保留。

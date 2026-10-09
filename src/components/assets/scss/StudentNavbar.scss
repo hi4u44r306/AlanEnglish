@@ -616,7 +616,7 @@
 // iPad Pro 13 reports a 1032px CSS viewport.  Keeping the full desktop
 // navigation at that width leaves too little room for the account controls,
 // so tablets use the same clear header and bottom navigation as phones.
-@media (max-width: 1100px) {
+@media (max-width: 1279px) {
   body:has(.ae-student-bottom-nav) {
     --student-bottom-nav-offset: calc(20px + env(safe-area-inset-bottom, 0px));
   }
@@ -763,7 +763,7 @@
 }
 
 // Home-screen web apps need an opaque surface through the Home Indicator area.
-@media (display-mode: standalone) and (max-width: 1100px) {
+@media (display-mode: standalone) and (max-width: 1279px) {
   body:has(.ae-student-bottom-nav) {
     --student-bottom-nav-offset: calc(24px + env(safe-area-inset-bottom, 0px));
   }
