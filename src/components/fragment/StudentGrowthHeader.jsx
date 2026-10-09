@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react";
 import Modal from "react-bootstrap/Modal";
 import { Link } from "react-router-dom";
-import { FiAward, FiChevronRight, FiGift, FiUser } from "react-icons/fi";
+import { FiChevronRight, FiGift, FiUser } from "react-icons/fi";
+import { RiShieldStarLine } from "react-icons/ri";
+import AEPointCoin from "./AEPointCoin";
 import StudentAvatarImage from "./StudentAvatarImage";
 
 const available = value => value != null && value !== "" && Number.isFinite(Number(value));
@@ -39,7 +41,7 @@ export default function StudentGrowthHeader({ summary, loading = false, error, p
     return <>
         <div className="ae-growth-header" aria-label="我的等級與點數" aria-busy={loading}>
             <button type="button" className="ae-growth-header__level" aria-label="查看成長詳情" onClick={() => setDetail("growth")}>
-                <span className="ae-growth-header__mark" aria-hidden="true"><FiAward /></span>
+                <span className="ae-growth-header__mark" aria-hidden="true"><RiShieldStarLine /></span>
                 <span className="ae-growth-header__copy">
                     <span className="ae-growth-header__heading"><strong>{hasLevel ? `Lv.${compact(balance.level)}` : "—"}</strong>{boosted && <span className="ae-growth-header__boost">XP ×2</span>}</span>
                     {progress != null && <progress value={progress} max="100" aria-label="目前等級成長進度" />}
@@ -47,7 +49,7 @@ export default function StudentGrowthHeader({ summary, loading = false, error, p
                 </span>
             </button>
             <button type="button" className="ae-growth-header__points" aria-label={`查看點數詳情，${pointsLabel}${hasPoints ? ` ${number(balance.points_balance)} 點` : ` ${status}`}`} onClick={() => setDetail("points")}>
-                <span className="ae-growth-header__coin" aria-hidden="true">A</span>
+                <span className="ae-growth-header__coin" aria-hidden="true"><AEPointCoin /></span>
                 <span><strong>{hasPoints ? compact(balance.points_balance) : "—"}</strong><small>AE Points</small></span>
             </button>
         </div>
@@ -58,12 +60,12 @@ export default function StudentGrowthHeader({ summary, loading = false, error, p
             <Modal.Body>
                 {detail === "points" ? <>
                     <div className="ae-growth-detail__wallet">
-                        <span className="ae-growth-detail__wallet-icon" aria-hidden="true"><FiGift /></span>
+                        <span className="ae-growth-detail__wallet-icon" aria-hidden="true"><AEPointCoin /></span>
                         <div><span className="ae-growth-detail__label">{pointsAccess ? "目前可用點數" : "目前保留點數"}</span>
                             <p className="ae-growth-detail__balance" aria-label={hasPoints ? `${number(balance.points_balance)} AE Points` : "點數尚未讀取"}><strong>{hasPoints ? number(balance.points_balance) : "—"}</strong><span>AE Points</span></p>
                         </div>
                     </div>
-                    <div className="ae-growth-detail__explanation"><FiAward aria-hidden="true" /><p>{pointsAccess ? "兌換使用點數，累積 XP 會保留。" : "目前無兌換資格，既有點數與 XP 保留。"}</p></div>
+                    <div className="ae-growth-detail__explanation"><RiShieldStarLine aria-hidden="true" /><p>{pointsAccess ? "兌換使用點數，累積 XP 會保留。" : "目前無兌換資格，既有點數與 XP 保留。"}</p></div>
                     {pointsAccess && <Link to="/student/rewards" className="ae-growth-detail__primary is-gold" onClick={() => setDetail("")}><FiGift aria-hidden="true" />查看獎品與兌換紀錄<FiChevronRight aria-hidden="true" /></Link>}
                 </> : <>
                     <div className="ae-growth-detail__profile">

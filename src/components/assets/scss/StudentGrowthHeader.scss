@@ -6,7 +6,7 @@
   button:hover { background-color: #eaf1fa; }
   button:focus-visible { outline: 3px solid #245fc5; outline-offset: 3px; }
   &__level { display: flex; align-items: center; gap: 8px; border: 0; border-radius: 12px; background: transparent; text-align: left; }
-  &__mark { flex: 0 0 28px; width: 28px; height: 28px; display: grid; place-items: center; border: 1px solid #cfdef0; border-radius: 50%; color: #245fc5; background: #fff; }
+  &__mark { flex: 0 0 28px; width: 28px; height: 28px; display: grid; place-items: center; border-radius: 8px; color: #245fc5; background: #e4efff; > svg { width: 20px; height: 20px; } }
   &__copy { min-width: 0; flex: 1; display: grid; gap: 4px; }
   &__heading { display: flex; align-items: center; justify-content: space-between; gap: 3px; strong { font-size: 14px; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; } }
   &__boost { flex-shrink: 0; border-radius: 4px; padding: 1px 3px; background: #fff0bd; color: #79591d; font-size: 9px; line-height: 1.4; }
@@ -14,8 +14,9 @@
   small { display: block; font-size: 10px; font-weight: 400; line-height: 1.4; color: #526580; white-space: nowrap; }
   &__short { display: none; }
   &__points { position: relative; display: flex; align-items: center; justify-content: center; gap: 6px; border: 0; border-radius: 12px; background: transparent; &::before { content: ""; position: absolute; left: -2px; top: 9px; bottom: 9px; width: 1px; background: #dce5ef; } strong { display: block; font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.3; } }
-  &__coin { flex: 0 0 22px; width: 22px; height: 22px; display: grid; place-items: center; border: 1px solid #e5c365; border-radius: 50%; background: #fff0bd; color: #79591d; font-size: 10px; }
+  &__coin { flex: 0 0 24px; width: 24px; height: 24px; display: grid; place-items: center; }
 }
+.ae-point-coin { display: block; width: 100%; height: 100%; }
 .ae-student-navbar {
   background: rgba(255, 255, 255, .98) !important;
   .ae-navbar-container { flex-wrap: nowrap; gap: 18px; }
@@ -47,7 +48,7 @@
   &__next { margin-top: -10px !important; color: #526580; font-size: 13px; }
   &__birthday { display: flex; gap: 12px; align-items: flex-start; padding: 14px; border: 1px solid #eddda7; border-radius: 14px; background: #fff6d7; color: #79591d; > svg { flex: 0 0 20px; width: 20px; height: 20px; margin-top: 2px; } strong { display: block; font-size: 13px; font-weight: 700; } span { display: block; margin-top: 3px; font-size: 11px; } }
   &__wallet { display: flex; gap: 16px; align-items: center; min-width: 0; padding: 22px 18px; border: 1px solid #eddda7; border-radius: 18px; background: #fff6d7; > div { min-width: 0; flex: 1; } }
-  &__wallet-icon { flex: 0 0 52px; width: 52px; height: 52px; display: grid; place-items: center; border: 1px solid #e5c365; border-radius: 50%; background: #ffdf78; color: #79591d; > svg { width: 25px; height: 25px; } }
+  &__wallet-icon { flex: 0 0 52px; width: 52px; height: 52px; display: grid; place-items: center; > svg { width: 52px; height: 52px; } }
   &__balance { display: flex; flex-wrap: wrap; align-items: baseline; gap: 7px; line-height: 1.3 !important; strong { max-width: 100%; font-size: clamp(26px, 5vw, 34px); font-weight: 800; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; } span { font-size: 11px; color: #79591d; } }
   &__explanation { display: flex; gap: 10px; align-items: flex-start; color: #526580; font-size: 13px; > svg { flex: 0 0 18px; width: 18px; height: 18px; margin-top: 3px; color: #247a56; } }
   .btn-close { flex: 0 0 44px; width: 44px; min-height: 44px; margin: -4px -4px 0 0; padding: 12px; border: 1px solid #e2eaf3; border-radius: 50%; background-color: #f5f8fc; background-size: 12px; opacity: .8; box-sizing: border-box; }
@@ -67,12 +68,13 @@
 @media (max-width: 599px) {
   .ae-student-navbar .ae-navbar-container { gap: 10px; padding-inline: 12px !important; }
   .ae-student-navbar .ae-brand img { width: 34px; height: 34px; }
-  .ae-growth-header { width: auto; flex: 1; grid-template-columns: minmax(0, 1fr) 82px; gap: 4px; border-radius: 14px; &__mark { display: none; } &__points strong { font-size: 14px; } &__coin { display: none; } }
+  .ae-growth-header { width: auto; flex: 1; grid-template-columns: minmax(0, 1fr) 82px; gap: 4px; border-radius: 14px; &__level { gap: 5px; } &__mark { flex-basis: 18px; width: 18px; height: 22px; background: transparent; > svg { width: 18px; height: 18px; } } &__points { gap: 3px; padding-inline: 4px; strong { font-size: 14px; } } &__coin { flex-basis: 20px; width: 20px; height: 20px; } }
   .ae-student-navbar .ae-student-mobile-account { flex-shrink: 0; gap: 2px; margin: 0; > a, > button { border: 0; background: transparent; box-shadow: none; } }
   .ae-growth-detail { .modal-dialog { min-height: 100%; width: 100%; max-width: none; margin: 0; align-items: flex-end; } .modal-content { max-height: calc(100dvh - max(24px, env(safe-area-inset-top, 0px))); border: 0; border-radius: 24px 24px 0 0; } .modal-body { overflow-y: auto; padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px)); } }
 }
 @media (max-width: 380px) {
   .ae-student-navbar .ae-navbar-container { gap: 6px; padding-inline: 8px !important; }
-  .ae-growth-header { grid-template-columns: minmax(0, 1fr) 64px; gap: 2px; button { padding-inline: 4px; } &__remaining { display: none; } &__short { display: inline; } }
+  .ae-growth-header { grid-template-columns: minmax(0, 1fr) 78px; gap: 2px; button { padding-inline: 4px; } &__remaining { display: none; } &__short { display: inline; } }
 }
+@media (max-width: 359px) { .ae-growth-header { grid-template-columns: minmax(0, 1fr) 64px; &__mark, &__coin { display: none; } } }
 @media (prefers-reduced-motion: reduce) { .ae-growth-header button { transition: none; } }
