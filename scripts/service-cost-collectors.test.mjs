@@ -80,6 +80,11 @@ const cfIO = (charges, { covered=true, envelope={}, calls=[] }={}) => io(cfConfi
     if(url.endsWith('/info')) return response({success:true,result:{covered,subscriptions:[]}});
     return response({success:true,result:charges,...envelope});
 });
+async function expectBillingGap(promise, code) {
+    const [row] = await promise;
+    assert.equal(row.billing_error,code);assert.equal(row.cost_usd,null);assert.equal(row.source,'usage');
+    assert.ok(row.metrics.length > 0);
+}
 
 test('Cloudflare billing includes the previous anchor, separates products and shares only this refresh',async()=>{
     const calls=[];
@@ -100,9 +105,9 @@ test('Cloudflare billing includes the previous anchor, separates products and sh
 
 test('Cloudflare zero requires a real product row; empty or uncovered data remains unknown',async()=>{
     const [zero]=await collectCloudflareR2('2026-10',cfIO([cfCharge({ContractedCost:0})]));assert.equal(zero.cost_usd,0);
-    await assert.rejects(collectCloudflareR2('2026-10',cfIO([])),/billing_usage_empty/);
-    await assert.rejects(collectCloudflareWorkers('2026-10',cfIO([cfCharge()])),/billing_usage_empty/);
-    await assert.rejects(collectCloudflareR2('2026-10',cfIO([],{covered:false})),/billing_coverage_unavailable/);
+    await expectBillingGap(collectCloudflareR2('2026-10',cfIO([])),'billing_usage_empty');
+    await expectBillingGap(collectCloudflareWorkers('2026-10',cfIO([cfCharge()])),'billing_usage_empty');
+    await expectBillingGap(collectCloudflareR2('2026-10',cfIO([],{covered:false})),'billing_coverage_unavailable');
 });
 
 test('Cloudflare refuses wrong accounts, duplicate charges, partial pages and unsafe periods',async()=>{
@@ -115,14 +120,14 @@ test('Cloudflare refuses wrong accounts, duplicate charges, partial pages and un
         [[cfCharge({ChargePeriodEnd:'2026-10-08T00:00:00Z'})],{},'billing_period_mismatch'],
         [[cfCharge({ChargePeriodStart:'bad-date'})],{},'invalid_response'],
         [[cfCharge()],{envelope:{success:false,errors:[{message:'sensitive provider detail'}]}},'provider_query_failed']
-    ]) await assert.rejects(collectCloudflareR2('2026-10',cfIO(charges,options)),new RegExp(error));
+    ]) await expectBillingGap(collectCloudflareR2('2026-10',cfIO(charges,options)),error);
     for(const code of ['billing_usage_empty','billing_coverage_unavailable','billing_period_mismatch']) assert.equal(costError(new Error(code)),code);
 });
 
 test('Cloudflare billing HTTP failure does not invent a new zero amount',async()=>{
     const context=cfIO([]);const original=context.fetch;
     context.fetch=async(url,options)=>url.endsWith('/info')?new Response('',{status:403}):original(url,options);
-    await assert.rejects(collectCloudflareR2('2026-10',context),/provider_http_403/);
+    await expectBillingGap(collectCloudflareR2('2026-10',context),'provider_http_403');
 });
 test('collection errors reveal no raw tokens or response bodies',()=>{
     assert.equal(costError(new Error('token=secret PII response')),'collection_failed');

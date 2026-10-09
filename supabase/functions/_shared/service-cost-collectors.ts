@@ -1,6 +1,6 @@
 // Read-only provider APIs. Never persist raw responses, account identities or credentials.
 export type CostMetric = { name: string; used: number; unit: string; limit: number | null; resets_at?: string };
-export type CostResult = { provider_id: string; cost_usd: number | null; source: 'billing' | 'usage'; includes_fixed?: boolean; metrics: CostMetric[]; period_start: string; period_end: string };
+export type CostResult = { provider_id: string; cost_usd: number | null; source: 'billing' | 'usage'; includes_fixed?: boolean; billing_error?: string; metrics: CostMetric[]; period_start: string; period_end: string };
 export type CostIO = { env: (name: string) => string | undefined; fetch: typeof fetch; now: Date; usdToTwd: number; deadline?: number };
 const fail = (code: string): never => { throw new Error(code); };
 const required = (io: CostIO, name: string) => io.env(name)?.trim() || fail('missing_configuration');
@@ -207,7 +207,7 @@ async function cloudflareBillRows(month: string, io: CostIO, account: string) {
     return pending;
 }
 
-async function withCloudflareBill(month: string, io: CostIO, usage: CostResult): Promise<CostResult> {
+async function readCloudflareBill(month: string, io: CostIO, usage: CostResult): Promise<CostResult> {
     if (!io.env('COST_CLOUDFLARE_BILLING_READ_TOKEN')?.trim()) return usage;
     const account = identifier(required(io, 'COST_CLOUDFLARE_ACCOUNT_ID'), /^[a-f0-9]{32}$/i);
     const rows = await cloudflareBillRows(month, io, account);
@@ -248,6 +248,11 @@ async function withCloudflareBill(month: string, io: CostIO, usage: CostResult):
     return { ...usage, source: 'billing', cost_usd: total, includes_fixed: false,
         period_start: new Date(earliest).toISOString(), period_end: new Date(latest).toISOString(),
         metrics: [...usage.metrics, ...metrics.values()] };
+}
+
+async function withCloudflareBill(month: string, io: CostIO, usage: CostResult): Promise<CostResult> {
+    try { return await readCloudflareBill(month, io, usage); }
+    catch (error) { return { ...usage, billing_error: costError(error) }; }
 }
 
 export async function collectCloudflareWorkers(month: string, io: CostIO): Promise<CostResult[]> {
