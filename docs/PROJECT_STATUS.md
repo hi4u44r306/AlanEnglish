@@ -3,14 +3,15 @@
 最後更新：2026-10-09
 
 
-### 學生頂部成長資訊列發布（2026-10-09，已驗證／待正式部署）
+### 學生頂部成長資訊列發布（2026-10-09，已部署／實機待驗）
 
 - 使用者核准修訂預覽並要求正式發布。基準main `204c0353`，既有規劃分支轉為`codex/student-growth-header`，未新增worktree。範圍為MainNavbar／StudentNavbar、新StudentGrowthHeader／SCSS與局部測試；學生使用彩色AE、14～15px數字、綠色XP、淡黃點數、單列頂部。1279px以下延伸既有緊湊導覽與播放器避讓，保留通知與選單；固定shell預留safe area及邊線高度。
 - 直接沿用原summary快取／UID與權限scope、獎勵更新事件，缺值不冒充0／Lv.1；錯誤保留成功資料並可重試。詳情提供完整XP／點數，原兌換資格才有商城入口；日期過期／失敗不延用生日倍率。沒有migration、Function、權限、獎勵計算或正式學生資料變更。手冊v3.79與PROJECT_LOGIC同步；回復可revert前端批次，不影響既有點數／XP。
-- 4套49項Header／MainNavbar／共用query／獎勵失效更新測試通過，相關JSX ESLint、SCSS编譯及diff check通過。真實StudentNavbar／GrowthHeader與隔離示範資料在320～1600px共12種寬度無水平溢位、單列固定頂部、內容偏移正確、彩色AE載入、4px XP條、至少44px主要點按區；大數字／缺值、詳情与側欄Escape／背景鎖定通過、無pageerror，四張電腦／平板／手機截圖已檢視。Header實際含邊線69px（1600px為75px）；播放器位置示意與底部導航不重疊，未播放音檔。證據output/student-growth-live-preview。正式學生登入、iPhone Safari／safe area實機仍待驗。前端build由合併後唯一Cloudflare production執行，不重複本機production build或全套測試；原React Router future／act提示非測試失敗。
+- 4套49項Header／MainNavbar／共用query／獎勵失效更新測試通過，相關JSX ESLint、SCSS編譯及diff check通過。真實StudentNavbar／GrowthHeader與隔離示範資料在320～1600px共12種寬度無水平溢位、單列固定頂部、內容偏移正確、彩色AE載入、4px XP條、至少44px主要點按區；大數字／缺值、詳情與側欄Escape／背景鎖定通過、無pageerror，四張電腦／平板／手機截圖已檢視。Header實際含邊線69px（1600px為75px）；播放器位置示意與底部導航不重疊，未播放音檔。證據output/student-growth-live-preview。正式學生登入、iPhone Safari／safe area實機仍待驗。前端build由合併後唯一Cloudflare production執行，不重複本機production build或全套測試；原React Router future／act提示非測試失敗。
+- PR #494合併main `104d58b97ca6015bd054033fd6ea1e91f991ab01`。唯一Cloudflare production build `2081f469-ef6d-46c5-aa44-d7ba65927176`於2026-10-09 15:27:24台灣時間success，Worker version `6d264aa3-2526-4c51-abb8-a97f6c71c8d9`；15:28:44正式首頁、/student/dashboard、/student/settings、manifest及全部27個JS／CSS HTTP200，七個Header／詳情／文案／Logo標記存在，正式ae-icon.jpeg SHA256與核准原檔相同。證據output/student-growth-header-release/production-http.json。初次驗收腳本新增路由後manifest索引未同步，修正腳本後正常；建置尚未完成時舊資產不含Header，建置完成後重新驗收全部通過。沒有因此修改應用或重複build；純文件發布紀錄不觸發第二次Cloudflare build。正式學生登入、iPhone Safari／safe area、真實音檔與兌換操作仍未驗收，HTTP／隔離元件不代替這些實測。
 
 
-### 學生頂部等級與點數（2026-10-09，設計提案／尚未實作）
+### 學生頂部等級與點數（2026-10-09，設計提案歷程；已核准，發布結果見上節）
 
 - 基準 main `204c0353`；規劃分支 `codex/student-growth-header-plan`。依使用者修訂並確認彩色AE `public/ae-icon.jpeg`，品牌只留小圖示；電腦、手機和平板的Lv、XP條／升級距離、AE Points及有效生日月倍率全部同列放入最頂端Header。緊湊模式暫定1279px上限（現況1100px），待確認；底部學習導覽保留。
 - 只新增設計文件 `docs/STUDENT_GROWTH_HEADER_PLAN.md` 與獨立示意 `output/student-growth-header/index.html`，未修改src、後端、會員或網站。四張1440／1024／768／412圖已查看；11種320～1440寬度無頁面水平溢位，固定頂部、同列Header、彩色AE原圖載入、至少44px主要點按區、詳情／Escape／捲動鎖定／尺寸切換與無pageerror通過。示範資料不代表正式帳號；正式網站、錄音／播放器／Sidebar整合、兌換更新、大數字、iPhone Safari及safe area待實作與驗收。規劃不涉及應用執行，未跑無關全套測試或build，未部署。手機示意Header68px，相較上一版雙列省約53px；尚未改網站。下一步是確認修訂版位方向。

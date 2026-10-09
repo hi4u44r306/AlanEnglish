@@ -1,10 +1,10 @@
 # Alan English 專案邏輯
 
-## 學生頂部成長資訊列（2026-10-09，尚未部署）
+## 學生頂部成長資訊列（2026-10-09，已部署／實機待驗）
 
 - 學生Header使用彩色AE小圖、等級／XP與AE Points，同列持續顯示；1279px以下沿用緊湊選單與底部導航，保留通知與登出。老師／管理員不顯示學生個人成長資訊列。
 - MainNavbar沿用既有summary query，傳入StudentGrowthHeader；缺值以破折號顯示，更新失敗保留上次資料並提供重試。共享快取／獎勵更新事件及UID／權限scope隔離保留，不新增查詢或後端接口。詳情查看完整數字；只有既有hasRewardsAccess可提供商城捷徑，後端仍負責兌換資格。
-- XP×2只依後端birthday摘要的enabled、is_birthday_month、當日evaluated_on及xp_multiplier=2顯示；讀取失敗／台灣日期過期不顯示。沒有修改生日、發獎、等級門檻、點數餘額或權限。
+- XP×2只依後端birthday摘要的enabled、is_birthday_month、當日evaluated_on及xp_multiplier=2顯示；讀取失敗／台灣日期過期不顯示。沒有修改生日、發獎、等級門檻、點數餘額或權限。 PR #494合併main `104d58b9`，Cloudflare production建置成功，新資產與核准Logo原檔線上核對通過；正式學生登入及iPhone Safari待實機驗收。
 
 ## 管理員更正生日（2026-10-09，已部署／實機待驗）
 
