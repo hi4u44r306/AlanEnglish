@@ -1,7 +1,7 @@
 // Keep this catalog treatment after the legacy speaking styles. The scene is
 // the same first tile used by each Workbook's map, so both entries share a world.
 .speaking-challenge-catalog:not(.is-book-open) {
-  background: #eef2e9;
+  background: #f5f8fc;
 
   .speaking-challenge-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -19,11 +19,11 @@
     min-height: 128px;
     padding: 14px;
     overflow: visible;
-    border: 2px solid #a96f3b;
-    border-radius: 18px;
-    background: #fff4d6;
+    border: 1px solid #d5e3f0;
+    border-radius: 14px;
+    background: #fff;
     color: #17345e;
-    box-shadow: 0 3px 0 #714723, 0 7px 14px #243c3412;
+    box-shadow: none;
     text-align: left;
     font-family: "Fredoka", "Nunito", "Noto Sans TC", sans-serif;
     transition: box-shadow .15s ease;
@@ -118,7 +118,7 @@
     }
 
     &:focus-visible { outline: 3px solid #2459a2; outline-offset: 5px; }
-    &:hover { transform: none; box-shadow: 0 3px 0 #714723, 0 9px 18px #243c3420; }
+    &:hover { transform: none; border-color: #91add2; box-shadow: none; }
   }
 
   @media (max-width: 1000px) {

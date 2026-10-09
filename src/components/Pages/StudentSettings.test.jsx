@@ -124,6 +124,7 @@ describe("StudentSettings", () => {
         expect(screen.getByText("Ming Wang")).toBeInTheDocument();
         expect(await screen.findByText("Lv.3")).toBeInTheDocument();
         expect(screen.getByText("390 XP")).toBeInTheDocument();
+        fireEvent.click(screen.getByText("成長與獎品"));
         expect(screen.getByRole("progressbar", { name: "目前等級成長進度" })).toHaveAttribute("value", "30");
         expect(screen.getByText("210 XP")).toBeInTheDocument();
         expect(screen.getByText("AI Premium")).toBeInTheDocument();
@@ -139,6 +140,7 @@ describe("StudentSettings", () => {
             balance: { level: 3, total_xp: 390, points_balance: 21, next_level_xp: 600, progress_percent: 30 }
         });
         render(<StudentSettings />);
+        fireEvent.click(screen.getByText("成長與獎品"));
         const retry = await screen.findByRole("button", { name: "重新讀取成長" });
         expect(screen.queryByText("0 P")).not.toBeInTheDocument();
         expect(screen.getByRole("button", { name: "更換學生頭像" })).toBeEnabled();
@@ -571,7 +573,7 @@ describe("StudentSettings", () => {
         await screen.findByDisplayValue("Sunny Fox");
         expect(screen.getByLabelText("公開暱稱")).toBeVisible();
         const calls = [getGamificationSummary.mock.calls.length, loadStudentCommerceProfile.mock.calls.length, getNicknameSettings.mock.calls.length, getCurrentWebPushStatus.mock.calls.length];
-        for (const title of ["教材與方案", "個人資料與紀錄", "通知與家長聯絡"]) {
+        for (const title of ["成長與獎品", "教材與方案", "個人資料與紀錄", "通知與家長聯絡"]) {
             const summary = screen.getByText(title).closest("summary");
             expect(summary.closest("details")).not.toHaveAttribute("open");
             fireEvent.click(summary);
