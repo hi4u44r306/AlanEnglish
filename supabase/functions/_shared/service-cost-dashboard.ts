@@ -30,10 +30,18 @@ export async function refreshServiceCosts(admin: any, month: string, io: CostIO)
         try { results = await collector.run(month, boundedIO); } catch (e) { error = costError(e); }
         for (const claim of claims) {
             const row = results.find(x => x.provider_id === claim.provider_id);
-            const code = error || (row ? null : 'invalid_response');
+            const code = error || row?.billing_error || (row ? null : 'invalid_response');
+            let usagePatch = {};
+            if (row?.billing_error) {
+                // Billing may be unavailable for a free product. Keep analytics moving without
+                // discarding the previous bill, billed metrics or its successful timestamp.
+                const previous = checked(await admin.from('cost_service_snapshots').select('metrics').eq('provider_id', claim.provider_id).eq('month', claim.month).single());
+                const billed = (Array.isArray(previous?.metrics) ? previous.metrics : []).filter((metric: any) => String(metric.name).startsWith('帳戶計費用量：'));
+                usagePatch = { metrics: [...row.metrics, ...billed] };
+            }
             // Failed refresh retains previous amount, metrics and successful timestamp.
             checked(await admin.from('cost_service_snapshots').update({
-                ...(row ? { cost_usd: row.cost_usd, source: row.source, includes_fixed: row.includes_fixed ?? true, metrics: row.metrics, period_start: row.period_start, period_end: row.period_end, collected_at: io.now.toISOString() } : {}),
+                ...(row && !row.billing_error ? { cost_usd: row.cost_usd, source: row.source, includes_fixed: row.includes_fixed ?? true, metrics: row.metrics, period_start: row.period_start, period_end: row.period_end, collected_at: io.now.toISOString() } : usagePatch),
                 error_code: code, claim_token: null,
                 next_refresh_at: new Date(io.now.getTime() + (code ? 900 : collector.interval) * 1000).toISOString()
             }).eq('provider_id', claim.provider_id).eq('month', claim.month).eq('claim_token', claim.claim_token));
