@@ -1,0 +1,14 @@
+# 管理員更正生日發布與回復清單
+
+日期：2026-10-09；基準 main 5a5c5c80；分支 codex/admin-birthday-correction。尚未部署。這批新增migration、個資更正與管理員權限例外，須完成隔離驗證並依AGENTS第13–14節取得此批正式操作明確同意。
+
+影響：migration只新增稽核表／服務端RPC與現有生日觸發器的受限例外，不回填或修改任何會員生日。正式管理員之後才能個別填日期及原因保存。更正只影響新的生日月判定，年度生日禮來源鍵、已發XP／點數與進度不刪除或重發；前端不傳管理員ID，後端以Firebase帳號重新查角色，RPC再驗證有效管理員。
+
+發布前核對最新main、現有 prevent_student_birth_date_change 定義與 immutable trigger、會員Function的正式來源／依賴及migration history；若不同先合併現行修正並重驗。從審核後main只套用20261009050131_admin_birth_date_correction，登記同版本；不得db push其他migration、關閉全表trigger、用一般學生RPC更改生日或擅改真實帳號。核對稽核表RLS及anon/authenticated無DML／EXECUTE、service_role只有SELECT/INSERT、索引與FK。部署membership-manager，維持現有Firebase驗證與verify_jwt設定，無Secret／Auth／付款設定變更。等待唯一Cloudflare production build並驗收正式路由與生日入口。
+
+正式功能驗收使用使用者指定並授權的測試帳號：原生日／原因顯示、新生日及紀錄同步、409後重讀、學生／老師403、首次設定限制保留、已領年度禮不重發及新學習XP倍率。僅讀取遮蔽資料，不把生日、Email或學生姓名放進Git／工具輸出。HTTP／資產檢查不能代替真實登入、資料寫入、跨連線併發、完整導覽或iPhone驗收。
+
+回復：先撤回生日更正入口與部署前membership-manager；有SQL問題時以新additive migration恢復發布前觸發器定義並撤銷新RPC的服務角色EXECUTE。保留稽核表與已更正資料，不自動改回會員生日、不刪獎勵或學習紀錄；需要修正個別錯誤日期時另行核對、授權與留存紀錄。原生日月活動及100點設定維持。
+
+
+已完成本機／隔離驗證：SQL10＋handler8＋前端20，合計38項；ESLint、Function語法、SCSS與diff check通過。1440／412px示範預覽無溢位、背景鎖定、按鈕44px、保存後前後日期與紀錄更新、無pageerror。Production build、SEO與Cloudflare資產準備成功；正式帳號、跨連線併發、完整Navbar/Sidebar與iPhone仍未驗收。SQL保留null首次設定，非service_role或缺少本交易相符稽核資料時仍拒絕改生日；原年度禮及新學習倍率真實SQL整合通過。
