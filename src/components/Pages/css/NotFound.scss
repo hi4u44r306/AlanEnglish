@@ -1,93 +1,16 @@
 .notfound-container {
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  color: white;
-  font-family: sans-serif;
-}
-
-.card {
-  text-align: center;
-  padding: 40px;
-  border-radius: 20px;
-  backdrop-filter: blur(10px);
-  background: rgba(255, 255, 255, 0.1);
-  animation: fadeIn 0.8s ease;
-}
-
-.title {
-  font-size: 80px;
-  margin: 0;
-}
-
-.subtitle {
-  font-size: 20px;
-  margin-bottom: 20px;
-}
-
-.countdown {
-  position: relative;
-  width: 120px;
-  height: 120px;
-  margin: 20px auto;
-}
-
-.progress-ring {
-  transform: rotate(-90deg);
-}
-
-.ring-bg {
-  fill: transparent;
-  stroke: rgba(255, 255, 255, 0.2);
-  stroke-width: 8;
-}
-
-.ring {
-  fill: transparent;
-  stroke: #fff;
-  stroke-width: 8;
-  stroke-dasharray: 314;
-  stroke-dashoffset: 0;
-  transition: stroke-dashoffset 1s linear;
-}
-
-.count-text {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 28px;
-}
-
-.desc {
-  margin-top: 10px;
-}
-
-.btn {
-  margin-top: 20px;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 10px;
-  background: white;
-  color: #333;
-  cursor: pointer;
-  font-weight: bold;
-  transition: 0.3s;
-}
-
-.btn:hover {
-  transform: scale(1.05);
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 32px 16px;
+  color: #17365d;
+  background: #f6f8fc;
+  .notfound-card { width: min(560px, 100%); padding: clamp(24px, 5vw, 48px); background: white; border: 1px solid #dce4ee; border-radius: 20px; text-align: center; }
+  .notfound-code { display: block; color: #2f6fed; font-size: clamp(64px, 12vw, 96px); font-weight: 900; line-height: 1.2; }
+  h1 { margin: 16px 0; font-size: clamp(24px, 5vw, 32px); }
+  p { color: #53647d; line-height: 1.8; }
+  .notfound-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 24px; }
+  a, button { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 10px 16px; border: 1px solid #c8d6e9; border-radius: 10px; color: #17365d; background: white; font: inherit; font-weight: 700; text-decoration: none; }
+  .notfound-primary { background: #2f6fed; border-color: #2f6fed; color: white; }
+  a:focus-visible, button:focus-visible { outline: 3px solid #17365d; outline-offset: 3px; }
 }

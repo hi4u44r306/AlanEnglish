@@ -27,12 +27,12 @@ const features = [
     },
     {
         icon: <BiPlayCircle />,
-        title: "AI 個人化教材",
-        text: "依孩子的程度產生短文與選擇題，作答後立即回饋並保留練習結果。"
+        title: "老師安排的教材練習",
+        text: "依老師安排的教材完成作答，查看回饋並保留練習結果。"
     },
     {
         icon: <BiPlayCircle />,
-        title: "AI 口說大挑戰",
+        title: "口說大挑戰",
         text: "跟著教材關卡開口回答，從示範、收音到結果回饋，把課堂句型真正說出來。"
     },
     {
@@ -91,7 +91,7 @@ const Showcase = () => {
                                 也更有自信說出來。
                             </h1>
                             <p className="showcase-hero-description">
-                                把英文班教材聽力、班級作業、AI 個人化教材、AI 口說大挑戰與智慧複習放在同一個平台，
+                                把教材聽力、班級作業、口說闖關與學習紀錄放在同一個平台，
                                 每一次有效聆聽、答題與通關都留下紀錄，讓孩子知道下一步，也讓家長與老師看見真正完成的內容。
                             </p>
                             <div className="showcase-hero-actions">
@@ -170,7 +170,7 @@ const Showcase = () => {
 
                 <section className="showcase-value-strip" aria-label="Alan English 核心特色">
                     <div className="showcase-shell">
-                        <span>英文班教材聽力</span><i /><span>AI 口說大挑戰</span><i /><span>班級作業</span><i /><span>學習歷程可追蹤</span>
+                        <span>英文班教材聽力</span><i /><span>口說大挑戰</span><i /><span>班級作業</span><i /><span>學習歷程可追蹤</span>
                     </div>
                 </section>
 
@@ -196,9 +196,9 @@ const Showcase = () => {
 
                 <section id="product-preview" className="showcase-section showcase-product-section">
                     <div className="showcase-shell showcase-product-grid">
-                        <div className="ae-quiz-demo" aria-label="AI 英文練習介面示意">
+                        <div className="ae-quiz-demo" aria-label="教材作答介面示意">
                             <div className="ae-quiz-top">
-                                <div><small>AI PRACTICE</small><strong>閱讀理解 · Question 3</strong></div>
+                                <div><small>教材練習</small><strong>閱讀理解 · Question 3</strong></div>
                                 <span>3 / 5</span>
                             </div>
                             <div className="ae-quiz-progress"><span /></div>
@@ -216,12 +216,12 @@ const Showcase = () => {
                             <span className="showcase-kicker">MORE THAN LISTENING</span>
                             <h2>聽完之後，孩子還能真正回答與運用。</h2>
                             <p>
-                                AI 教材不是直接把答案顯示給學生，而是透過選擇題完成練習。
+                                老師可安排教材題目，孩子完成作答後再查看回饋。
                                 達到學習標準後留下紀錄，之後也能回到智慧複習中心再次練習。
                             </p>
                             <div className="showcase-product-points">
                                 <div><span><BiHeadphone /></span><div><strong>自然建立語感</strong><p>反覆聆聽單字、句型與完整內容。</p></div></div>
-                                <div><span><BiPlayCircle /></span><div><strong>開口回答教材題目</strong><p>用 AI 口說大挑戰練習課堂句型與完整回答。</p></div></div>
+                                <div><span><BiPlayCircle /></span><div><strong>開口回答教材題目</strong><p>用 口說大挑戰練習課堂句型與完整回答。</p></div></div>
                                 <div><span><BiBarChartAlt2 /></span><div><strong>學習結果自動保存</strong><p>進度、完成率與練習紀錄持續累積。</p></div></div>
                             </div>
                         </div>
@@ -243,7 +243,7 @@ const Showcase = () => {
                                 <ul>
                                     <li><span>✓</span> Workbook、Basic Reading 與課堂聽力集中使用</li>
                                     <li><span>✓</span> 接收老師發布的班級作業</li>
-                                    <li><span>✓</span> AI 口說大挑戰與發音練習</li>
+                                    <li><span>✓</span> 口說大挑戰與發音練習</li>
                                     <li><span>✓</span> 老師可以追蹤學習歷程與完成狀態</li>
                                 </ul>
                                 <Link to="/login">我是英文班學生 <BiChevronRight /></Link>

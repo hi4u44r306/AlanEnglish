@@ -324,14 +324,16 @@
 
 .show-password-button {
   position: absolute;
-  right: 9px;
-  padding: 6px 7px;
+  right: 5px;
+  min-width: 48px;
+  min-height: 44px;
+  padding: 8px;
   color: #667389;
   background: transparent;
   border: 0;
   cursor: pointer;
   font-family: inherit;
-  font-size: 0.7rem;
+  font-size: 0.85rem;
   font-weight: 850;
 }
 

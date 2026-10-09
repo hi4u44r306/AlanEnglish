@@ -190,3 +190,16 @@
 @media (prefers-reduced-motion: reduce) {
     .student-onboarding-progress > div { transition: none; }
 }
+
+.student-onboarding-card[hidden] { display: none; }
+.student-onboarding-steps {
+    list-style: none; display: flex; gap: 12px; justify-content: space-between; padding: 4px 0; margin: 0; color: #52647e; font-size: 14px;
+    li { display: flex; align-items: center; gap: 6px; }
+    li > span { display: grid; place-items: center; width: 28px; height: 28px; flex-shrink: 0; border: 1px solid #cad7e8; border-radius: 50%; }
+    li[aria-current="step"] { color: #17365d; font-weight: 800; }
+    li[aria-current="step"] > span { background: #ffdf78; border-color: #ffdf78; }
+    .is-complete { color: #176542; }
+}
+.student-onboarding-hero { box-shadow: none; }
+.student-onboarding-card { box-shadow: none; border-radius: 16px; }
+@media (max-width: 360px) { .student-onboarding-steps { gap: 6px; font-size: 12px; } .student-onboarding-steps li { gap: 4px; } }

@@ -23,8 +23,11 @@ jest.mock("../../services/membershipService", () => ({
 jest.mock("../../services/contentAccessService", () => ({ getAccessibleCatalog: jest.fn() }));
 
 describe("MembershipCenter AI add-on", () => {
+    afterEach(() => jest.restoreAllMocks());
+
     beforeEach(() => {
         jest.clearAllMocks();
+        jest.spyOn(Date, "now").mockReturnValue(new Date("2026-10-01T00:00:00Z").getTime());
         useAuth.mockReturnValue({
             firebaseUser: { email: "academy@example.com" },
             setStudentProfile: jest.fn()
@@ -110,8 +113,12 @@ describe("MembershipCenter AI add-on", () => {
         expect(screen.getByRole("link", { name: /Workbook 1/ })).toHaveAttribute("href", "/student/books/Workbook_1");
         expect(screen.getByText("已取得使用權")).toBeInTheDocument();
         expect(screen.getByText("另有 1 本教材尚未取得使用權")).toBeInTheDocument();
+        fireEvent.click(screen.getByText("查看尚未開通的功能"));
         expect(screen.getByText(/英文班作業為在校生專屬/)).toBeInTheDocument();
         expect(screen.getByRole("link", { name: "查看可解鎖方案" })).toHaveAttribute("href", "#plans");
+        expect(screen.getByText("家長協助：教材啟用與方案管理").closest("details")).not.toHaveAttribute("open");
+        fireEvent.click(screen.getByRole("link", { name: "查看可解鎖方案" }));
+        expect(screen.getByText("家長協助：教材啟用與方案管理").closest("details")).toHaveAttribute("open");
     });
 
     it("shows academy AI Premium as included without renewal, cancellation, or add-on controls", async () => {

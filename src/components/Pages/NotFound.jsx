@@ -1,58 +1,27 @@
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "../../auth/AuthContext";
 import "./css/NotFound.scss";
 
 const NotFound = () => {
-    const [count, setCount] = useState(5);
     const navigate = useNavigate();
-
-    useEffect(() => {
-        if (count === 0) {
-            navigate("/");
-            return;
-        }
-
-        const timer = setTimeout(() => {
-            setCount(count - 1);
-        }, 1000);
-
-        return () => clearTimeout(timer);
-    }, [count, navigate]);
+    const { isAuthenticated, role } = useAuth();
+    const home = isAuthenticated ? role === "student" ? "/student/dashboard" : "/userinfo" : "/";
+    const canGoBack = (window.history.state?.idx ?? 0) > 0;
 
     return (
-        <div className="notfound-container">
-            <div className="card">
-                <h1 className="title">404</h1>
-                <p className="subtitle">頁面不存在</p>
-
-                <div className="countdown">
-                    <svg className="progress-ring" width="120" height="120">
-                        <circle
-                            className="ring-bg"
-                            cx="60"
-                            cy="60"
-                            r="50"
-                        />
-                        <circle
-                            className="ring"
-                            cx="60"
-                            cy="60"
-                            r="50"
-                            style={{
-                                strokeDashoffset: 314 - (314 * (5 - count)) / 5
-                            }}
-                        />
-                    </svg>
-                    <div className="count-text">{count}</div>
+        <main className="notfound-container">
+            <section className="notfound-card" aria-labelledby="notfound-heading">
+                <span className="notfound-code" aria-hidden="true">404</span>
+                <h1 id="notfound-heading">這個頁面找不到了</h1>
+                <p>連結可能已更換。你可以回到首頁，重新選擇想學習的內容。</p>
+                <div className="notfound-actions">
+                    <Link className="notfound-primary" to={home}>回到首頁</Link>
+                    {canGoBack && <button type="button" onClick={() => navigate(-1)}>回上一頁</button>}
+                    <Link to={isAuthenticated ? "/materials" : "/links"}>尋找教材</Link>
                 </div>
-
-                <p className="desc">{count} 秒後自動返回首頁</p>
-
-                <button className="btn" onClick={() => navigate("/")}>
-                    立即回首頁
-                </button>
-            </div>
-        </div>
+            </section>
+        </main>
     );
 };
 
