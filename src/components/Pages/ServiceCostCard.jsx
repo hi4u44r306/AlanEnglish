@@ -3,7 +3,7 @@ import { saveServiceCost } from '../../services/costAlertService';
 import { serviceCostDisplay } from './costPresentation';
 const money = n => Number(n).toLocaleString('zh-TW', { maximumFractionDigits: 4 });
 const time = value => value ? new Date(value).toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' }) : '尚未取得';
-const errors = { missing_configuration: '尚未接通帳務權限', invalid_configuration: '帳務設定需修正', test_mode_only: '目前只有測試模式，未計入真實費用', unsupported_currency: '幣別尚未支援，金額未計入', historical_usage_unavailable: '供應商未提供歷史用量', incomplete_pagination: '資料不完整，保留上次資料', incomplete_query: '查詢尚未完成，保留上次資料' };
+const errors = { missing_configuration: '尚未接通帳務權限', invalid_configuration: '帳務設定需修正', test_mode_only: '目前只有測試模式，未計入真實費用', unsupported_currency: '幣別尚未支援，金額未計入', historical_usage_unavailable: '供應商未提供歷史用量', incomplete_pagination: '資料不完整，保留上次資料', incomplete_query: '查詢尚未完成，保留上次資料', billing_usage_empty: '供應商尚無此產品的本月帳務資料，不能視為零元', billing_coverage_unavailable: '供應商尚未提供此帳戶的帳務 API 資料', billing_period_mismatch: '供應商費用跨越查詢月份，尚未計入' };
 export default function ServiceCostCard({ provider, firebaseUser, month, onSaved }) {
     const [editing, setEditing] = useState(false);
     const [fixed, setFixed] = useState(provider.fixed_monthly_usd ?? '');
