@@ -2,10 +2,11 @@
 
 最後更新：2026-10-09
 
-### 學生成長與冒險遊戲圖示（2026-10-09，尚未部署）
+### 學生成長與冒險遊戲圖示（2026-10-09，已部署／實機待驗）
 
 - 基準 main `5131e7ac`，分支 `codex/student-game-icons`。依使用者要求，新增共用 AEPointCoin 向量金幣、星盾等級徽章與 Arcade 搖桿；金幣用於頂部與點數詳情，搖桿用於電腦及手機／平板冒險入口。範圍僅兩個現有元件、新裝飾元件、局部 SCSS 與文件，沒有新套件、後端／資料／權限改動。手冊 v3.81 同步。
 - Low Risk：僅 JSX 裝飾與 SCSS。局部 ESLint、diff check、真實元件隔離預覽 12 種寬度、詳情／Escape／背景鎖定、大數字、缺值與短橫向均通過，無 pageerror；file 預覽尺寸切換、詳情與頭貼通過。375px 保留金幣及徽章，359px 以下保留數字而省略頂部裝飾，詳情仍顯示金幣。不執行 npm test 或本機 production build，發布由 Cloudflare main 唯一建置。正式登入與 iPhone Safari 實機待驗；可 revert 本批前端回復，沒有資料回復需求。
+- PR #498 合併 main `dfe8b11409fcf8fcffa36186ff77c6bbacffc7a1`，Cloudflare production build `a85ed6a9-d319-4539-bfda-cca8c16bfee1` 於 2026-10-09 16:23:01 台灣時間 success，Worker version `6bf2bbf3-c4b4-496b-b6f4-72d66b5e6d08`。16:24:36 正式首頁、學生首頁／設定、manifest 及全部 27 個 JS／CSS HTTP 200，金幣、星盾與搖桿的 6 個精確 SVG／樣式標記通過，Logo 與核准原檔相符。證據 output/student-game-icons-release/production-http.json；可操作預覽及實際元件圖示對照位於 output/student-game-icons-preview。手冊 v3.81 已部署；正式學生登入與 iPhone Safari 仍待實機驗收。純文件發布紀錄不觸發第二次前端建置。
 
 
 ### 學生成長資訊列與詳情視覺優化（2026-10-09，已部署／實機待驗）

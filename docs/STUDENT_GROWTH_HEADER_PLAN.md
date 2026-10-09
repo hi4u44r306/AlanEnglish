@@ -77,6 +77,8 @@
 
 視覺優化已發布：PR #496／main `a7712d92`，Cloudflare build `ea1fe23d-4e19-47f5-97c9-f621b96e0ba3`於2026-10-09 16:02:23台灣時間成功；正式路由與新詳情資產核對通過。39項局部測試、12種寬度與短橫向、本人既有頭貼示範、兩種詳情／關閉／背景鎖定通過。可直接開啟output/student-growth-polish-preview/index.html操作隔離示範；正式登入與iPhone Safari待實機。
 
-## 遊戲圖示調整（2026-10-09，尚未部署）
+## 遊戲圖示調整（2026-10-09，已部署／實機待驗）
 
 AE Points 改為中央有 A 的金幣，共用向量輪廓、金色外圈與淡黃色內面，適合頂部 20～24px 及詳情 52px；等級使用藍色星盾徽章。電腦與手機／平板的冒險入口共用 Arcade 搖桿，沿用既有冒險黃色底色與文字。359px 以下省略頂部金幣／星盾，保留清楚數字与 44px 點按範圍；詳情金幣及底部搖桿持續顯示。不改資料、操作或任何權限；可操作隔離預覽位於 output/student-game-icons-preview。
+
+PR #498／main `dfe8b114` 已發布，Cloudflare 唯一 production build 於 2026-10-09 16:23:01 台灣時間成功；正式路由、27 個 JS／CSS、三種圖示的精確向量標記與原核准 Logo 校驗通過。局部 lint、12 種寬度與詳情／短橫向通過；純圖示變更不重跑 npm test 或本機 production build。正式登入及 iPhone Safari 待實機驗收。
