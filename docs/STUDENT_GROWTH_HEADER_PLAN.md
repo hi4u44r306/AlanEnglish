@@ -1,6 +1,6 @@
 # 學生頂部等級與點數：版位設計提案
 
-日期：2026-10-09；修訂：依全站現行配色縮小數字、降低成長列視覺重量。基準 main `204c0353`；規劃分支 `codex/student-growth-header-plan`。狀態：已依核准提案整合學生Header，驗證／發布進行中。示意數字與頁面內容都不是正式帳號資料。
+日期：2026-10-09；修訂：依全站現行配色縮小數字、降低成長列視覺重量。基準 main `204c0353`；規劃分支 `codex/student-growth-header-plan`。狀態：已依核准提案整合並部署學生Header，正式學生登入與iPhone操作待實機驗收。示意數字與頁面內容都不是正式帳號資料。
 
 ## 建議位置
 
@@ -66,3 +66,5 @@
 ## 核准後實作（2026-10-09）
 
 使用者核准並要求發布正式站。本批沿用現有summary，新增StudentGrowthHeader與Bootstrap詳情視窗，支援載入／失敗／重試、完整數字、既有兌換資格及生日當日核對；學生Logo改用彩色AE。1279px以下延伸原學生緊湊模式及播放器／底部導航偏移。實際Header沿用網站原有66／72px導覽容器，另保留邊線與safe area所需的內容偏移，沒有增加第二列。真實元件驗證位於output/student-growth-live-preview。
+
+發布結果：PR #494／main `104d58b97ca6015bd054033fd6ea1e91f991ab01`，Cloudflare build `2081f469-ef6d-46c5-aa44-d7ba65927176`於2026-10-09 15:27:24台灣時間成功；正式路由、27個JS／CSS與Logo原檔校驗通過。49項局部測試、相關lint與12種寬度真實元件隔離驗證通過；實際Header含邊線69px，1600px為75px。發布證據output/student-growth-header-release。
