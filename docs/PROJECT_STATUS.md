@@ -5,8 +5,8 @@
 
 ### 學生頂部等級與點數（2026-10-09，設計提案／尚未實作）
 
-- 基準 main `204c0353`；規劃分支 `codex/student-growth-header-plan`。建議電腦導覽右側／平板橫向同列，手機及平板直向Logo下一列，顯示Lv、XP條／升級距離、AE Points及有效生日月倍率。緊湊模式暫定1279px上限（現況1100px），待確認；底部學習導覽保留。
-- 只新增設計文件 `docs/STUDENT_GROWTH_HEADER_PLAN.md` 與獨立示意 `output/student-growth-header/index.html`，未修改src、後端、會員或網站。四張1440／1024／768／412圖已查看；11種320～1440寬度無頁面水平溢位，固定頂部、49px主要點按區、詳情／Escape／捲動鎖定／尺寸切換與無pageerror通過。示範資料不代表正式帳號；正式網站、錄音／播放器／Sidebar整合、兌換更新、大數字、iPhone Safari及safe area待實作與驗收。規劃不涉及應用執行，未跑無關全套測試或build，未部署。下一步是確認版位方向。
+- 基準 main `204c0353`；規劃分支 `codex/student-growth-header-plan`。依使用者修訂並確認彩色AE `public/ae-icon.jpeg`，品牌只留小圖示；電腦、手機和平板的Lv、XP條／升級距離、AE Points及有效生日月倍率全部同列放入最頂端Header。緊湊模式暫定1279px上限（現況1100px），待確認；底部學習導覽保留。
+- 只新增設計文件 `docs/STUDENT_GROWTH_HEADER_PLAN.md` 與獨立示意 `output/student-growth-header/index.html`，未修改src、後端、會員或網站。四張1440／1024／768／412圖已查看；11種320～1440寬度無頁面水平溢位，固定頂部、同列Header、彩色AE原圖載入、至少44px主要點按區、詳情／Escape／捲動鎖定／尺寸切換與無pageerror通過。示範資料不代表正式帳號；正式網站、錄音／播放器／Sidebar整合、兌換更新、大數字、iPhone Safari及safe area待實作與驗收。規劃不涉及應用執行，未跑無關全套測試或build，未部署。手機示意Header66px，相較上一版雙列省約55px；尚未改網站。下一步是確認修訂版位方向。
 
 
 ### 目前人數逐項月費估算（2026-10-09，已部署／登入實機待驗）
