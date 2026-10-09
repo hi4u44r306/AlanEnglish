@@ -2,16 +2,18 @@
 
 最後更新：2026-10-09
 
-### 按鈕陰影與導覽體驗複查（2026-10-09，本機完成／尚未部署）
+### 按鈕陰影與導覽體驗複查（2026-10-09，已部署／實機待驗）
 
 - 接續本機視覺提交 `8515929`。使用實際導覽元件操作學生、老師與管理員入口，將「我的角色」總選單改名「我的學習」，目的地改為「我的設定」，作業／週報放在選單前面；「管理」改為「班級與學生」，手機管理區提前。導覽、次要與頭貼操作減少陰影；共用下拉項目至少 44px。沒有後端／資格／路由改動。
-- 35 項既有導覽測試、局部 ESLint／五份 SCSS 編譯、調整前後各 42 組實際導覽檢查及 12 組一鍵入口通過；原 54 組代表版面與短螢幕檢查重新通過。互動預覽於 `output/student-navigation-preview/review.html`；詳情見 `docs/NAVIGATION_EXPERIENCE_REVIEW.md`。目的地採離線路徑標記，正式頁面、登入及 iPhone 待驗。手冊 v3.83，尚未發布。
+- 35 項既有導覽測試、局部 ESLint／五份 SCSS 編譯、調整前後各 42 組實際導覽檢查及 12 組一鍵入口通過；原 54 組代表版面與短螢幕檢查重新通過。互動預覽於 `output/student-navigation-preview/review.html`；詳情見 `docs/NAVIGATION_EXPERIENCE_REVIEW.md`。目的地採離線路徑標記，正式頁面、登入及 iPhone 待驗。手冊 v3.84 已發布。
 
-### 全站視覺減量（2026-10-09，本機完成／尚未部署）
+### 全站視覺減量（2026-10-09，已部署／實機待驗）
 
 - 基準 main `b466e6c`，分支 `codex/student-visual-calm`。盤點路由與頁面來源，調整學生首頁／設定／作業／聽力／口說／週報／複習等及公開／共用管理樣式。移除首頁三個重複入口，設定先顯示頭貼與暱稱，成長改為可展開區；減少多層框、陰影、裝飾圓圈與過大頁首，保留場景、金幣及遊戲主要操作。無後端、資料、權限與依賴變更；原工作目錄的其他草稿保持。
-- 兩套既有測試共 41 項、局部 JSX ESLint、18 個 SCSS 編譯通過。九組離線元件／子元件示範 × 六種寬度，共 54 組通過；設定鍵盤展開與三組短螢幕口說捲動通過。首頁示範手機教材架提前 225px；不是正式網路速度量測。沒有 production build 或全套測試，正式登入、iPhone、播放／錄音與保存待驗。
-- 審核細節見 `docs/STUDENT_VISUAL_COMFORT_REVIEW.md`；可切換頁面／尺寸／前後版本的本機預覽在 `output/student-visual-calm-preview/index.html`。手冊 v3.82 為本機版本；尚未推送、合併或部署，正式站不受本批影響。
+- 兩套既有測試共 41 項、局部 JSX ESLint、18 個 SCSS 編譯通過。九組離線元件／子元件示範 × 六種寬度，共 54 組通過；設定鍵盤展開與三組短螢幕口說捲動通過。首頁示範手機教材架提前 225px；不是正式網路速度量測。沒有本機 production build 或全套測試；正式 Cloudflare production build 已成功，正式登入、iPhone、播放／錄音與保存待驗。
+- 審核細節見 `docs/STUDENT_VISUAL_COMFORT_REVIEW.md`；可切換頁面／尺寸／前後版本的本機預覽在 `output/student-visual-calm-preview/index.html`。手冊 v3.84 已發布。
+
+- PR #506 已合併 main `1698483c0380f96d9f9a3ee310cf41cc74af3a86`；Cloudflare build `38ec8425-d79c-4da5-b3f7-f9682b30916e` 於 2026-10-09 18:57:28 台灣時間成功。正式首頁、學生首頁／設定與班級教材路由及全部 27 個 JS／CSS 均 HTTP 200，10 個新導覽／設定／樣式及原成本標記通過；manifest 與部署前不同，新主程式 `main.c33b5f9d.js`、主樣式 `main.70423234.css`。證據 `output/student-visual-calm-release/production-before.json` 與 `production-after.json`。正式登入、各目的頁資料操作及 iPhone Safari 仍待實測；HTTP／資產驗收不代表上述流程已通過。
 
 ### Cloudflare 帳務與 GitHub 費用（2026-10-09，R2 已接通／Workers 無帳務列）
 

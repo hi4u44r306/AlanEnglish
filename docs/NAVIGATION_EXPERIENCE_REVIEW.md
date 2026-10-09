@@ -1,6 +1,6 @@
 # 按鈕陰影與找功能的操作審核
 
-2026-10-09；基準 `8515929`，分支 `codex/student-visual-calm`。本機完成，尚未部署。
+2026-10-09；基準 `8515929`，分支 `codex/student-visual-calm`。已由 PR #506 發布，正式登入與實機待驗。
 
 本次在 Edge 操作實際 MainNavbar、StudentNavbar、MaterialsNavigator 與學生首頁，提供離線學生、老師、管理員資料。選單開關、分類、連結、React Router 導航與 Escape 都是真實元件行為；到達其他頁面後只呈現路徑標記，不載入正式後端或驗證目的頁業務流程。家長視角採學生帳號查看設定／週報入口，沒有另建家長權限模型。
 
@@ -29,3 +29,7 @@
 ## 還需要真實使用者確認的部分
 
 所有角色完整目的頁、長教材分類／大量通知、不同資格、正式登入與 iPhone Safari 尚未驗證。學生進階功能仍在分組選單內；管理員「系統」有十項工具，這是來源檢視，沒有逐項操作正式資料。可使用上述互動預覽試找功能，但不應將這次操作視為完整網站可用性研究或正式資料流程已通過。
+
+## 發布驗收
+
+PR #506 已合併 main `1698483c0380f96d9f9a3ee310cf41cc74af3a86`；Cloudflare build `38ec8425-d79c-4da5-b3f7-f9682b30916e` 於 2026-10-09 18:57:28 台灣時間成功。正式首頁、學生首頁／設定與班級教材路由及全部 27 個 JS／CSS 均 HTTP 200，10 個新導覽／設定／樣式及原成本標記通過；manifest 與部署前不同，新主程式 `main.c33b5f9d.js`、主樣式 `main.70423234.css`。證據 `output/student-visual-calm-release/production-before.json` 與 `production-after.json`。正式登入、各目的頁資料操作及 iPhone Safari 仍待實測；HTTP／資產驗收不代表上述流程已通過。

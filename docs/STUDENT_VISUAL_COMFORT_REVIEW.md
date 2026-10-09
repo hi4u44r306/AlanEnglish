@@ -1,6 +1,6 @@
 # 網站視覺舒適度審核與調整
 
-日期：2026-10-09。基準 main `b466e6c`；分支 `codex/student-visual-calm`。狀態：本機完成，尚未推送、合併或部署。
+日期：2026-10-09。基準 main `b466e6c`；分支 `codex/student-visual-calm`。狀態：已由 PR #506 發布，正式登入與實機待驗。
 
 ## 審核範圍
 
@@ -39,4 +39,8 @@
 
 ## 實際使用待驗
 
-尚未部署；沒有執行全套測試或 production build。正式登入後的多教材／長文字、空資料與各角色條件畫面、iPhone Safari／safe area、播放器、麥克風與評分、真實頭貼上傳／儲存／兌換及管理保存需要實際帳號確認。離線預覽不執行這些操作，也不代表正式站已變更。回復本批前端提交即可回復視覺，不需資料回復。
+已部署；沒有執行本機全套測試或本機 production build，正式 Cloudflare production build 成功。正式登入後的多教材／長文字、空資料與各角色條件畫面、iPhone Safari／safe area、播放器、麥克風與評分、真實頭貼上傳／儲存／兌換及管理保存需要實際帳號確認。離線預覽不執行這些操作，也不代表正式資料操作已通過。回復本批前端提交即可回復視覺，不需資料回復。
+
+## 發布驗收
+
+PR #506 已合併 main `1698483c0380f96d9f9a3ee310cf41cc74af3a86`；Cloudflare build `38ec8425-d79c-4da5-b3f7-f9682b30916e` 於 2026-10-09 18:57:28 台灣時間成功。正式首頁、學生首頁／設定與班級教材路由及全部 27 個 JS／CSS 均 HTTP 200，10 個新導覽／設定／樣式及原成本標記通過；manifest 與部署前不同，新主程式 `main.c33b5f9d.js`、主樣式 `main.70423234.css`。證據 `output/student-visual-calm-release/production-before.json` 與 `production-after.json`。正式登入、各目的頁資料操作及 iPhone Safari 仍待實測；HTTP／資產驗收不代表上述流程已通過。
