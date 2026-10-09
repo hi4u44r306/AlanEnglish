@@ -11,7 +11,6 @@ import {
     FiBell,
     FiBookOpen,
     FiCreditCard,
-    FiCompass,
     FiGift,
     FiHelpCircle,
     FiHome,
@@ -24,6 +23,7 @@ import {
     FiUsers,
     FiZap
 } from "react-icons/fi";
+import { PiJoystick } from "react-icons/pi";
 import StudentGrowthHeader from "./StudentGrowthHeader";
 import StudentAvatarImage from "./StudentAvatarImage";
 import { getStudentAvatarDisplayUrl } from "../../constants/defaultStudentAvatars";
@@ -223,7 +223,7 @@ const StudentNavbar = ({
         <nav className="ae-student-bottom-nav" aria-label="學生主要導覽">
             <Link to="/student/dashboard" aria-current={isPathActive("/student/dashboard") ? "page" : undefined} className={isPathActive("/student/dashboard") ? "active" : ""}><NavigationIcon tone="home"><FiHome /></NavigationIcon><span>今日</span></Link>
             {shouldShowMaterials && <button type="button" onClick={() => openDrawer("materials")} aria-current={materialsActive ? "page" : undefined} aria-expanded={drawerOpen && drawer === "materials"} aria-controls="student-navigation-drawer" className={`${materialsActive ? "active" : ""} ${drawerOpen && drawer === "materials" ? "is-open" : ""}`}><NavigationIcon tone="books"><FiBookOpen /></NavigationIcon><span>教材</span></button>}
-            <button type="button" onClick={() => openDrawer("speaking")} aria-current={speakingActive ? "page" : undefined} aria-expanded={drawerOpen && drawer === "speaking"} aria-controls="student-navigation-drawer" className={`${speakingActive ? "active" : ""} ${drawerOpen && drawer === "speaking" ? "is-open" : ""}`}><NavigationIcon tone="adventure"><FiCompass /></NavigationIcon><span>冒險</span></button>
+            <button type="button" onClick={() => openDrawer("speaking")} aria-current={speakingActive ? "page" : undefined} aria-expanded={drawerOpen && drawer === "speaking"} aria-controls="student-navigation-drawer" className={`${speakingActive ? "active" : ""} ${drawerOpen && drawer === "speaking" ? "is-open" : ""}`}><NavigationIcon tone="adventure"><PiJoystick /></NavigationIcon><span>冒險</span></button>
             <Link to="/student/settings" aria-current={isPathActive("/student/settings") ? "page" : undefined} className={`ae-student-bottom-profile ${profileActive ? "active" : ""}`} aria-label="我的">
                 <NavigationIcon tone="profile"><span className="ae-student-bottom-avatar">{profileAvatar}</span></NavigationIcon>
                 <span>我的</span>
@@ -245,7 +245,7 @@ const StudentNavbar = ({
                                 {renderMaterials("desktop")}
                             </NavDropdown>
                         )}
-                        <NavDropdown id="student-speaking" title={<span><NavigationIcon tone="adventure"><FiCompass /></NavigationIcon>口說冒險</span>} className={speakingActive ? "active" : ""}>
+                        <NavDropdown id="student-speaking" title={<span><NavigationIcon tone="adventure"><PiJoystick /></NavigationIcon>口說冒險</span>} className={speakingActive ? "active" : ""}>
                                 <div className="ae-student-dropdown-heading"><strong>冒險世界</strong><small>選擇教材，開始闖關</small></div>
                                 {speakingLinks}
                         </NavDropdown>
