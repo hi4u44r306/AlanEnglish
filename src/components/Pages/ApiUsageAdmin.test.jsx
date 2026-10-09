@@ -1,5 +1,5 @@
 import "@testing-library/jest-dom";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { useAuth } from "../../auth/AuthContext";
 import { getAiCostDashboard, updateAiCostBudget } from "../../services/aiMaterialService";
 import { getServiceCostDashboard } from "../../services/costAlertService";
@@ -40,17 +40,18 @@ describe("ApiUsageAdmin", () => {
         expect(await screen.findByRole("progressbar", { name: "本月網站預算使用率" })).toHaveAttribute("aria-valuenow", "13");
         expect(screen.getByText("帳務資料缺口")).toBeInTheDocument();
         expect(screen.queryByText("月底費用可能超標")).not.toBeInTheDocument();
-        expect(screen.getByText("OpenAI · AI 教材")).toBeInTheDocument();
-        expect(screen.getByText("Supabase")).toBeInTheDocument();
+        expect(screen.getAllByText("OpenAI · AI 教材")).toHaveLength(2);
+        expect(screen.getAllByText("Supabase")).toHaveLength(2);
         expect(screen.getAllByText("需補資料").length).toBeGreaterThan(0);
     });
 
     it("filters providers and saves the budget", async () => {
         render(<ApiUsageAdmin />);
-        await screen.findByText("OpenAI · AI 教材");
+        await screen.findByRole('heading', { name: '依目前人數估算每月成本' });
         fireEvent.click(screen.getByRole("button", { name: "需補資料" }));
-        expect(screen.queryByText("OpenAI · AI 教材")).not.toBeInTheDocument();
-        expect(screen.getByText("Supabase")).toBeInTheDocument();
+        const serviceCards = within(document.querySelector('.api-provider-grid'));
+        expect(serviceCards.queryByText("OpenAI · AI 教材")).not.toBeInTheDocument();
+        expect(serviceCards.getByText("Supabase")).toBeInTheDocument();
         fireEvent.click(screen.getByRole("button", { name: "儲存設定" }));
         await waitFor(() => expect(updateAiCostBudget).toHaveBeenCalled());
     });

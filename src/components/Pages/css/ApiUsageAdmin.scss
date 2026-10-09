@@ -92,6 +92,22 @@
 .api-provider-facts { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
 .api-provider-facts span { padding: 5px 8px; border-radius: 8px; color: #344054; background: #f1f4f8; font-size: 11px; }
 @keyframes api-spin { to { transform: rotate(360deg); } }
+.api-scale { margin: 18px 0; }
+.api-scale p, .api-scale small { color: #667085; line-height: 1.65; overflow-wrap: anywhere; }
+.api-scale-total { display: grid; gap: 6px; margin-top: 16px; padding: 18px; border-radius: 15px; color: #163e79; background: #edf4ff; }
+.api-scale-total strong { font-size: 26px; overflow-wrap: anywhere; }
+.api-scale-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 18px; }
+.api-scale-row { min-width: 0; padding: 18px; border: 1px solid #dfe5ef; border-radius: 15px; }
+.api-scale-row.is-excluded { background: #f4f5f7; }
+.api-scale-heading { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 8px; }
+.api-scale-heading h3 { margin: 0; font-size: 16px; }
+.api-scale-heading strong { color: #175cd3; overflow-wrap: anywhere; }
+.api-scale-inputs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.api-scale-inputs label { display: grid; gap: 6px; min-width: 0; font-size: 12px; }
+.api-scale-inputs input { box-sizing: border-box; width: 100%; min-width: 0; min-height: 44px; padding: 8px 10px; border: 1px solid #c7d3e5; border-radius: 8px; }
+.api-scale-row button { margin-top: 12px; min-height: 44px; }
+@media (max-width: 900px) { .api-scale-list { grid-template-columns: 1fr; } }
+@media (max-width: 400px) { .api-scale-inputs { grid-template-columns: 1fr; } }
 @media (max-width: 900px) {
     .api-overview { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .api-budget { grid-template-columns: 1fr; }

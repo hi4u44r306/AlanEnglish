@@ -41,6 +41,7 @@ export async function refreshServiceCosts(admin: any, month: string, io: CostIO)
     }));
 }
 export async function serviceCostDashboard(admin: any, month: string) {
+    const population = await costPopulation(admin);
     const raw = checked(await admin.rpc('unified_cost_month_v1', { p_month: `${month}-01` }));
     const budget = checked(await admin.from('ai_api_budget_settings').select('monthly_budget_usd,warning_percent,usd_to_twd_rate').eq('id', 1).single());
     const providers = raw.providers.map((row: any) => {
@@ -50,7 +51,19 @@ export async function serviceCostDashboard(admin: any, month: string) {
     const total = Number(raw.total_cost_usd);
     const used = total * 100 / Number(budget.monthly_budget_usd);
     const gaps = providers.filter((p: any) => p.enabled && (p.incomplete || p.error_code || p.stale)).length;
-    return { month, providers, calculated_at: raw.calculated_at, summary: { total_cost_usd: total, total_cost_twd: total * Number(budget.usd_to_twd_rate), incomplete_services: gaps }, budget: { ...budget, used_percent: used, status: used >= 100 ? 'over' : used >= budget.warning_percent ? 'warning' : 'normal' } };
+    return { month, providers, population, calculated_at: raw.calculated_at, summary: { total_cost_usd: total, total_cost_twd: total * Number(budget.usd_to_twd_rate), incomplete_services: gaps }, budget: { ...budget, used_percent: used, status: used >= 100 ? 'over' : used >= budget.warning_percent ? 'warning' : 'normal' } };
+}
+// Only called behind the existing Firebase and database administrator gate.
+// Exact HEAD count avoids returning profiles and the API row limit.
+export async function costPopulation(admin: any) {
+    try {
+        const result = await admin.from('students').select('id', { count: 'exact', head: true })
+            .eq('role', 'student').eq('account_status', 'active');
+        if (result.error || !Number.isInteger(result.count) || result.count < 0) throw new Error('count_unavailable');
+        return { active_students: result.count, counted_at: new Date().toISOString() };
+    } catch {
+        return { active_students: null, counted_at: null, error: 'population_unavailable' };
+    }
 }
 export async function saveServiceCost(admin: any, body: any) {
     if (!serviceNames[body.provider_id] || typeof body.enabled !== 'boolean') throw Object.assign(new Error('服務設定格式不正確'), { status: 400 });

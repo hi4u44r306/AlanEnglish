@@ -2,6 +2,11 @@
 
 最後更新：2026-10-09
 
+### 目前人數逐項月費估算（2026-10-09，尚未部署）
+
+- 基準 main `f6ec8716`，分支 `codex/cost-current-student-scale`，独立副本 `output/cost-scale-20261009`；主工作目錄草稿保留。管理員成本 API 新增啟用學生精確 HEAD count；新增逐項固定／共用費、人均用量費與 USD／TWD 合計，可按當前人數自動更新。預估與實際帳務／五分鐘提醒分開，不改資料表、RLS、Secret 或收件流程。
+- A–Z 預算情境與網站共用生成外推明示假設；未知服務保留缺口，可逐項補入預算，僅存此管理員／瀏覽器／月份。固定費與完整總額不重複計算，停用服務不入總計；查詢歷史月仍以當前人數。PROJECT_LOGIC 與手冊 v3.77 同步。57 項局部 React／人數／供應商／隔離 PostgreSQL 回歸通過，ESLint、後端語法與 diff check 通過；真實元件／SCSS 1440、412、320px 無水平溢位，14 項完整顯示、輸入高度至少 44px。正式 SQL 唯讀核對啟用學生為 1 人。不新增 migration；前端 production build 由 Cloudflare 執行，未重跑無關全套。正式登入／iPhone Safari 尚未驗收。發布結果待補；可 revert 本批前後端，不影響已發生費用或通知紀錄。
+
 ### 生日月 XP ×2 與可調整生日禮（2026-10-09，已部署／實機待驗）
 
 - 基準 main `d471e86a`；功能分支 `codex/birthday-month-rewards`，使用目前既有 worktree，沒有另建 worktree。新增四份 additive migration、gamification 生日摘要／管理員設定 action、獎品管理設定卡與學生首頁提示，預設生日禮 100 AE Points，管理員可調整 0～10,000 點；沿用有效在校生點數資格，每人每年一次，已領金額不補發或追回，生日鎖定／原有效學習、升等與領獎次數維持。
