@@ -28,7 +28,7 @@
 | Google TTS／Firebase／其他 Google 費用 | 標準 Cloud Billing BigQuery export，依網站 project 篩選，計入 credits，服務分開 | 每 6 小時；export 有延遲，空匯出不得當成免費 |
 | Azure Speech | 限網站 resource group 的 ActualCost／PreTaxCost | 每日；即時可見已結束錄音請求秒數，非計費秒數 |
 | Supabase | 目前 DB 大小；固定月費歷史 | Compute、流量、Functions 完整組織帳單未接通，金額仍有缺口 |
-| Cloudflare Worker／R2 | 指定 Worker 請求、bucket 操作／儲存 | 每 15 分鐘；analytics 並非完整計費來源，CPU、GB-month、Class A/B／建置費仍需核對 |
+| Cloudflare Worker／R2 | 指定 Worker 請求、bucket 操作；另讀帳戶對應產品 Billable Usage 金額／用量 | 每 15 分鐘查詢，供應商帳務每日更新。UTC 月份，實際費用期間；不含固定方案費、稅金與其他 Cloudflare 產品。空資料不當零元 |
 | Resend | 帳戶每日／本期已用與額度、reset 時間 | 每 5 分鐘；需 full-access 權限，用量 API 不提供完整帳單金額 |
 | Stripe | 正式帳戶 balance transactions 費用，排除交易本金 | 每小時；test key 不計入真實費用；帳戶可含其他網站交易，需確認範圍 |
 | GitHub | 指定 repo 的 billing usage summary 淨費用 | 每小時；供應商月份，固定 GitHub 方案費另計 |
@@ -44,6 +44,9 @@
 - Azure：`COST_AZURE_TENANT_ID`、`COST_AZURE_CLIENT_ID`、`COST_AZURE_CLIENT_SECRET`、`COST_AZURE_SCOPE`（`/subscriptions/<id>/resourceGroups/<site-group>`）。僅在該 resource group 提供 Cost Management Reader，不授予寫入權限；Speech API key 無法取代帳務權限。
 - Google：`COST_GOOGLE_SERVICE_ACCOUNT_JSON`（新的 billing reader，不取出 Firebase／TTS 既有 SA）、`COST_GOOGLE_BILLING_TABLE`（project.dataset.table）、`COST_GOOGLE_QUERY_PROJECT`、`COST_GOOGLE_PROJECT_IDS`、`COST_GOOGLE_BIGQUERY_LOCATION`。須一次開啟標準 Cloud Billing export；reader 僅需該 dataset Data Viewer 與 query project Job User，單次 maximumBytesBilled=1GB，cache 啟用；查詢可能產生少量 BigQuery 費用並有延遲。
 - Cloudflare：`COST_CLOUDFLARE_ACCOUNT_ID`、`COST_CLOUDFLARE_READ_TOKEN`（Account Analytics Read，限網站帳戶）、`COST_CLOUDFLARE_WORKER_NAME=alanenglish`、`COST_CLOUDFLARE_R2_BUCKET=alanenglish-audio`。不要重用 R2 寫入 key。
+- Cloudflare 帳務：新增 `COST_CLOUDFLARE_BILLING_READ_TOKEN`（Account Billing Read，限同一帳戶）。不取代 Analytics Token；未設定時仍保留原用量採集。使用公開 v1 `/accounts/{id}/billable-usage/info` 與 `/billable-usage`，同批兩產品共用一次讀取。請求含前月以覆蓋月帳期 anchor，只計選定 UTC 月份內完整 charge periods 的 ContractedCost，不加 CumulatedContractedCost；缺資料或費用跨月不能安全拆分時保留缺口。帳戶產品費可能包含其他網站資源。
+
+官方依據：[Billable Usage](https://developers.cloudflare.com/api/resources/billing/subresources/usage/methods/paygo/)、[coverage 與帳期資訊](https://developers.cloudflare.com/api/resources/billing/subresources/usage/methods/paygo_info/)、[公開上線與每日更新說明](https://blog.cloudflare.com/billable-usage-api/)。v1 標示 Alpha／deprecated，後續 schema 變動須重新核對；目前不使用 restricted v2，也不擴大權杖權限。回復此整合可 revert 本批 collector／卡片文案並重部署成本 Function，保留既有快照與 Analytics Token，無 migration 或付款設定變動。
 - Resend：`COST_RESEND_READ_KEY`（目前官方 Usage API 需要 full-access），未設定時可嘗試既有 `RESEND_API_KEY`；sending-only 被拒絕時卡片顯示缺口，不擅自擴權。
 - Stripe：`COST_STRIPE_READ_KEY`（restricted live，僅 Balance transactions Read），未設定時可嘗試現有 key；目前 test-only 則顯示未取得，不能自動切正式付款模式。
 - GitHub：`COST_GITHUB_BILLING_OWNER`、`COST_GITHUB_BILLING_KIND=user` 或 `organization`、`COST_GITHUB_REPOSITORY=hi4u44r306/AlanEnglish`、`COST_GITHUB_BILLING_READ_TOKEN`（billing read）。API 月曆月份可能和台灣應用程式月份邊界不同，卡片會說明。

@@ -67,6 +67,63 @@ test('Cloudflare R2 reports an operations failure without upstream details',asyn
     await assert.rejects(collectCloudflareR2('2026-10',io(env,async()=>response({errors:[{message:'private upstream detail'}]}))),/provider_r2_operations_failed/);
     assert.equal(costError(new Error('provider_r2_operations_failed')),'provider_r2_operations_failed');
 });
+
+const cfConfig = { COST_CLOUDFLARE_ACCOUNT_ID:'a'.repeat(32), COST_CLOUDFLARE_READ_TOKEN:'analytics-mock', COST_CLOUDFLARE_BILLING_READ_TOKEN:'billing-mock', COST_CLOUDFLARE_WORKER_NAME:'site', COST_CLOUDFLARE_R2_BUCKET:'audio' };
+const cfCharge = (extra={}) => ({ BillingAccountId:'a'.repeat(32), BillingCurrency:'USD', ChargeCategory:'Usage', ServiceFamilyName:'R2', ServiceName:'R2 Storage', SubscriptionId:'subscription', BillingPeriodStart:'2026-09-21T00:00:00Z', ChargePeriodStart:'2026-10-01T00:00:00Z', ChargePeriodEnd:'2026-10-02T00:00:00Z', ContractedCost:0.25, CumulatedContractedCost:100, ConsumedQuantity:1.2, ConsumedUnit:'GB-months', PricingUnit:'GB-months', ...extra });
+const cfIO = (charges, { covered=true, envelope={}, calls=[] }={}) => io(cfConfig, async (url, options) => {
+    calls.push({url,options});
+    if(url.endsWith('/graphql')) {
+        assert.equal(options.headers.Authorization,'Bearer analytics-mock');
+        return response({data:{viewer:{accounts:[{workersInvocationsAdaptive:[{sum:{requests:12}}],r2OperationsAdaptiveGroups:[{sum:{requests:10},dimensions:{actionType:'GetObject'}}]}]}}});
+    }
+    assert.equal(options.headers.Authorization,'Bearer billing-mock');
+    if(url.endsWith('/info')) return response({success:true,result:{covered,subscriptions:[]}});
+    return response({success:true,result:charges,...envelope});
+});
+
+test('Cloudflare billing includes the previous anchor, separates products and shares only this refresh',async()=>{
+    const calls=[];
+    const charges=[cfCharge(),cfCharge({ChargePeriodStart:'2026-10-02T00:00:00Z',ChargePeriodEnd:'2026-10-03T00:00:00Z',ContractedCost:-0.05}),cfCharge({ServiceFamilyName:'Workers',ServiceName:'Workers Standard',ContractedCost:2,ConsumedUnit:'requests'}),cfCharge({ServiceFamilyName:'D1',ContractedCost:500}),cfCharge({ChargePeriodStart:'2026-09-29T00:00:00Z',ChargePeriodEnd:'2026-09-30T00:00:00Z',ContractedCost:30})];
+    const context=cfIO(charges,{calls});
+    const [[r2],[workers]]=await Promise.all([collectCloudflareR2('2026-10',context),collectCloudflareWorkers('2026-10',context)]);
+    assert.equal(r2.cost_usd,0.2);assert.equal(workers.cost_usd,2);assert.equal(r2.includes_fixed,false);assert.equal(r2.source,'billing');
+    assert.equal(r2.period_start,'2026-10-01T00:00:00.000Z');assert.equal(r2.period_end,'2026-10-03T00:00:00.000Z');
+    assert.equal(r2.metrics[0].used,10);assert.equal(r2.metrics[1].used,2.4);assert.match(r2.metrics[1].name,/帳戶計費用量/);
+    const bills=calls.filter(x=>x.url.includes('billable-usage?'));assert.equal(bills.length,1);
+    assert.equal(new URL(bills[0].url).searchParams.get('from'),'2026-09-01');
+    assert.equal(new URL(bills[0].url).searchParams.get('to'),'2026-10-07');
+    assert.equal(calls.filter(x=>x.url.endsWith('/info')).length,1);
+    await collectCloudflareR2('2026-10',cfIO(charges,{calls}));
+    assert.equal(calls.filter(x=>x.url.endsWith('/info')).length,2);
+    assert.doesNotMatch(JSON.stringify(r2),/subscription|aaaaaaa|billing-mock/);
+});
+
+test('Cloudflare zero requires a real product row; empty or uncovered data remains unknown',async()=>{
+    const [zero]=await collectCloudflareR2('2026-10',cfIO([cfCharge({ContractedCost:0})]));assert.equal(zero.cost_usd,0);
+    await assert.rejects(collectCloudflareR2('2026-10',cfIO([])),/billing_usage_empty/);
+    await assert.rejects(collectCloudflareWorkers('2026-10',cfIO([cfCharge()])),/billing_usage_empty/);
+    await assert.rejects(collectCloudflareR2('2026-10',cfIO([],{covered:false})),/billing_coverage_unavailable/);
+});
+
+test('Cloudflare refuses wrong accounts, duplicate charges, partial pages and unsafe periods',async()=>{
+    for(const [charges,options,error] of [
+        [[cfCharge({BillingAccountId:'b'.repeat(32)})],{},'provider_account_failed'],
+        [[cfCharge(),cfCharge()],{},'invalid_response'],
+        [[cfCharge()],{envelope:{result_info:{total_count:2}}},'incomplete_pagination'],
+        [[cfCharge({BillingCurrency:'EUR'})],{},'unsupported_currency'],
+        [[cfCharge({ChargePeriodStart:'2026-09-30T00:00:00Z'})],{},'billing_period_mismatch'],
+        [[cfCharge({ChargePeriodEnd:'2026-10-08T00:00:00Z'})],{},'billing_period_mismatch'],
+        [[cfCharge({ChargePeriodStart:'bad-date'})],{},'invalid_response'],
+        [[cfCharge()],{envelope:{success:false,errors:[{message:'sensitive provider detail'}]}},'provider_query_failed']
+    ]) await assert.rejects(collectCloudflareR2('2026-10',cfIO(charges,options)),new RegExp(error));
+    for(const code of ['billing_usage_empty','billing_coverage_unavailable','billing_period_mismatch']) assert.equal(costError(new Error(code)),code);
+});
+
+test('Cloudflare billing HTTP failure does not invent a new zero amount',async()=>{
+    const context=cfIO([]);const original=context.fetch;
+    context.fetch=async(url,options)=>url.endsWith('/info')?new Response('',{status:403}):original(url,options);
+    await assert.rejects(collectCloudflareR2('2026-10',context),/provider_http_403/);
+});
 test('collection errors reveal no raw tokens or response bodies',()=>{
     assert.equal(costError(new Error('token=secret PII response')),'collection_failed');
     assert.equal(costError(new Error('provider_http_403')),'provider_http_403');

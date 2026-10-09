@@ -2,6 +2,12 @@
 
 最後更新：2026-10-09
 
+### Cloudflare 帳務與 GitHub 費用（2026-10-09，待正式發布驗收）
+
+- 基準 main `65c3b587`，沿用隔離副本 output/cost-scale-20261009，分支 codex/cost-billing-gaps。新增 Cloudflare 專用 Billing Read Token 的唯讀 v1 採集，保留原 Analytics Token；R2／Workers 共用同批帳戶請求，依 UTC 月份 charge periods 分項加總，固定費另計，顯示實際資料期間與帳戶範圍。每日資料不是即時最終帳單；空資料、錯帳戶、重複／跨月費用及不完整資料不冒充零元。
+- 使用者已手動保存 `COST_CLOUDFLARE_BILLING_READ_TOKEN`，僅核對 Secret 名稱。GitHub 四項 Secret 及固定月費0已透過使用者設定與管理員頁面保存；17:53:51 台灣時間指定 Repository API 本月淨費用0、source=billing、無錯誤，GitHub Free／Copilot Free 帳務頁核對。此前14項服務有6項帳務、8項缺口；Cloudflare 接通結果待驗。
+- 21項相關 Node 採集／人數／失敗保留快照測試、6項卡片測試、卡片 ESLint 及 diff check 通過；涵蓋舊權杖相容、帳期、分項、共享請求、折抵、空資料、403、錯帳戶與分頁。正式既有 collector 與本批基準來源一致。無 migration、付款或權限流程改動。回復只需 revert 此批來源與重新部署 cost-alert-manager，保留既有快照／確認紀錄。手冊 v3.83 同步；發布檢查與正式驗收待完成。
+
 ### 成本帳務與估算總覽（2026-10-09，已部署／正式管理員驗收通過）
 
 - 基準main `5131e7ac`，既有獨立副本output/cost-scale-20261009，分支codex/cost-overview-clarity；未改主工作目錄草稿。管理員成本頁新增14項並列目前費用／月底預估／資料範圍與更新時間，四格區分人工確認免費、已取得帳務部分合計、目前學生規模預估、資料缺口。固定費為0不再冒充完整帳單0，折抵保留；已花費只加reported_cost_usd，原後端提醒金額、五分鐘排程及確認流程維持。
