@@ -2,6 +2,13 @@
 
 最後更新：2026-10-09
 
+
+### 學生頂部等級與點數（2026-10-09，設計提案／尚未實作）
+
+- 基準 main `204c0353`；規劃分支 `codex/student-growth-header-plan`。建議電腦導覽右側／平板橫向同列，手機及平板直向Logo下一列，顯示Lv、XP條／升級距離、AE Points及有效生日月倍率。緊湊模式暫定1279px上限（現況1100px），待確認；底部學習導覽保留。
+- 只新增設計文件 `docs/STUDENT_GROWTH_HEADER_PLAN.md` 與獨立示意 `output/student-growth-header/index.html`，未修改src、後端、會員或網站。四張1440／1024／768／412圖已查看；11種320～1440寬度無頁面水平溢位，固定頂部、49px主要點按區、詳情／Escape／捲動鎖定／尺寸切換與無pageerror通過。示範資料不代表正式帳號；正式網站、錄音／播放器／Sidebar整合、兌換更新、大數字、iPhone Safari及safe area待實作與驗收。規劃不涉及應用執行，未跑無關全套測試或build，未部署。下一步是確認版位方向。
+
+
 ### 目前人數逐項月費估算（2026-10-09，已部署／登入實機待驗）
 
 - 基準 main `f6ec8716`，分支 `codex/cost-current-student-scale`，独立副本 `output/cost-scale-20261009`；主工作目錄草稿保留。管理員成本 API 新增啟用學生精確 HEAD count；新增逐項固定／共用費、人均用量費與 USD／TWD 合計，可按當前人數自動更新。預估與實際帳務／五分鐘提醒分開，不改資料表、RLS、Secret 或收件流程。
