@@ -51,7 +51,7 @@
     .btn-close { box-sizing: border-box; flex: 0 0 44px; width: 44px; height: 44px; margin: 0; padding: 10px; border: 1px solid #adc5e3; border-radius: 12px; background-color: #fff; background-size: 14px; opacity: 1; }
     .btn-close:focus-visible { outline: 3px solid #245fc5; outline-offset: 2px; }
 }
-@media (max-width: 1100px) {
+@media (max-width: 1279px) {
     .ae-student-bottom-nav { box-sizing: border-box; padding: 5px; border: 2px solid #c9d9ed; background: #fff; box-shadow: 0 4px 0 #c9d9ed, 0 10px 24px #17365d1a; }
     .ae-student-bottom-nav > a,
     .ae-student-bottom-nav > button { position: relative; box-sizing: border-box; gap: 2px; padding: 3px 5px; line-height: 16px; border: 1px solid transparent; color: #39526e; }
@@ -70,7 +70,7 @@
 
 // Keep this after the shared mobile theme: its padding shorthand must not
 // remove the Home Indicator clearance in home-screen web apps.
-@media (display-mode: standalone) and (max-width: 1100px) {
+@media (display-mode: standalone) and (max-width: 1279px) {
     .ae-student-bottom-nav {
         padding: 5px max(12px, calc((100vw - 560px) / 2)) var(--student-bottom-nav-offset);
         border: 0;

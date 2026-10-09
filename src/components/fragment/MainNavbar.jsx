@@ -306,6 +306,10 @@ function MainNavbar() {
                 categories={materialCategories}
                 firebaseUser={firebaseUser}
                 gamificationLevel={gamificationLevel}
+                growthSummary={gamificationSummary}
+                growthLoading={summaryQuery.loading || summaryQuery.refreshing}
+                growthError={summaryQuery.error}
+                onGrowthRetry={() => summaryQuery.refresh(true)}
                 hasAiAccess={hasAiAccess}
                 hasAiPremium={hasAiPremium}
                 hasPronunciationAccess={hasPronunciationAccess}
