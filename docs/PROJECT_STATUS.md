@@ -13,6 +13,28 @@
 - 兩套既有測試共 41 項、局部 JSX ESLint、18 個 SCSS 編譯通過。九組離線元件／子元件示範 × 六種寬度，共 54 組通過；設定鍵盤展開與三組短螢幕口說捲動通過。首頁示範手機教材架提前 225px；不是正式網路速度量測。沒有 production build 或全套測試，正式登入、iPhone、播放／錄音與保存待驗。
 - 審核細節見 `docs/STUDENT_VISUAL_COMFORT_REVIEW.md`；可切換頁面／尺寸／前後版本的本機預覽在 `output/student-visual-calm-preview/index.html`。手冊 v3.82 為本機版本；尚未推送、合併或部署，正式站不受本批影響。
 
+### Cloudflare 帳務與 GitHub 費用（2026-10-09，R2 已接通／Workers 無帳務列）
+
+- 基準 main `65c3b587`，沿用隔離副本 output/cost-scale-20261009，分支 codex/cost-billing-gaps。新增 Cloudflare 專用 Billing Read Token 的唯讀 v1 採集，保留原 Analytics Token；R2／Workers 共用同批帳戶請求，依 UTC 月份 charge periods 分項加總，固定費另計，顯示實際資料期間與帳戶範圍。每日資料不是即時最終帳單；空資料、錯帳戶、重複／跨月費用及不完整資料不冒充零元。
+- 使用者已手動保存 `COST_CLOUDFLARE_BILLING_READ_TOKEN`，僅核對 Secret 名稱。GitHub 四項 Secret 及固定月費0已透過使用者設定與管理員頁面保存；17:53:51 台灣時間指定 Repository API 本月淨費用0、source=billing、無錯誤，GitHub Free／Copilot Free 帳務頁核對。此前14項服務有6項帳務、8項缺口；Cloudflare 接通結果待驗。
+- 21項相關 Node 採集／人數／失敗保留快照測試、6項卡片測試、卡片 ESLint 及 diff check 通過；涵蓋舊權杖相容、帳期、分項、共享請求、折抵、空資料、403、錯帳戶與分頁。正式既有 collector 與本批基準來源一致。無 migration、付款或權限流程改動。回復只需 revert 此批來源與重新部署 cost-alert-manager，保留既有快照／確認紀錄。手冊 v3.83 同步；兩批發布檢查與下列正式驗收完成。
+- PR #503 合併 main `1a65ec7f`；cost-alert-manager v35 ACTIVE，六檔來源一致，OPTIONS200／未登入401。18:12:44 台灣時間正式採集：R2 source=billing、US$0、固定費0、incomplete=false、無錯誤；實際費用期間10/1 08:00至10/8 08:00，帳戶儲存0.609400333 GB-month、Class A 1／Class B196。Workers 回傳 billing_usage_empty，仍為缺口。正式管理員頁已顯示7項帳務、7項缺口；R2 人工帳期快照與API的UTC月份不同，不能直接比較數值。
+- 正式驗收發現 Workers 無帳務列會阻止原 analytics 更新：PR #504 合併 main `81f761da`，僅補成本採集失敗路徑，仍更新新請求／操作量，保留前次帳務金額、計費用量與帳務成功時間；缺口持續顯示。21項相關後端測試再次通過；cost-alert-manager v36 ACTIVE、六檔與 main 一致、OPTIONS200／未登入401。18:17:52台灣時間實測，Worker請求26550→26557，錯誤仍為 billing_usage_empty；R2 US$0與帳務正常保留，bucket HeadBucket128→130。
+- PR #503 的唯一 Cloudflare build `56e3dec5-5f9c-479e-82ed-2cac9ed733e8` 18:15:20成功；修復 PR #504 build `fead2caf-810e-4cd8-96db-58277f717c38` 18:20:26成功。正式首頁、成本路由、main JS均200且新缺口提示標記存在（output/cloudflare-billing-http.json）；正式管理員頁確認7項帳務、R2資料範圍及0.6094GB-month、Workers明確無帳務列提示，R2人工核對紀錄已補上帳期差異。iPhone Safari 未另驗；本批沒有版面改造。
+- 原9項缺口已補 GitHub／R2，尚有 Workers、Resend、Supabase、Stripe、Netlify、網域、其他7項。18:15 OpenAI另遇provider_http_429，保留09:15UTC的成功金額並依15分鐘失敗重試間隔處理，所以頁面當時顯示8項需核對。未強制重試或把限流改成零元。網域註冊商／續約金額、其他網站付費項目已詢問使用者，待回覆；LINE与其餘帳務不可宣稱完成。純發布紀錄不再觸發前端建置。
+
+### 成本帳務與估算總覽（2026-10-09，已部署／正式管理員驗收通過）
+
+- 基準main `5131e7ac`，既有獨立副本output/cost-scale-20261009，分支codex/cost-overview-clarity；未改主工作目錄草稿。管理員成本頁新增14項並列目前費用／月底預估／資料範圍與更新時間，四格區分人工確認免費、已取得帳務部分合計、目前學生規模預估、資料缺口。固定費為0不再冒充完整帳單0，折抵保留；已花費只加reported_cost_usd，原後端提醒金額、五分鐘排程及確認流程維持。
+- 人工核對紀錄採既有前端估算相同的UID／月份localStorage範圍，註明來源、帳期、適用日期與核對時間；最多七天有效，免費條件仍須固定費0且沒有正數帳務。免費紀錄不消除帳務缺口，未新增DB／Function／Secret／權限變更。PROJECT_LOGIC與手冊v3.82同步；可revert此批前端回復，移除本地ae-cost-review-v1紀錄不影響帳單或通知。
+- 4套23項局部測試通過（首輪一項舊文案斷言更新後補驗）；JSX／helper ESLint通過。真實元件與SCSS在1440／412／320px的收合與展開均14列完整、無水平溢位、控制項至少44px、無pageerror。已檢視桌面／手機截圖並修正摘要說明對比；證據output/cost-overview-validation。正式管理員與Cloudflare build已依下列紀錄驗收；不重跑無關全套或本機production build。
+
+
+- PR #500合併main `9bb6fb00a2c8a0d93512dfd3b7f5db60314681a0`，Cloudflare build `31f0fc5c-0e6d-42cf-9aa2-b9c58f78f0f5`於16:37:46台灣時間success；16:38正式首頁、成本路由、manifest、main JS／CSS均200且新標記存在。正式管理員登入看見14列、1位啟用學生、5項取得帳務US$0.0356、9項缺口及不完整預估US$0.6717。驗收發現UTC直接截日期易誤讀為帳期，改用既有台灣時間格式與「資料範圍」標籤，補1項回歸測試後6項總覽測試通過；此小修需獨立Cloudflare建置。
+
+- 日期修正PR #501合併main `7775d410c06f92bdb1cd68a403a805c691b4cf02`；Cloudflare build `77f43697-5bd9-4f38-98f7-b8a21157e954`於16:43:45台灣時間success。16:45首頁／成本路由／manifest／新main JS與CSS均200，正式管理員再登入核對10/1台灣午夜顯示正確。共24項相關測試；首批與補修各一次production build，未重複本機build。
+- 正式管理員完成四筆本地核對保存及重新整理持續存在：Supabase／Resend／Workers為3項免費方案，R2按量方案保留使用量與帳期快照、不標永久免費；仍9項帳務缺口、14項預估不完整，未覆蓋完整帳單。正式1280px無溢位、14列完整、估算區展開收合及提醒金額US$0.0356維持；412／320px依隔離真實元件驗收，iPhone Safari實機未驗。證據output/cost-overview-validation/production.json及D:/CodexData/home/visualizations/2026/10/07/01a116e6-f60f-7523-9b8d-df80c4aa830f/cost-overview-live-20261009.png；四筆紀錄只在此管理員內建瀏覽器，跨裝置不會同步。Email／LINE送達與確認的完整實測不屬本批，不以畫面代替。純文件結案不觸發第三次應用建置。
+
 ### 學生成長與冒險遊戲圖示（2026-10-09，已部署／實機待驗）
 
 - 基準 main `5131e7ac`，分支 `codex/student-game-icons`。依使用者要求，新增共用 AEPointCoin 向量金幣、星盾等級徽章與 Arcade 搖桿；金幣用於頂部與點數詳情，搖桿用於電腦及手機／平板冒險入口。範圍僅兩個現有元件、新裝飾元件、局部 SCSS 與文件，沒有新套件、後端／資料／權限改動。手冊 v3.81 同步。

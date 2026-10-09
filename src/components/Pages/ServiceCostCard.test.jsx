@@ -9,6 +9,12 @@ test('unknown cost displays a gap instead of a zero bill',()=>{
     render(<ServiceCostCard provider={provider} month="2026-10" />);
     expect(screen.getByText('尚未接通帳務權限')).toBeInTheDocument();expect(screen.queryByText(/US\$ 0/)).not.toBeInTheDocument();expect(screen.getByText(/尚有未取得金額/)).toBeInTheDocument();
 });
+test('a free fixed plan fee cannot masquerade as a complete zero bill',()=>{
+    render(<ServiceCostCard provider={{...provider,error_code:null,fixed_monthly_usd:0}} month="2026-10" />);
+    expect(screen.getByText('待核對')).toBeInTheDocument();
+    expect(screen.getByText('僅確認固定月費')).toBeInTheDocument();
+    expect(document.querySelector('.api-service-amount strong')).not.toHaveTextContent('US$ 0');
+});
 test('stale billing retains cost and its successful timestamp',()=>{
     render(<ServiceCostCard provider={{...provider,incomplete:false,error_code:null,reported_cost_usd:12,known_cost_usd:12,stale:true,collected_at:'2026-10-06T00:00:00Z'}} month="2026-10" />);
     expect(screen.getByText('US$ 12')).toBeInTheDocument();expect(screen.getByText('資料已過期，等待更新')).toBeInTheDocument();expect(screen.getByText(/2026/)).toBeInTheDocument();

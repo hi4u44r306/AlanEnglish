@@ -1,6 +1,6 @@
 // Read-only provider APIs. Never persist raw responses, account identities or credentials.
 export type CostMetric = { name: string; used: number; unit: string; limit: number | null; resets_at?: string };
-export type CostResult = { provider_id: string; cost_usd: number | null; source: 'billing' | 'usage'; includes_fixed?: boolean; metrics: CostMetric[]; period_start: string; period_end: string };
+export type CostResult = { provider_id: string; cost_usd: number | null; source: 'billing' | 'usage'; includes_fixed?: boolean; billing_error?: string; metrics: CostMetric[]; period_start: string; period_end: string };
 export type CostIO = { env: (name: string) => string | undefined; fetch: typeof fetch; now: Date; usdToTwd: number; deadline?: number };
 const fail = (code: string): never => { throw new Error(code); };
 const required = (io: CostIO, name: string) => io.env(name)?.trim() || fail('missing_configuration');
@@ -175,6 +175,86 @@ const cloudflareAnalytics = async (io: CostIO, key: string, query: string, varia
     return response;
 };
 
+// One account request shared by the two collectors in a refresh, never across refreshes.
+// Billing Read stays separate from the existing Account Analytics Read credential.
+const cloudflareBills = new WeakMap<CostIO, Map<string, Promise<any[]>>>();
+async function cloudflareBillRows(month: string, io: CostIO, account: string) {
+    let months = cloudflareBills.get(io);
+    if (!months) { months = new Map(); cloudflareBills.set(io, months); }
+    let pending = months.get(month);
+    if (!pending) {
+        pending = (async () => {
+            const headers = { Authorization: `Bearer ${required(io, 'COST_CLOUDFLARE_BILLING_READ_TOKEN')}` };
+            const base = `https://api.cloudflare.com/client/v4/accounts/${account}/billable-usage`;
+            const info = await request(io, `${base}/info`, { headers });
+            if (info.success !== true || info.errors?.length) return fail('provider_query_failed');
+            if (info.result?.covered !== true) return fail('billing_coverage_unavailable');
+            const [year, m] = month.split('-').map(Number);
+            // A calendar-month query must also include the preceding monthly anchor.
+            // Without it the provider can return [] even when the account has charges.
+            const from = new Date(Date.UTC(year, m - 2, 1)).toISOString().slice(0, 10);
+            const to = new Date(Math.min(Date.UTC(year, m, 1), io.now.getTime())).toISOString().slice(0, 10);
+            const response = await request(io, `${base}?${new URLSearchParams({ from, to })}`, { headers });
+            if (response.success !== true || response.errors?.length) return fail('provider_query_failed');
+            const rows = list(response.result);
+            // This endpoint is unpaginated; reject a future paginated envelope rather than truncate.
+            if (response.result_info?.total_pages > 1 || response.result_info?.total_count > rows.length || response.result_info?.cursor) return fail('incomplete_pagination');
+            if (rows.some(row => row.BillingAccountId?.toLowerCase() !== account.toLowerCase())) return fail('provider_account_failed');
+            return rows;
+        })();
+        months.set(month, pending);
+    }
+    return pending;
+}
+
+async function readCloudflareBill(month: string, io: CostIO, usage: CostResult): Promise<CostResult> {
+    if (!io.env('COST_CLOUDFLARE_BILLING_READ_TOKEN')?.trim()) return usage;
+    const account = identifier(required(io, 'COST_CLOUDFLARE_ACCOUNT_ID'), /^[a-f0-9]{32}$/i);
+    const rows = await cloudflareBillRows(month, io, account);
+    const family = usage.provider_id === 'cloudflare_r2' ? 'R2' : 'Workers';
+    const [year, m] = month.split('-').map(Number);
+    // The provider's daily charge periods use UTC. Never prorate daily charges to Taiwan midnight.
+    const start = Date.UTC(year, m - 1, 1);
+    const end = Math.min(Date.UTC(year, m, 1), io.now.getTime());
+    const charges: any[] = [];
+    for (const row of rows) {
+        if (row.ServiceFamilyName !== family) continue;
+        const from = Date.parse(row.ChargePeriodStart), to = Date.parse(row.ChargePeriodEnd);
+        if (!Number.isFinite(from) || !Number.isFinite(to) || to <= from || row.ChargeCategory !== 'Usage') return fail('invalid_response');
+        if (to <= start || from >= end) continue;
+        if (from < start || to > end) return fail('billing_period_mismatch');
+        charges.push(row);
+    }
+    // No rows for a free product is not evidence of a zero bill.
+    if (!charges.length) return fail('billing_usage_empty');
+    const metrics = new Map<string, CostMetric>();
+    let total = 0, latest = start, earliest = end;
+    const seen = new Set<string>();
+    for (const row of charges) {
+        const identity = JSON.stringify([row.SubscriptionId, row.ZoneId, row.ServiceName, row.ChargePeriodStart, row.ChargePeriodEnd, row.ChargeClass, row.PricingUnit]);
+        if (seen.has(identity)) return fail('invalid_response');
+        seen.add(identity);
+        total += usd(row.ContractedCost, row.BillingCurrency, io); // Never sum cumulative cycle totals.
+        earliest = Math.min(earliest, Date.parse(row.ChargePeriodStart));
+        latest = Math.max(latest, Date.parse(row.ChargePeriodEnd));
+        const name = String(row.ServiceName || family).slice(0, 70);
+        const unit = String(row.ConsumedUnit || row.PricingUnit || 'Count').slice(0, 30);
+        const id = JSON.stringify([name, unit]);
+        const metric = metrics.get(id) || { name: `帳戶計費用量：${name}`, used: 0, unit, limit: null };
+        metric.used += number(row.ConsumedQuantity);
+        metrics.set(id, metric);
+    }
+    if (!Number.isFinite(total)) return fail('invalid_response');
+    return { ...usage, source: 'billing', cost_usd: total, includes_fixed: false,
+        period_start: new Date(earliest).toISOString(), period_end: new Date(latest).toISOString(),
+        metrics: [...usage.metrics, ...metrics.values()] };
+}
+
+async function withCloudflareBill(month: string, io: CostIO, usage: CostResult): Promise<CostResult> {
+    try { return await readCloudflareBill(month, io, usage); }
+    catch (error) { return { ...usage, billing_error: costError(error) }; }
+}
+
 export async function collectCloudflareWorkers(month: string, io: CostIO): Promise<CostResult[]> {
     const period = costPeriod(month, io.now);
     const { account, key } = cloudflareConfig(io);
@@ -186,7 +266,7 @@ export async function collectCloudflareWorkers(month: string, io: CostIO): Promi
     if (!row) return fail('invalid_response');
     const workers = list(row.workersInvocationsAdaptive);
     if (workers.length >= 10000) return fail('incomplete_pagination');
-    return [result('cloudflare_workers', period, null, [{ name: '網站 Worker 請求', used: workers.reduce((a, x) => a + number(x.sum?.requests), 0), unit: '次', limit: null }])];
+    return [await withCloudflareBill(month, io, result('cloudflare_workers', period, null, [{ name: '網站 Worker 請求（台灣月份）', used: workers.reduce((a, x) => a + number(x.sum?.requests), 0), unit: '次', limit: null }]))];
 }
 
 export async function collectCloudflareR2(month: string, io: CostIO): Promise<CostResult[]> {
@@ -205,7 +285,7 @@ export async function collectCloudflareR2(month: string, io: CostIO): Promise<Co
     const operations = list(operationsRow.r2OperationsAdaptiveGroups);
     if (operations.length >= 10000) return fail('incomplete_pagination');
     const r2: CostMetric[] = operations.map(x => ({ name: `R2 ${String(x.dimensions?.actionType || '').slice(0,60)}`, used: number(x.sum?.requests), unit: '次', limit: null }));
-    return [result('cloudflare_r2', period, null, r2)];
+    return [await withCloudflareBill(month, io, result('cloudflare_r2', period, null, r2))];
 }
 
 export async function collectCloudflare(month: string, io: CostIO): Promise<CostResult[]> {
@@ -241,5 +321,5 @@ export const costCollectors = [
 ];
 export function costError(error: unknown) {
     const code = error instanceof Error ? error.message : '';
-    return /^(missing_configuration|invalid_configuration|invalid_response|unsupported_currency|incomplete_pagination|incomplete_query|billing_export_empty|historical_usage_unavailable|provider_(?:(?:query|auth|account|schema)|r2_(?:operations|storage))_failed|test_mode_only|collection_timeout|provider_http_\d{3})$/.test(code) ? code : 'collection_failed';
+    return /^(missing_configuration|invalid_configuration|invalid_response|unsupported_currency|incomplete_pagination|incomplete_query|billing_(?:export_empty|usage_empty|coverage_unavailable|period_mismatch)|historical_usage_unavailable|provider_(?:(?:query|auth|account|schema)|r2_(?:operations|storage))_failed|test_mode_only|collection_timeout|provider_http_\d{3})$/.test(code) ? code : 'collection_failed';
 }
