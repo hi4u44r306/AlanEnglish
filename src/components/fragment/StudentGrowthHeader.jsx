@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from "react";
 import Modal from "react-bootstrap/Modal";
 import { Link } from "react-router-dom";
-import { FiAward } from "react-icons/fi";
+import { FiAward, FiChevronRight, FiGift, FiUser } from "react-icons/fi";
+import StudentAvatarImage from "./StudentAvatarImage";
 
 const available = value => value != null && value !== "" && Number.isFinite(Number(value));
 const number = value => Number(value).toLocaleString("zh-TW");
-const compact = value => new Intl.NumberFormat("zh-TW", { notation: "compact", maximumFractionDigits: 1 }).format(Number(value));
+const compact = value => Math.abs(Number(value)) < 10000 ? number(value) : new Intl.NumberFormat("zh-TW", { notation: "compact", maximumFractionDigits: 1 }).format(Number(value));
 const taipeiDate = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Taipei", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
 
-export default function StudentGrowthHeader({ summary, loading = false, error, pointsAccess = false, onRetry }) {
+export default function StudentGrowthHeader({ summary, loading = false, error, pointsAccess = false, onRetry, avatarUrl }) {
     const [detail, setDetail] = useState("");
     const [today, setToday] = useState(taipeiDate);
     const balance = summary?.balance;
@@ -50,22 +51,36 @@ export default function StudentGrowthHeader({ summary, loading = false, error, p
                 <span><strong>{hasPoints ? compact(balance.points_balance) : "—"}</strong><small>AE Points</small></span>
             </button>
         </div>
-        <Modal show={Boolean(detail)} onHide={() => setDetail("")} centered className="ae-growth-detail" aria-labelledby="growth-detail-title">
-            <Modal.Header closeButton closeLabel="關閉詳情"><Modal.Title id="growth-detail-title">{detail === "points" ? pointsLabel : "我的成長"}</Modal.Title></Modal.Header>
+        <Modal show={Boolean(detail)} onHide={() => setDetail("")} centered className={`ae-growth-detail ${detail === "points" ? "is-points" : "is-experience"}`} backdropClassName="ae-growth-backdrop" aria-labelledby="growth-detail-title">
+            <Modal.Header closeButton closeLabel="關閉詳情">
+                <div><Modal.Title id="growth-detail-title">{detail === "points" ? pointsLabel : "我的成長"}</Modal.Title><p className="ae-growth-detail__subtitle">{detail === "points" ? "把努力累積成喜歡的獎勵" : "每一次練習，都讓你更進一步"}</p></div>
+            </Modal.Header>
             <Modal.Body>
                 {detail === "points" ? <>
-                    <p className="ae-growth-detail__value">{hasPoints ? `${number(balance.points_balance)} AE Points` : "點數尚未讀取"}</p>
-                    <p>{pointsAccess ? "兌換使用點數，累積 XP 會保留。" : "目前無兌換資格，既有點數與 XP 保留。"}</p>
-                    {pointsAccess && <Link to="/student/rewards" onClick={() => setDetail("")}>查看獎品與兌換紀錄</Link>}
+                    <div className="ae-growth-detail__wallet">
+                        <span className="ae-growth-detail__wallet-icon" aria-hidden="true"><FiGift /></span>
+                        <div><span className="ae-growth-detail__label">{pointsAccess ? "目前可用點數" : "目前保留點數"}</span>
+                            <p className="ae-growth-detail__balance" aria-label={hasPoints ? `${number(balance.points_balance)} AE Points` : "點數尚未讀取"}><strong>{hasPoints ? number(balance.points_balance) : "—"}</strong><span>AE Points</span></p>
+                        </div>
+                    </div>
+                    <div className="ae-growth-detail__explanation"><FiAward aria-hidden="true" /><p>{pointsAccess ? "兌換使用點數，累積 XP 會保留。" : "目前無兌換資格，既有點數與 XP 保留。"}</p></div>
+                    {pointsAccess && <Link to="/student/rewards" className="ae-growth-detail__primary is-gold" onClick={() => setDetail("")}><FiGift aria-hidden="true" />查看獎品與兌換紀錄<FiChevronRight aria-hidden="true" /></Link>}
                 </> : <>
-                    <p className="ae-growth-detail__value">{hasLevel ? `Lv.${number(balance.level)}` : "等級尚未讀取"}</p>
-                    <p>累積經驗：{hasXp ? `${number(balance.total_xp)} XP` : "尚未讀取"}</p>
-                    {remaining != null && <p>距離下一級還差 {number(remaining)} XP。</p>}
-                    {boosted && <p>生日月有效學習 XP ×2，至 {birthday.ends_on}。AE Points 維持原獎勵規則。</p>}
+                    <div className="ae-growth-detail__profile">
+                        <span className="ae-growth-detail__avatar">{avatarUrl ? <StudentAvatarImage src={avatarUrl} alt="" /> : <FiUser aria-hidden="true" />}</span>
+                        <div><span className="ae-growth-detail__label">目前等級</span><p className="ae-growth-detail__level">{hasLevel ? `Lv.${number(balance.level)}` : "等級尚未讀取"}</p><p className="ae-growth-detail__total">累積經驗：{hasXp ? `${number(balance.total_xp)} XP` : "尚未讀取"}</p></div>
+                    </div>
+                    {progress != null && <div className="ae-growth-detail__journey">
+                        <div><span>本級成長進度</span><strong>{number(progress)}%</strong></div>
+                        <progress value={progress} max="100" aria-label="成長詳情的本級進度" />
+                        <div className="ae-growth-detail__milestones"><span>{hasLevel ? `Lv.${number(balance.level)}` : "目前等級"}</span><span>{hasLevel ? `Lv.${number(Number(balance.level) + 1)}` : "下一級"}</span></div>
+                    </div>}
+                    {remaining != null && <p className="ae-growth-detail__next">距離下一級還差 {number(remaining)} XP。</p>}
+                    {boosted && <div className="ae-growth-detail__birthday"><FiGift aria-hidden="true" /><p><strong>生日月有效學習 XP ×2</strong><span>至 {birthday.ends_on}。AE Points 維持原獎勵規則。</span></p></div>}
                 </>}
-                {(error || (!balance && !loading)) && <div role="status">{balance ? "暫時無法更新，這裡顯示上次讀取的資料。" : "暫時無法讀取成長資料。"}{onRetry && <button type="button" onClick={onRetry} disabled={loading}>重新讀取成長</button>}</div>}
+                {(error || (!balance && !loading)) && <div className="ae-growth-detail__notice" role="status">{balance ? "暫時無法更新，這裡顯示上次讀取的資料。" : "暫時無法讀取成長資料。"}{onRetry && <button type="button" onClick={onRetry} disabled={loading}>重新讀取成長</button>}</div>}
                 {loading && <p role="status">正在讀取成長資料…</p>}
-                <Link to="/student/settings" onClick={() => setDetail("")}>前往我的設定</Link>
+                <Link to="/student/settings" className={detail === "growth" ? "ae-growth-detail__primary" : "ae-growth-detail__secondary"} onClick={() => setDetail("")}>{detail === "growth" && <FiUser aria-hidden="true" />}前往我的設定{detail === "growth" && <FiChevronRight aria-hidden="true" />}</Link>
             </Modal.Body>
         </Modal>
     </>;

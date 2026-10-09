@@ -236,7 +236,7 @@ const StudentNavbar = ({
             <Navbar className={`ae-navbar ae-student-navbar ${scrolled ? "scrolled" : ""}`}>
                 <Container fluid className="ae-navbar-container">
                     <Navbar.Brand as={Link} to="/student/dashboard" className="ae-brand" aria-label="Alan English 今日學習"><img src="/ae-icon.jpeg" alt="" width="40" height="40" /></Navbar.Brand>
-                    <StudentGrowthHeader key={firebaseUser?.uid} summary={growthSummary} loading={growthLoading} error={growthError} pointsAccess={hasRewardsAccess} onRetry={onGrowthRetry} />
+                    <StudentGrowthHeader key={firebaseUser?.uid} summary={growthSummary} loading={growthLoading} error={growthError} pointsAccess={hasRewardsAccess} onRetry={onGrowthRetry} avatarUrl={avatarUrl} />
                     <Nav as="nav" className="ae-student-desktop-nav" aria-label="學生桌面導覽" onSelect={closeDrawer}>
                         <Nav.Link as={Link} to="/student/dashboard" aria-current={isPathActive("/student/dashboard") ? "page" : undefined} className={isPathActive("/student/dashboard") ? "active" : ""}><span><NavigationIcon tone="home"><FiHome /></NavigationIcon>今日學習</span></Nav.Link>
                         {shouldShowMaterials && (

@@ -97,12 +97,12 @@ describe("MainNavbar student navigation", () => {
         const view = render(<MemoryRouter><MainNavbar /></MemoryRouter>);
         await screen.findByRole("button", { name: /1,280 點/ });
         fireEvent.click(screen.getByRole("button", { name: /查看點數詳情/ }));
-        expect(screen.getByText("1,280 AE Points")).toBeInTheDocument();
+        expect(screen.getByLabelText("1,280 AE Points")).toBeInTheDocument();
         useAuth.mockReturnValue({ ...useAuth(), firebaseUser: { uid: "different-student" } });
         getGamificationSummary.mockReturnValue(new Promise(() => {}));
         view.rerender(<MemoryRouter><MainNavbar /></MemoryRouter>);
         expect(screen.queryByText("Lv.12")).not.toBeInTheDocument();
-        expect(screen.queryByText("1,280 AE Points")).not.toBeInTheDocument();
+        expect(screen.queryByLabelText("1,280 AE Points")).not.toBeInTheDocument();
         expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
         expect(screen.getByRole("button", { name: /查看點數詳情，可用 AE Points 讀取中/ })).toBeInTheDocument();
     });
