@@ -1,6 +1,6 @@
 # 管理員更正生日發布與回復清單
 
-日期：2026-10-09；基準 main 5a5c5c80；分支 codex/admin-birthday-correction。尚未部署。這批新增migration、個資更正與管理員權限例外，須完成隔離驗證並依AGENTS第13–14節取得此批正式操作明確同意。
+日期：2026-10-09；基準 main 5a5c5c80；分支 codex/admin-birthday-correction。已正式發布／實機待驗。使用者已在38項隔離測試、build與預覽通過後明確同意本批正式操作。
 
 影響：migration只新增稽核表／服務端RPC與現有生日觸發器的受限例外，不回填或修改任何會員生日。正式管理員之後才能個別填日期及原因保存。更正只影響新的生日月判定，年度生日禮來源鍵、已發XP／點數與進度不刪除或重發；前端不傳管理員ID，後端以Firebase帳號重新查角色，RPC再驗證有效管理員。
 
@@ -12,3 +12,5 @@
 
 
 已完成本機／隔離驗證：SQL10＋handler8＋前端20，合計38項；ESLint、Function語法、SCSS與diff check通過。1440／412px示範預覽無溢位、背景鎖定、按鈕44px、保存後前後日期與紀錄更新、無pageerror。Production build、SEO與Cloudflare資產準備成功；正式帳號、跨連線併發、完整Navbar/Sidebar與iPhone仍未驗收。SQL保留null首次設定，非service_role或缺少本交易相符稽核資料時仍拒絕改生日；原年度禮及新學習倍率真實SQL整合通過。
+
+正式發布：PR #492 合併 main f3ebbd12299a50986a28581d8b5c7ad5535ae6b2，原觸發器與會員後端核對後套用已審核 migration，完整 SQL statements 相符才將工具時間版本登記為原版本20261009050131，沒有重跑其他migration。會員後端v63 ACTIVE、三檔與main一致、Firebase及verify_jwt設定保留；RLS、role privileges、索引、trigger、invoker RPC與無效管理員拒絕均通過，稽核紀錄為零。OPTIONS200、未登入／偽造Token401。唯一Cloudflare production build adfb0ed3-687b-4906-9f73-a4441537b226 的新資產已發布，GitHub completion 回報待確認；14:06:54正式首頁／管理路由／27個JS與CSS200，七個功能標記存在。瀏覽器控制不可用，以GitHub check與公開HTTP／資產核對；正式帳號保存、跨連線併發、完整導覽與iPhone仍待驗收，未更改測試帳號或任何正式生日。證據output/admin-birth-date-release。
