@@ -161,10 +161,7 @@
   padding: 26px 18px 58px;
   box-sizing: border-box;
   color: var(--weekly-ink);
-  background:
-    radial-gradient(circle at 7% 3%, rgba(255, 205, 107, .18), transparent 23%),
-    radial-gradient(circle at 94% 18%, rgba(61, 128, 220, .11), transparent 27%),
-    #f4f7fb;
+  background: #f5f8fc;
   font-family: "Nunito", "Noto Sans TC", sans-serif;
 }
 
@@ -273,20 +270,20 @@
 
 .weekly-report-hero {
   position: relative;
-  min-height: 285px;
+  min-height: 190px;
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
   gap: 36px;
   overflow: hidden;
-  padding: 38px 46px;
+  padding: 24px;
   box-sizing: border-box;
   color: #fff;
   background:
     radial-gradient(circle at 85% 16%, rgba(255, 220, 132, .28), transparent 24%),
     linear-gradient(135deg, #17385d 0%, #245a8c 57%, #3174ab 100%);
-  border-radius: 27px;
-  box-shadow: 0 22px 52px rgba(28, 70, 111, .2);
+  border-radius: 16px;
+  box-shadow: none;
 
   &::after {
     position: absolute;
@@ -313,6 +310,8 @@
       linear-gradient(135deg, #5d3b25 0%, #a15f28 58%, #d58b34 100%);
   }
 }
+
+.weekly-report-hero::after { content: none; }
 
 .weekly-report-hero__copy {
   position: relative;
@@ -536,8 +535,8 @@
   padding: 26px;
   background: #fff;
   border: 1px solid var(--weekly-border);
-  border-radius: 20px;
-  box-shadow: 0 10px 28px rgba(36, 54, 79, .045);
+  border-radius: 16px;
+  box-shadow: none;
 }
 
 .weekly-report-activity {

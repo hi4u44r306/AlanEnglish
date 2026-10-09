@@ -54,3 +54,5 @@
     .student-notification-card { grid-template-columns: auto minmax(0, 1fr); align-items: start; padding: 15px; }
     .student-notification-card > button { grid-column: 2; justify-self: start; }
 }
+
+.student-notifications-hero { padding: 22px; border-radius: 16px; background: #17365d; box-shadow: none; }

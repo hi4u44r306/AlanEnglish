@@ -1,8 +1,8 @@
 // Scoped refinement: preserve the existing assignment player and quiz layouts.
 .student-homework-page {
     padding-top: 28px;
-    background: #eef5fc;
-    .student-homework-hero { padding: 24px 28px; gap: 20px; border-radius: 24px; background: #17365d; box-shadow: none; }
+    background: #f5f8fc;
+    .student-homework-hero { padding: 20px 24px; gap: 20px; border-radius: 16px; background: #17365d; box-shadow: none; }
     .student-homework-hero::before, .student-homework-hero::after { display: none; }
     .student-homework-hero h1 { font-size: clamp(24px, 3vw, 32px); line-height: 1.35; }
     .student-homework-hero p { font-size: 16px; }
@@ -13,8 +13,8 @@
     .student-homework-task:focus { outline: 3px solid #245fc5; outline-offset: 3px; }
     .student-homework-quick-start { display: inline-flex; align-items: center; gap: 12px; min-height: 48px; margin: 0 0 18px; padding: 10px 18px; border-radius: 13px; color: #fff; background: #245fc5; font-weight: 800; text-decoration: none; box-shadow: 0 3px 0 #17468f; }
     .student-homework-filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 18px;
-        button { min-height: 44px; padding: 8px 16px; border: 1px solid #c5d6e8; border-radius: 24px; background: #fff; color: #17365d; font: inherit; cursor: pointer; }
-        button[aria-pressed="true"] { background: #17365d; color: #fff; }
+        button { min-height: 44px; padding: 8px 16px; border: 0; border-bottom: 3px solid transparent; border-radius: 0; background: transparent; color: #17365d; font: inherit; cursor: pointer; }
+        button[aria-pressed="true"] { background: transparent; border-color: #245fc5; color: #245fc5; }
     }
     a:focus-visible, button:focus-visible { outline: 3px solid #17365d; outline-offset: 4px; }
 }
@@ -33,4 +33,14 @@
         .student-homework-task__title h3 { font-size: 21px; }
         .student-homework-section-heading { margin-bottom: 12px; }
     }
+}
+
+.student-homework-page {
+    .student-homework-summary__item, .student-homework-summary__tip { border: 0; border-bottom: 1px solid #dce5ee; border-radius: 0; background: transparent; box-shadow: none; }
+    .student-homework-task { grid-template-columns: 52px minmax(0, 1fr); border-radius: 14px; box-shadow: none; }
+    .student-homework-task:hover { transform: none; border-color: #91add2; box-shadow: none; }
+    .student-homework-task__body { padding: 20px; }
+}
+@media (max-width: 640px) {
+    .student-homework-page .student-homework-task__body { padding: 16px; }
 }

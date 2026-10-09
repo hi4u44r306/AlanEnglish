@@ -541,16 +541,10 @@ function StudentSettings() {
         <main className="student-settings-page">
             <section className="student-settings-hero">
                 <h1>我的設定</h1>
-                <p>看看自己的成長，選一個陪你學習的角色。</p>
+                <p>選一個陪你學習的角色，調整需要的設定。</p>
             </section>
 
             {(commerceQuery.error || nicknameQuery.error) && <p role="status">部分設定暫時無法更新，已有資料會保留。<button type="button" onClick={load}>重新讀取設定</button></p>}
-            <StudentGrowthCard balance={summary?.balance} loading={summaryQuery.loading} error={Boolean(summaryQuery.error || (!summaryQuery.loading && !summary?.balance))} pointsAccess={profile.learner_type === "academy_student" && isActiveAcademyStudent} onRetry={load}>
-                <Link to="/student/dashboard">繼續今日學習</Link>
-                <Link to="/student/weekly-report">看看本週進步</Link>
-                {profile.learner_type === "academy_student" && isActiveAcademyStudent && <Link to="/student/rewards">挑選獎品目標</Link>}
-            </StudentGrowthCard>
-
             <section className="student-settings-profile-card">
                 <div className="student-settings-avatar-wrap">
                     {avatarDisplayUrl
@@ -703,6 +697,14 @@ function StudentSettings() {
                     </div>
                 )
             }
+
+            <StudentSettingsGroup title="成長與獎品" description="等級、學習經驗與 AE Points">
+                <StudentGrowthCard balance={summary?.balance} loading={summaryQuery.loading} error={Boolean(summaryQuery.error || (!summaryQuery.loading && !summary?.balance))} pointsAccess={profile.learner_type === "academy_student" && isActiveAcademyStudent} onRetry={load}>
+                    <Link to="/student/dashboard">繼續今日學習</Link>
+                    <Link to="/student/weekly-report">看看本週進步</Link>
+                    {profile.learner_type === "academy_student" && isActiveAcademyStudent && <Link to="/student/rewards">挑選獎品目標</Link>}
+                </StudentGrowthCard>
+            </StudentSettingsGroup>
 
             <section className="student-settings-shortcuts">
                 <article className="student-settings-panel">

@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { FiArrowRight, FiBookOpen, FiCheckCircle, FiCompass, FiHeadphones, FiRefreshCw, FiSearch, FiStar, FiTrendingUp } from "react-icons/fi";
+import { FiArrowRight, FiBookOpen, FiCheckCircle, FiCompass, FiRefreshCw, FiSearch, FiStar, FiTrendingUp } from "react-icons/fi";
 import { useAuth } from "../../auth/AuthContext";
 import useStudentPageQuery from "../../hooks/useStudentPageQuery";
 import { getAccessibleCatalog } from "../../services/contentAccessService";
@@ -111,12 +111,10 @@ function StudentLearningHome() {
                     <div className="learning-home__identity"><span className="learning-home__avatar">{avatar ? <StudentAvatarImage src={avatar} alt="我的角色" /> : <FiStar aria-hidden="true" />}</span><div><span>我的成長</span><strong>{balance ? `Lv.${balance.level}` : "學習中的每一步"}</strong></div></div>
                     {balance ? <><div className="learning-home__xp"><strong>{Number(balance.total_xp || 0).toLocaleString("zh-TW")} XP</strong><span>累積經驗</span></div><progress max="100" value={progress} aria-label="目前等級成長進度" /><p>{balance.next_level_xp != null ? `距離下一級還差 ${Math.max(0, balance.next_level_xp - Number(balance.total_xp || 0))} XP` : "繼續累積你的學習經驗"}</p></>
                         : <p role="status">{data?.summaryError ? "成長資料暫時無法讀取，你仍可以開始學習。" : "正在讀取成長資料…"}</p>}
-                    <div className="learning-home__growth-links"><Link to="/student/settings">我的角色</Link><Link to="/student/leaderboard"><FiTrendingUp aria-hidden="true" />排行榜</Link></div>
                 </aside>
             </div>
 
             <nav className="learning-home__paths" aria-label="選擇學習方式">
-                <a href="#learning-books"><span className="learning-home__path-icon"><FiHeadphones /></span><span><strong>聽教材</strong><small>選一本，練習聽懂英文</small></span><FiArrowRight aria-hidden="true" /></a>
                 {speakingAccess && <Link to="/student/speaking-challenges"><span className="learning-home__path-icon is-yellow"><FiCompass /></span><span><strong>口說冒險</strong><small>前往教材世界，查看關卡</small></span><FiArrowRight aria-hidden="true" /></Link>}
                 <Link to="/student/weekly-report"><span className="learning-home__path-icon is-green"><FiTrendingUp /></span><span><strong>看看我的進步</strong><small>回顧這週學過的內容</small></span><FiArrowRight aria-hidden="true" /></Link>
             </nav>

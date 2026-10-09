@@ -179,7 +179,7 @@ const StudentNavbar = ({
     const growthLinks = (
         <section className="ae-student-drawer-section is-growth">
             <span>角色與獎勵</span>
-            <InstantDrawerLink to="/student/settings" onNavigate={closeDrawerThenNavigate} className={isPathActive("/student/settings") ? "active" : ""}><FiSettings />我的角色</InstantDrawerLink>
+            <InstantDrawerLink to="/student/settings" onNavigate={closeDrawerThenNavigate} className={isPathActive("/student/settings") ? "active" : ""}><FiSettings />我的設定</InstantDrawerLink>
             {hasActiveLearningAccess && <InstantDrawerLink to="/student/leaderboard" onNavigate={closeDrawerThenNavigate} className={isPathActive("/student/leaderboard") ? "active" : ""}><FiTrendingUp />排行榜</InstantDrawerLink>}
             {hasActiveLearningAccess && <InstantDrawerLink to="/student/friends" onNavigate={closeDrawerThenNavigate} className={isPathActive("/student/friends") ? "active" : ""}><FiUsers />好友</InstantDrawerLink>}
             {hasRewardsAccess && <InstantDrawerLink to="/student/rewards" onNavigate={closeDrawerThenNavigate} className={isPathActive("/student/rewards") ? "active" : ""}><FiGift />獎品商城</InstantDrawerLink>}
@@ -249,9 +249,9 @@ const StudentNavbar = ({
                                 <div className="ae-student-dropdown-heading"><strong>冒險世界</strong><small>選擇教材，開始闖關</small></div>
                                 {speakingLinks}
                         </NavDropdown>
-                        <NavDropdown id="student-more" title={<span><NavigationIcon tone="profile">{profileAvatar}</NavigationIcon>我的角色</span>} show={profileOpen} onToggle={setProfileOpen} className={profileActive ? "active" : ""}>
+                        <NavDropdown id="student-more" title={<span><NavigationIcon tone="profile">{profileAvatar}</NavigationIcon>我的學習</span>} show={profileOpen} onToggle={setProfileOpen} className={profileActive ? "active" : ""}>
                             <div className="ae-student-dropdown-heading is-profile"><strong>{profileName}</strong><small>Lv.{gamificationLevel}</small></div>
-                            <div className="ae-student-more-grid is-profile-menu">{growthLinks}{learningLinks}{accountLinks}</div>
+                            <div className="ae-student-more-grid is-profile-menu">{learningLinks}{growthLinks}{accountLinks}</div>
                         </NavDropdown>
                     </Nav>
                     <div className="ae-student-desktop-account">
@@ -274,7 +274,7 @@ const StudentNavbar = ({
 
             <Offcanvas id="student-navigation-drawer" show={drawerOpen} onHide={closeDrawer} onExited={handleDrawerExited} placement={drawer === "speaking" ? "bottom" : "end"} className={`ae-student-drawer ${drawer === "menu" ? "is-menu" : drawer === "materials" ? "is-materials" : "is-choice"}`} backdrop scroll={false}>
                 <Offcanvas.Header closeButton closeLabel="關閉選單">
-                    <div><strong>{drawer === "materials" ? "我的教材" : drawer === "speaking" ? "口說冒險" : "我的學習選單"}</strong><small>{drawer === "materials" ? "選擇教材、程度與冊別" : drawer === "speaking" ? "選擇教材，開始闖關" : "角色與獎勵、學習紀錄、帳號與幫助"}</small></div>
+                    <div><strong>{drawer === "materials" ? "我的教材" : drawer === "speaking" ? "口說冒險" : "我的學習選單"}</strong><small>{drawer === "materials" ? "選擇教材、程度與冊別" : drawer === "speaking" ? "選擇教材，開始闖關" : "學習紀錄、角色與獎勵、帳號與幫助"}</small></div>
                 </Offcanvas.Header>
                 <Offcanvas.Body>
                     {drawer === "materials" && renderMaterials("mobile")}
@@ -287,7 +287,7 @@ const StudentNavbar = ({
                                 {hasAiPremium && <b><FiZap />AI Premium</b>}
                             </div>
                             <div className="ae-student-drawer-xp"><span style={{ width: `${xpProgressPercent}%` }} /><small>距離下一級還差 {xpToNextLevel.toLocaleString("zh-TW")} XP</small></div>
-                            <div className="ae-student-more-grid">{growthLinks}{learningLinks}{accountLinks}</div>
+                            <div className="ae-student-more-grid">{learningLinks}{growthLinks}{accountLinks}</div>
                             <button type="button" className="ae-student-drawer-logout" onClick={onLogout} disabled={loggingOut}><FiLogOut />{loggingOut ? "登出中..." : "登出"}</button>
                         </>
                     )}

@@ -1,7 +1,7 @@
 .speaking-challenge-page {
   min-height: 100vh;
-  padding: 40px 24px 80px;
-  background: #f3f7fc;
+  padding: 28px 24px 64px;
+  background: #f5f8fc;
   color: #17233f;
 }
 .speaking-staff-preview-banner {
@@ -50,9 +50,9 @@
   min-height: 76px;
   padding: 10px 14px;
   border: 1px solid #d5e1f1;
-  border-radius: 20px;
+  border-radius: 14px;
   background: #fff;
-  box-shadow: 0 10px 26px rgba(20, 47, 91, 0.07);
+  box-shadow: none;
 }
 
 .speaking-book-toolbar .speaking-back {
@@ -292,9 +292,9 @@
 .speaking-challenge-rules {
   margin-top: 20px;
   border: 1px solid #f0cf70;
-  border-radius: 22px;
-  background: linear-gradient(135deg, #fffdf5, #fff7dd);
-  box-shadow: 0 10px 26px rgba(90, 67, 16, 0.07);
+  border-radius: 14px;
+  background: #fffaf0;
+  box-shadow: none;
   overflow: hidden;
 }
 

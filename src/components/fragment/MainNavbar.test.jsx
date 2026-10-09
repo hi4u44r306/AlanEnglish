@@ -128,7 +128,7 @@ describe("MainNavbar student navigation", () => {
         expect(screen.queryByRole("link", { name: "學習排行榜" })).not.toBeInTheDocument();
         expect(screen.getByRole("button", { name: "冒險" })).toBeInTheDocument();
         expect(screen.getByRole("button", { name: "口說冒險" })).toBeInTheDocument();
-        expect(screen.getByRole("button", { name: "我的角色" })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "我的學習" })).toBeInTheDocument();
         expect(screen.getByRole("button", { name: "開啟功能選單" })).toBeInTheDocument();
         expect(screen.getByRole("link", { name: "前往帳號" })).toHaveAttribute("href", "/student/settings");
         expect(screen.getByRole("link", { name: "我的" })).toHaveAttribute("href", "/student/settings");
@@ -147,7 +147,7 @@ describe("MainNavbar student navigation", () => {
         expect(within(mobileMenu).getByRole("link", { name: "每週報告" })).toBeInTheDocument();
         expect(screen.queryByRole("link", { name: "學習排行榜" })).not.toBeInTheDocument();
         expect(within(mobileMenu).getByRole("link", { name: "獎品商城" })).toBeInTheDocument();
-        expect(within(mobileMenu).getByRole("link", { name: "我的角色" })).toBeInTheDocument();
+        expect(within(mobileMenu).getByRole("link", { name: "我的設定" })).toBeInTheDocument();
         expect(within(mobileMenu).queryByRole("link", { name: "實體教材商城" })).not.toBeInTheDocument();
         await waitFor(() => expect(getAccessibleCatalog).toHaveBeenCalled());
         expect(screen.queryByText("聽力本")).not.toBeInTheDocument();
@@ -156,13 +156,13 @@ describe("MainNavbar student navigation", () => {
     it("groups desktop destinations and closes the role menu after client-side navigation", async () => {
         render(<MemoryRouter initialEntries={["/student/dashboard"]}><MainNavbar /><LocationProbe /></MemoryRouter>);
         const desktop = screen.getByRole("navigation", { name: "學生桌面導覽" });
-        const roleMenu = within(desktop).getByRole("button", { name: "我的角色" });
+        const roleMenu = within(desktop).getByRole("button", { name: "我的學習" });
         fireEvent.click(roleMenu);
         expect(roleMenu).toHaveAttribute("aria-expanded", "true");
         expect(within(desktop).getByText("角色與獎勵")).toBeInTheDocument();
         expect(within(desktop).getByText("學習紀錄")).toBeInTheDocument();
         expect(within(desktop).getByText("帳號與幫助")).toBeInTheDocument();
-        fireEvent.click(within(desktop).getByRole("link", { name: "我的角色" }));
+        fireEvent.click(within(desktop).getByRole("link", { name: "我的設定" }));
         expect(screen.getByLabelText("目前路徑")).toHaveTextContent("/student/settings");
         expect(roleMenu).toHaveAttribute("aria-expanded", "false");
         expect(within(screen.getByRole("navigation", { name: "學生主要導覽" })).getByRole("link", { name: "我的" })).toHaveClass("active");
@@ -463,7 +463,7 @@ describe("MainNavbar student navigation", () => {
         render(<MemoryRouter initialEntries={["/student/dashboard"]}><MainNavbar /></MemoryRouter>);
         fireEvent.click(screen.getByRole("button", { name: "開啟功能選單" }));
 
-        expect(await screen.findByRole("link", { name: "我的角色" })).toHaveAttribute("href", "/student/settings");
+        expect(await screen.findByRole("link", { name: "我的設定" })).toHaveAttribute("href", "/student/settings");
         expect(screen.queryByRole("link", { name: "獎品商城" })).not.toBeInTheDocument();
         expect(screen.queryByRole("link", { name: "每週報告" })).not.toBeInTheDocument();
     });
@@ -660,7 +660,7 @@ describe("MainNavbar student navigation", () => {
     it.each([["admin", "/admin/class-materials"], ["teacher", "/teacher/class-materials"]])("links %s to the appropriate class materials page in both menus", async (role, path) => {
         useAuth.mockReturnValue({ firebaseUser: { uid: `${role}-test` }, role, isAuthenticated: true, logout: jest.fn(), studentProfile: { name: "教職員" } });
         render(<MemoryRouter><MainNavbar /></MemoryRouter>);
-        fireEvent.click(screen.getByRole("button", { name: "管理" }));
+        fireEvent.click(screen.getByRole("button", { name: "班級與學生" }));
         expect(screen.getByRole("link", { name: "班級教材設定" })).toHaveAttribute("href", path);
         fireEvent.click(screen.getByRole("button", { name: "開啟全部功能選單" }));
         const links = await screen.findAllByRole("link", { name: "班級教材設定" });

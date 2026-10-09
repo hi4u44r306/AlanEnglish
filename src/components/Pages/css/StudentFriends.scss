@@ -480,6 +480,8 @@
   }
 }
 
+.student-friends-hero { padding: 24px; border-radius: 16px; background: #17365d; box-shadow: none; }
+
 @media (max-width: 760px) {
   .student-friends-page {
     width: min(100% - 20px, 960px);
@@ -489,7 +491,7 @@
     grid-template-columns: 1fr;
     align-items: stretch;
     gap: 17px;
-    border-radius: 23px;
+    border-radius: 16px;
   }
   .student-friends-self {
     min-width: 0;
