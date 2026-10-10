@@ -1410,3 +1410,24 @@
         flex: 1 1 0;
     }
 }
+
+.assignment-step-panel[hidden] { display: none !important; }
+.assignment-create-steps { display: flex; flex-wrap: wrap; gap: 8px; list-style: none; padding: 0; margin: 20px 0; }
+.assignment-create-steps button, .assignment-secondary { min-height: 44px; padding: 10px 14px; background: #fff; color: #17365d; border: 1px solid #dce4ef; border-radius: 10px; font: inherit; }
+.assignment-create-steps button[aria-current="step"] { background: #eaf0ff; border-color: #2f6fed; font-weight: 800; }
+.assignment-step-actions { display: flex; justify-content: space-between; gap: 12px; margin-top: 20px; }
+.assignment-step-actions .assignment-primary { margin-left: auto; }
+.assignment-step-panel { min-width: 0; }
+.management-workspace .assignment-card { width: 100%; min-width: 0; }
+.assignment-create-steps button:focus-visible, .assignment-step-actions button:focus-visible { outline: 3px solid #2158c7; outline-offset: 3px; }
+
+.teacher-assignment-page button { min-height: 44px; }
+.teacher-assignment-page .assignment-card { border-radius: 16px; box-shadow: none; }
+.teacher-assignment-page .assignment-form-section { padding: 18px 0; border: 0; border-top: 1px solid #e0e6f0; border-radius: 0; background: transparent; }
+.teacher-assignment-page .assignment-date-card { min-width: 0; padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; }
+.teacher-assignment-page .assignment-date-card strong { font-size: 16px; }
+.teacher-assignment-page .assignment-publish-summary .assignment-primary,
+.teacher-assignment-page .assignment-step-actions .assignment-primary { background: #2f6fed; color: #fff; border-color: #2f6fed; box-shadow: none; }
+.assignment-confirm-overview { margin: 16px 0; overflow-wrap: anywhere; }
+.assignment-confirm-overview p { margin: 6px 0 0; color: #53647d; }
+.assignment-source-tools > summary { min-height: 44px; padding: 12px 0; font-weight: 700; cursor: pointer; }

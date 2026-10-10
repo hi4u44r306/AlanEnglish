@@ -1,3 +1,4 @@
+import ManagementWorkspace from "../fragment/ManagementWorkspace";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 import { AlertCircle, AlertTriangle, Archive, BookOpen, CheckCircle2, ChevronDown, Eye, FileText, LoaderCircle, Pencil, Plus, RefreshCcw, Search, Sparkles, UploadCloud, Volume2, Wrench } from "lucide-react";
@@ -1013,16 +1014,23 @@ export default function SpeakingContentAdmin() {
             </nav>
         </section>
 
-        {activeWorkspace === "create" && <>
-        <section className="platform-card speaking-starter-card speaking-admin-block--curated" id="speaking-quick-create">
+        {activeWorkspace === "create" && <ManagementWorkspace label="建立關卡方式" disabled={Boolean(working)} tabs={[{ id: "manual", label: "逐頁建立" }, { id: "templates", label: "教材範例" }, { id: "batch", label: "匯入已核對草稿" }, { id: "picture", label: "圖片關卡工具" }]}>
+<ManualSpeakingDraftAdmin firebaseUser={firebaseUser} books={data.books} onCreated={async questionSetId => {
+            await load();
+            if (questionSetId) {
+                setQuestionSetFilter("draft");
+                setSelectedQuestionSetId(questionSetId);
+                setActiveWorkspace("drafts");
+            }
+        }} />
+<div><section className="platform-card speaking-starter-card speaking-admin-block--curated" id="speaking-quick-create">
             <div><span className="platform-eyebrow">CURATED STARTER</span><h2>先建立第一個 Workbook 1 小關卡</h2><p>使用已人工規劃的 P18～P20「我的名字與自我介紹」，直接建立四題可編輯草稿；不執行 OCR，也不呼叫付費 AI。</p></div>
             <button type="button" className="platform-primary" disabled={!workbookOne || Boolean(workbookOneStarter) || working === "workbook-1-starter"} onClick={createWorkbookOneStarter}>
                 <Sparkles size={17} />{working === "workbook-1-starter" ? "建立草稿中…" : workbookOneStarter ? (workbookOneStarter.status === "published" ? "範例已發布" : "範例草稿已建立") : "建立範例草稿"}
             </button>
             {!workbookOne && !loading && <p className="speaking-starter-card__warning"><AlertTriangle size={16} />目前教材清單找不到 Workbook 1，請先確認教材已啟用。</p>}
         </section>
-
-        <section className="platform-card speaking-starter-card speaking-foundation-starters speaking-admin-block--curated">
+<section className="platform-card speaking-starter-card speaking-foundation-starters speaking-admin-block--curated">
             <div><span className="platform-eyebrow">WORKBOOK 1 FOUNDATIONS</span><h2>建立 A–Z 與 P14～P17 基礎口說草稿</h2><p>這些按鈕只建立可預覽草稿，不執行 OCR、不呼叫付費 AI，也不會自動發布。P14～P17 建立時會由後端逐字核對目前已發布的正式頁面來源。</p></div>
             <div className="speaking-foundation-starters__list">{WORKBOOK_ONE_FOUNDATION_STARTERS.map(starter => {
                 const existing = workbookOneFoundationSets.get(starter.templateKey);
@@ -1062,8 +1070,7 @@ export default function SpeakingContentAdmin() {
             })}</div>
             {!workbookOne && !loading && <p className="speaking-starter-card__warning"><AlertTriangle size={16} />目前教材清單找不到 Workbook 1，請先確認教材已啟用。</p>}
         </section>
-
-        <section className="platform-card speaking-starter-card speaking-foundation-starters speaking-admin-block--curated">
+<section className="platform-card speaking-starter-card speaking-foundation-starters speaking-admin-block--curated">
             <div><span className="platform-eyebrow">WORKBOOK 1 · PAGE 26～27</span><h2>依頁碼建立下一關草稿</h2><p>此批只處理 P26～P27 的「完整句與縮寫」。建立後保持草稿，管理員逐題確認文字與答案後才可發布。</p></div>
             <div className="speaking-foundation-starters__list">{WORKBOOK_ONE_PAGE_STARTERS.map(starter => {
                 const existing = workbookOnePageSets.get(starter.templateKey);
@@ -1077,35 +1084,23 @@ export default function SpeakingContentAdmin() {
                 </article>;
             })}</div>
         </section>
-
-        <ManualSpeakingDraftAdmin firebaseUser={firebaseUser} books={data.books} onCreated={async questionSetId => {
-            await load();
-            if (questionSetId) {
-                setQuestionSetFilter("draft");
-                setSelectedQuestionSetId(questionSetId);
-                setActiveWorkspace("drafts");
-            }
-        }} />
-
-        <BatchSpeakingDraftAdmin firebaseUser={firebaseUser} books={data.books} onCreated={async questionSetId => {
-            await load();
-            if (questionSetId) {
-                setQuestionSetFilter("draft");
-                setSelectedQuestionSetId(questionSetId);
-                setActiveWorkspace("drafts");
-            }
-        }} />
-
-        <WorkbookOnePictureContentAdmin firebaseUser={firebaseUser} workbookOne={workbookOne} onCreated={load} />
-
-        <section className="platform-card speaking-starter-card speaking-admin-block--curated">
+<section className="platform-card speaking-starter-card speaking-admin-block--curated">
             <div><span className="platform-eyebrow">CURATED WORKBOOK 2</span><h2>建立 Workbook 2「我來自哪裡？」</h2><p>依教師版 P56～P58 人工核對內容建立六題，練習 I／he／she／they 與 come from；不執行 OCR，也不呼叫付費 AI。</p></div>
             <button type="button" className="platform-primary" disabled={!workbookTwo || Boolean(workbookTwoStarter) || working === "workbook-2-starter"} onClick={createWorkbookTwoStarter}>
                 <Sparkles size={17} />{working === "workbook-2-starter" ? "建立草稿中…" : workbookTwoStarter ? (workbookTwoStarter.status === "published" ? "關卡已發布" : "關卡草稿已建立") : "建立 Workbook 2 草稿"}
             </button>
             {!workbookTwo && !loading && <p className="speaking-starter-card__warning"><AlertTriangle size={16} />目前教材清單找不到 Workbook 2，請先確認教材已啟用。</p>}
-        </section>
-        </>}
+        </section></div>
+<BatchSpeakingDraftAdmin firebaseUser={firebaseUser} books={data.books} onCreated={async questionSetId => {
+            await load();
+            if (questionSetId) {
+                setQuestionSetFilter("draft");
+                setSelectedQuestionSetId(questionSetId);
+                setActiveWorkspace("drafts");
+            }
+        }} />
+<WorkbookOnePictureContentAdmin firebaseUser={firebaseUser} workbookOne={workbookOne} onCreated={load} />
+</ManagementWorkspace>}
 
         {activeWorkspace === "sources" && <>
         <nav className="platform-card speaking-source-tabs" aria-label="教材來源分類">
@@ -1214,7 +1209,7 @@ export default function SpeakingContentAdmin() {
 
         {["drafts", "ready", "published"].includes(activeWorkspace) &&
         <section className="platform-card speaking-bank-workspace" id="speaking-question-bank">
-            <div className="platform-section-title"><div><span className="platform-eyebrow">PAGE-BASED QUESTION BANK</span><h2>{activeWorkspace === "drafts" ? "製作中草稿" : activeWorkspace === "ready" ? "待發布關卡" : "已發布關卡"}</h2><p>{activeWorkspace === "drafts" ? "只顯示仍有缺漏或尚未核准的草稿；展開即可修改。" : activeWorkspace === "ready" ? "內容已通過檢查；按一次即可準備必要語音並安全發布。" : "正式版本保持唯讀；需要修改時先建立新版草稿。"}</p></div><button type="button" className="platform-primary" onClick={() => setActiveWorkspace("create")}><Plus size={17} />新增關卡</button></div>
+            <div className="platform-section-title"><div><span className="platform-eyebrow">PAGE-BASED QUESTION BANK</span><h2>{activeWorkspace === "drafts" ? "製作中草稿" : activeWorkspace === "ready" ? "待發布關卡" : "已發布關卡"}</h2><p>{activeWorkspace === "drafts" ? "只顯示仍有缺漏或尚未核准的草稿；展開即可修改。" : activeWorkspace === "ready" ? "內容已通過檢查；按一次即可準備必要語音並安全發布。" : "正式版本保持唯讀；需要修改時先建立新版草稿。"}</p></div></div>
             <div className="speaking-bank-toolbar">
                 <label><Search size={18} /><span className="sr-only">搜尋題庫</span><input value={questionSetSearch} onChange={event => setQuestionSetSearch(event.target.value)} placeholder="搜尋關卡名稱、主題或頁碼" /></label>
                 <label><span className="sr-only">依教材篩選</span><select value={bookFilter} onChange={event => setBookFilter(event.target.value)}><option value="all">全部教材</option>{data.books.map(book => <option key={book.id} value={book.id}>{book.name}</option>)}</select></label>

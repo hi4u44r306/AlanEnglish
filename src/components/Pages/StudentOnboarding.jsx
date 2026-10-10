@@ -65,13 +65,17 @@ function StudentOnboarding() {
         steps.guardian_email_complete
     ].filter(Boolean).length;
 
+    const activeStep = !steps.password_complete ? "password"
+        : !steps.birthday_complete ? "birthday"
+            : !steps.guardian_email_complete ? "guardian" : "done";
+
     useEffect(() => {
         setBirthday(studentProfile?.date_of_birth || "");
         setGuardianEmail(studentProfile?.guardian?.email || "");
     }, [studentProfile?.date_of_birth, studentProfile?.guardian?.email]);
 
     useEffect(() => {
-        if (!shouldOfferPush || !firebaseUser) return undefined;
+        if (!shouldOfferPush || !firebaseUser || completedCount < 3) return undefined;
         let cancelled = false;
         const availability = getWebPushAvailability();
         setPushStatus({ ...availability, active: false });
@@ -89,7 +93,7 @@ function StudentOnboarding() {
             if (!cancelled) setPushConfig({ enabled: false });
         });
         return () => { cancelled = true; };
-    }, [firebaseUser, shouldOfferPush]);
+    }, [completedCount, firebaseUser, shouldOfferPush]);
 
     useEffect(() => {
         if (
@@ -229,20 +233,25 @@ function StudentOnboarding() {
                 <header className="student-onboarding-hero">
                     <span>FIRST LOGIN</span>
                     <h1>第一次登入，先完成帳號設定</h1>
-                    <p>完成三個步驟後，就可以開始使用 Alan English。</p>
+                    <p>一次完成一個步驟。需要填寫家長資料時，可以請家長一起協助。</p>
                     <div className="student-onboarding-progress" aria-label={`已完成 ${completedCount} 個步驟，共 3 個`}>
                         <div style={{ width: `${(completedCount / 3) * 100}%` }} />
                     </div>
                     <strong>{completedCount}／3 已完成</strong>
                 </header>
 
+                <ol className="student-onboarding-steps" aria-label="帳號設定步驟">
+                    {[{ key: "password", label: "設定密碼", complete: steps.password_complete }, { key: "birthday", label: "確認生日", complete: steps.birthday_complete }, { key: "guardian", label: "家長信箱", complete: steps.guardian_email_complete }].map((step, index) => (
+                        <li key={step.key} aria-current={activeStep === step.key ? "step" : undefined} className={step.complete ? "is-complete" : ""}><span aria-hidden="true">{step.complete ? <FiCheck /> : index + 1}</span>{step.label}</li>
+                    ))}
+                </ol>
                 {message.text && (
                     <div className={`student-onboarding-message ${message.type}`} role={message.type === "error" ? "alert" : "status"}>
                         {message.text}
                     </div>
                 )}
 
-                <article className={`student-onboarding-card ${steps.password_complete ? "complete" : ""}`}>
+                <article hidden={activeStep !== "password"} className={`student-onboarding-card ${steps.password_complete ? "complete" : ""}`}>
                     <header><div><FiLock /><span>步驟 1</span><h2>設定自己的密碼</h2></div><StepStatus complete={steps.password_complete} /></header>
                     {steps.password_complete ? (
                         <p>密碼已更換完成。之後請使用新密碼登入。</p>
@@ -259,7 +268,7 @@ function StudentOnboarding() {
                     )}
                 </article>
 
-                <article className={`student-onboarding-card ${steps.birthday_complete ? "complete" : ""}`}>
+                <article hidden={activeStep !== "birthday"} className={`student-onboarding-card ${steps.birthday_complete ? "complete" : ""}`}>
                     <header><div><FiShield /><span>步驟 2</span><h2>確認出生年月日</h2></div><StepStatus complete={steps.birthday_complete} /></header>
                     {steps.birthday_complete ? (
                         <p>生日已保存為 {studentProfile?.date_of_birth}。為保護獎勵紀錄，學生無法自行修改。</p>
@@ -272,7 +281,7 @@ function StudentOnboarding() {
                     )}
                 </article>
 
-                <article className={`student-onboarding-card ${steps.guardian_email_complete ? "complete" : ""}`}>
+                <article hidden={activeStep !== "guardian"} className={`student-onboarding-card ${steps.guardian_email_complete ? "complete" : ""}`}>
                     <header><div><FiMail /><span>步驟 3</span><h2>驗證家長 Email</h2></div><StepStatus complete={steps.guardian_email_complete} /></header>
                     {steps.guardian_email_complete ? (
                         <p>家長 Email 已完成驗證：{studentProfile?.guardian?.email}</p>
@@ -292,7 +301,7 @@ function StudentOnboarding() {
                     )}
                 </article>
 
-                {shouldOfferPush && (
+                {shouldOfferPush && completedCount === 3 && (
                     <article className={`student-onboarding-card student-onboarding-push ${pushStatus?.active ? "complete" : ""}`}>
                         <header>
                             <div><FiBell /><span>可選設定</span><h2>開啟網頁通知</h2></div>

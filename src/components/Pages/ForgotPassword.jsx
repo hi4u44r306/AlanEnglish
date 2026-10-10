@@ -5,6 +5,7 @@ import { isReceivableEmail, RECEIVABLE_EMAIL_HELP } from "../../utils/emailValid
 import "./css/Platform.scss";
 
 function ForgotPassword() {
+    const [accountType, setAccountType] = useState(null);
     const [email, setEmail] = useState("");
     const [submitting, setSubmitting] = useState(false);
     const [sent, setSent] = useState(false);
@@ -35,7 +36,12 @@ function ForgotPassword() {
                 <div className="platform-icon">🔐</div>
                 <span className="platform-eyebrow">PASSWORD RESET</span>
                 <h1>忘記密碼</h1>
-                {sent ? (
+                <p>你平常用哪一種方式登入？</p>
+                <div className="platform-account-choice" role="group" aria-label="選擇登入方式">
+                    <button type="button" aria-pressed={accountType === "student"} disabled={submitting} onClick={() => { setAccountType("student"); setError(""); }}><strong>學生帳號</strong><span>老師提供的登入卡</span></button>
+                    <button type="button" aria-pressed={accountType === "email"} disabled={submitting} onClick={() => { setAccountType("email"); setError(""); }}><strong>Email 帳號</strong><span>註冊時使用的信箱</span></button>
+                </div>
+                {accountType === "email" && (sent ? (
                     <>
                         <p>如果 <strong>{email.trim().toLowerCase()}</strong> 已有帳號，Alan English 會寄出密碼重設信。請同時檢查垃圾郵件。</p>
                         <div className="platform-verification-actions"><Link className="platform-primary" to="/login">回到登入</Link><button className="platform-secondary" type="button" onClick={() => setSent(false)}>重新輸入 Email</button></div>
@@ -47,12 +53,12 @@ function ForgotPassword() {
                         {error && <div className="platform-form-error" role="alert"><strong>無法寄送</strong><span>{error}</span></div>}
                         <button className="platform-primary platform-wide" type="submit" disabled={submitting}>{submitting ? "寄送中…" : "寄送密碼重設信"}</button>
                     </form>
-                )}
-                <div className="platform-verification-notice">
+                ))}
+                {accountType === "student" && <div className="platform-verification-notice">
                     <strong>英文班學生使用帳號登入？</strong>
                     <p>不需要收 Email。請使用登入卡上的一次性復原碼設定新的登入密碼。</p>
                     <Link className="platform-secondary" to="/academy/recover">使用復原碼</Link>
-                </div>
+                </div>}
                 <p className="platform-footnote"><Link to="/login">回到登入</Link>　·　<Link to="/support">聯絡客服</Link></p>
             </section>
         </main>

@@ -111,7 +111,7 @@ function Login() {
                     showError("登入失敗次數過多，請稍後再試");
                     break;
                 case "auth/network-request-failed":
-                    showError("Firebase 登入服務連線失敗");
+                    showError("網路連線失敗，請確認網路後再試一次");
                     break;
                 default:
                     showError(error?.message || "登入失敗");
@@ -250,6 +250,9 @@ function Login() {
                                 <button
                                     type="button"
                                     className="show-password-button"
+                                    aria-pressed={showPassword}
+                                    aria-controls="password"
+                                    disabled={isLoading}
                                     onClick={() => setShowPassword((prev) => !prev)}
                                 >
                                     {showPassword ? "隱藏" : "顯示"}

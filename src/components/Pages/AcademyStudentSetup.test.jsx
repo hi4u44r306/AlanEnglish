@@ -14,6 +14,16 @@ jest.mock("../../services/academyStudentService", () => ({
 describe("AcademyStudentSetup", () => {
     beforeEach(() => jest.clearAllMocks());
 
+    it("hides activation fields when a login card is invalid", async () => {
+        previewStudentActivation.mockRejectedValue(new Error("登入卡已失效"));
+        render(<MemoryRouter initialEntries={["/academy/student-setup?token=invalid"]}><AcademyStudentSetup /></MemoryRouter>);
+        expect(await screen.findByRole("heading", { name: "請重新確認登入卡" })).toBeInTheDocument();
+        expect(screen.getByRole("alert")).toHaveTextContent("登入卡已失效");
+        expect(screen.queryByLabelText("新的登入密碼")).not.toBeInTheDocument();
+        expect(screen.getByRole("link", { name: "回到登入" })).toHaveAttribute("href", "/login");
+        expect(activateStudentLogin).not.toHaveBeenCalled();
+    });
+
     it("accepts a student-chosen password with at least six characters", async () => {
         previewStudentActivation.mockResolvedValue({
             student: { name: "王小明", chinese_name: "王小明", english_name: "Alan Wang", username: "alanwang01" },

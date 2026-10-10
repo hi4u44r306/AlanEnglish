@@ -44,3 +44,9 @@
 @media (max-width: 640px) {
     .student-homework-page .student-homework-task__body { padding: 16px; }
 }
+
+.student-homework-details {
+    margin-top: 12px;
+    > summary { min-height: 44px; padding: 10px 0; color: #345778; font-weight: 700; cursor: pointer; }
+    > summary:focus-visible { outline: 3px solid #17365d; outline-offset: 3px; }
+}

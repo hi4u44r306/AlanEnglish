@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useAuth } from "../../auth/AuthContext";
 import { getRewards, redeemReward } from "../../services/gamificationService";
+import useRewardGoal from "../../hooks/useRewardGoal";
 import StudentGrowthCard from "../fragment/StudentGrowthCard";
 import "./css/Gamification.scss";
 import "./css/StudentRewards.scss";
@@ -26,7 +27,7 @@ function Rewards() {
     const [loading, setLoading] = useState(true);
     const [redeemingId, setRedeemingId] = useState(null);
     const [loadError, setLoadError] = useState(false);
-    const [goalId, setGoalId] = useState(null);
+    const [goalId, setGoalId] = useRewardGoal(firebaseUser?.uid);
 
     const load = useCallback(async () => {
         if (!firebaseUser || !hasRewardsAccess) {
@@ -72,7 +73,7 @@ function Rewards() {
     const hasBalance = data?.balance?.points_balance != null && Number.isFinite(Number(balance.points_balance));
     const points = hasBalance ? Number(balance.points_balance) : null;
     const availableGoals = rewards.filter(reward => Number(reward.stock_quantity) > 0 && Number.isFinite(Number(reward.points_cost)));
-    const goal = availableGoals.find(reward => reward.id === goalId)
+    const goal = availableGoals.find(reward => String(reward.id) === goalId)
         || [...availableGoals].sort((a, b) => Number(a.points_cost) - Number(b.points_cost))[0];
     const goalCost = goal ? Math.max(0, Number(goal.points_cost)) : 0;
     const goalRemaining = points != null ? Math.max(0, goalCost - points) : null;
@@ -115,12 +116,12 @@ function Rewards() {
             {goal && hasBalance && <section className="student-rewards__goal" aria-labelledby="reward-goal-title">
                 <div className="student-rewards__goal-image">{goal.image_url ? <img src={goal.image_url} alt="" /> : <FiGift aria-hidden="true" />}</div>
                 <div className="student-rewards__goal-copy">
-                    <h2 id="reward-goal-title"><FiTarget aria-hidden="true" />本次獎品目標</h2>
+                    <h2 id="reward-goal-title"><FiTarget aria-hidden="true" />我的獎品目標</h2>
                     <h3>{goal.name}</h3>
                     <p aria-live="polite">{goalRemaining > 0 ? <>還差 <strong>{formatNumber(goalRemaining)} P</strong>，一步一步累積</> : "點數已足夠！可以在下方確認獎品後申請兌換。"}</p>
                     <progress max="100" value={goalProgress} aria-label={`距離${goal.name}的點數進度`} />
                     <div className="student-rewards__goal-count"><span>已有 {formatNumber(points)} P</span><span>目標 {formatNumber(goalCost)} P</span></div>
-                    <small>可在下方換一個本次目標；重新開啟頁面會顯示點數門檻最低的有庫存獎品。</small>
+                    <small>可在下方換一個我的目標；重新開啟頁面會顯示點數門檻最低的有庫存獎品。</small>
                 </div>
                 <Link className="student-rewards__learn" to="/student/dashboard">繼續學習</Link>
             </section>}
@@ -150,7 +151,7 @@ function Rewards() {
                                         <span className="gamification-reward-stock">{reward.fulfillment_type === "digital" ? "數位獎品" : "實體獎品 · 每 30 天限兌換一次"} · 剩餘 {reward.stock_quantity} 份</span>
                                         <h3>{reward.name}</h3>
                                         <p>{reward.description || "完成學習任務累積點數，就可以把它帶回家。"}</p>
-                                        <button className="student-rewards__choose-goal" type="button" aria-pressed={goal?.id === reward.id} aria-label={`設${reward.name}為本次目標`} disabled={!inStock} onClick={() => setGoalId(reward.id)}><FiTarget aria-hidden="true" />{goal?.id === reward.id ? "本次目標" : "設為本次目標"}</button>
+                                        <button className="student-rewards__choose-goal" type="button" aria-pressed={goal?.id === reward.id} aria-label={`設${reward.name}為我的目標`} disabled={!inStock} onClick={() => setGoalId(reward.id)}><FiTarget aria-hidden="true" />{goal?.id === reward.id ? "我的目標" : "設為目標"}</button>
                                         <div className="gamification-reward-bottom">
                                             <strong>{formatNumber(reward.points_cost)} P</strong>
                                             <button type="button" disabled={loadError || !redemptionAllowed || !enough || !inStock || Boolean(redeemingId)} onClick={() => handleRedeem(reward)}>

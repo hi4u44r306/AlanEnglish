@@ -22,6 +22,9 @@ function AcademyStudentSetup({ recoveryOnly = false }) {
 
     useEffect(() => {
         if (recoveryOnly) return;
+        setPreview(null);
+        setError("");
+        setLoading(true);
         if (!token) {
             setError("啟用連結不完整，請重新掃描老師提供的登入卡。");
             setLoading(false);
@@ -75,6 +78,17 @@ function AcademyStudentSetup({ recoveryOnly = false }) {
     };
 
     if (loading) return <main className="platform-public"><section className="platform-public-card platform-center"><div className="platform-loading">正在確認登入卡…</div></section></main>;
+
+    if (!recoveryOnly && !preview) return (
+        <main className="platform-public">
+            <section className="platform-public-card">
+                <h1>請重新確認登入卡</h1>
+                <p role="alert">{error || "目前無法確認啟用連結，請重新掃描登入卡。"}</p>
+                <p>如果登入卡已使用或遺失，請向授課老師確認帳號是否已啟用，或申請新的登入卡。</p>
+                <div className="platform-verification-actions"><Link className="platform-primary" to="/login">回到登入</Link><Link className="platform-secondary" to="/academy/recover">使用復原碼</Link></div>
+            </section>
+        </main>
+    );
 
     return (
         <main className="platform-public">

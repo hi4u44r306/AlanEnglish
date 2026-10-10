@@ -105,6 +105,7 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
         expect(screen.getByRole("navigation", { name: "口說題庫快速操作" })).toBeInTheDocument();
         expect(screen.getByRole("button", { name: /2 製作中草稿/ })).toBeInTheDocument();
         fireEvent.click(screen.getByRole("button", { name: /建立新關卡/ }));
+        fireEvent.click(screen.getByRole("tab", { name: "圖片關卡工具" }));
         expect(await screen.findByRole("heading", { name: "P21～P24 人工內容與私人圖片" })).toBeInTheDocument();
         fireEvent.click(screen.getByRole("button", { name: /1 教材來源/ }));
         expect(await screen.findByRole("heading", { name: "整本教材分批辨識" })).toBeInTheDocument();
@@ -469,6 +470,7 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
     it("creates the curated Workbook 1 starter without asking AI to generate it", async () => {
         render(<SpeakingContentAdmin />);
         fireEvent.click(await screen.findByRole("button", { name: /建立新關卡/ }));
+        fireEvent.click(screen.getByRole("tab", { name: "教材範例" }));
         const createButton = await screen.findByRole("button", { name: "建立範例草稿" });
         await waitFor(() => expect(createButton).toBeEnabled());
         fireEvent.click(createButton);
@@ -479,6 +481,7 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
     it("creates the curated Workbook 2 origin challenge without paid OCR or AI", async () => {
         render(<SpeakingContentAdmin />);
         fireEvent.click(await screen.findByRole("button", { name: /建立新關卡/ }));
+        fireEvent.click(screen.getByRole("tab", { name: "教材範例" }));
         const createButton = await screen.findByRole("button", { name: "建立 Workbook 2 草稿" });
         await waitFor(() => expect(createButton).toBeEnabled());
         fireEvent.click(createButton);
@@ -489,6 +492,7 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
     it("creates Workbook 1 foundation drafts and requires source review before publishing", async () => {
         render(<SpeakingContentAdmin />);
         fireEvent.click(await screen.findByRole("button", { name: /建立新關卡/ }));
+        fireEvent.click(screen.getByRole("tab", { name: "教材範例" }));
         const createButtons = await screen.findAllByRole("button", { name: "建立草稿" });
         expect(createButtons).toHaveLength(6);
         fireEvent.click(createButtons[1]);
@@ -514,6 +518,7 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
 
         render(<SpeakingContentAdmin />);
         fireEvent.click(await screen.findByRole("button", { name: /建立新關卡/ }));
+        fireEvent.click(screen.getByRole("tab", { name: "教材範例" }));
         fireEvent.click(await screen.findByRole("button", { name: "產生／載入新版 A–Z 女聲候選音檔" }));
 
         await waitFor(() => expect(prepareSpeakingAlphabetAudioCandidate).toHaveBeenCalledWith(mockFirebaseUser, 7));
@@ -549,6 +554,7 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
 
         render(<SpeakingContentAdmin />);
         fireEvent.click(await screen.findByRole("button", { name: /建立新關卡/ }));
+        fireEvent.click(screen.getByRole("tab", { name: "教材範例" }));
         fireEvent.click(await screen.findByRole("button", { name: /已對照原頁，核准內容/ }));
 
         await waitFor(() => expect(confirmWorkbookOneFoundationSource).toHaveBeenCalledWith(mockFirebaseUser, 42));

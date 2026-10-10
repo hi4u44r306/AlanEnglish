@@ -59,20 +59,32 @@ describe("StudentOnboarding", () => {
         enableWebPush.mockResolvedValue();
     });
 
-    it("shows all three required steps and the optional notification choice", async () => {
+    it("shows only the first incomplete step and defers notifications until required setup is complete", () => {
         render(<MemoryRouter><StudentOnboarding /></MemoryRouter>);
         expect(screen.getByRole("heading", { name: "設定自己的密碼" })).toBeInTheDocument();
+        expect(screen.queryByRole("heading", { name: "確認出生年月日" })).not.toBeInTheDocument();
+        expect(screen.queryByRole("heading", { name: "驗證家長 Email" })).not.toBeInTheDocument();
+        expect(screen.queryByRole("heading", { name: "開啟網頁通知" })).not.toBeInTheDocument();
+        expect(getWebPushConfig).not.toHaveBeenCalled();
+    });
+
+    it("advances only after the profile confirms the prior step, preserving later form state", () => {
+        const context = useAuth();
+        const view = render(<MemoryRouter><StudentOnboarding /></MemoryRouter>);
+        useAuth.mockReturnValue({ ...context, studentProfile: { ...context.studentProfile, onboarding: { required: true, steps: { password_complete: true, birthday_complete: false, guardian_email_complete: false } } } });
+        view.rerender(<MemoryRouter><StudentOnboarding /></MemoryRouter>);
         expect(screen.getByRole("heading", { name: "確認出生年月日" })).toBeInTheDocument();
-        expect(screen.getByRole("heading", { name: "驗證家長 Email" })).toBeInTheDocument();
-        expect(screen.getByRole("heading", { name: "開啟網頁通知" })).toBeInTheDocument();
-        expect(await screen.findByRole("button", { name: "稍後再說" })).toBeInTheDocument();
+        expect(screen.queryByRole("heading", { name: "設定自己的密碼" })).not.toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: "寄送驗證碼" })).not.toBeInTheDocument();
     });
 
     it("only requests browser notification permission after the student presses the opt-in button", async () => {
         getCurrentWebPushStatus
             .mockResolvedValueOnce({ supported: true, reason: "", active: false })
             .mockResolvedValueOnce({ supported: true, reason: "", active: true });
-        render(<MemoryRouter><StudentOnboarding /></MemoryRouter>);
+        const context = useAuth();
+        useAuth.mockReturnValue({ ...context, studentProfile: { ...context.studentProfile, onboarding: { required: false, steps: { password_complete: true, birthday_complete: true, guardian_email_complete: true } } } });
+        render(<MemoryRouter initialEntries={[{ pathname: "/student/onboarding", state: { firstLogin: true } }]}><StudentOnboarding /></MemoryRouter>);
 
         expect(enableWebPush).not.toHaveBeenCalled();
         fireEvent.click(await screen.findByRole("button", { name: "開啟此裝置通知" }));
@@ -106,7 +118,7 @@ describe("StudentOnboarding", () => {
             <MemoryRouter initialEntries={[{ pathname: "/student/onboarding", state: { firstLogin: true } }]}>
                 <Routes>
                     <Route path="/student/onboarding" element={<StudentOnboarding />} />
-                    <Route path="/student/leaderboard" element={<h1>學生首頁</h1>} />
+                    <Route path="/student/dashboard" element={<h1>學生首頁</h1>} />
                 </Routes>
             </MemoryRouter>
         );
@@ -122,8 +134,9 @@ describe("StudentOnboarding", () => {
             masked_email: "p***@example.com"
         });
         confirmGuardianEmailVerification.mockResolvedValue({ success: true });
+        const context = useAuth();
+        useAuth.mockReturnValue({ ...context, studentProfile: { ...context.studentProfile, onboarding: { required: true, steps: { password_complete: true, birthday_complete: true, guardian_email_complete: false } } } });
         render(<MemoryRouter><StudentOnboarding /></MemoryRouter>);
-        await screen.findByRole("button", { name: "稍後再說" });
 
         fireEvent.change(screen.getByLabelText("家長 Email"), { target: { value: "parent@example.com" } });
         fireEvent.click(screen.getByRole("button", { name: "寄送驗證碼" }));

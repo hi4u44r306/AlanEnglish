@@ -1,0 +1,9 @@
+.management-workspace {
+    min-width: 0;
+    [hidden] { display: none !important; }
+    &__tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 20px; padding-bottom: 12px; border-bottom: 1px solid #dce4ef; }
+    &__tabs button { min-height: 44px; border: 1px solid #dce4ef; border-radius: 10px; background: #fff; color: #17365d; padding: 10px 16px; font: inherit; font-weight: 700; }
+    &__tabs button[aria-selected="true"] { background: #17365d; color: #fff; border-color: #17365d; }
+    &__tabs button:disabled { opacity: .55; }
+    button:focus-visible, [role="tabpanel"]:focus-visible { outline: 3px solid #2158c7; outline-offset: 3px; }
+}

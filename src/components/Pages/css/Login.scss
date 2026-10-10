@@ -324,14 +324,16 @@
 
 .show-password-button {
   position: absolute;
-  right: 9px;
-  padding: 6px 7px;
+  right: 5px;
+  min-width: 48px;
+  min-height: 44px;
+  padding: 8px;
   color: #667389;
   background: transparent;
   border: 0;
   cursor: pointer;
   font-family: inherit;
-  font-size: 0.7rem;
+  font-size: 0.85rem;
   font-weight: 850;
 }
 
@@ -542,4 +544,11 @@
   .login-input-wrapper input {
     height: 48px;
   }
+}
+
+.Login {
+    .login-bg-circle { display: none; }
+    .login-button { box-shadow: 0 3px 8px rgba(45, 125, 210, .12); }
+    .login-button:hover:not(:disabled) { box-shadow: 0 3px 8px rgba(45, 125, 210, .16); }
+    :is(button, a, input, summary):focus-visible { outline: 3px solid #17365d; outline-offset: 3px; }
 }

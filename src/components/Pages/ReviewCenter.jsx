@@ -41,7 +41,14 @@ const formatReviewDate = value => {
 };
 
 const ReviewCenter = () => {
-    const { firebaseUser } = useAuth();
+    const { firebaseUser, studentProfile } = useAuth();
+    const membership = studentProfile?.membership;
+    const features = membership?.effective_access?.features || {};
+    const hasLearningAccess = membership?.is_active === true;
+    const practicePath = hasLearningAccess && features.assignments === true ? "/student/assignments"
+        : hasLearningAccess && features.ai_materials === true ? "/student/ai-generator" : "/student/dashboard";
+    const practiceLabel = practicePath === "/student/assignments" ? "查看老師作業"
+        : practicePath === "/student/ai-generator" ? "開始 AI 練習" : "回到學習首頁";
     const [stats, setStats] = useState(EMPTY_STATS);
     const [items, setItems] = useState([]);
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -333,8 +340,7 @@ const ReviewCenter = () => {
                         <h2>目前還沒有錯題</h2>
                         <p>完成 AI 練習或老師指定作業後，答錯的題目會自動整理到這裡。</p>
                         <div className="review-state__actions">
-                            <Link className="primary" to="/student/ai-generator">開始 AI 練習</Link>
-                            <Link to="/student/assignments">查看老師作業</Link>
+                            <Link className="primary" to={practicePath}>{practiceLabel}</Link>
                         </div>
                     </section>
                 ) : (
@@ -348,8 +354,7 @@ const ReviewCenter = () => {
                                 : "所有錯題都已經掌握，繼續挑戰新內容吧！"}
                         </p>
                         <div className="review-state__actions">
-                            <Link className="primary" to="/student/ai-generator">挑戰新教材</Link>
-                            <Link to="/student/dashboard">回到學習首頁</Link>
+                            <Link className="primary" to={practicePath}>{practiceLabel}</Link>
                         </div>
                     </section>
                 )}

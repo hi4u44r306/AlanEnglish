@@ -280,7 +280,13 @@ export default function SpeakingPronunciationRecorder({
     useEffect(() => { onPhaseChange?.(learningPhase); }, [learningPhase, onPhaseChange]);
 
     return <section aria-busy={preparing || submitting} className={`speaking-pronunciation is-${recordingState} ${voiceDetected ? "has-voice" : ""}`}>
-        <p className="speaking-local-mode">{engineInfo}</p>
+        <ol className="speaking-recording-steps" aria-label={practiceOnly ? "錄音練習步驟" : "口說挑戰步驟"}>
+            {(practiceOnly ? ["錄音", "回聽"] : ["錄音", "送出評分", "查看結果"]).map((label, index) => {
+                const current = learningPhase === "feedback" ? 2 : ["review", "assessing"].includes(learningPhase) ? 1 : 0;
+                return <li key={label} aria-current={index === current ? "step" : undefined}>{label}</li>;
+            })}
+        </ol>
+        <details className="speaking-method-note"><summary>查看辨識方式</summary><p className="speaking-local-mode">{engineInfo}</p></details>
         {!practiceOnly && !engineReady && error && <button type="button" onClick={prepareEngine} disabled={preparing || submitting}>重新準備語音辨識</button>}
         {submitting && !result && <p role="timer">正在辨識與儲存，已等待 {waitingSeconds} 秒</p>}
         {!result && <p className="speaking-recording-status" role="status" aria-live="polite" aria-atomic="true">{submitting ? "正在評分，請稍候，不需要重新錄音。" : preparing ? engineReady ? "正在準備評分音檔。" : "正在準備語音辨識，完成後就能錄音。" : recording ? `錄音進行中，每次最長 ${maxRecordingSeconds} 秒。` : error ? "這次還沒完成，請依下方提示再試一次。" : recordedBlob ? practiceOnly ? "錄音完成，可以播放回聽。" : "錄音完成，可以回聽或送出評分。" : accessibleDisabledReason || "可以開始錄音。"}</p>}

@@ -30,6 +30,7 @@ const catalog = () => ({
 
 beforeEach(() => {
     jest.clearAllMocks();
+    localStorage.clear();
     getRewards.mockReset();
 });
 
@@ -82,12 +83,12 @@ test("目標排除缺貨獎品，切換目標只改變頁面提示而不送出�
     academyAuth();
     getRewards.mockResolvedValue(catalog());
     render(<Rewards />);
-    const defaultGoal = await screen.findByRole("button", { name: "設小餅乾為本次目標" });
+    const defaultGoal = await screen.findByRole("button", { name: "設小餅乾為我的目標" });
     expect(defaultGoal).toHaveAttribute("aria-pressed", "true");
-    expect(screen.getByRole("button", { name: "設貼紙為本次目標" })).toBeDisabled();
-    fireEvent.click(screen.getByRole("button", { name: "設筆記本為本次目標" }));
+    expect(screen.getByRole("button", { name: "設貼紙為我的目標" })).toBeDisabled();
+    fireEvent.click(screen.getByRole("button", { name: "設筆記本為我的目標" }));
     expect(screen.getByRole("progressbar", { name: "距離筆記本的點數進度" })).toHaveAttribute("value", "20");
-    expect(screen.getByRole("button", { name: "設筆記本為本次目標" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "設筆記本為我的目標" })).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByRole("button", { name: "還差 200 P" })).toBeDisabled();
     expect(redeemReward).not.toHaveBeenCalled();
 });
@@ -132,4 +133,31 @@ test("確認兌換後依後端重讀點數與紀錄，累積 XP 保留", async (
     expect(within(screen.getByRole("region", { name: "我的成長" })).getByText("10 P")).toBeInTheDocument();
     expect(screen.getByText("120 XP")).toBeInTheDocument();
     confirm.mockRestore();
+});
+
+
+test("獎品目標在重開頁面後恢復，其他帳號各自選擇", async () => {
+    academyAuth();
+    getRewards.mockResolvedValue(catalog());
+    const view = render(<Rewards />);
+    fireEvent.click(await screen.findByRole("button", { name: "設筆記本為我的目標" }));
+    view.unmount();
+    const restored = render(<Rewards />);
+    expect(await screen.findByRole("button", { name: "設筆記本為我的目標" })).toHaveAttribute("aria-pressed", "true");
+    const context = useAuth();
+    useAuth.mockReturnValue({ ...context, firebaseUser: { uid: "other-student" } });
+    restored.rerender(<MemoryRouter><Rewards /></MemoryRouter>);
+    expect(await screen.findByRole("button", { name: "設小餅乾為我的目標" })).toHaveAttribute("aria-pressed", "true");
+    expect(redeemReward).not.toHaveBeenCalled();
+});
+
+test("LocalStorage 不可寫入時仍能選擇目標，沒有送出兌換", async () => {
+    academyAuth();
+    getRewards.mockResolvedValue(catalog());
+    const storage = jest.spyOn(Storage.prototype, "setItem").mockImplementation(() => { throw new Error("QuotaExceededError"); });
+    render(<Rewards />);
+    fireEvent.click(await screen.findByRole("button", { name: "設筆記本為我的目標" }));
+    expect(screen.getByRole("button", { name: "設筆記本為我的目標" })).toHaveAttribute("aria-pressed", "true");
+    expect(redeemReward).not.toHaveBeenCalled();
+    storage.mockRestore();
 });
