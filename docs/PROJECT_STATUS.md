@@ -1,11 +1,13 @@
 # Alan English 專案狀態
 
-### 全站 UIUX 目標（2026-10-10，四批本機完成／尚未部署）
+### 全站 UIUX 目標（2026-10-10，四批已發布／登入實機待驗）
 
 - 使用者已授權四批修正，分支 `codex/uiux-flow-20261009`，基準 main `339f94b`。目標與驗收表：`docs/UIUX_IMPROVEMENT_GOAL.md`。
 - 登入／復原與首次設定分步、資格一致的複習推薦及 404 手動返回；作業明細收合、口說階段、獎品目標 UID 偏好、XP／P 與家長說明；公開首頁四區、安靜背景與操作層級；教師三步作業、進階篩選、會員工作區、內容建立方法及題目表單已完成。
 - 171 項受影響流程測試、4 項 SEO、局部 lint、最終 production frontend build／靜態 SEO／Cloudflare 本機資產產生通過。三種寬度隔離畫面、代表頁文字與行高加倍、工作區／表單／焦點互動均通過。
-- 本機互動審查：`output/uiux-flow-preview/review.html`。未合併或部署，無 migration、後端、權限、價格、計分或套件改動。正式帳號、麥克風、寄信、付款與 iPhone 未驗證；原審核分數未逕改 9 分。跨多個核心前端流程，正式發布仍需本批授權。
+- 本機互動審查：`output/uiux-flow-preview/review.html`。使用者已明確授權本批正式部署，已由 PR #508 合併並發布；無 migration、後端、權限、價格、計分或套件改動。正式帳號、麥克風、寄信、付款與 iPhone 未驗證；原審核分數未逕改 9 分。
+
+- PR #508 已合併 main `ff3e5063cced4baf862a1047daac018641545edb`；Cloudflare build `0333b587-4c1a-49a5-9864-1d5f25ed32c6` 於 2026-10-10 10:49:54 台灣時間成功。正式 13 個頁面入口及 27 個 JS／CSS 均 HTTP 200，新版 12 個資產標記與 manifest 更新通過；主程式 `/static/js/main.80b8b946.js`、主樣式 `/static/css/main.65624127.css`。公開首頁／登入／忘記密碼於 1440／412／320px 共 9 組實際瀏覽，無水平溢位或 pageerror；首頁四區、學生／Email 復原分流通過，未送出資料。證據 `output/uiux-production-release/`。正式帳號、麥克風、寄信、付款、管理資料操作與 iPhone Safari 仍待實測；公開／資產驗收不能替代上述驗收。
 
 最後更新：2026-10-10
 

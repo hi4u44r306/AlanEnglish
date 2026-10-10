@@ -1,12 +1,14 @@
 # Alan English 專案邏輯
 
-## 全站 UIUX 管理流程（2026-10-10，本機完成／尚未部署）
+PR #508 已合併 main `ff3e5063cced4baf862a1047daac018641545edb`；Cloudflare build `0333b587-4c1a-49a5-9864-1d5f25ed32c6` 於 2026-10-10 10:49:54 台灣時間成功。正式 13 個頁面入口及 27 個 JS／CSS 均 HTTP 200，新版 12 個資產標記與 manifest 更新通過；主程式 `/static/js/main.80b8b946.js`、主樣式 `/static/css/main.65624127.css`。公開首頁／登入／忘記密碼於 1440／412／320px 共 9 組實際瀏覽，無水平溢位或 pageerror；首頁四區、學生／Email 復原分流通過，未送出資料。證據 `output/uiux-production-release/`。正式帳號、麥克風、寄信、付款、管理資料操作與 iPhone Safari 仍待實測；公開／資產驗收不能替代上述驗收。
+
+## 全站 UIUX 管理流程（2026-10-10，已發布／登入實機待驗）
 
 - 教師建立採本機三步狀態；workspace／hidden 只控制顯示，不作為權限驗證。原草稿 sanitizer／UID 隔離、班級教材、複製及 createAssignment/createAssignmentV2 服務保持。下一步只前進，最後提交才呼叫原服務。
 - ManagementWorkspace 的 panel 保持掛載，以保留本頁未儲存輸入；鍵盤採 tablist 模式。帳號進階篩選只調整顯示及中文字標籤，predicate／刪除與停用確認保持。
 - 題目表單與 JSON 共享同一字串狀態，保留既有 question/options/answer/explanation 欄位與後端 5～50 題、四選項、答案及版本合約。前端驗證不能代替後端權限。此批沒有 Supabase schema／Edge Function／RLS 或正式資料變更。
 
-## 全站 UIUX 第一批（2026-10-10，本機已驗證／尚未部署）
+## 全站 UIUX 第一批（2026-10-10，已發布／登入實機待驗）
 
 - 密碼復原先選學生帳號或 Email；無效登入卡不顯示啟用表單。首次設定只顯示後端確認的第一個未完成步驟，所有必填與服務規則保留，通知在三項完成後才出現。
 - 複習中心依有效會員及原功能資格推薦作業、AI 練習或首頁。404 改為手動返回；本人功能與教材先呈現，方案／序號集中家長協助收合區，不卸載表單或更動價格與付款開關。
