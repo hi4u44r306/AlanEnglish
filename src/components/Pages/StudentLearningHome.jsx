@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { FiArrowRight, FiBookOpen, FiCheckCircle, FiCompass, FiRefreshCw, FiSearch, FiStar, FiTrendingUp } from "react-icons/fi";
 import { useAuth } from "../../auth/AuthContext";
@@ -36,6 +36,7 @@ function StudentLearningHome() {
     const summaryQuery = useStudentPageQuery("summary", () => getGamificationSummary(firebaseUser), { enabled: active });
     const assignmentsQuery = useStudentPageQuery("assignments:v1", () => getStudentAssignments(firebaseUser), { enabled: assignmentAccess });
     const assignmentsV2Query = useStudentPageQuery("assignments:v2", () => getStudentAssignmentsV2(firebaseUser), { enabled: assignmentAccess });
+    const greetingHeading = useRef(null);
     const [categoryId, setCategoryId] = useState("all");
     const [search, setSearch] = useState("");
     const [taskFilter, setTaskFilter] = useState("pending");
@@ -84,12 +85,12 @@ function StudentLearningHome() {
     return <main className="learning-home">
         <div className="learning-home__shell">
             <header className="learning-home__greeting">
-                <div><span>歡迎回來，{name}</span><h1>今天，一起探索英文！</h1></div>
+                <div><span>歡迎回來，{name}</span><h1 ref={greetingHeading} tabIndex={-1}>今天，一起探索英文！</h1></div>
                 <button className="learning-home__refresh" type="button" onClick={refresh} disabled={refreshing} aria-label="重新整理學習進度"><FiRefreshCw aria-hidden="true" /><span>{refreshing ? "更新中" : "更新進度"}</span></button>
             </header>
             {[catalogQuery, summaryQuery, assignmentsQuery, assignmentsV2Query].some(query => query.error && query.data) && <p role="status">目前顯示上次資料，最新進度暫時無法同步，請稍後按「更新進度」。</p>}
 
-            <BirthdayRewardNotice birthday={summaryQuery.error ? null : data?.summary?.birthday} />
+            <BirthdayRewardNotice birthday={summaryQuery.error ? null : data?.summary?.birthday} ownerUid={firebaseUser?.uid} onDismiss={() => greetingHeading.current?.focus()} />
 
             <div className="learning-home__overview">
                 <section className="learning-home__mission" aria-labelledby="today-goal">
