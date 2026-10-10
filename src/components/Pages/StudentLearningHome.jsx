@@ -109,7 +109,7 @@ function StudentLearningHome() {
 
                 <aside className="learning-home__growth" aria-label="我的成長">
                     <div className="learning-home__identity"><span className="learning-home__avatar">{avatar ? <StudentAvatarImage src={avatar} alt="我的角色" /> : <FiStar aria-hidden="true" />}</span><div><span>我的成長</span><strong>{balance ? `Lv.${balance.level}` : "學習中的每一步"}</strong></div></div>
-                    {balance ? <><div className="learning-home__xp"><strong>{Number(balance.total_xp || 0).toLocaleString("zh-TW")} XP</strong><span>累積經驗</span></div><progress max="100" value={progress} aria-label="目前等級成長進度" /><p>{balance.next_level_xp != null ? `距離下一級還差 ${Math.max(0, balance.next_level_xp - Number(balance.total_xp || 0))} XP` : "繼續累積你的學習經驗"}</p></>
+                    {balance ? <><div className="learning-home__xp"><strong>{Number(balance.total_xp || 0).toLocaleString("zh-TW")} XP</strong><span>升級用的經驗</span></div><progress max="100" value={progress} aria-label="目前等級成長進度" /><p>{balance.next_level_xp != null ? `距離下一級還差 ${Math.max(0, balance.next_level_xp - Number(balance.total_xp || 0))} XP` : "繼續累積你的學習經驗"}</p></>
                         : <p role="status">{data?.summaryError ? "成長資料暫時無法讀取，你仍可以開始學習。" : "正在讀取成長資料…"}</p>}
                 </aside>
             </div>

@@ -718,12 +718,12 @@ function StudentSettings() {
                 </article>
             </section>
 
-            <StudentSettingsGroup title="教材與方案" description="班級與在校資訊、教材來源、會員使用期限">
+            <StudentSettingsGroup title="教材與方案" description="目前教材與使用期限；方案資料可請家長一起確認">
             <section className="student-settings-grid">
                 <article className="student-settings-panel">
-                    <header><FiCreditCard /><div><span>MEMBERSHIP</span><h2>在校與帳號資格</h2></div></header>
+                    <header><FiCreditCard /><div><span>MEMBERSHIP</span><h2>我的帳號與使用狀態</h2></div></header>
                     <dl className="student-settings-data-list">
-                        <div><dt>AI Premium 資格</dt><dd>{hasAiPremium ? isActiveAcademyStudent ? "英文班方案已包含" : "已加購" : "未開通"}</dd></div>
+                        <div><dt>AI 教材與發音方案</dt><dd>{hasAiPremium ? isActiveAcademyStudent ? "英文班方案已包含" : "已加購" : "未開通"}</dd></div>
                         <div><dt>AI 教材與發音練習</dt><dd>{hasAiMaterials ? "兩項皆可使用" : "目前不可使用"}</dd></div>
                         <div><dt>帳號類型</dt><dd>{profile.learner_type === "academy_student" ? "英文班學生" : profile.learner_type === "textbook_customer" ? "教材購買者" : "試用／一般學生"}</dd></div>
                         <div><dt>在校狀態</dt><dd>{statusLabel}</dd></div>
@@ -733,7 +733,7 @@ function StudentSettings() {
                     </dl>
                 </article>
                 <article className="student-settings-panel">
-                    <header><FiGift /><div><span>BOOK OWNERSHIP</span><h2>教材權限來源</h2></div></header>
+                    <header><FiGift /><div><span>BOOK OWNERSHIP</span><h2>教材從哪裡取得</h2></div></header>
                     <dl className="student-settings-data-list">
                         <div><dt>班級取得教材</dt><dd>{commerce?.class_books?.map(book => book?.name).filter(Boolean).join("、") || "—"}</dd></div>
                         <div><dt>離校永久保留教材</dt><dd>{bookNames(booksBySource("academy_history"))}</dd></div>
@@ -744,7 +744,7 @@ function StudentSettings() {
                     <p>教材擁有權永久保留；網站使用權由班級、90 天贈送、試用或會員方案分別疊加。</p>
                 </article>
                 <article className="student-settings-panel">
-                    <header><FiCreditCard /><div><span>PLAN STATUS</span><h2>基本會員與 AI 方案</h2></div></header>
+                    <header><FiCreditCard /><div><span>PLAN STATUS</span><h2>家長協助：方案與使用期限</h2></div></header>
                     <dl className="student-settings-data-list">
                         {visiblePlans.length ? visiblePlans.map(plan => <div key={plan.id}><dt>{planName(plan)}</dt><dd>{planStatus(plan)}</dd></div>) : <div><dt>方案</dt><dd>{!commerce ? commerceQuery.loading ? "讀取中…" : "暫時無法讀取" : "目前無基本會員或 AI 教材與發音練習方案"}</dd></div>}
                     </dl>
@@ -804,7 +804,7 @@ function StudentSettings() {
             </section>
             </StudentSettingsGroup>
 
-            <StudentSettingsGroup title="通知與家長聯絡" description="家長 Email 驗證與本裝置推播設定">
+            <StudentSettingsGroup title="通知與家長聯絡" description="裝置通知；更換家長信箱時請家長一起協助">
                 <section className="student-settings-push-panel" aria-labelledby="student-settings-push-heading">
                     <div>
                         <h2 id="student-settings-push-heading"><FiBell /> 手機推播通知</h2>
@@ -817,7 +817,7 @@ function StudentSettings() {
                 </section>
                 <article className="student-settings-panel">
                     <header><FiCreditCard /><div><span>GUARDIAN</span><h2>家長 Email</h2></div></header>
-                    <p>付款與重要通知只會寄到已驗證的家長 Email。更換時，驗證成功前仍保留原本的信箱。</p>
+                    <p>請家長協助填寫可收信的 Email。付款與重要通知只會寄到已驗證的家長 Email。更換時，驗證成功前仍保留原本的信箱。</p>
                     {currentGuardian?.email && (
                         <dl className="student-settings-data-list">
                             <div><dt>目前家長 Email</dt><dd>{currentGuardian.email}</dd></div>

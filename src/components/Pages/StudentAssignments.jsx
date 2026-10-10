@@ -480,16 +480,16 @@ const StudentAssignments = () => {
                                                 <div>
                                                     <small>
                                                         {isMissionPack
-                                                            ? "MISSION PACK"
+                                                            ? "課後任務"
                                                             : includesAi
-                                                                ? "AI PRACTICE"
-                                                                : "LISTENING"}
+                                                                ? "教材作答"
+                                                                : "聽力練習"}
                                                     </small>
                                                     <strong>
                                                         {isMissionPack
                                                             ? "完整課後任務"
                                                             : includesAi
-                                                                ? "AI 教材"
+                                                                ? "教材作答"
                                                                 : "聽力練習"}
                                                     </strong>
                                                 </div>
@@ -565,7 +565,7 @@ const StudentAssignments = () => {
                                                         <div className="student-homework-listening__bar" aria-hidden="true">
                                                             <span style={{ width: listening.rate + "%" }} />
                                                         </div>
-                                                        <ListeningTrackList tracks={listening.tracks} />
+                                                        <details className="student-homework-details"><summary>查看音檔次數與完成條件</summary><ListeningTrackList tracks={listening.tracks} /></details>
                                                         {listening.url ? (
                                                             <Link
                                                                 className="student-homework-pack-action"
@@ -629,6 +629,7 @@ const StudentAssignments = () => {
                                                 </div>
                                             </>
                                         ) : includesAi ? (
+                                            <details className="student-homework-details"><summary>查看作答紀錄與通過標準</summary>
                                             <div className="student-homework-ai">
                                                 <div className="student-homework-ai__metric">
                                                     <span>最高分</span>
@@ -652,6 +653,7 @@ const StudentAssignments = () => {
                                                     </strong>
                                                 </div>
                                             </div>
+                                            </details>
                                         ) : (
                                             <div className="student-homework-listening">
                                                 <div className="student-homework-listening__heading">
@@ -669,7 +671,7 @@ const StudentAssignments = () => {
                                                 <div className="student-homework-listening__bar" aria-hidden="true">
                                                     <span style={{ width: listening.rate + "%" }} />
                                                 </div>
-                                                <ListeningTrackList tracks={listening.tracks} />
+                                                <details className="student-homework-details"><summary>查看音檔次數與完成條件</summary><ListeningTrackList tracks={listening.tracks} /></details>
                                             </div>
                                         )}
 
@@ -710,15 +712,15 @@ const StudentAssignments = () => {
 
                     {visibleV2Assignments.length > 0 && <div className="student-homework-task-list assignment-v2-list" aria-label="混合任務">
                         {visibleV2Assignments.map((assignment, assignmentIndex) => <article className={`student-homework-task mission-pack${assignment.progress?.completed ? " completed" : ""}`} key={assignment.id} id={`learning-task-v2-${assignment.id}`} tabIndex={-1}>
-                            <div className="student-homework-task__rail" aria-hidden="true"><span>V{assignmentIndex + 1}</span></div>
+                            <div className="student-homework-task__rail" aria-hidden="true"><span>{assignmentIndex + 1}</span></div>
                             <div className="student-homework-task__body">
-                                <div className="student-homework-task__top"><div className="student-homework-task__type"><span><Layers3 size={20} /></span><div><strong>課後任務包</strong></div></div><span className={`student-homework-status ${assignment.progress?.completed ? "completed" : "pending"}`}>{assignment.progress?.completed ? <Check size={15} /> : <Clock3 size={15} />}{assignmentStateLabel[getAssignmentState(assignment)]}</span></div>
+                                <div className="student-homework-task__top"><div className="student-homework-task__type"><span><Layers3 size={20} /></span><div><strong>老師的任務</strong></div></div><span className={`student-homework-status ${assignment.progress?.completed ? "completed" : "pending"}`}>{assignment.progress?.completed ? <Check size={15} /> : <Clock3 size={15} />}{assignmentStateLabel[getAssignmentState(assignment)]}</span></div>
                                 {assignment.due_at && <p>{formatDateTime(assignment.due_at)} 截止</p>}
                                 <div className="student-homework-task__title"><h3>{assignment.title}</h3>{assignment.description && <p>{assignment.description}</p>}</div>
                                 <div className="student-homework-pack-progress"><div><span>整份作業進度</span><strong>{assignment.progress?.task_completed_count || 0} / {assignment.progress?.total_tasks || 0} 個步驟</strong></div><div aria-hidden="true"><span style={{ width: `${assignment.progress?.total_tasks ? Math.round((assignment.progress?.task_completed_count || 0) / assignment.progress.total_tasks * 100) : 0}%` }} /></div></div>
                                 <div className="student-homework-pack-steps">
                                     {(assignment.activities || []).map((activity, activityIndex) => <section className={`student-homework-pack-step ${activity.item_type}-step${activity.progress?.status === "completed" ? " completed" : ""}`} key={activity.id}>
-                                        <div className="student-homework-pack-step__heading"><span>{activity.progress?.status === "completed" ? <Check size={17} /> : activity.item_type === "listening" ? <Headphones size={17} /> : activity.item_type === "ai_quiz" ? <Sparkles size={17} /> : <Target size={17} />}</span><div><small>STEP {activityIndex + 1}</small><strong>{activity.item_type === "listening" ? "指定聽力" : activity.item_type === "ai_quiz" ? "AI 選擇題" : "指定發音練習"}</strong></div><em>{activity.progress?.status === "completed" ? "完成" : "待完成"}</em></div>
+                                        <div className="student-homework-pack-step__heading"><span>{activity.progress?.status === "completed" ? <Check size={17} /> : activity.item_type === "listening" ? <Headphones size={17} /> : activity.item_type === "ai_quiz" ? <Sparkles size={17} /> : <Target size={17} />}</span><div><small>步驟 {activityIndex + 1}</small><strong>{activity.item_type === "listening" ? "指定聽力" : activity.item_type === "ai_quiz" ? "教材選擇題" : "指定發音練習"}</strong></div><em>{activity.progress?.status === "completed" ? "完成" : "待完成"}</em></div>
                                         {activity.item_type === "ai_quiz" && <><div className="student-homework-pack-ai"><div><span>最高分</span><strong>{activity.progress?.best_score || 0}</strong></div><div><span>作答次數</span><strong>{activity.progress?.attempt_count || 0}</strong></div><div><span>通過標準</span><strong>{activity.ai?.passing_score || 80}</strong></div></div><button type="button" className="student-homework-pack-action" onClick={() => openV2Quiz(assignment, activity)}>{activity.progress?.status === "completed" ? "再次複習" : "開始測驗"}<ArrowRight size={17} /></button></>}
                                         {activity.item_type === "listening" && <p className="student-homework-track syncing">指定 {activity.tracks?.length || 0} 檔音檔；播放器串接完成後可在此開始。</p>}
                                         {activity.item_type === "pronunciation" && <p className="student-homework-track syncing">指定 {activity.prompts?.length || 0} 句朗讀；作業專用評分串接完成後可在此開始。</p>}
