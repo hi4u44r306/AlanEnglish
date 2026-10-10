@@ -46,8 +46,9 @@ describe("AlphabetAutomaticRecorder", () => {
         window.cancelAnimationFrame = jest.fn(id => frames.delete(id));
         URL.createObjectURL = jest.fn(() => "blob:alphabet-preview");
         URL.revokeObjectURL = jest.fn();
+        const audioTrack = { stop: stopTrack };
         Object.defineProperty(navigator, "mediaDevices", { configurable: true, value: {
-            getUserMedia: jest.fn().mockResolvedValue({ getTracks: () => [{ stop: stopTrack }] })
+            getUserMedia: jest.fn().mockResolvedValue({ getTracks: () => [audioTrack] })
         } });
         window.AudioContext = class {
             resume = jest.fn().mockResolvedValue();
@@ -246,8 +247,9 @@ describe("AlphabetAutomaticRecorder", () => {
     it("第一次拒絕麥克風權限，可留在關卡再次開啟", async () => {
         navigator.mediaDevices.getUserMedia.mockRejectedValueOnce(Object.assign(new Error("denied"), { name: "NotAllowedError" }));
         render(<AlphabetAutomaticRecorder {...props} />);
-        expect(await screen.findByRole("alert")).toHaveTextContent("請允許麥克風權限");
-        fireEvent.click(screen.getByRole("button", { name: "重新開啟麥克風" }));
+        expect(await screen.findByRole("alert")).toHaveTextContent("尚未允許使用麥克風");
+        expect(screen.getByText("如何允許麥克風？")).toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "重新檢查" }));
         await waitFor(() => expect(recorders).toHaveLength(1));
         expect(screen.queryByRole("alert")).not.toBeInTheDocument();
         expect(submitAlphabetPronunciationAttempt).not.toHaveBeenCalled();
@@ -369,7 +371,35 @@ describe("AlphabetAutomaticRecorder", () => {
             onRoundInvalid={jest.fn()}
         />);
 
-        await waitFor(() => expect(screen.getByRole("alert")).toHaveTextContent("不支援自動收音"));
+        await waitFor(() => expect(screen.getByRole("alert")).toHaveTextContent("這個瀏覽器無法錄音"));
         expect(screen.queryByRole("button", { name: /錄音|送出/ })).not.toBeInTheDocument();
     });
+    it.each([["NotFoundError", "找不到麥克風"], ["NotReadableError", "麥克風無法啟動"], ["AbortError", "麥克風無法啟動"]])("%s displays actionable Chinese and retries the same round", async (name, title) => {
+        navigator.mediaDevices.getUserMedia.mockRejectedValueOnce(Object.assign(new Error("Requested device not found"), { name, code: 8 }));
+        const onExit = jest.fn();
+        render(<AlphabetAutomaticRecorder {...props} challengeSessionId="same-session" onExit={onExit} />);
+        expect(await screen.findByRole("alert")).toHaveTextContent(title);
+        expect(screen.queryByText(/Requested device/)).not.toBeInTheDocument();
+        expect(screen.queryByText("麥克風已暫停")).not.toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "返回練習" }));
+        expect(onExit).toHaveBeenCalledTimes(1);
+        fireEvent.click(screen.getByRole("button", { name: "重新檢查" }));
+        await waitFor(() => expect(recorders).toHaveLength(1));
+        await speak();
+        expect(submitAlphabetPronunciationAttempt).toHaveBeenCalledWith(expect.objectContaining({ questionId: 1, foundationRoundId: props.foundationRoundId, challengeSessionId: "same-session" }));
+    });
+    it("a disconnected microphone discards partial audio and resumes the current question", async () => {
+        await mount();
+        await frame(100); await frame(1000, 0.2); await frame(1016, 0.2); await frame(1032, 0.2);
+        const stream = await navigator.mediaDevices.getUserMedia.mock.results[0].value;
+        act(() => stream.getTracks()[0].onended());
+        expect(screen.getByRole("alert")).toHaveTextContent("錄音中斷了");
+        expect(submitAlphabetPronunciationAttempt).not.toHaveBeenCalled();
+        expect(callbacks.onRoundInvalid).not.toHaveBeenCalled();
+        fireEvent.click(screen.getByRole("button", { name: "重新錄製" }));
+        await waitFor(() => expect(recorders).toHaveLength(2));
+        expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalledTimes(2);
+        expect(callbacks.onScored).not.toHaveBeenCalled();
+    });
+
 });

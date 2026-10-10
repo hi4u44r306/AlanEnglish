@@ -164,3 +164,15 @@
 .learning-home__paths > a:hover { background: #eaf1f8; }
 .learning-home__filters button { border: 0; border-bottom: 3px solid transparent; border-radius: 0; background: transparent; padding-inline: 12px; }
 .learning-home__filters button[aria-pressed="true"] { border-color: #245fc5; color: #245fc5; background: transparent; }
+
+.learning-home__assignment-reminder {
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    margin: 0 0 20px; padding: 14px 0 14px 14px; border-left: 4px solid #c88416; color: #17365d;
+    > div { min-width: 0; }
+    strong, span, small { display: block; overflow-wrap: anywhere; }
+    span, small { margin-top: 5px; }
+    span { font-size: 14px; }
+    a { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; flex-shrink: 0; color: #245fc5; font-weight: 700; }
+    a:focus-visible { outline: 3px solid #245fc5; outline-offset: 3px; }
+    @media (max-width: 600px) { align-items: stretch; flex-direction: column; gap: 4px; }
+}

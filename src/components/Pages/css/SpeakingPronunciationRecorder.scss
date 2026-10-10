@@ -235,3 +235,7 @@
     summary { min-height: 44px; padding: 10px 0; cursor: pointer; font-size: 14px; }
 }
 .speaking-recording-status { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+.microphone-permission-help { width: 100%; text-align: left; font-size: 14px; line-height: 1.7; overflow-wrap: anywhere; }
+.microphone-permission-help summary { min-height: 44px; padding: 10px 0; cursor: pointer; font-weight: 700; }
+.microphone-permission-help p { margin: 8px 0; }

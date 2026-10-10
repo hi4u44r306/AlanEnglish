@@ -12,13 +12,15 @@ import { readStudentLearningResume } from "../../services/studentLearningResume"
 import { studentPageScope } from "../../services/studentPageCache";
 import Playlist from "./Playlist";
 import { getAccessibleBook } from "../../services/contentAccessService";
+import { getStudentAssignments } from "../../services/assignmentService";
 import { getBookPlaybackProgress } from "../../services/listeningService";
+jest.mock("../../services/assignmentService", () => ({ getStudentAssignments: jest.fn() }));
 jest.mock("../../services/contentAccessService", () => ({ getAccessibleBook: jest.fn() }));
 jest.mock("../../services/listeningService", () => ({ getBookPlaybackProgress: jest.fn().mockResolvedValue({ progress: [] }) }));
 const mockUser = { uid: "test" };
 let mockRole = "student";
 jest.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ firebaseUser: mockUser, role: mockRole }) }));
-jest.mock("./MusicCard", () => function Card({ music, playbackQueue, progressStatus, onStart }) { return <div data-testid={`track-${music.id}`} data-progress-status={progressStatus} data-queue={playbackQueue.map(item => item.id).join(",")}>{music.title}<button onClick={() => onStart?.(music)}>播放 {music.title}</button></div>; });
+jest.mock("./MusicCard", () => function Card({ music, playbackQueue, progressStatus, onStart, assignmentProgress }) { return <div data-testid={`track-${music.id}`} data-assignment-count={assignmentProgress?.playCount} data-assignment-required={assignmentProgress?.requiredListens} data-progress-status={progressStatus} data-queue={playbackQueue.map(item => item.id).join(",")}>{music.title}<button onClick={() => onStart?.(music)}>播放 {music.title}</button></div>; });
 const Probe = () => { const location = useLocation(); return <output data-testid="route">{location.pathname}{location.search}</output>; };
 const result = { book: { id: 1, name: "Workbook 1" }, tracks: [1, 2].map(id => ({ id, book_id: 1, title: `Track ${id}`, music_name: `Track ${id}`, page: `P.${id}`, audio_url: "signed-audio" })) };
 const mount = search => {
@@ -26,7 +28,8 @@ const mount = search => {
     render(<Provider store={store}><MemoryRouter initialEntries={[`/student/books/W1${search}`]}><Probe /><Routes><Route path="/student/books/:playlistId" element={<Playlist />} /><Route path="/student/speaking-challenges/:id" element={<p>已返回口說</p>} /></Routes></MemoryRouter></Provider>);
     return store;
 };
-beforeEach(() => { mockRole = "student"; sessionStorage.clear(); getAccessibleBook.mockReset().mockResolvedValue(result); getBookPlaybackProgress.mockReset().mockResolvedValue({ progress: [] }); });
+const assignmentResult = counts => ({ assignments: [{ id: 4, title: "老師的指定聽力", source_type: "music_track", listening_progress_mode: "assignment_window", tracks: result.tracks.map((track, i) => ({ track, required_listens: i === 0 ? 3 : 2, play_count: counts?.[i] || 0 })) }] });
+beforeEach(() => { getStudentAssignments.mockReset().mockResolvedValue(assignmentResult()); mockRole = "student"; sessionStorage.clear(); getAccessibleBook.mockReset().mockResolvedValue(result); getBookPlaybackProgress.mockReset().mockResolvedValue({ progress: [] }); });
 it("locates the resumed track after asynchronous loading without playing or changing the queue", async () => {
     const store = mount("?resume=1");
     await screen.findByText("已找到上次學習的音檔，按「播放」即可開始。");
@@ -163,8 +166,9 @@ it("口說與作業的完成下一步沿用指定範圍及原模式", async () =
     mount("?assignment=4&required=7&tracks=1");
     await screen.findByTestId("track-1");
     await waitFor(() => expect(screen.getByTestId("track-1")).toHaveAttribute("data-progress-status", "ready"));
+    getStudentAssignments.mockResolvedValue(assignmentResult([3, 2]));
     act(() => window.dispatchEvent(new CustomEvent("ae:track-progress-updated", { detail: { track_id: 1, play_count: 7, listen_counted: true } })));
-    expect(screen.getByRole("link", { name: "看看今日作業" })).toHaveAttribute("href", "/student/assignments");
+    expect(await screen.findByRole("link", { name: "返回作業頁" })).toHaveAttribute("href", "/student/assignments?task=v1-4");
     expect(screen.getByTestId("track-1")).toHaveAttribute("data-queue", "1");
 });
 
@@ -176,4 +180,55 @@ it("老師預覽不讀學生進度或顯示學生完成提示", async () => {
     act(() => window.dispatchEvent(new CustomEvent("ae:track-progress-updated", { detail: { track_id: 1, play_count: 2, listen_counted: true } })));
     expect(screen.queryByRole("region", { name: "本次聆聽紀錄" })).not.toBeInTheDocument();
     expect(screen.queryByText("教材累計有效聆聽")).not.toBeInTheDocument();
+});
+
+
+it("uses per-assignment server counts and requirements even if URL or lifetime totals disagree", async () => {
+    getStudentAssignments.mockResolvedValue(assignmentResult([1, 0]));
+    getBookPlaybackProgress.mockResolvedValue({ progress: [{ track_id: 1, play_count: 10, completed: true }, { track_id: 2, play_count: 8 }] });
+    mount("?assignment=4&required=1&tracks=1,2");
+    await screen.findByText("本次作業：已完成 0 個，共 2 個指定音檔");
+    expect(screen.getByTestId("track-1")).toHaveAttribute("data-assignment-count", "1");
+    expect(screen.getByTestId("track-1")).toHaveAttribute("data-assignment-required", "3");
+    expect(screen.getByTestId("track-2")).toHaveAttribute("data-assignment-required", "2");
+    expect(screen.getByRole("progressbar")).toHaveAttribute("aria-valuenow", "0");
+});
+
+it("refreshes assignment progress after a counted listen and preserves confirmed progress after remount", async () => {
+    const { cleanup } = require("@testing-library/react");
+    getStudentAssignments.mockResolvedValueOnce(assignmentResult([2, 0])).mockResolvedValue(assignmentResult([3, 0]));
+    mount("?assignment=4&tracks=1,2");
+    await screen.findByTestId("track-1");
+    act(() => window.dispatchEvent(new CustomEvent("ae:track-progress-updated", { detail: { track_id: 1, play_count: 11, listen_counted: true } })));
+    await screen.findByText("本次作業：已完成 1 個，共 2 個指定音檔");
+    expect(screen.getByRole("region", { name: "本次聆聽紀錄" })).toHaveTextContent("P.1 已完成，接下來請聽 P.2");
+    cleanup(); mount("?assignment=4&tracks=1,2");
+    await screen.findByText("本次作業：已完成 1 個，共 2 個指定音檔");
+    expect(screen.getByTestId("track-1")).toHaveAttribute("data-assignment-count", "3");
+});
+
+it("failed or missing assignments never become zero-progress tasks or trust arbitrary track IDs", async () => {
+    getStudentAssignments.mockRejectedValueOnce(new Error("offline"));
+    mount("?assignment=4&tracks=1,2");
+    await screen.findByText(/目前無法確認這份作業/);
+    expect(screen.queryByText(/本次作業：已完成 0 個/)).not.toBeInTheDocument();
+    expect(screen.queryByTestId("track-1")).not.toBeInTheDocument();
+    getStudentAssignments.mockResolvedValue(assignmentResult([1, 0]));
+    fireEvent.click(screen.getByRole("button", { name: "重新讀取作業進度" }));
+    await screen.findByTestId("track-1");
+    expect(screen.getByTestId("track-1")).toHaveAttribute("data-assignment-count", "1");
+});
+
+
+it("remaining listens lead back to the same track, and reloading completed homework shows completion", async () => {
+    const { cleanup } = require("@testing-library/react");
+    getStudentAssignments.mockResolvedValue(assignmentResult([1, 0]));
+    mount("?assignment=4&tracks=1,2");
+    await screen.findByTestId("track-1");
+    act(() => window.dispatchEvent(new CustomEvent("ae:track-progress-updated", { detail: { track_id: 1, play_count: 10, listen_counted: true } })));
+    expect(await screen.findByRole("link", { name: "再聽這個音檔" })).toHaveAttribute("href", "#listening-track-1");
+    cleanup(); clearStudentPageCache(); getStudentAssignments.mockResolvedValue(assignmentResult([3, 2]));
+    mount("?assignment=4&tracks=1,2");
+    await screen.findByText("本次作業：已完成 2 個，共 2 個指定音檔");
+    expect(await screen.findByRole("link", { name: "返回作業頁" })).toHaveAttribute("href", "/student/assignments?task=v1-4");
 });

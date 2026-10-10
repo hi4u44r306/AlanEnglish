@@ -23,7 +23,9 @@ test("labels overdue work honestly and retains the listening assignment context"
     render(<MemoryRouter><StudentAssignments /></MemoryRouter>);
     await screen.findByRole("heading", { name: "過往聽力" });
     expect(screen.getByText("已逾期", { selector: ".student-homework-status" })).toBeInTheDocument();
-    expect(screen.getAllByRole("link", { name: /開始聆聽/ })[0]).toHaveAttribute("href", "/student/books/Workbook_1?assignment=4&tracks=6&required=3");
+    expect(screen.getAllByRole("link", { name: /查看指定音檔/ })[0]).toHaveAttribute("href", "/student/books/Workbook_1?assignment=4&tracks=6&required=3");
+    expect(screen.getByText(/本次作業已聽 0 次，還需 3 次/)).toBeVisible();
+    expect(screen.getByText(/請向老師確認是否可以補做/)).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "進行中 0" }));
     expect(screen.queryByRole("heading", { name: "過往聽力" })).not.toBeInTheDocument();
     expect(screen.getByText("目前沒有進行中的任務")).toBeInTheDocument();

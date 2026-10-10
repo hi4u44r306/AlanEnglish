@@ -14,6 +14,7 @@ import BirthdayRewardNotice from "../fragment/BirthdayRewardNotice";
 import useStudentLearningResume from "../../hooks/useStudentLearningResume";
 import { findResumeBook, learningResumePath } from "../../services/studentLearningResume";
 import { assignmentStateLabel, getCurrentClassMaterials, getLearningTasks, getStudentMaterialCategories } from "../../utils/studentLearning";
+import { assignmentProgressLabel } from "../../utils/assignmentListening";
 import forestScene from "../assets/speaking-map/unified-forest-a-v1.webp";
 import "./css/StudentLearningHome.scss";
 
@@ -58,7 +59,9 @@ function StudentLearningHome() {
     const visibleBooks = books.filter(book => (selectedCategory === "all" || book.categoryId === selectedCategory)
         && `${book.name} ${book.code}`.toLowerCase().includes(search.trim().toLowerCase()));
     const tasks = data?.tasks || [];
-    const nextTask = tasks.find(task => task.state === "pending");
+    const pendingTasks = tasks.filter(task => task.state === "pending");
+    const overdueTasks = tasks.filter(task => task.state === "overdue");
+    const nextTask = pendingTasks[0] || overdueTasks[0];
     const filteredTasks = tasks.filter(task => task.state === taskFilter);
     const balance = data?.summary?.balance;
     const progress = Math.min(100, Math.max(0, Number(balance?.progress_percent) || 0));
@@ -90,6 +93,13 @@ function StudentLearningHome() {
             </header>
             {[catalogQuery, summaryQuery, assignmentsQuery, assignmentsV2Query].some(query => query.error && query.data) && <p role="status">目前顯示上次資料，最新進度暫時無法同步，請稍後按「更新進度」。</p>}
 
+            {assignmentAccess && nextTask && <section className="learning-home__assignment-reminder" aria-label="待完成作業提醒">
+                <div><strong>{pendingTasks.length ? `你有 ${pendingTasks.length} 份作業待完成${overdueTasks.length ? `，另有 ${overdueTasks.length} 份逾期作業` : ""}` : `${tasksLoading || data?.taskError ? "目前已讀取的作業中，" : "目前沒有新的作業，"}你還有 ${overdueTasks.length} 份逾期作業尚未完成`}</strong>
+                    <span>{nextTask.title}{formatDeadline(nextTask.due_at) ? ` · ${formatDeadline(nextTask.due_at)} 截止` : ""} · {assignmentProgressLabel(nextTask)}</span>
+                    {nextTask.state === "overdue" && <small>請向老師確認是否可以補做。</small>}
+                </div><Link to={taskPath(nextTask)}>{pendingTasks.length ? "查看待完成作業" : "查看待補作業"}<FiArrowRight aria-hidden="true" /></Link>
+            </section>}
+
             <BirthdayRewardNotice birthday={summaryQuery.error ? null : data?.summary?.birthday} ownerUid={firebaseUser?.uid} onDismiss={() => greetingHeading.current?.focus()} />
 
             <div className="learning-home__overview">
@@ -98,8 +108,8 @@ function StudentLearningHome() {
                     <div className="learning-home__mission-copy">
                         <span className="learning-home__tag"><FiCompass aria-hidden="true" />{nextTask ? "老師的任務" : "我的學習旅程"}</span>
                         <h2 id="today-goal">{loading ? "正在準備你的學習…" : heroTitle}</h2>
-                        <p>{nextTask ? "從這份任務開始，一步一步完成老師的練習。" : "先聽一聽，再試著說出來。每次練習都向前一點。"}</p>
-                        {!loading && heroPath && <Link className="learning-home__primary" to={heroPath}>{nextTask ? "打開這份任務" : resumeBook ? `繼續 ${heroBook.name}${learningResume.page ? ` · ${learningResume.page}` : ""}` : `打開 ${heroBook.name}`}<FiArrowRight aria-hidden="true" /></Link>}
+                        <p>{nextTask ? nextTask.state === "overdue" ? "這份作業已逾期，先查看進度並向老師確認補做方式。" : "從這份任務開始，一步一步完成老師的練習。" : "先聽一聽，再試著說出來。每次練習都向前一點。"}</p>
+                        {!loading && heroPath && <Link className="learning-home__primary" to={heroPath}>{nextTask ? nextTask.state === "overdue" ? "查看作業與補做方式" : "打開這份任務" : resumeBook ? `繼續 ${heroBook.name}${learningResume.page ? ` · ${learningResume.page}` : ""}` : `打開 ${heroBook.name}`}<FiArrowRight aria-hidden="true" /></Link>}
                         {!nextTask && resumeBook && <small>上次音檔：{learningResume.trackTitle || learningResume.page || "教材音檔"}；點開後按播放開始。</small>}
                         {!loading && !heroPath && <a className="learning-home__primary" href="#learning-books">{data?.catalogError ? "查看教材讀取狀態" : "查看我的教材"}<FiArrowRight aria-hidden="true" /></a>}
                         {classNotice && <small role="status">{classNotice}</small>}
@@ -125,8 +135,8 @@ function StudentLearningHome() {
                 <div className="learning-home__filters" role="group" aria-label="篩選作業狀態">{Object.entries(assignmentStateLabel).map(([key, label]) => <button type="button" key={key} aria-pressed={taskFilter === key} onClick={() => setTaskFilter(key)}>{label}{data && !data.taskError ? ` ${tasks.filter(task => task.state === key).length}` : ""}</button>)}</div>
                 {tasksLoading && !tasks.length ? <p role="status">正在整理作業…</p> : <>
                     {data?.taskError && <div className="learning-home__notice" role="status">部分作業未能讀取，這裡可能不是完整清單。<button type="button" onClick={refresh}>重新讀取</button></div>}
-                    {filteredTasks.slice(0, 3).map(task => <Link className="learning-home__task" to={taskPath(task)} key={task.taskKey}><span className={`learning-home__task-icon is-${task.state}`}><FiCheckCircle /></span><span><strong>{task.title}</strong><small>{assignmentStateLabel[task.state]}{formatDeadline(task.due_at) ? ` · ${formatDeadline(task.due_at)} 截止` : ""}</small></span><FiArrowRight aria-hidden="true" /></Link>)}
-                    {!filteredTasks.length && !data?.taskError && <p className="learning-home__empty">{taskFilter === "completed" ? "完成的任務會出現在這裡。" : taskFilter === "overdue" ? "目前沒有逾期任務。" : "目前沒有進行中的任務，可以從下面的教材開始。"}</p>}
+                    {filteredTasks.slice(0, 3).map(task => <Link className="learning-home__task" to={taskPath(task)} key={task.taskKey}><span className={`learning-home__task-icon is-${task.state}`}><FiCheckCircle /></span><span><strong>{task.title}</strong><small>{assignmentStateLabel[task.state]}{formatDeadline(task.due_at) ? ` · ${formatDeadline(task.due_at)} 截止` : ""}</small><small>{assignmentProgressLabel(task)}{task.state === "overdue" ? " · 請向老師確認補做方式" : ""}</small></span><FiArrowRight aria-hidden="true" /></Link>)}
+                    {!filteredTasks.length && !tasksLoading && !data?.taskError && <p className="learning-home__empty">{taskFilter === "completed" ? "完成的任務會出現在這裡。" : taskFilter === "overdue" ? "目前沒有逾期任務。" : overdueTasks.length ? <>還有 {overdueTasks.length} 份逾期作業尚未完成。<Link to={taskPath(overdueTasks[0])}>查看待補作業</Link></> : "目前沒有待處理作業，可以從下面的教材開始。"}</p>}
                 </>}
             </section>}
 

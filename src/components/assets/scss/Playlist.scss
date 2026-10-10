@@ -433,3 +433,13 @@
     border-radius: 14px;
   }
 }
+
+.playlist-homework-summary { font-weight: 700; color: #17365d; }
+.playlist-homework-rules { margin-bottom: 16px; color: #405873; font-size: 14px; line-height: 1.7; }
+.playlist-homework-rules p { margin: 0 0 6px; }
+.playlist-homework-deadline { color: #744715; }
+.playlist-homework-banner__copy button { min-height: 44px; margin-top: 8px; padding: 8px 12px; border: 1px solid #c5d6e6; border-radius: 8px; background: white; color: #17365d; }
+
+.playlist-homework-banner__copy > p { font-size: 14px; line-height: 1.7; }
+.playlist-homework-banner__copy .playlist-homework-summary { margin: 8px 0; color: #17365d; font-size: 18px; font-weight: 700; }
+.playlist-homework-banner__copy .playlist-homework-deadline { color: #744715; }
