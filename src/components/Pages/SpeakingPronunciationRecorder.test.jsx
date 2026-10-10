@@ -500,7 +500,7 @@ describe("SpeakingPronunciationRecorder", () => {
         expect(submitSpeakingPronunciationAttempt).toHaveBeenCalledTimes(1);
     });
 
-    it("錄音器報錯會取消主要操作的送評意圖，仍保留可回聽的音檔", async () => {
+    it("錄音器中斷不會送出不完整音檔，讓學生重新錄製", async () => {
         convertAudioBlobToWav.mockResolvedValue(new Blob([new Uint8Array(1600)], { type: "audio/wav" }));
         jest.spyOn(window.MediaRecorder.prototype, "stop").mockImplementation(function () {
             this.state = "inactive"; this.onerror?.();
@@ -509,8 +509,9 @@ describe("SpeakingPronunciationRecorder", () => {
         render(<SpeakingPronunciationRecorder question={{ id: 9 }} />);
         fireEvent.click(screen.getByRole("button", { name: "開始錄音" }));
         fireEvent.click(await screen.findByRole("button", { name: "完成並評分" }));
-        await screen.findByLabelText("回聽我的錄音");
-        expect(screen.getByRole("alert")).toHaveTextContent("錄音發生問題");
+        expect(await screen.findByRole("alert")).toHaveTextContent("錄音中斷了");
+        expect(screen.queryByLabelText("回聽我的錄音")).not.toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "重新錄製" })).toBeEnabled();
         expect(submitSpeakingPronunciationAttempt).not.toHaveBeenCalled();
     });
 
@@ -621,4 +622,28 @@ describe("SpeakingPronunciationRecorder", () => {
         expect(await screen.findByRole("alert")).toHaveTextContent("這一題正在評分");
         expect(onRoundInvalid).not.toHaveBeenCalled();
     });
+    it.each([["NotFoundError", "找不到麥克風"], ["NotAllowedError", "尚未允許使用麥克風"], ["NotReadableError", "麥克風無法啟動"]])("manual recording explains %s and really reacquires a microphone", async (name, title) => {
+        navigator.mediaDevices.getUserMedia.mockRejectedValueOnce(Object.assign(new Error("Requested device not found"), { name }));
+        render(<SpeakingPronunciationRecorder question={{ id: 9 }} practiceOnly />);
+        fireEvent.click(screen.getByRole("button", { name: "開始錄音" }));
+        expect(await screen.findByRole("alert")).toHaveTextContent(title);
+        expect(screen.queryByText(/Requested device/)).not.toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "重新檢查" }));
+        await screen.findByRole("button", { name: "完成錄音" });
+        expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalledTimes(2);
+        expect(submitSpeakingPronunciationAttempt).not.toHaveBeenCalled();
+    });
+    it("device disconnect unlocks manual recording and does not submit the interrupted answer", async () => {
+        render(<SpeakingPronunciationRecorder question={{ id: 9 }} practiceOnly />);
+        fireEvent.click(screen.getByRole("button", { name: "開始錄音" }));
+        await screen.findByRole("button", { name: "完成錄音" });
+        const stream = await navigator.mediaDevices.getUserMedia.mock.results[0].value;
+        act(() => stream.getTracks()[0].onended());
+        expect(screen.getByRole("alert")).toHaveTextContent("錄音中斷了");
+        fireEvent.click(screen.getByRole("button", { name: "重新錄製" }));
+        await screen.findByRole("button", { name: "完成錄音" });
+        expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalledTimes(2);
+        expect(submitSpeakingPronunciationAttempt).not.toHaveBeenCalled();
+    });
+
 });

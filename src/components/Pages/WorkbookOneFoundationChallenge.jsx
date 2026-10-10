@@ -429,6 +429,7 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
                 paused={exitDialogOpen || Boolean(retryFeedback)}
                 waitingForRetry={Boolean(retryFeedback)}
                 onRetryReading={exitDialogOpen ? undefined : () => setRetryFeedback(null)}
+                onExit={requestExit}
                 onStatusChange={setAutomaticRecorderStatus}
                 onScored={handleCorrect}
                 onRoundInvalid={handleIncorrect}

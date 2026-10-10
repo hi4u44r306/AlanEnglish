@@ -50,3 +50,9 @@
     > summary { min-height: 44px; padding: 10px 0; color: #345778; font-weight: 700; cursor: pointer; }
     > summary:focus-visible { outline: 3px solid #17365d; outline-offset: 3px; }
 }
+
+.student-homework-overdue { margin: 12px 0; padding-left: 12px; border-left: 3px solid #c88416; color: #744715; line-height: 1.7; }
+.student-homework-track > span:last-child { white-space: normal; overflow-wrap: anywhere; }
+
+.student-homework-track { grid-template-columns: 24px minmax(0, 1fr); }
+.student-homework-track > span:last-child { grid-column: 2; font-size: 13px; line-height: 1.6; }

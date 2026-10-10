@@ -152,3 +152,18 @@
   .music-card__equalizer span:nth-child(2) { height: 90%; }
   .music-card__equalizer span:nth-child(4) { height: 72%; }
 }
+
+.music-card__status.has-assignment { align-items: flex-start; flex-direction: column; gap: 10px; max-width: 100%; }
+.music-card__assignment { color: #17365d; font-size: 15px; line-height: 1.6; overflow-wrap: anywhere; }
+.music-card__assignment strong, .music-card__assignment span, .music-card__assignment small { display: block; }
+.music-card__assignment small { color: #52667c; font-size: 13px; }
+.music-card__status.has-assignment .music-card__plays { font-size: 13px; color: #52667c; }
+.music-card__status.has-assignment .music-card__plays strong { font-size: 15px; }
+
+.music-card__status.has-assignment .music-card__plays { border: 0; padding: 0; border-radius: 0; background: transparent; box-shadow: none; }
+.music-card__status.has-assignment .music-card__plays small { display: block; font-size: 12px; line-height: 1.5; }
+.music-card__status.has-assignment .music-card__check { display: none; }
+@media (max-width: 600px) {
+    .music-card--assignment { display: grid; grid-template-columns: 50px minmax(0, 1fr); }
+    .music-card--assignment .music-card__status { grid-column: 1 / -1; width: 100%; padding-top: 10px; border-top: 1px solid #dbe6ef; }
+}

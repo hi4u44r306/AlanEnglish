@@ -8,6 +8,9 @@ import "../Pages/css/SpeakingAdventureSession.scss";
 import "../assets/scss/ListeningLearning.scss";
 import useStudentPageQuery from "../../hooks/useStudentPageQuery";
 import { useAuth } from "../../auth/AuthContext";
+import { getStudentAssignments } from "../../services/assignmentService";
+import { normalizeListeningTracks } from "../../utils/assignmentListening";
+import { getAssignmentState } from "../../utils/studentLearning";
 import { getBookPlaybackProgress } from "../../services/listeningService";
 import { getAccessibleBook } from "../../services/contentAccessService";
 import { hasReachedListeningMastery } from "../../constants/listeningProgress";
@@ -60,11 +63,22 @@ function Playlist() {
         const params = new URLSearchParams(location.search);
         const assignmentId = params.get("assignment") || "";
         const trackIds = (params.get("tracks") || "").split(",").map(value => value.trim()).filter(Boolean);
-        const requiredListens = Math.max(1, Number(params.get("required")) || 7);
-        return { assignmentId, trackIds, requiredListens, active: Boolean(assignmentId && trackIds.length) };
+        return { assignmentId, trackIds, active: Boolean(assignmentId) };
     }, [location.search]);
 
-    const homeworkTrackSet = useMemo(() => new Set(homeworkContext.trackIds.map(String)), [homeworkContext.trackIds]);
+    const assignmentQuery = useStudentPageQuery("assignments:v1", () => getStudentAssignments(firebaseUser), {
+        enabled: role === "student" && homeworkContext.active
+    });
+    const homeworkAssignment = assignmentQuery.data?.assignments?.find(item => String(item.id) === homeworkContext.assignmentId);
+    const homeworkProgressTracks = useMemo(() => normalizeListeningTracks(homeworkAssignment), [homeworkAssignment]);
+    const homeworkProgress = useMemo(() => new Map(homeworkProgressTracks.map(track => [String(track.id), track])), [homeworkProgressTracks]);
+    const homeworkStatus = homeworkAssignment ? "ready" : assignmentQuery.loading ? "loading" : "error";
+    const homeworkTrackSet = useMemo(() => new Set(homeworkProgressTracks
+        .filter(track => !homeworkContext.trackIds.length || homeworkContext.trackIds.includes(String(track.id)))
+        .map(track => String(track.id))), [homeworkProgressTracks, homeworkContext.trackIds]);
+    const homeworkReturnPath = `/student/assignments?task=v1-${encodeURIComponent(homeworkContext.assignmentId)}`;
+    const homeworkOverdue = homeworkAssignment && getAssignmentState(homeworkAssignment) === "overdue";
+    const homeworkClosed = homeworkOverdue && homeworkAssignment.listening_progress_mode === "assignment_window";
     const speakingContext = useMemo(() => homeworkContext.active ? null : speakingListeningContext(location.search), [homeworkContext.active, location.search]);
     useEffect(() => {
         if (!speakingContext) return undefined;
@@ -128,16 +142,15 @@ function Playlist() {
         if (role === "student") saveStudentLearningResume(studentPageScope(firebaseUser, role, studentProfile),
             { id: book?.id, code: book?.code || playlistId }, track);
     };
-    const isHomeworkTrackCompleted = track => {
-        const progress = progressMap[String(track.id)] || {};
-        return Boolean(progress.completed) || Number(progress.playCount || 0) >= homeworkContext.requiredListens;
-    };
-    const homeworkCompletedCount = homeworkTracks.filter(isHomeworkTrackCompleted).length;
-    const homeworkCompletionRate = homeworkTracks.length ? Math.round((homeworkCompletedCount / homeworkTracks.length) * 100) : 0;
+    const isHomeworkTrackCompleted = track => homeworkProgress.get(String(track.id))?.completed === true;
+    const homeworkCompletedCount = homeworkProgressTracks.filter(track => track.completed).length;
+    const homeworkCompletionRate = homeworkProgressTracks.length ? Math.round((homeworkCompletedCount / homeworkProgressTracks.length) * 100) : 0;
+    const homeworkComplete = homeworkProgressTracks.length > 0 && homeworkCompletedCount === homeworkProgressTracks.length;
     const currentTrack = visibleTracks.find(track => String(track.id) === String(playing?.id));
     const confirmedTrack = role === "student" ? visibleTracks.find(track => String(track.id) === confirmedListen?.trackId) : null;
     const confirmedIndex = confirmedTrack ? visibleTracks.indexOf(confirmedTrack) : -1;
-    const nextTrack = confirmedIndex >= 0 ? visibleTracks[confirmedIndex + 1] : null;
+    const nextTrack = homeworkContext.active ? visibleTracks.find(track => !isHomeworkTrackCompleted(track)) : confirmedIndex >= 0 ? visibleTracks[confirmedIndex + 1] : null;
+    const confirmedHomeworkProgress = confirmedTrack && homeworkProgress.get(String(confirmedTrack.id));
 
     const speakingReturn = speakingContext && <Link className="playlist-speaking-return" to={speakingContext.returnPath}><ArrowLeft aria-hidden="true" size={18} />回到原口說關卡</Link>;
     if (loading && tracks.length === 0) return <div className="playlist-loading">{speakingReturn}<div className="playlist-loading__icon">🎧</div><div>音檔載入中...</div></div>;
@@ -156,18 +169,18 @@ function Playlist() {
                     <div className="playlist-header__main">
                         <div className="playlist-header__copy">
                             {homeworkContext.active && (
-                                <Link className="playlist-homework-back" to="/student/assignments">
+                                <Link className="playlist-homework-back" to={homeworkReturnPath}>
                                     <ArrowLeft aria-hidden="true" size={16} />
-                                    返回今日作業
+                                    返回這份作業
                                 </Link>
                             )}
                             <span className="playlist-header__eyebrow"><Headphones aria-hidden="true" size={15} /> 聽力冒險</span>
                             <h1>{book?.name || playlistId}</h1>
                             <p>選一個音檔，專心聽，再跟著開口練習。</p>
                         </div>
-                        {role === "student" && (
+                        {role === "student" && !homeworkContext.active && (
                             <div className="playlist-header__stats">
-                                <span><small>{homeworkContext.active ? "本次任務" : "教材熟練音檔"}</small><strong>{progressStatus !== "ready" ? progressStatus === "loading" ? "讀取中" : "尚未載入" : homeworkContext.active ? `${homeworkCompletedCount} / ${homeworkTracks.length || homeworkContext.trackIds.length}` : `${stats.completed} / ${stats.total}`}</strong></span>
+                                <span><small>教材熟練音檔</small><strong>{progressStatus !== "ready" ? progressStatus === "loading" ? "讀取中" : "尚未載入" : `${stats.completed} / ${stats.total}`}</strong></span>
                                 <span><small>教材累計有效聆聽</small><strong>{progressStatus === "ready" ? `${stats.totalPlayCount} 次` : "—"}</strong></span>
                             </div>
                         )}
@@ -182,11 +195,19 @@ function Playlist() {
                         </div>
                         <div className="playlist-homework-banner__copy">
                             <span>老師的聽力任務</span>
-                            <h2>今天的指定聽力</h2>
-                            <p>這裡只顯示老師指定的 {homeworkTracks.length || homeworkContext.trackIds.length} 個音檔，逐一完成就可以回到今日作業。</p>
+                            <h2>{homeworkAssignment?.title || "本次聽力作業"}</h2>
+                            <p className="playlist-homework-summary" role="status">{homeworkStatus === "ready" ? `本次作業：已完成 ${homeworkCompletedCount} 個，共 ${homeworkProgressTracks.length} 個指定音檔` : homeworkStatus === "loading" ? "正在讀取本次作業進度…" : "目前無法確認這份作業，請返回作業頁重新開啟。"}</p>
+                            <p>每首需要的次數都在下方清單，以老師指定次數為準。</p>
+                            {homeworkComplete && !confirmedTrack && !assignmentQuery.error && !assignmentQuery.refreshing && <p role="status">{homeworkAssignment?.source_type === "music_track" ? "本次作業已完成" : "本次指定聽力已完成"}。<Link to={homeworkReturnPath}>返回作業頁</Link></p>}
+                            {homeworkAssignment?.listening_progress_mode === "legacy_lifetime" && <p>這份作業採累計聆聽制：以作業紀錄顯示的累計次數達標。</p>}
+                            {homeworkOverdue && <p className="playlist-homework-deadline">作業已逾期，請向老師確認是否可以補做。{homeworkClosed ? "目前繼續聆聽不會增加這份作業的次數。" : ""}</p>}
+                            {(assignmentQuery.error || homeworkStatus === "error") && <button type="button" onClick={() => assignmentQuery.refresh()}>重新讀取作業進度</button>}
+                            {assignmentQuery.error && homeworkAssignment && <p role="alert">目前顯示上次作業進度，最新次數暫時無法同步。</p>}
+                            {assignmentQuery.refreshing && homeworkAssignment && <p role="status">正在更新本次作業進度…</p>}
+                            {homeworkStatus === "ready" && homeworkTracks.length < homeworkProgressTracks.length && <p>這裡顯示本頁可用的 {homeworkTracks.length} 個指定音檔；其他指定音檔請返回這份作業查看。</p>}
                             <div className="playlist-homework-chips">
-                                {(homeworkTracks.length ? homeworkTracks : tracks.filter(track => homeworkTrackSet.has(String(track.id)))).map(track => {
-                                    const completed = progressStatus === "ready" && isHomeworkTrackCompleted(track);
+                                {homeworkTracks.map(track => {
+                                    const completed = homeworkStatus === "ready" && isHomeworkTrackCompleted(track);
                                     return (
                                         <strong className={completed ? "completed" : ""} key={track.id}>
                                             {completed && <Check aria-hidden="true" size={12} />}
@@ -196,10 +217,10 @@ function Playlist() {
                                 })}
                             </div>
                         </div>
-                        <div className="playlist-homework-progress" role="progressbar" aria-label="指定聽力完成進度" aria-valuemin="0" aria-valuemax="100" aria-valuenow={progressStatus === "ready" ? homeworkCompletionRate : undefined} aria-valuetext={progressStatus === "ready" ? undefined : "聆聽紀錄尚未載入"}>
-                            <strong>{progressStatus === "ready" ? `${homeworkCompletionRate}%` : "—"}</strong>
-                            <span>{progressStatus === "ready" ? `${homeworkCompletedCount} / ${homeworkTracks.length || homeworkContext.trackIds.length} 完成` : "聆聽紀錄尚未載入"}</span>
-                            <div aria-hidden="true"><span style={{ width: `${progressStatus === "ready" ? homeworkCompletionRate : 0}%` }} /></div>
+                        <div className="playlist-homework-progress" role="progressbar" aria-label="指定聽力完成進度" aria-valuemin="0" aria-valuemax="100" aria-valuenow={homeworkStatus === "ready" ? homeworkCompletionRate : undefined} aria-valuetext={homeworkStatus === "ready" ? `已完成 ${homeworkCompletedCount} 個，共 ${homeworkProgressTracks.length} 個指定音檔` : "作業紀錄尚未載入"}>
+                            <strong>{homeworkStatus === "ready" ? `${homeworkCompletionRate}%` : "—"}</strong>
+                            <span>{homeworkStatus === "ready" ? "指定音檔完成進度" : "作業紀錄尚未載入"}</span>
+                            <div aria-hidden="true"><span style={{ width: `${homeworkStatus === "ready" ? homeworkCompletionRate : 0}%` }} /></div>
                         </div>
                     </section>
                 )}
@@ -207,9 +228,11 @@ function Playlist() {
                 {role === "student" && progressQuery.error && <div className="playlist-progress-error" role="alert"><span>{progressQuery.data ? "目前顯示上次聆聽紀錄，最新次數暫時無法同步。" : "暫時讀不到聆聽紀錄，你仍可播放音檔；這不代表沒有練習過。"}</span><button type="button" onClick={() => progressQuery.refresh()}>重新讀取紀錄</button></div>}
 
                 {confirmedTrack && <section className="playlist-listening-confirmed" aria-label="本次聆聽紀錄">
-                    <div role="status"><Check aria-hidden="true" size={22} /><div><strong>已記下這次有效聆聽！</strong><p>{confirmedTrack.title || confirmedTrack.music_name || confirmedTrack.page || "教材音檔"} · 累計 {confirmedListen.playCount} 次</p></div></div>
+                    <div role="status"><Check aria-hidden="true" size={22} /><div><strong>{homeworkContext.active && homeworkComplete && !assignmentQuery.refreshing && !assignmentQuery.error ? homeworkAssignment?.source_type === "music_track" ? "本次作業已完成" : "本次指定聽力已完成" : "已記下這次有效聆聽！"}</strong>
+                        <p>{homeworkContext.active ? assignmentQuery.refreshing ? "正在核對本次作業進度…" : assignmentQuery.error ? "作業次數尚未確認，請重新讀取作業進度。" : homeworkClosed ? "這份作業已截止；本次聆聽是否計入其他學習紀錄，以系統紀錄為準。" : confirmedHomeworkProgress?.completed ? `${confirmedHomeworkProgress.label} 已完成${nextTrack ? `，接下來請聽 ${homeworkProgress.get(String(nextTrack.id))?.label}` : "，可以返回作業頁查看"}。` : confirmedHomeworkProgress ? `${confirmedHomeworkProgress.label} 本次作業已聽 ${confirmedHomeworkProgress.playCount} 次，還需 ${Math.max(0, confirmedHomeworkProgress.requiredListens - confirmedHomeworkProgress.playCount)} 次。` : "請重新讀取本次作業進度。" : `${confirmedTrack.title || confirmedTrack.music_name || confirmedTrack.page || "教材音檔"} · 累計 ${confirmedListen.playCount} 次`}</p>
+                    </div></div>
                     <div className="playlist-listening-confirmed__actions">
-                        {homeworkContext.active && progressStatus === "ready" && homeworkCompletedCount === homeworkTracks.length ? <Link to="/student/assignments">看看今日作業</Link> : speakingContext ? <Link to={speakingContext.returnPath}>聽好了，回口說練習</Link> : <a href={nextTrack ? `#listening-track-${nextTrack.id}` : "#listening-track-list"}>{nextTrack ? "看看下一個音檔" : "選一個音檔再練習"}</a>}
+                        {homeworkContext.active && (homeworkComplete || homeworkOverdue || !nextTrack) ? <Link to={homeworkReturnPath}>返回作業頁</Link> : speakingContext ? <Link to={speakingContext.returnPath}>聽好了，回口說練習</Link> : <a href={nextTrack ? `#listening-track-${nextTrack.id}` : "#listening-track-list"}>{nextTrack ? homeworkContext.active && String(nextTrack.id) === String(confirmedTrack.id) ? "再聽這個音檔" : "看看下一個音檔" : "選一個音檔再練習"}</a>}
                         <button type="button" onClick={() => setConfirmedListen(null)} aria-label="收起本次聆聽提示">收起</button>
                     </div>
                 </section>}
@@ -217,6 +240,7 @@ function Playlist() {
                 <div className="playlist-learning-layout">
                 <ListeningLearningPanel currentTrack={currentTrack} playingStatus={playingStatus} speakingPreparation={Boolean(speakingContext)} />
                 <section className="playlist-list-section" aria-labelledby="listening-track-list-title">
+                    {homeworkContext.active && <div className="playlist-homework-rules"><p>每次以原速或較慢速度實際聽滿 80%，播放結束並經系統確認後才計一次；拖到結尾或倍速播放不計次數。</p><p>長期熟練累積與本次作業完成條件分開呈現。{progressStatus === "ready" ? `整本教材累計有效聆聽 ${stats.totalPlayCount} 次，包含作業以外的聆聽。` : "整本教材累計紀錄尚未載入。"}</p></div>}
                     <div className="playlist-list-heading"><h2 id="listening-track-list-title">{homeworkContext.active ? "指定音檔" : speakingContext ? "本關練習音檔" : "聽力任務列表"}</h2><span>{visibleTracks.length} 個音檔</span></div>
                     <div className="playlist-list" id="listening-track-list" tabIndex={-1}>
                         {visibleTracks.length > 0 ? visibleTracks.map((track, index) => (
@@ -227,10 +251,12 @@ function Playlist() {
                                     progress={progressMap[String(track.id)] || {}}
                                     index={index}
                                     progressStatus={role === "student" ? progressStatus : "ready"}
+                                    assignmentProgress={homeworkContext.active ? homeworkProgress.get(String(track.id)) : null}
+                                    assignmentProgressStatus={homeworkStatus}
                                     onStart={rememberTrack}
                                 />
                             </div>
-                        )) : <div className="playlist-empty">{speakingContext ? "本關對應音檔目前無法載入，請回到口說關卡繼續練習。" : "目前沒有音檔"}</div>}
+                        )) : <div className="playlist-empty">{speakingContext ? "本關對應音檔目前無法載入，請回到口說關卡繼續練習。" : homeworkContext.active ? homeworkStatus === "loading" ? "正在讀取指定音檔…" : "目前沒有可確認的指定音檔，請返回作業頁查看。" : "目前沒有音檔"}</div>}
                     </div>
                 </section>
                 </div>

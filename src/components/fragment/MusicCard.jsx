@@ -17,7 +17,9 @@ function MusicCard({
     progress = {},
     index = 0,
     progressStatus = "ready",
-    onStart
+    onStart,
+    assignmentProgress,
+    assignmentProgressStatus = "ready"
 }) {
     const dispatch = useDispatch();
 
@@ -115,10 +117,11 @@ function MusicCard({
         <div
             className={[
                 "music-card",
+                assignmentProgress ? "music-card--assignment" : "",
                 isCurrentTrack
                     ? "music-card--active"
                     : "",
-                completed
+                (assignmentProgress ? assignmentProgress.completed : completed)
                     ? "music-card--completed"
                     : "",
                 `music-card--theme-${index % 5}`
@@ -161,10 +164,11 @@ function MusicCard({
                 {!audioURL && <span className="music-card__unavailable">音檔暫時無法播放</span>}
             </div>
 
-            <div className="music-card__status">
+            <div className={`music-card__status${assignmentProgress ? " has-assignment" : ""}`}>
+                {assignmentProgress && <div className="music-card__assignment"><strong>{assignmentProgress.completed ? "本次作業已完成" : "本次作業"}</strong><span>{assignmentProgressStatus !== "ready" ? "作業進度尚未確認" : `已聽 ${assignmentProgress.playCount} 次，還需 ${Math.max(0, assignmentProgress.requiredListens - assignmentProgress.playCount)} 次`}</span><small>老師指定：{assignmentProgress.requiredListens} 次</small></div>}
                 <div className="music-card__plays">
                     <FiHeadphones aria-hidden="true" />
-                    <span><small>熟練進度</small><strong>{progressStatus === "ready" ? `${Math.min(playCount, LISTENING_MASTERY_REQUIRED_PLAYS)} / ${LISTENING_MASTERY_REQUIRED_PLAYS}` : progressStatus === "loading" ? "讀取中" : "紀錄未載入"}</strong></span>
+                    <span><small>{assignmentProgress ? "長期熟練累積" : "熟練進度"}</small><strong>{progressStatus === "ready" ? `${Math.min(playCount, LISTENING_MASTERY_REQUIRED_PLAYS)} / ${LISTENING_MASTERY_REQUIRED_PLAYS}` : progressStatus === "loading" ? "讀取中" : "紀錄未載入"}</strong></span>
                 </div>
 
                 {completed && (
@@ -173,7 +177,7 @@ function MusicCard({
                         title="已通過"
                     >
                         <FiCheck aria-hidden="true" />
-                        <span>通過</span>
+                        <span>{assignmentProgress ? "長期熟練達標" : "通過"}</span>
                     </div>
                 )}
             </div>

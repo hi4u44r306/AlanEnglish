@@ -23,6 +23,7 @@ import {
 } from "../../services/assignmentService";
 import ListeningTTSPlayer from "./ListeningTTSPlayer";
 import { assignmentStateLabel, getAssignmentState } from "../../utils/studentLearning";
+import { normalizeListeningTracks } from "../../utils/assignmentListening";
 import "./css/Assignments.scss";
 import "./css/StudentAssignments.scss";
 import "./css/StudentAssignmentsJourney.scss";
@@ -63,61 +64,6 @@ const hasListeningTask = assignment => (
     || Boolean(assignment?.has_listening_task)
 );
 
-const normalizeListeningTracks = assignment => {
-    if (Array.isArray(assignment?.tracks) && assignment.tracks.length) {
-        return assignment.tracks.map((item, index) => {
-            const track = item?.track || item || {};
-            const requiredListens = Number(
-                item?.required_listens || assignment?.required_listens || 3
-            );
-            const playCount = Number(item?.play_count ?? track?.play_count ?? 0);
-            return {
-                key: track?.id || item?.track_id || item?.id || index,
-                id: track?.id || item?.track_id || item?.id || null,
-                label: (
-                    track?.display_page
-                    || track?.page
-                    || track?.title
-                    || track?.music_name
-                    || "音檔 " + (index + 1)
-                ),
-                book: (
-                    track?.book
-                    || item?.book
-                    || assignment?.track?.book
-                    || null
-                ),
-                requiredListens,
-                playCount,
-                completed: Boolean(item?.completed) || playCount >= requiredListens
-            };
-        });
-    }
-
-    if (assignment?.track) {
-        const requiredListens = Number(assignment?.required_listens || 3);
-        const playCount = Number(assignment?.progress?.play_count || 0);
-        return [{
-            key: assignment.track.id,
-            id: assignment.track.id,
-            label: (
-                assignment.track.display_page
-                || assignment.track.page
-                || assignment.track.title
-                || "音檔"
-            ),
-            book: assignment.track.book || null,
-            requiredListens,
-            playCount,
-            completed: (
-                Boolean(assignment?.progress?.completed)
-                || playCount >= requiredListens
-            )
-        }];
-    }
-
-    return [];
-};
 
 const getListeningMeta = assignment => {
     const tracks = normalizeListeningTracks(assignment);
@@ -164,7 +110,7 @@ const ListeningTrackList = ({ tracks }) => (
                     {track.completed ? <Check size={14} /> : <Headphones size={14} />}
                 </span>
                 <strong>{track.label}</strong>
-                <span>{track.playCount} / {track.requiredListens} 次</span>
+                <span>{track.completed ? `本次作業已完成（${track.playCount} / ${track.requiredListens} 次）` : `本次作業已聽 ${track.playCount} 次，還需 ${Math.max(0, track.requiredListens - track.playCount)} 次`}</span>
             </div>
         )) : (
             <div className="student-homework-track syncing">
@@ -521,7 +467,8 @@ const StudentAssignments = () => {
                                             </span>
                                         </div>
 
-                                        {!isMissionPack && includesListening && listening.url && <Link className="student-homework-quick-start" to={listening.url}><Headphones size={18} />{isCompleted ? "再次聆聽" : "開始聆聽"}<ArrowRight size={18} /></Link>}
+                                        {getAssignmentState(item) === "overdue" && <p className="student-homework-overdue" role="note">這份作業已逾期，請向老師確認是否可以補做。{item.listening_progress_mode === "assignment_window" ? "目前繼續聆聽不會增加這份作業的次數。" : ""}</p>}
+                                        {!isMissionPack && includesListening && listening.url && <Link className="student-homework-quick-start" to={listening.url}><Headphones size={18} />{isCompleted ? "再次聆聽" : getAssignmentState(item) === "overdue" ? "查看指定音檔" : "繼續完成作業"}<ArrowRight size={18} /></Link>}
 
                                         {isMissionPack ? (
                                             <>
@@ -565,7 +512,7 @@ const StudentAssignments = () => {
                                                         <div className="student-homework-listening__bar" aria-hidden="true">
                                                             <span style={{ width: listening.rate + "%" }} />
                                                         </div>
-                                                        <details className="student-homework-details"><summary>查看音檔次數與完成條件</summary><ListeningTrackList tracks={listening.tracks} /></details>
+                                                        <ListeningTrackList tracks={listening.tracks} />
                                                         {listening.url ? (
                                                             <Link
                                                                 className="student-homework-pack-action"
@@ -671,7 +618,7 @@ const StudentAssignments = () => {
                                                 <div className="student-homework-listening__bar" aria-hidden="true">
                                                     <span style={{ width: listening.rate + "%" }} />
                                                 </div>
-                                                <details className="student-homework-details"><summary>查看音檔次數與完成條件</summary><ListeningTrackList tracks={listening.tracks} /></details>
+                                                <ListeningTrackList tracks={listening.tracks} />
                                             </div>
                                         )}
 

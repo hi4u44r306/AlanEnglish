@@ -122,4 +122,18 @@ describe("MusicCard", () => {
         expect(screen.getByText("10 / 10")).toBeInTheDocument();
         expect(screen.getByText("通過")).toBeInTheDocument();
     });
+    it("shows assignment listens separately and does not mark unfinished homework complete from lifetime mastery", () => {
+        useSelector.mockImplementation(selector => selector({ musicReducer: { playing: null, playingStatus: false } }));
+        const view = render(<MusicCard music={music} progress={{ playCount: 10 }} assignmentProgress={{ playCount: 1, requiredListens: 3, completed: false }} />);
+        expect(screen.getByText("已聽 1 次，還需 2 次")).toBeInTheDocument();
+        expect(screen.getByText("老師指定：3 次")).toBeInTheDocument();
+        expect(screen.getByText("長期熟練累積")).toBeInTheDocument();
+        expect(screen.getByText("10 / 10")).toBeInTheDocument();
+        expect(view.container.querySelector(".music-card--completed")).toBeNull();
+        view.rerender(<MusicCard music={music} progress={{ playCount: 2 }} assignmentProgress={{ playCount: 3, requiredListens: 3, completed: true }} />);
+        expect(screen.getByText("本次作業已完成")).toBeInTheDocument();
+        expect(screen.getByText("已聽 3 次，還需 0 次")).toBeInTheDocument();
+        expect(view.container.querySelector(".music-card--completed")).not.toBeNull();
+    });
+
 });

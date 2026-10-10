@@ -312,3 +312,25 @@ test("home displays the server birthday benefit without adding another endpoint 
     expect(screen.getByText("180 XP")).toBeInTheDocument();
     expect(getGamificationSummary).toHaveBeenCalledTimes(1);
 });
+
+
+test("shows overdue-only work before birthday and links straight to the matching assignment", async () => {
+    const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Taipei", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+    getGamificationSummary.mockResolvedValue({ birthday: { enabled: true, is_birthday_month: true, evaluated_on: today } });
+    getStudentAssignments.mockResolvedValue({ assignments: [{ id: 4, title: "P22 聽力", source_type: "music_track", due_at: "2020-01-01", tracks: [{ track: { id: 22 }, required_listens: 3, play_count: 1 }], progress: {} }] });
+    renderHome();
+    const reminder = await screen.findByRole("region", { name: "待完成作業提醒" });
+    expect(reminder).toHaveTextContent("目前沒有新的作業，你還有 1 份逾期作業尚未完成");
+    expect(reminder).toHaveTextContent("指定音檔：已完成 0 / 1 個");
+    expect(within(reminder).getByRole("link", { name: "查看待補作業" })).toHaveAttribute("href", "/student/assignments?task=v1-4");
+    expect(screen.queryByText(/目前沒有待處理作業/)).not.toBeInTheDocument();
+    expect(reminder.compareDocumentPosition(await screen.findByRole("region", { name: "生日月快樂！" })) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.getByRole("link", { name: "查看作業與補做方式" })).toHaveAttribute("href", "/student/assignments?task=v1-4");
+});
+
+test("completed overdue work does not appear as outstanding work", async () => {
+    getStudentAssignments.mockResolvedValue({ assignments: [{ id: 4, title: "已完成作業", due_at: "2020-01-01", progress: { completed: true } }] });
+    renderHome();
+    await screen.findByText(/目前沒有待處理作業/);
+    expect(screen.queryByRole("region", { name: "待完成作業提醒" })).not.toBeInTheDocument();
+});
