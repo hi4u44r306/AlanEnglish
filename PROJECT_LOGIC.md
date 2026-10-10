@@ -1,13 +1,15 @@
 # Alan English 專案邏輯
 
-### 切頁與流程恢復（2026-10-10，本機完成／正式待發布）
+### 切頁與流程恢復（2026-10-10，已發布／真實帳號與 iPhone 待驗）
 
 - 使用者已授權五項製作，分支 `codex/staff-workflow-resilience-20261010`、基準 main `42ae97f`。目標及證據：`docs/WORKFLOW_RESILIENCE_GOAL.md`。
 - 教師作業／帳號清單採登入範圍短期記憶體快取與合併請求，成功修改後失效，晚到回應不覆寫；斷線保留清單並重試，401／403／404 清除。學生持久快取原規則保留，登出一併清除後台快取；不把後台學生資料或搜尋寫入 localStorage。
 - 帳號每頁 25 筆，返回保留篩選、搜尋、頁碼與位置；帳號、會員及測驗只有修改後才提示離開／關閉／登出。共用返回入口在 POP 發布前確認，取消不卸載草稿；會員儲存一區不覆寫其他尚未儲存區。
 - 單一口說題組可重試；網路、登入、資格、鎖定與不存在／未發布教材分流。既有 API、權限、價格、計分與資料模型不變，無套件／migration／正式資料操作。
-- 166 項相關 React 測試及局部 lint 通過；隔離 Edge 44 項檢查、18 組 1440／412／320px 無溢位／pageerror／外部請求；650ms 模擬 API 情境首次帳號 1286ms、回訪 69ms，保留第二頁與 600px 位置。合成麥克風拒絕、重試、錄音／回聽／重新錄音通過，不能替代正式帳號或 iPhone Safari。最終正式格式前端建置、靜態 SEO 與 Cloudflare 本機資產產生通過，尚未發布。
+- 166 項相關 React 測試及局部 lint 通過；隔離 Edge 44 項檢查、18 組 1440／412／320px 無溢位／pageerror／外部請求；650ms 模擬 API 情境首次帳號 1286ms、回訪 69ms，保留第二頁與 600px 位置。合成麥克風拒絕、重試、錄音／回聽／重新錄音通過，不能替代正式帳號或 iPhone Safari。最終正式格式前端建置、靜態 SEO 與 Cloudflare 本機資產產生通過，使用者已授權本批正式部署並已發布。
 
+
+- PR #510 已合併 main `a85939e6c04f59398fb542c0d095238ff04635ee`，Cloudflare build `f96825ad-24e8-4dca-ba2e-a5ab5d3506d2` 於 2026-10-10 17:08:53 台灣時間成功。正式 13 個頁面入口及 27 個 JS／CSS 均 HTTP 200，13 個新版／保留標記及 manifest 更新通過；主程式 `/static/js/main.083dbe1b.js`、主樣式 `/static/css/main.cf6afa96.css`。正式 Edge 瀏覽於 1440／412／320px 共 24 組通過，無水平溢位或 pageerror；未登入教師／管理／口說頁導向登入，公開首頁與復原分流通過，未送出資料。證據 `output/workflow-production-release/`。真實教師／管理員／學生登入、修改儲存、切頁快取與 iPhone Safari 錄音仍待驗，公開／未登入與資產驗收不能替代上述情境。
 
 PR #508 已合併 main `ff3e5063cced4baf862a1047daac018641545edb`；Cloudflare build `0333b587-4c1a-49a5-9864-1d5f25ed32c6` 於 2026-10-10 10:49:54 台灣時間成功。正式 13 個頁面入口及 27 個 JS／CSS 均 HTTP 200，新版 12 個資產標記與 manifest 更新通過；主程式 `/static/js/main.80b8b946.js`、主樣式 `/static/css/main.65624127.css`。公開首頁／登入／忘記密碼於 1440／412／320px 共 9 組實際瀏覽，無水平溢位或 pageerror；首頁四區、學生／Email 復原分流通過，未送出資料。證據 `output/uiux-production-release/`。正式帳號、麥克風、寄信、付款、管理資料操作與 iPhone Safari 仍待實測；公開／資產驗收不能替代上述驗收。
 
