@@ -2175,3 +2175,24 @@
     background: #9eb2dc;
   }
 }
+
+.showcase {
+    .showcase-section { padding: clamp(32px, 5vw, 56px) 0; }
+    .showcase-product-section { padding: 28px 0 0; }
+    .showcase-feature-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .showcase-feature-card { padding: 22px; box-shadow: none; border-radius: 14px; }
+    .showcase-path-card, .ae-quiz-demo { box-shadow: none; border-radius: 16px; }
+    .showcase-hero-actions { flex-wrap: wrap; }
+    .showcase-section-heading h2 { font-size: clamp(25px, 3.3vw, 36px); }
+    :is(a, summary, button):focus-visible { outline: 3px solid #17365d; outline-offset: 3px; }
+    @media (max-width: 760px) {
+        .showcase-feature-grid { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+        .showcase-feature-card { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 8px 12px; padding: 18px; }
+        .showcase-feature-icon { grid-row: 1 / 3; width: 44px; height: 44px; margin: 0; }
+        .showcase-feature-card h3, .showcase-feature-card p { margin: 0; }
+        .showcase-path-card { padding: 22px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after { animation: none; transition: none; scroll-behavior: auto; }
+    }
+}

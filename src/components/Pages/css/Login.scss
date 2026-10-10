@@ -545,3 +545,10 @@
     height: 48px;
   }
 }
+
+.Login {
+    .login-bg-circle { display: none; }
+    .login-button { box-shadow: 0 3px 8px rgba(45, 125, 210, .12); }
+    .login-button:hover:not(:disabled) { box-shadow: 0 3px 8px rgba(45, 125, 210, .16); }
+    :is(button, a, input, summary):focus-visible { outline: 3px solid #17365d; outline-offset: 3px; }
+}

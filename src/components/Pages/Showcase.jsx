@@ -15,44 +15,24 @@ import SeoHead from "../fragment/SeoHead";
 import "./css/Showcase.scss";
 
 const features = [
-    {
+{
         icon: <BiHeadphone />,
         title: "英文班教材與聽力音檔",
         text: "課堂使用的 Workbook、Basic Reading 與分級教材音檔集中在同一處，依教材與頁次快速找到。"
     },
-    {
+{
         icon: <BiBookOpen />,
         title: "老師發布的班級作業",
         text: "英文班學生接收自己班級的作業，老師可以掌握完成狀態與學習進度。"
     },
-    {
-        icon: <BiPlayCircle />,
-        title: "老師安排的教材練習",
-        text: "依老師安排的教材完成作答，查看回饋並保留練習結果。"
-    },
-    {
+{
         icon: <BiPlayCircle />,
         title: "口說大挑戰",
         text: "跟著教材關卡開口回答，從示範、收音到結果回饋，把課堂句型真正說出來。"
-    },
-    {
-        icon: <BiBarChartAlt2 />,
-        title: "智慧複習與每週報告",
-        text: "從需要加強的內容繼續練習，並用每週紀錄看見孩子真正完成了什麼。"
-    },
-    {
-        icon: <BiTrendingUp />,
-        title: "完整學習歷程與獎勵",
-        text: "有效聆聽、答題、口說通關與作業完成狀態持續保存，並累積等級、XP 與學習獎勵。"
     }
 ];
 
-const learningSteps = [
-    { number: "01", title: "找到今天的教材", text: "從老師安排的教材、班級作業或個人練習開始。" },
-    { number: "02", title: "完成每天的小目標", text: "聆聽、作答與口說練習都能分成短時間完成。" },
-    { number: "03", title: "累積真實學習紀錄", text: "有效聆聽、答題與作業完成狀態會跟著帳號保存。" },
-    { number: "04", title: "看見下一步", text: "透過排行榜、每週報告與老師安排，知道接下來該加強什麼。" }
-];
+
 
 const faqs = [
     {
@@ -95,7 +75,8 @@ const Showcase = () => {
                                 每一次有效聆聽、答題與通關都留下紀錄，讓孩子知道下一步，也讓家長與老師看見真正完成的內容。
                             </p>
                             <div className="showcase-hero-actions">
-                                <a className="showcase-primary-btn" href="#features">
+                                <Link className="showcase-primary-btn" to="/login">學生登入 <BiChevronRight /></Link>
+                                <a className="showcase-secondary-btn" href="#features">
                                     看看平台特色
                                     <BiChevronRight />
                                 </a>
@@ -168,18 +149,14 @@ const Showcase = () => {
                     </div>
                 </section>
 
-                <section className="showcase-value-strip" aria-label="Alan English 核心特色">
-                    <div className="showcase-shell">
-                        <span>英文班教材聽力</span><i /><span>口說大挑戰</span><i /><span>班級作業</span><i /><span>學習歷程可追蹤</span>
-                    </div>
-                </section>
+                
 
                 <section id="features" className="showcase-section showcase-features-section">
                     <div className="showcase-shell">
                         <div className="showcase-section-heading showcase-section-heading-center">
                             <span className="showcase-kicker">LEARNING THAT CONTINUES</span>
-                            <h2>不是多做一張考卷，<br />而是建立每天都做得到的英文習慣。</h2>
-                            <p>從聽力輸入到理解、回答與複習，Alan English 把孩子每天真正需要的學習步驟放在同一個平台。</p>
+                            <h2>找到教材，完成今天的小目標。</h2>
+                            <p>從今天的教材開始，聽一聽、試著回答，再查看自己的進步。</p>
                         </div>
                         <div className="showcase-feature-grid">
                             {features.map((feature, index) => (
@@ -192,9 +169,7 @@ const Showcase = () => {
                             ))}
                         </div>
                     </div>
-                </section>
-
-                <section id="product-preview" className="showcase-section showcase-product-section">
+                <div id="product-preview" className="showcase-section showcase-product-section">
                     <div className="showcase-shell showcase-product-grid">
                         <div className="ae-quiz-demo" aria-label="教材作答介面示意">
                             <div className="ae-quiz-top">
@@ -208,6 +183,7 @@ const Showcase = () => {
                                 <div><span>A</span>The park</div>
                                 <div className="selected"><span>B</span>The library <b>✓</b></div>
                                 <div><span>C</span>The supermarket</div>
+                                <div><span>D</span>The school</div>
                             </div>
                             <div className="ae-quiz-feedback"><strong>答對了！</strong><span>你已經理解文章中的時間與地點。</span></div>
                         </div>
@@ -219,27 +195,27 @@ const Showcase = () => {
                                 老師可安排教材題目，孩子完成作答後再查看回饋。
                                 達到學習標準後留下紀錄，之後也能回到智慧複習中心再次練習。
                             </p>
-                            <div className="showcase-product-points">
-                                <div><span><BiHeadphone /></span><div><strong>自然建立語感</strong><p>反覆聆聽單字、句型與完整內容。</p></div></div>
-                                <div><span><BiPlayCircle /></span><div><strong>開口回答教材題目</strong><p>用 口說大挑戰練習課堂句型與完整回答。</p></div></div>
-                                <div><span><BiBarChartAlt2 /></span><div><strong>學習結果自動保存</strong><p>進度、完成率與練習紀錄持續累積。</p></div></div>
-                            </div>
+                            
                         </div>
                     </div>
+                </div>
                 </section>
+
+                
 
                 <section id="learning-paths" className="showcase-section showcase-paths-section">
                     <div className="showcase-shell">
                         <div className="showcase-section-heading">
                             <span className="showcase-kicker">TWO LEARNING PATHS</span>
-                            <h2>上英文班或在家自學，<br />都能使用適合自己的方式。</h2>
+                            <h2>課堂延伸到家裡，進步看得見。</h2>
+                            <p>老師與家長可查看有效聆聽、作業進度與每週紀錄；孩子從自己的下一個小目標繼續。</p>
                         </div>
                         <div className="showcase-path-grid">
                             <article className="showcase-path-card academy">
                                 <div className="showcase-path-label">ALAN ENGLISH CLASS</div>
                                 <div className="showcase-path-icon"><BiShieldQuarter /></div>
                                 <h3>英文班學生</h3>
-                                <p>由老師建立邀請並安排 E1、E3、E5、E7 班級，學生完成帳號啟用後即可使用課堂教材聽力、班級作業與 AI 口說練習。</p>
+                                <p>依老師提供的登入卡或邀請啟用帳號，接續 E1、E3、E5、E7 班級教材與指定作業。</p>
                                 <ul>
                                     <li><span>✓</span> Workbook、Basic Reading 與課堂聽力集中使用</li>
                                     <li><span>✓</span> 接收老師發布的班級作業</li>
@@ -265,39 +241,9 @@ const Showcase = () => {
                     </div>
                 </section>
 
-                <section className="showcase-section showcase-process-section">
-                    <div className="showcase-shell">
-                        <div className="showcase-section-heading showcase-section-heading-center">
-                            <span className="showcase-kicker">HOW IT WORKS</span>
-                            <h2>四個步驟，開始孩子每天的英文練習。</h2>
-                        </div>
-                        <div className="showcase-process-grid">
-                            {learningSteps.map((step, index) => (
-                                <article className="showcase-process-card" key={step.number}>
-                                    <div className="showcase-process-number">{step.number}</div>
-                                    <h3>{step.title}</h3>
-                                    <p>{step.text}</p>
-                                    {index < learningSteps.length - 1 && <BiChevronRight className="showcase-process-arrow" />}
-                                </article>
-                            ))}
-                        </div>
-                    </div>
-                </section>
+                
 
-                <section className="showcase-section showcase-data-section">
-                    <div className="showcase-shell showcase-data-card">
-                        <div className="showcase-data-copy">
-                            <span className="showcase-kicker showcase-kicker-light">LEARNING PROGRESS</span>
-                            <h2>讓每一次練習，都留下看得見的成果。</h2>
-                            <p>有效聆聽次數、教材進度、AI 答題、口說通關與班級作業都會跟著帳號保存，幫助孩子建立成就感，也讓家長與老師更容易掌握學習過程。</p>
-                        </div>
-                        <div className="showcase-stat-grid">
-                            <div className="showcase-stat-card"><span>LISTENING</span><strong>10×</strong><p>有效聆聽熟練目標</p></div>
-                            <div className="showcase-stat-card"><span>PROGRESS</span><strong>100%</strong><p>教材完成狀態</p></div>
-                            <div className="showcase-stat-card"><span>HISTORY</span><strong>24/7</strong><p>隨時查看紀錄</p></div>
-                        </div>
-                    </div>
-                </section>
+                
 
                 <section id="faq" className="showcase-section showcase-faq-section">
                     <div className="showcase-shell showcase-faq-layout">
@@ -305,7 +251,7 @@ const Showcase = () => {
                             <span className="showcase-kicker">QUESTIONS & ANSWERS</span>
                             <h2>家長最常問的問題。</h2>
                             <p>了解適用年齡、學習方式與支援的裝置。</p>
-                            <Link className="showcase-secondary-btn" to="/login">已有帳號，前往登入</Link>
+                            <Link className="showcase-primary-btn" to="/login">已有帳號，前往登入</Link>
                         </div>
                         <div className="showcase-faq-list">
                             {faqs.map((faq, index) => (
@@ -318,18 +264,7 @@ const Showcase = () => {
                     </div>
                 </section>
 
-                <section className="showcase-section showcase-cta-section">
-                    <div className="showcase-shell showcase-cta-card">
-                        <div>
-                            <span className="showcase-kicker">START TODAY</span>
-                            <h2>每天一小步，累積真正看得見的英文進步。</h2>
-                            <p>已有帳號的學生，可以回到學習平台繼續今天的教材、作業與複習。</p>
-                        </div>
-                        <div className="showcase-cta-actions">
-                            <Link className="showcase-primary-btn" to="/login">學生登入 <BiChevronRight /></Link>
-                        </div>
-                    </div>
-                </section>
+                
             </main>
 
             <footer className="showcase-footer">

@@ -1,5 +1,7 @@
 # Alan English 專案狀態
 
+- 2026-10-10 UIUX 第三批本機完成：公開首頁整合四區塊，共用背景、陰影、按鈕與焦點統一。12 組三寬度隔離預覽與公開選單驗證通過；尚未部署，第四批製作中。詳細證據見 `docs/UIUX_IMPROVEMENT_GOAL.md`。
+
 ### 全站 UIUX 目標（2026-10-09，製作中／尚未部署）
 
 - 使用者已授權四批修正，分支 `codex/uiux-flow-20261009`，基準 main `339f94b`。目標與驗收表：`docs/UIUX_IMPROVEMENT_GOAL.md`。
