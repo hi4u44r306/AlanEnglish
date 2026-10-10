@@ -19,7 +19,10 @@ export const readStaffPageCache = (scope, key) => {
     const id = idFor(scope, key), entry = entries.get(id);
     if (!entry) return null;
     const age = Date.now() - entry.savedAt;
-    if (age < 0 || age > KEEP_MS) { entries.delete(id); return null; }
+    // Keep a mounted editor visible while revalidating; after leaving, the
+    // five-minute retention limit applies to the next visit.
+    if (age < 0 || (age > KEEP_MS && !listeners.get(id)?.size)) { entries.delete(id); return null; }
+    if (age > KEEP_MS) entry.stale = true;
     return entry;
 };
 export const fetchStaffPageCache = (scope, key, loader, { force = false } = {}) => {
