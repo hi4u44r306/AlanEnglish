@@ -1,0 +1,13 @@
+.promotion-questions-editor {
+    border: 0; padding: 0; min-width: 0;
+    legend { float: none; font-size: 18px; font-weight: 800; margin-top: 16px; }
+    &__error { color: #a63827; background: #fff4e8; padding: 10px 12px; border-radius: 8px; }
+    .promotion-question { border-top: 1px solid #dce4ef; margin: 12px 0; padding-top: 6px; }
+    summary { min-height: 44px; padding: 10px 4px; font-weight: 700; overflow-wrap: anywhere; cursor: pointer; }
+    label { margin: 8px 0; }
+    .promotion-question__actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    &__advanced { margin-top: 16px; }
+}
+
+.promotion-questions-editor select { width: 100%; min-height: 46px; border: 1px solid #d9dde7; border-radius: 10px; padding: 10px 13px; color: #17365d; background: #fff; }
+.promotion-questions-editor select:focus-visible { outline: 3px solid #2158c7; outline-offset: 3px; }

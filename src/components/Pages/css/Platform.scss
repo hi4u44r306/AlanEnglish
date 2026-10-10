@@ -643,3 +643,14 @@ textarea { resize: vertical; }
     .membership-access-summary, .platform-plan.is-active { box-shadow: none; }
 }
 .platform-public-card { border-radius: 20px; }
+
+@media (max-width: 760px) {
+    .membership-admin .platform-table-wrap { overflow: visible; }
+    .membership-admin .platform-table { min-width: 0; }
+    .membership-admin .platform-table thead { display: none; }
+    .membership-admin .platform-table tbody, .membership-admin .platform-table tr { display: block; }
+    .membership-admin .platform-table tr { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; padding: 12px 0; border-bottom: 1px solid #dce4ef; }
+    .membership-admin .platform-table td { min-width: 0; padding: 0; border: 0; white-space: normal; overflow-wrap: anywhere; }
+    .membership-admin .platform-table td:first-child, .membership-admin .platform-table td:last-child { grid-column: 1 / -1; }
+    .membership-admin .platform-table td::before { display: block; content: attr(data-label); color: #53647d; font-size: 12px; font-weight: 700; margin-bottom: 4px; }
+}

@@ -1,5 +1,5 @@
 import "@testing-library/jest-dom";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { useAuth } from "../../auth/AuthContext";
 import { getGuardianEmailStatus } from "../../services/guardianEmailService";
 import { getMembershipAdminDashboard } from "../../services/membershipService";
@@ -64,5 +64,16 @@ describe("MembershipAdmin", () => {
         expect(screen.getAllByText("基本自主學習會員").length).toBeGreaterThan(0);
         expect(screen.getByText("使用中")).toBeInTheDocument();
         expect(screen.getByText("30 天")).toBeInTheDocument();
+    });
+
+    it("starts with member status, switches by keyboard and retains unsaved report fields", async () => {
+        render(<MembershipAdmin />); await screen.findByText("離校 AI 測試學生");
+        expect(screen.getByRole("tab", { name: "會員狀態" })).toHaveAttribute("aria-selected", "true");
+        fireEvent.keyDown(screen.getByRole("tab", { name: "會員狀態" }), { key: "End" });
+        expect(screen.getByRole("tab", { name: "家長週報" })).toHaveFocus();
+        fireEvent.change(screen.getByLabelText("回覆 Email"), { target: { value: "draft@example.com" } });
+        fireEvent.click(screen.getByRole("tab", { name: "會員狀態" }));
+        fireEvent.click(screen.getByRole("tab", { name: "家長週報" }));
+        expect(screen.getByLabelText("回覆 Email")).toHaveValue("draft@example.com");
     });
 });

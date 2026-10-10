@@ -23,6 +23,7 @@ import {
     removeTrackIds
 } from "./assignmentTrackSelection";
 import "./css/Assignments.scss";
+import ManagementWorkspace from "../fragment/ManagementWorkspace";
 import AssignmentCopyEditor, { copyItemProblems } from "./AssignmentCopyEditor";
 import { readTeacherAssignmentDraft, saveTeacherAssignmentDraft, clearTeacherAssignmentDraft, sanitizeCopyItems, hasAssignmentDraft } from "../../services/teacherAssignmentDraft";
 
@@ -60,7 +61,7 @@ const parseTrackLabel = value => {
 
 const sourceLabel = assignment => {
     if (assignment.source_type === "multi_activity_v2") {
-        return "混合作業 V2 · " + (assignment.total_tasks || 0) + " 個活動";
+        return "混合作業 · " + (assignment.total_tasks || 0) + " 個活動";
     }
     if (assignment.source_type === "mission_pack") {
         return "完整任務包 · " + (assignment.track_count || 1) + " 檔";
@@ -127,6 +128,8 @@ const TeacherAssignmentsEditor = () => {
         source_text: "",
         pronunciation_prompts: ""
     });
+    const [workspace, setWorkspace] = useState("history");
+    const [creationStep, setCreationStep] = useState(0);
     const [form, setForm] = useState({
         title: "",
         description: "",
@@ -150,6 +153,7 @@ const TeacherAssignmentsEditor = () => {
     useEffect(() => { setPreview(null); }, [draft]);
 
     const applyDraft = saved => {
+        setCreationStep(0);
         setForm(saved.form);
         setBookId(saved.bookId); setTrackIds(saved.trackIds);
         setRangeStart(saved.rangeStart); setRangeEnd(saved.rangeEnd);
@@ -176,6 +180,7 @@ const TeacherAssignmentsEditor = () => {
         }
         if ((pendingDraft || hasAssignmentDraft(draft)) && !window.confirm("複製作業會取代目前尚未發布的草稿，確定繼續嗎？")) return;
         resetDraft();
+        setWorkspace("create");
         const template = assignment.copy_template;
         setForm({ title: (assignment.title + "（副本）").slice(0, 200), description: assignment.description || "",
             source_type: "music_track", target_class: assignment.target_class,
@@ -359,6 +364,7 @@ const TeacherAssignmentsEditor = () => {
 
     const submit = async event => {
         event.preventDefault();
+        if (creationStep < 2) { goToStep(creationStep + 1); return; }
 
         if (!form.title.trim()) {
             setMessage("請輸入作業名稱");
@@ -379,7 +385,7 @@ const TeacherAssignmentsEditor = () => {
             setMessage("草稿中有音檔已停用或不在本班教材中，請重新選擇。"); return;
         }
         if (!copiedItems && mixedMode && trackIds.length && selectedTrackGroupsForV2.length > 1) {
-            setMessage("混合作業 V2 的聽力活動目前一次請選擇同一本教材；可拆成兩份作業發布。");
+            setMessage("混合作業的聽力活動目前一次請選擇同一本教材；可拆成兩份作業發布。");
             return;
         }
         if (!copiedItems && mixedMode && (includeAiQuiz || includePronunciation) && !selectedPageContentIds.length) {
@@ -450,6 +456,7 @@ const TeacherAssignmentsEditor = () => {
             }
 
             resetDraft();
+            setWorkspace("history");
             await load();
         } catch (error) {
             setMessage(error.message);
@@ -465,7 +472,7 @@ const TeacherAssignmentsEditor = () => {
             return;
         }
         if (selectedTrackGroupsForV2.length > 1) {
-            setMessage("混合作業 V2 的聽力活動目前一次請選擇同一本教材。");
+            setMessage("混合作業 的聽力活動目前一次請選擇同一本教材。");
             return;
         }
         const items = [];
@@ -576,13 +583,26 @@ const TeacherAssignmentsEditor = () => {
         ? Number(trackIds.length > 0) + Number(includeAiQuiz) + Number(includePronunciation)
         : 1;
 
+    const goToStep = next => {
+        if (next > 0 && (!form.title.trim() || !classes.includes(form.target_class))) {
+            setMessage("請先填寫作業名稱，並選擇目前有權發布的班級。"); return;
+        }
+        if (next > 1 && (copiedItems ? copiedItems.length === 0 : mixedMode ? taskCount === 0 : trackIds.length === 0)) { setMessage("請至少選擇一個教材活動。"); return; }
+        setMessage(""); setCreationStep(next);
+    };
+    useEffect(() => {
+        if (workspace !== "create") return;
+        const panel = document.querySelector(".assignment-step-panel:not([hidden])");
+        panel?.querySelector("input, select, button")?.focus();
+    }, [workspace, creationStep]);
+
     return (
         <main className="assignment-page teacher-assignment-page">
             <section className="assignment-hero">
                 <div>
                     <span>TEACHER MISSION BUILDER</span>
                     <h1>發布班級學習作業</h1>
-                    <p>可維持純聽力作業，或用混合作業 V2 組合聽力、共用 AI 題組與發音練習。</p>
+                    <p>可維持純聽力作業，或用混合作業 組合聽力、共用 AI 題組與發音練習。</p>
                 </div>
                 <div className="assignment-date-card">
                     <strong>{todayTaiwan()}</strong>
@@ -592,40 +612,74 @@ const TeacherAssignmentsEditor = () => {
 
             {message && <div className="assignment-message">{message}</div>}
 
-            <section className="assignment-layout">
-                <form className="assignment-card assignment-form" onSubmit={submit}>
+            <ManagementWorkspace label="教師作業工作區" value={workspace} onChange={setWorkspace} disabled={saving || savingSource} tabs={[{ id: "history", label: "已發布作業" }, { id: "create", label: pendingDraft ? "建立作業・有未發布草稿" : "建立作業" }]}>
+<section className="assignment-card assignment-history">
+                    <div className="assignment-card-heading">
+                        <span>HISTORY</span>
+                        <h2>已發布作業</h2>
+                        <p>查看學生完成狀況與各步驟進度。</p>
+                    </div>
+
+                    {loading ? (
+                        <div className="assignment-empty">載入中...</div>
+                    ) : assignments.length ? (
+                        <div className="assignment-list">
+                            {assignments.map(assignment => (
+                                <article key={assignment.id}>
+                                    <div>
+                                        <strong>{assignment.title}</strong>
+                                        <span>
+                                            {assignment.target_class
+                                                ? assignment.target_class + " 班"
+                                                : "全部學生"}
+                                            {" · "}
+                                            {assignment.assigned_date}
+                                        </span>
+                                    </div>
+                                    <div className="assignment-history-actions">
+                                        <span className={"assignment-kind " + assignment.source_type}>
+                                            {sourceLabel(assignment)}
+                                        </span>
+                                        <div className="assignment-history-buttons">
+                                            <button type="button" disabled={saving || savingSource || loading || Boolean(pendingDraft)} onClick={() => copyAssignment(assignment)}>複製作業</button>
+                                            <button type="button" onClick={() => openResults(assignment)}>
+                                                查看進度
+                                            </button>
+                                            <button
+                                                type="button"
+                                                className="assignment-delete"
+                                                onClick={() => handleDelete(assignment)}
+                                                disabled={deletingId === assignment.id}
+                                            >
+                                                <Trash2 aria-hidden="true" size={15} />
+                                                {deletingId === assignment.id ? "刪除中..." : "刪除功課"}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </article>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="assignment-empty">
+                            <BookOpenCheck aria-hidden="true" size={28} />
+                            <strong>尚未發布作業</strong>
+                            <span>建立第一份課後聽力作業吧。</span>
+                        </div>
+                    )}
+                </section>
+<form className="assignment-card assignment-form" onSubmit={submit}>
                     <section className="assignment-draft-tools" aria-label="未發布草稿">
                         {pendingDraft ? <>
                             <p>找到未發布草稿（{formatDateTime(pendingDraft.savedAt)}）。恢復後請核對日期與教材。</p>
-                            <button type="button" disabled={loading || saving} onClick={() => { applyDraft(pendingDraft.draft); setMessage("已恢復草稿，請核對班級、日期與活動內容。"); }}>恢復草稿</button>
+                            <button type="button" disabled={loading || saving} onClick={() => { applyDraft(pendingDraft.draft); setWorkspace("create"); setMessage("已恢復草稿，請核對班級、日期與活動內容。"); }}>恢復草稿</button>
                         </> : <p role="status">{draftStatus ? draftStatus.persistent ? `草稿已自動儲存 · ${formatDateTime(draftStatus.savedAt)}` : "本機儲存不可用；草稿只暫存於此頁，刷新前請先複製文字。" : "未發布內容會自動儲存在這個瀏覽器，保留 30 天。"}</p>}
                         <button type="button" disabled={saving || savingSource} onClick={() => { if (window.confirm("確定捨棄尚未發布的草稿？此操作不會刪除已發布作業。")) resetDraft(); }}>捨棄草稿</button>
                     </section>
-                    <fieldset className="assignment-authoring-fields" disabled={saving || savingSource || loading || Boolean(pendingDraft)}>
-                    <div className="assignment-card-heading">
+                    <fieldset className="assignment-authoring-fields" disabled={saving || savingSource || loading || Boolean(pendingDraft)}><div className="assignment-card-heading">
                         <span>NEW MISSION</span>
                         <h2>建立新的學習任務</h2>
-                        <p>在校英文班學生已包含 AI 與發音練習；V2 會將教師核准的共用題組與發音提示一併發布。</p>
-                    </div>
-
-                    {!copiedItems && <div className="assignment-source-tabs" aria-label="作業模式">
-                        <button type="button" className={!mixedMode ? "active" : ""} onClick={() => setMixedMode(false)}>
-                            純聽力作業
-                        </button>
-                        <button type="button" className={mixedMode ? "active" : ""} onClick={() => setMixedMode(true)}>
-                            混合作業 V2
-                        </button>
-                    </div>}
-
-                    {!mixedMode && <div className="assignment-listening-only-note">
-                        <Headphones aria-hidden="true" size={21} />
-                        <span>
-                            <strong>聽力練習</strong>
-                            <small>指定教材音檔與次數，維持現有學生作業流程。</small>
-                        </span>
-                    </div>}
-
-                    <div className="assignment-form-section">
+                        <p>依序選擇班級與教材，核對日期及完成條件後發布。</p>
+                    </div><ol className="assignment-create-steps" aria-label="建立作業步驟">{["班級與名稱", "教材與活動", "日期與確認"].map((label, index) => <li key={label}><button type="button" aria-current={creationStep === index ? "step" : undefined} onClick={() => goToStep(index)}>{index + 1}. {label}</button></li>)}</ol><section className="assignment-step-panel" hidden={creationStep !== 0} aria-label="班級與名稱"><div className="assignment-form-section">
                         <div className="assignment-form-section__heading">
                             <span>1</span>
                             <div>
@@ -668,10 +722,23 @@ const TeacherAssignmentsEditor = () => {
                                 {classes.map(className => <option key={className} value={className}>{className} 班</option>)}
                             </select>
                         </label>
-                    </div>
-
-                    {copiedItems && <AssignmentCopyEditor items={copiedItems} onChange={setCopiedItems} books={books} tracks={tracks} pages={pageContent} aiMaterials={aiMaterials} disabled={saving || loading} />}
-                    {!copiedItems && <div className="assignment-form-section assignment-form-section--listening">
+                    </div></section><section className="assignment-step-panel" hidden={creationStep !== 1} aria-label="教材與活動">{!copiedItems && <div className="assignment-source-tabs" aria-label="作業模式">
+                        <button type="button" className={!mixedMode ? "active" : ""} onClick={() => setMixedMode(false)}>
+                            純聽力作業
+                        </button>
+                        <button type="button" className={mixedMode ? "active" : ""} onClick={() => setMixedMode(true)}>
+                            混合作業
+                        </button>
+                    </div>}
+{!mixedMode && <div className="assignment-listening-only-note">
+                        <Headphones aria-hidden="true" size={21} />
+                        <span>
+                            <strong>聽力練習</strong>
+                            <small>指定教材音檔與次數，維持現有學生作業流程。</small>
+                        </span>
+                    </div>}
+{copiedItems && <AssignmentCopyEditor items={copiedItems} onChange={setCopiedItems} books={books} tracks={tracks} pages={pageContent} aiMaterials={aiMaterials} disabled={saving || loading} />}
+{!copiedItems && <div className="assignment-form-section assignment-form-section--listening">
                             <div className="assignment-form-section__heading">
                                 <span>2</span>
                                 <div>
@@ -822,8 +889,7 @@ const TeacherAssignmentsEditor = () => {
                                 )}
                             </div>
                     </div>}
-
-                    {!copiedItems && mixedMode && <div className="assignment-form-section assignment-form-section--mixed">
+{!copiedItems && mixedMode && <div className="assignment-form-section assignment-form-section--mixed">
                         <div className="assignment-form-section__heading">
                             <span>3</span>
                             <div>
@@ -864,7 +930,7 @@ const TeacherAssignmentsEditor = () => {
                                 )) : <p>尚未建立頁面來源，請在下方新增。</p>}
                             </section>}
 
-                            <div className="assignment-form-grid">
+                            <details className="assignment-source-tools"><summary>新增或更新教材頁面來源</summary><div className="assignment-form-grid">
                                 <label><span>頁碼／Unit 標籤</span><input value={sourceForm.page_label} onChange={event => setSourceForm(current => ({ ...current, page_label: event.target.value }))} placeholder="例如：P22 或 Unit 3" /></label>
                                 <label><span>發音提示句（每行一句）</span><textarea rows="3" value={sourceForm.pronunciation_prompts} onChange={event => setSourceForm(current => ({ ...current, pronunciation_prompts: event.target.value }))} placeholder="I can read.&#10;Can you help me?" /></label>
                             </div>
@@ -872,7 +938,7 @@ const TeacherAssignmentsEditor = () => {
                             <div className="assignment-selected-tracks__actions">
                                 <button type="button" disabled={savingSource} onClick={() => savePageSource("draft")}>{savingSource ? "儲存中..." : "儲存草稿"}</button>
                                 <button type="button" disabled={savingSource} onClick={() => savePageSource("published")}>核對後發布頁面來源</button>
-                            </div>
+                            </div></details>
 
                             {includeAiQuiz && <label>
                                 <span>共用 AI 題組（學生不會重新生成，也不消耗個人額度）</span>
@@ -889,11 +955,9 @@ const TeacherAssignmentsEditor = () => {
                                 {availablePrompts.length ? availablePrompts.map(item => <label key={item.key} className={selectedPromptKeys.includes(item.key) ? "selected" : ""}><input type="checkbox" checked={selectedPromptKeys.includes(item.key)} onChange={() => togglePrompt(item.key)} /> <strong>{item.page_label}</strong> · {item.prompt}</label>) : <p>請先勾選有發音提示句的已發布頁面來源。</p>}
                             </section>}
                         </div>}
-                    </div>}
-
-                    <div className="assignment-form-section assignment-form-section--rules">
+                    </div>}</section><section className="assignment-step-panel" hidden={creationStep !== 2} aria-label="日期與確認"><div className="assignment-confirm-overview"><strong>{form.title || "尚未填寫名稱"}</strong><p>{form.target_class} 班 · {copiedItems ? `${copiedItems.length} 個複製活動` : selectedTrackGroups.map(group => group.book.name).join("、") || "已選教材活動"}</p></div><div className="assignment-form-section assignment-form-section--rules">
                         <div className="assignment-form-section__heading">
-                            <span>{mixedMode ? 4 : taskCount + 2}</span>
+                            <span>3</span>
                             <div>
                                 <strong>完成標準與發布範圍</strong>
                                 <small>設定班級、日期與每項任務的要求</small>
@@ -933,8 +997,7 @@ const TeacherAssignmentsEditor = () => {
                             </label>
                         </div>
                     </div>
-
-                    <div className="assignment-publish-summary">
+<div className="assignment-publish-summary">
                         <div>
                             <CheckCircle2 aria-hidden="true" size={21} />
                             <span>
@@ -943,75 +1006,18 @@ const TeacherAssignmentsEditor = () => {
                             </span>
                         </div>
                         <div className="assignment-history-buttons">
-                            {mixedMode && <button className="assignment-primary" type="button" disabled={saving || loading} onClick={previewMixedAssignment}>先預覽</button>}
+                            {mixedMode && <button className="assignment-secondary" type="button" disabled={saving || loading} onClick={previewMixedAssignment}>先預覽</button>}
                             <button className="assignment-primary" type="submit" disabled={saving || loading || (mixedMode && taskCount === 0)}>
                                 {saving ? "處理中..." : mixedMode ? "確認發布混合作業" : "發布作業"}
                             </button>
                         </div>
                     </div>
-
-                    {mixedMode && preview && <section className="assignment-selected-tracks" aria-label="混合作業發布預覽">
+{mixedMode && preview && <section className="assignment-selected-tracks" aria-label="混合作業發布預覽">
                         <div className="assignment-selected-tracks__heading"><div><strong>發布預覽</strong><span>{preview.target_class} 班 · {preview.total_items} 個活動</span></div></div>
                         {(preview.items || []).map(item => <p key={item.sort_order}>{item.sort_order + 1}. {item.item_type === "listening" ? `聽力 ${item.track_count} 檔，每檔 ${item.config?.required_listens} 次` : item.item_type === "ai_quiz" ? `AI 選擇題 ${item.question_count} 題` : `發音練習 ${item.pronunciation_prompt_count} 句`}</p>)}
-                    </section>}
-                    </fieldset>
+                    </section>}</section><div className="assignment-step-actions">{creationStep > 0 && <button type="button" className="assignment-secondary" onClick={() => setCreationStep(current => current - 1)}>上一步</button>}{creationStep < 2 && <button type="button" className="assignment-primary" onClick={() => goToStep(creationStep + 1)}>下一步</button>}</div></fieldset>
                 </form>
-
-                <section className="assignment-card assignment-history">
-                    <div className="assignment-card-heading">
-                        <span>HISTORY</span>
-                        <h2>已發布作業</h2>
-                        <p>查看學生完成狀況與各步驟進度。</p>
-                    </div>
-
-                    {loading ? (
-                        <div className="assignment-empty">載入中...</div>
-                    ) : assignments.length ? (
-                        <div className="assignment-list">
-                            {assignments.map(assignment => (
-                                <article key={assignment.id}>
-                                    <div>
-                                        <strong>{assignment.title}</strong>
-                                        <span>
-                                            {assignment.target_class
-                                                ? assignment.target_class + " 班"
-                                                : "全部學生"}
-                                            {" · "}
-                                            {assignment.assigned_date}
-                                        </span>
-                                    </div>
-                                    <div className="assignment-history-actions">
-                                        <span className={"assignment-kind " + assignment.source_type}>
-                                            {sourceLabel(assignment)}
-                                        </span>
-                                        <div className="assignment-history-buttons">
-                                            <button type="button" disabled={saving || savingSource || loading || Boolean(pendingDraft)} onClick={() => copyAssignment(assignment)}>複製作業</button>
-                                            <button type="button" onClick={() => openResults(assignment)}>
-                                                查看進度
-                                            </button>
-                                            <button
-                                                type="button"
-                                                className="assignment-delete"
-                                                onClick={() => handleDelete(assignment)}
-                                                disabled={deletingId === assignment.id}
-                                            >
-                                                <Trash2 aria-hidden="true" size={15} />
-                                                {deletingId === assignment.id ? "刪除中..." : "刪除功課"}
-                                            </button>
-                                        </div>
-                                    </div>
-                                </article>
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="assignment-empty">
-                            <BookOpenCheck aria-hidden="true" size={28} />
-                            <strong>尚未發布作業</strong>
-                            <span>建立第一份課後聽力作業吧。</span>
-                        </div>
-                    )}
-                </section>
-            </section>
+</ManagementWorkspace>
 
             {(results || resultsLoading) && (
                 <section

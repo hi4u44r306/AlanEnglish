@@ -1,5 +1,11 @@
 # Alan English 專案邏輯
 
+## 全站 UIUX 管理流程（2026-10-10，本機完成／尚未部署）
+
+- 教師建立採本機三步狀態；workspace／hidden 只控制顯示，不作為權限驗證。原草稿 sanitizer／UID 隔離、班級教材、複製及 createAssignment/createAssignmentV2 服務保持。下一步只前進，最後提交才呼叫原服務。
+- ManagementWorkspace 的 panel 保持掛載，以保留本頁未儲存輸入；鍵盤採 tablist 模式。帳號進階篩選只調整顯示及中文字標籤，predicate／刪除與停用確認保持。
+- 題目表單與 JSON 共享同一字串狀態，保留既有 question/options/answer/explanation 欄位與後端 5～50 題、四選項、答案及版本合約。前端驗證不能代替後端權限。此批沒有 Supabase schema／Edge Function／RLS 或正式資料變更。
+
 ## 全站 UIUX 第一批（2026-10-10，本機已驗證／尚未部署）
 
 - 密碼復原先選學生帳號或 Email；無效登入卡不顯示啟用表單。首次設定只顯示後端確認的第一個未完成步驟，所有必填與服務規則保留，通知在三項完成後才出現。

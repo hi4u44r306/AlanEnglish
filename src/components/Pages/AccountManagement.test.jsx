@@ -290,13 +290,14 @@ describe("AccountManagement", () => {
         expect(await screen.findByText("E3 測試學生")).toBeInTheDocument();
         expect(screen.queryByText("已停用試用學生")).not.toBeInTheDocument();
 
-        fireEvent.change(screen.getByRole("combobox", { name: "Role" }), {
+        fireEvent.click(screen.getByText("進階篩選", { exact: true }));
+        fireEvent.change(screen.getByRole("combobox", { name: "角色" }), {
             target: { value: "student" }
         });
-        fireEvent.change(screen.getByRole("combobox", { name: "Class" }), {
+        fireEvent.change(screen.getByRole("combobox", { name: "班級" }), {
             target: { value: "E1" }
         });
-        fireEvent.change(screen.getByRole("combobox", { name: "Plan" }), {
+        fireEvent.change(screen.getByRole("combobox", { name: "方案" }), {
             target: { value: "trial_7_day" }
         });
         fireEvent.change(screen.getByRole("combobox", { name: "開通狀態" }), {
@@ -313,6 +314,8 @@ describe("AccountManagement", () => {
         expect(screen.queryByText("E3 測試學生")).not.toBeInTheDocument();
         expect(screen.getAllByText("未啟用")).toHaveLength(2);
 
+        expect(screen.getByText("進階篩選（已套用 4 項）")).toBeInTheDocument();
+        fireEvent.click(screen.getByText("進階篩選（已套用 4 項）"));
         fireEvent.click(screen.getByRole("button", { name: "清除篩選" }));
         expect(await screen.findByText("E3 測試學生")).toBeInTheDocument();
         expect(screen.queryByText("已停用試用學生")).not.toBeInTheDocument();

@@ -954,3 +954,10 @@
   p { margin: 6px 0; }
   small { color: #64718a; }
 }
+
+.management-advanced-filters { border-top: 1px solid #dce4ef; margin: 12px 0; }
+.management-advanced-filters > summary { min-height: 44px; padding: 12px 4px; cursor: pointer; font-weight: 700; color: #17365d; }
+.management-advanced-filters > summary:focus-visible { outline: 3px solid #2158c7; outline-offset: 3px; }
+.management-toolbar .management-filter-reset { min-height: 44px; }
+
+.management-page button { min-height: 44px; }

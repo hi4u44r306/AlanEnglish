@@ -446,6 +446,8 @@ function AccountManagement() {
         editingAccount.firebase_uid === studentProfile?.firebase_uid
     );
 
+    const advancedFilterCount = [isAdmin ? roleFilter : "all", planFilter, activationFilter, accessFilter].filter(value => value !== "all").length;
+
     const resetFilters = () => {
         setSearchText("");
         setRoleFilter("all");
@@ -475,8 +477,7 @@ function AccountManagement() {
             </section>
 
             <section className="management-panel">
-                <div className="management-toolbar">
-                    <label className="management-filter management-search-filter">
+                <div className="management-toolbar"><label className="management-filter management-search-filter">
                         <span>搜尋</span>
                         <input
                             type="search"
@@ -485,21 +486,8 @@ function AccountManagement() {
                             onChange={e => setSearchText(e.target.value)}
                         />
                     </label>
-
-                    {isAdmin && (
-                        <label className="management-filter">
-                            <span>Role</span>
-                            <select value={roleFilter} onChange={e => setRoleFilter(e.target.value)}>
-                                <option value="all">全部角色</option>
-                                <option value="student">Student</option>
-                                <option value="teacher">Teacher</option>
-                                <option value="admin">Admin</option>
-                            </select>
-                        </label>
-                    )}
-
-                    <label className="management-filter">
-                        <span>Class</span>
+<label className="management-filter">
+                        <span>班級</span>
                         <select value={classFilter} onChange={e => setClassFilter(e.target.value)}>
                             <option value="all">全部班級</option>
                             <option value="E1">E1 班</option>
@@ -508,9 +496,28 @@ function AccountManagement() {
                             <option value="E7">E7 班</option>
                         </select>
                     </label>
-
-                    <label className="management-filter">
-                        <span>Plan</span>
+<label className="management-filter">
+                        <span>帳號狀態</span>
+                        <select value={accountStatusFilter} onChange={e => setAccountStatusFilter(e.target.value)}>
+                            <option value="active">使用中（預設）</option>
+                            <option value="archived">已停用</option>
+                            <option value="all">全部帳號狀態</option>
+                        </select>
+                    </label><button type="button" className="management-filter-reset" onClick={resetFilters}>
+                        清除篩選
+                    </button></div><details className="management-advanced-filters"><summary>進階篩選{advancedFilterCount > 0 ? "（已套用 " + advancedFilterCount + " 項）" : ""}</summary><div className="management-toolbar">{isAdmin && (
+                        <label className="management-filter">
+                            <span>角色</span>
+                            <select value={roleFilter} onChange={e => setRoleFilter(e.target.value)}>
+                                <option value="all">全部角色</option>
+                                <option value="student">學生</option>
+                                <option value="teacher">教師</option>
+                                <option value="admin">管理員</option>
+                            </select>
+                        </label>
+                    )}
+<label className="management-filter">
+                        <span>方案</span>
                         <select value={planFilter} onChange={e => setPlanFilter(e.target.value)}>
                             <option value="all">全部方案</option>
                             {planOptions.map(option => (
@@ -518,8 +525,7 @@ function AccountManagement() {
                             ))}
                         </select>
                     </label>
-
-                    <label className="management-filter">
+<label className="management-filter">
                         <span>開通狀態</span>
                         <select value={activationFilter} onChange={e => setActivationFilter(e.target.value)}>
                             <option value="all">全部開通狀態</option>
@@ -533,29 +539,14 @@ function AccountManagement() {
                             <option value="not_applicable">不適用</option>
                         </select>
                     </label>
-
-                    <label className="management-filter">
-                        <span>帳號狀態</span>
-                        <select value={accountStatusFilter} onChange={e => setAccountStatusFilter(e.target.value)}>
-                            <option value="active">使用中（預設）</option>
-                            <option value="archived">已停用</option>
-                            <option value="all">全部帳號狀態</option>
-                        </select>
-                    </label>
-
-                    <label className="management-filter">
+<label className="management-filter">
                         <span>是否啟用</span>
                         <select value={accessFilter} onChange={e => setAccessFilter(e.target.value)}>
                             <option value="all">全部啟用狀態</option>
                             <option value="enabled">已啟用</option>
                             <option value="disabled">未啟用</option>
                         </select>
-                    </label>
-
-                    <button type="button" className="management-filter-reset" onClick={resetFilters}>
-                        清除篩選
-                    </button>
-                </div>
+                    </label></div></details>
 
                 <p className="management-filter-hint">
                     已停用帳號預設隱藏；將「帳號狀態」切換為「已停用」即可查看並恢復。
@@ -576,11 +567,11 @@ function AccountManagement() {
                             <table className="management-table management-account-table">
                                 <thead>
                                     <tr>
-                                        <th>Name</th>
+                                        <th>姓名</th>
                                         <th>帳號／Email</th>
-                                        <th>Role</th>
-                                        <th>Class</th>
-                                        <th>Plan</th>
+                                        <th>角色</th>
+                                        <th>班級</th>
+                                        <th>方案</th>
                                         <th>開通狀態</th>
                                         <th>帳號狀態</th>
                                         <th>是否啟用</th>
@@ -591,20 +582,20 @@ function AccountManagement() {
                                     {filteredAccounts.length > 0 ? filteredAccounts.map(account => (
                                         <React.Fragment key={account.id}>
                                             <tr className={`management-account-row ${account.account_status === "archived" ? "is-archived" : ""}`}>
-                                                <td data-label="Name">
+                                                <td data-label="姓名">
                                                     <span className="management-account-name">{account.name || "-"}</span>
                                                     {account.account_status === "archived" && (
                                                         <span className="management-account-archived-note">已停用帳號</span>
                                                     )}
                                                 </td>
                                                 <td data-label="帳號／Email">{account.authentication_method === "academy_username" ? account.login_username || "-" : account.email || "-"}</td>
-                                                <td data-label="Role">
+                                                <td data-label="角色">
                                                     <span className={`role-badge role-${account.role || "student"}`}>
                                                         {ROLE_LABELS[account.role] || account.role || "Student"}
                                                     </span>
                                                 </td>
-                                                <td data-label="Class">{account.role === "student" ? account.class || "-" : "-"}</td>
-                                                <td data-label="Plan">{account.role === "student" ? getAccountPlanLabel(account) : "-"}</td>
+                                                <td data-label="班級">{account.role === "student" ? account.class || "-" : "-"}</td>
+                                                <td data-label="方案">{account.role === "student" ? getAccountPlanLabel(account) : "-"}</td>
                                                 <td data-label="開通狀態">
                                                     {account.role === "student" ? (() => {
                                                         const status = getAccountActivationStatus(account, invitationByEmail);
@@ -710,7 +701,7 @@ function AccountManagement() {
                                                         <form className="management-edit-form" onSubmit={saveAccount}>
                                                             <div className="management-edit-grid">
                                                                 <label>
-                                                                    <span>Name</span>
+                                                                    <span>姓名</span>
                                                                     <input
                                                                         type="text"
                                                                         value={editForm.name}
@@ -720,22 +711,22 @@ function AccountManagement() {
                                                                 </label>
 
                                                                 <label>
-                                                                    <span>Role</span>
+                                                                    <span>角色</span>
                                                                     <select
                                                                         value={editForm.role}
                                                                         onChange={handleRoleChange}
                                                                         disabled={!isAdmin || saving || editingOwnAdminAccount}
                                                                     >
-                                                                        <option value="student">Student</option>
-                                                                        <option value="teacher">Teacher</option>
-                                                                        <option value="admin">Admin</option>
+                                                                        <option value="student">學生</option>
+                                                                        <option value="teacher">教師</option>
+                                                                        <option value="admin">管理員</option>
                                                                     </select>
                                                                 </label>
 
                                                                 {editForm.role === "student" && (
                                                                     <>
                                                                         <label>
-                                                                            <span>Class</span>
+                                                                            <span>班級</span>
                                                                             <select
                                                                                 value={editForm.class}
                                                                                 onChange={e => setEditForm(prev => ({ ...prev, class: e.target.value }))}

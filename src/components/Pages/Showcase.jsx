@@ -149,7 +149,7 @@ const Showcase = () => {
                     </div>
                 </section>
 
-                
+
 
                 <section id="features" className="showcase-section showcase-features-section">
                     <div className="showcase-shell">
@@ -195,13 +195,13 @@ const Showcase = () => {
                                 老師可安排教材題目，孩子完成作答後再查看回饋。
                                 達到學習標準後留下紀錄，之後也能回到智慧複習中心再次練習。
                             </p>
-                            
+
                         </div>
                     </div>
                 </div>
                 </section>
 
-                
+
 
                 <section id="learning-paths" className="showcase-section showcase-paths-section">
                     <div className="showcase-shell">
@@ -241,9 +241,9 @@ const Showcase = () => {
                     </div>
                 </section>
 
-                
 
-                
+
+
 
                 <section id="faq" className="showcase-section showcase-faq-section">
                     <div className="showcase-shell showcase-faq-layout">
@@ -264,7 +264,7 @@ const Showcase = () => {
                     </div>
                 </section>
 
-                
+
             </main>
 
             <footer className="showcase-footer">
