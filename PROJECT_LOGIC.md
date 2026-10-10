@@ -1,12 +1,14 @@
 # Alan English 專案邏輯
 
-### 生日月祝福關閉偏好（2026-10-10，本機驗證完成／待發布）
+### 生日月祝福關閉偏好（2026-10-10，已發布／正式生日帳號待驗）
 
 - 今日學習的生日祝福右上角提供 44px 關閉按鈕，點擊後才展開「暫時關閉／不再顯示」。Escape 收起選項並回到關閉按鈕，完成關閉後焦點回首頁標題。
 - 暫時關閉只保留於目前首頁元件；進度重新讀取不會重新展開，下次進入今日學習或重新整理即恢復。帳號變更重新載入該帳號偏好。
 - 不再顯示使用此瀏覽器 localStorage 的 UID 專屬 `ae-birthday-notice-hidden-v1:<encoded UID>`，僅存 `1`，跨切頁與刷新保留；清除此網站資料或換瀏覽器會重設。不跨裝置同步，不存生日、姓名、Token 或獎勵內容。
 - 無法儲存時保留祝福、提示改用暫時關閉；無法讀取偏好仍可顯示及暫時關閉。後端生日資格、Asia/Taipei 當日摘要、XP 加倍、AE Points 發獎及端點均不變。
 - 34 項生日元件／今日學習測試、2 個相關 JSX lint 與 diff 檢查通過；隔離 Edge 10 組操作於 1440／412／320px 驗證暫時／永久關閉、刷新、切頁、UID 隔離、儲存失敗及鍵盤焦點，無水平溢位、pageerror 或外部請求。證據 `output/birthday-notice-preview/`。依 AGENTS.md 16.1 僅執行受影響測試及局部 Sass／隔離預覽，不重跑全套或本機正式 build；正式 build 由 main 的唯一 Cloudflare 建置執行。正式生日學生帳號與 iPhone Safari 待驗。
+
+PR #512 已合併 main `101bc93a4ee89374a16d2ba8d9d2f7ccc3198a4e`；Cloudflare build `fcb6ad6c-1cd4-4bd9-970a-0db8e49c4e6b` 於 2026-10-10 18:56:29 台灣時間成功。正式 13 個頁面入口與 27 個 JS／CSS 均 HTTP 200，11 個新功能／保留標記及 manifest 更新通過；主程式 `/static/js/main.923b12a8.js`、主樣式 `/static/css/main.9111bd2e.css`。正式 Edge 於 1440／412／320px 共 9 組公開首頁／登入／未登入今日學習檢查通過，無水平溢位或 pageerror，未登入今日學習導向登入；未送出任何資料。證據 `output/birthday-notice-production-release/`。祝福兩種關閉已在隔離實際元件驗證；正式生日學生帳號與 iPhone Safari 待驗，公開頁／資產驗收不能替代登入後實測。
 
 ### 切頁與流程恢復（2026-10-10，已發布／真實帳號與 iPhone 待驗）
 
