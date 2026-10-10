@@ -1,8 +1,12 @@
+import { invalidateStaffPageCache } from "./staffPageCache";
 import { callEdgeFunction } from "./edgeFunctionClient";
 
-const callMembership = (firebaseUser, action, payload = {}) => (
-    callEdgeFunction("membership-manager", firebaseUser, { action, ...payload })
-);
+const STAFF_DISPLAY_WRITES = new Set(["update_account", "archive_account", "restore_account", "admin_correct_birth_date", "admin_update_plan", "admin_grant_access", "admin_set_membership_status", "update_student_profile"]);
+const callMembership = async (firebaseUser, action, payload = {}) => {
+    const result = await callEdgeFunction("membership-manager", firebaseUser, { action, ...payload });
+    if (STAFF_DISPLAY_WRITES.has(action)) invalidateStaffPageCache(firebaseUser?.uid);
+    return result;
+};
 
 export const getMembershipProfile = firebaseUser => callMembership(firebaseUser, "profile");
 export const updateStudentProfile = (firebaseUser, payload) => callMembership(firebaseUser, "update_student_profile", payload);

@@ -712,13 +712,13 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
     });
 
-    it("Workbook 載入失敗停止讀取動畫並保留錯誤訊息", async () => {
+    it("Workbook 載入失敗停止動畫並提供網路重試", async () => {
         getSpeakingChallengeCatalog.mockRejectedValue(new Error("地圖暫時無法讀取"));
         render(<MemoryRouter initialEntries={["/student/speaking-challenges/book/book-3"]}><Routes>
             <Route path="/student/speaking-challenges/book/:bookKey" element={<TextbookSpeakingChallenge />} />
         </Routes></MemoryRouter>);
-        expect(await screen.findByRole("heading", { name: "口說大挑戰暫時無法開啟" })).toBeInTheDocument();
-        expect(screen.getByText("地圖暫時無法讀取")).toBeInTheDocument();
+        expect(await screen.findByRole("heading", { name: "教材暫時無法讀取" })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "重新讀取" })).toBeInTheDocument();
         expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
     });
 
@@ -757,8 +757,8 @@ describe("TextbookSpeakingChallenge model audio", () => {
     it("讀取畫面遇到失敗會停止動畫並顯示錯誤", async () => {
         getSpeakingChallengeSet.mockRejectedValue(new Error("伺服器暫時忙碌"));
         render(<MemoryRouter initialEntries={["/student/speaking-challenges/7?mode=challenge"]}><Routes><Route path="/student/speaking-challenges/:questionSetId" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
-        expect(await screen.findByRole("heading", { name: "口說大挑戰暫時無法開啟" })).toBeInTheDocument();
-        expect(screen.getByText("伺服器暫時忙碌")).toBeInTheDocument();
+        expect(await screen.findByRole("heading", { name: "教材暫時無法讀取" })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "重新讀取" })).toBeInTheDocument();
         expect(screen.queryByRole("progressbar", { name: "題目載入中" })).not.toBeInTheDocument();
     });
 
@@ -792,4 +792,12 @@ describe("TextbookSpeakingChallenge model audio", () => {
         await act(async () => resolveSecondChallenge({ challenge: { id: 8, title: "02 打招呼", topic: "Greetings", difficulty: "E1", books: { name: "Workbook 1" }, speaking_questions: [{ id: 10, question_text: "Good morning!", progress_status: "opened" }] } }));
         expect(screen.getByText("Good morning!")).toBeInTheDocument();
     });
+});
+
+
+test("a failed single-question read retries without writes or membership upsell", async () => {
+    getSpeakingChallengeSet.mockRejectedValueOnce(new TypeError("offline")).mockResolvedValueOnce({ challenge: { id: 7, title: "A–Z", practice_only: true, completed_today: true, generation_metadata: { interaction_type: "alphabet_round" }, speaking_questions: [{ id: 701, question_text: "A" }] } });
+    render(<MemoryRouter initialEntries={["/student/speaking-challenges/7"]}><Routes><Route path="/student/speaking-challenges/:questionSetId" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
+    expect(await screen.findByText("教材暫時無法讀取")).toBeInTheDocument(); expect(screen.queryByRole("link", { name: "查看我的教材與功能" })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "重新讀取" })); expect(await screen.findByText("錄音回聽練習")).toBeInTheDocument(); expect(getSpeakingChallengeSet).toHaveBeenCalledTimes(2); expect(startSpeakingFoundationRound).not.toHaveBeenCalled(); expect(completeSpeakingChallengeQuestion).not.toHaveBeenCalled();
 });

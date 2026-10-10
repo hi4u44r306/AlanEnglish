@@ -44,3 +44,11 @@ test("saving locks inputs, blocks duplicate submit and cannot close the pending 
     await act(async () => finish({}));
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 });
+
+
+test("cancel and Escape preserve a changed exam when discard is declined", async () => {
+    const confirm = jest.spyOn(window, "confirm").mockReturnValue(false); render(<LevelAdmin />); await open();
+    fireEvent.change(screen.getByLabelText("第 1 題題目"), { target: { value: "Unsaved question" } }); fireEvent.click(screen.getByRole("button", { name: "取消" }));
+    expect(screen.getByLabelText("第 1 題題目")).toHaveValue("Unsaved question"); fireEvent.keyDown(document, { key: "Escape" }); expect(screen.getByRole("dialog")).toBeInTheDocument();
+    confirm.mockReturnValue(true); fireEvent.click(screen.getByRole("button", { name: "取消" })); expect(screen.queryByRole("dialog")).not.toBeInTheDocument(); expect(updatePromotionExam).not.toHaveBeenCalled(); confirm.mockRestore();
+});

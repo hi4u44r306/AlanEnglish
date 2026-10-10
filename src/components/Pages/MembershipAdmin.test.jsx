@@ -1,8 +1,8 @@
 import "@testing-library/jest-dom";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { useAuth } from "../../auth/AuthContext";
 import { getGuardianEmailStatus } from "../../services/guardianEmailService";
-import { getMembershipAdminDashboard } from "../../services/membershipService";
+import { getMembershipAdminDashboard, updateSubscriptionPlan } from "../../services/membershipService";
 import MembershipAdmin from "./MembershipAdmin";
 
 jest.mock("../../auth/AuthContext", () => ({ useAuth: jest.fn() }));
@@ -21,7 +21,7 @@ jest.mock("../../services/membershipService", () => ({
 
 describe("MembershipAdmin", () => {
     beforeEach(() => {
-        useAuth.mockReturnValue({ firebaseUser: { getIdToken: jest.fn() } });
+        useAuth.mockReturnValue({ firebaseUser: { uid: "membership-admin", getIdToken: jest.fn() } });
         getGuardianEmailStatus.mockResolvedValue({ provider_configured: false });
         getMembershipAdminDashboard.mockResolvedValue({
             summary: { total: 1, active_total: 1 },
@@ -76,4 +76,13 @@ describe("MembershipAdmin", () => {
         fireEvent.click(screen.getByRole("tab", { name: "家長週報" }));
         expect(screen.getByLabelText("回覆 Email")).toHaveValue("draft@example.com");
     });
+
+test("saving a plan does not erase an unrelated unsaved family-report form", async () => {
+    updateSubscriptionPlan.mockResolvedValue({}); render(<MembershipAdmin />); await screen.findByText("離校 AI 測試學生");
+    fireEvent.click(screen.getByRole("tab", { name: "家長週報" })); fireEvent.change(screen.getByLabelText("回覆 Email"), { target: { value: "draft@example.com" } });
+    fireEvent.click(screen.getByRole("tab", { name: "方案與價格" })); fireEvent.change(screen.getByLabelText("顯示名稱"), { target: { value: "New display name" } }); fireEvent.click(screen.getByRole("button", { name: "儲存方案" }));
+    await waitFor(() => expect(getMembershipAdminDashboard).toHaveBeenCalledTimes(2));
+    fireEvent.click(screen.getByRole("tab", { name: "家長週報" })); expect(screen.getByLabelText("回覆 Email")).toHaveValue("draft@example.com");
+});
+
 });

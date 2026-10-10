@@ -1,4 +1,6 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import useStaffPageQuery from "../../hooks/useStaffPageQuery";
+import ReadRefreshStatus from "../fragment/ReadRefreshStatus";
+import React, { useEffect, useMemo, useState } from "react";
 import {
     BookOpenCheck,
     CheckCircle2,
@@ -95,13 +97,19 @@ const resultSummary = (assignment, row) => {
 
 const TeacherAssignmentsEditor = () => {
     const { firebaseUser } = useAuth();
-    const [classes, setClasses] = useState([]);
-    const [tracks, setTracks] = useState([]);
-    const [classMaterials, setClassMaterials] = useState([]);
-    const [pageContent, setPageContent] = useState([]);
-    const [aiMaterials, setAiMaterials] = useState([]);
-    const [assignments, setAssignments] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const assignmentQuery = useStaffPageQuery("teacher-assignments", async () => {
+        const [bootstrap, list] = await Promise.all([getTeacherAssignmentBootstrap(firebaseUser), getTeacherAssignments(firebaseUser)]);
+        return { bootstrap, assignments: list.assignments || [] };
+    });
+    const classes = useMemo(() => assignmentQuery.data?.bootstrap?.classes || [], [assignmentQuery.data]);
+    const tracks = useMemo(() => assignmentQuery.data?.bootstrap?.tracks || [], [assignmentQuery.data]);
+    const classMaterials = useMemo(() => assignmentQuery.data?.bootstrap?.class_materials || [], [assignmentQuery.data]);
+    const pageContent = useMemo(() => assignmentQuery.data?.bootstrap?.page_content || [], [assignmentQuery.data]);
+    const aiMaterials = useMemo(() => assignmentQuery.data?.bootstrap?.ai_materials || [], [assignmentQuery.data]);
+    const assignments = assignmentQuery.data?.assignments || [];
+    const loading = assignmentQuery.loading;
+    const setAssignments = updater => assignmentQuery.update(data => ({ ...data, assignments: updater(data.assignments) }));
+    const load = assignmentQuery.refresh;
     const [saving, setSaving] = useState(false);
     const [deletingId, setDeletingId] = useState(null);
     const [message, setMessage] = useState("");
@@ -259,31 +267,6 @@ const TeacherAssignmentsEditor = () => {
         const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
         return sorted[0]?.[1] ? sorted[0][0] : "Track";
     }, [visibleTracks]);
-
-    const load = useCallback(async () => {
-        if (!firebaseUser) return;
-        setLoading(true);
-        try {
-            const [bootstrap, list] = await Promise.all([
-                getTeacherAssignmentBootstrap(firebaseUser),
-                getTeacherAssignments(firebaseUser)
-            ]);
-            setClasses(bootstrap.classes || []);
-            setTracks(bootstrap.tracks || []);
-            setClassMaterials(bootstrap.class_materials || []);
-            setPageContent(bootstrap.page_content || []);
-            setAiMaterials(bootstrap.ai_materials || []);
-            setAssignments(list.assignments || []);
-        } catch (error) {
-            setMessage(error.message);
-        } finally {
-            setLoading(false);
-        }
-    }, [firebaseUser]);
-
-    useEffect(() => {
-        load();
-    }, [load]);
 
     const updateForm = (field, value) => {
         setForm(current => ({ ...current, [field]: value }));
@@ -610,6 +593,7 @@ const TeacherAssignmentsEditor = () => {
                 </div>
             </section>
 
+            <ReadRefreshStatus query={assignmentQuery} label="班級與作業" />
             {message && <div className="assignment-message">{message}</div>}
 
             <ManagementWorkspace label="教師作業工作區" value={workspace} onChange={setWorkspace} disabled={saving || savingSource} tabs={[{ id: "history", label: "已發布作業" }, { id: "create", label: pendingDraft ? "建立作業・有未發布草稿" : "建立作業" }]}>

@@ -1,3 +1,4 @@
+import { invalidateStaffPageCache } from "./staffPageCache";
 import {
     supabaseKey,
     supabaseUrl
@@ -73,6 +74,7 @@ const callAcademyStudentManager = async (
         );
     }
 
+    if (["create_student", "create_invitation", "batch_create_students", "delete_student_account", "delete_invitation", "reissue_student_login_card"].includes(body?.action)) invalidateStaffPageCache(firebaseUser?.uid);
     return result;
 };
 

@@ -1,6 +1,8 @@
+import { clearStaffPageCache } from "../../services/staffPageCache";
+beforeEach(() => clearStaffPageCache());
 import React from "react";
 import "@testing-library/jest-dom";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import {
@@ -366,4 +368,25 @@ test("teacher account management has no birthday correction entry", async () => 
     getManagedAccounts.mockResolvedValue({accounts:[academyStudent]});listAcademyInvitations.mockResolvedValue([]);
     render(<MemoryRouter><AccountManagement /></MemoryRouter>);await screen.findByText(academyStudent.name);
     expect(screen.queryByRole("button",{name:"更正生日"})).not.toBeInTheDocument();
+});
+
+
+test("page navigation is cached and restores the filtered page on return", async () => {
+    const accounts = Array.from({ length: 60 }, (_, i) => ({ ...academyStudent, id: i + 100, name: `Student ${String(i + 1).padStart(2, "0")}` }));
+    getManagedAccounts.mockResolvedValue({ accounts }); listAcademyInvitations.mockResolvedValue([]);
+    useAuth.mockReturnValue({ firebaseUser, role: "admin", studentProfile: { firebase_uid: firebaseUser.uid } });
+    const first = renderPage(); await screen.findByText("Student 01"); expect(within(screen.getByRole("table", { name: "帳號清單" })).getAllByRole("row")).toHaveLength(26);
+    fireEvent.click(screen.getByRole("button", { name: "下一頁" })); expect(screen.getByText("Student 26")).toBeInTheDocument(); first.unmount();
+    renderPage(); expect(screen.getByText("Student 26")).toBeInTheDocument(); await waitFor(() => expect(getManagedAccounts).toHaveBeenCalledTimes(1));
+    fireEvent.change(screen.getByPlaceholderText("姓名或 Email"), { target: { value: "Student 60" } }); expect(screen.getByText("Student 60")).toBeInTheDocument(); expect(screen.queryByRole("navigation", { name: "帳號清單分頁" })).not.toBeInTheDocument();
+});
+
+test("failed background reload retains accounts, and explicit retry recovers", async () => {
+    clearStaffPageCache(); getManagedAccounts.mockResolvedValue({ accounts: [academyStudent] }); listAcademyInvitations.mockResolvedValue([]);
+    useAuth.mockReturnValue({ firebaseUser, role: "admin", studentProfile: { firebase_uid: firebaseUser.uid } });
+    renderPage(); await screen.findByText(academyStudent.name);
+    const clock = Date.now(); const now = jest.spyOn(Date, "now").mockReturnValue(clock + 31000);
+    getManagedAccounts.mockRejectedValueOnce(new TypeError("offline")); await act(async () => window.dispatchEvent(new Event("focus")));
+    expect(await screen.findByText("目前顯示上次帳號清單，最新資料暫時無法同步。")).toBeInTheDocument(); expect(screen.getByText(academyStudent.name)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "重新讀取" })); await waitFor(() => expect(screen.queryByText("目前顯示上次帳號清單，最新資料暫時無法同步。")).not.toBeInTheDocument()); now.mockRestore();
 });

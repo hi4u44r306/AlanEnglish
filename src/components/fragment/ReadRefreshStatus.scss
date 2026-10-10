@@ -1,0 +1,8 @@
+
+.management-read-status { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0; color: #17365d; overflow-wrap: anywhere;
+  p { margin: 4px 0 0; }
+  button { min-height: 44px; padding: 8px 16px; border: 1px solid #b5c9eb; border-radius: 8px; background: #fff; color: #17365d; font: inherit; flex-shrink: 0; }
+  button:focus-visible { outline: 3px solid #2f6fed; outline-offset: 3px; }
+  &.is-error { border-bottom: 1px solid #e1e7ef; }
+  @media (max-width: 480px) { align-items: stretch; flex-direction: column; }
+}

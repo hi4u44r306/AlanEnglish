@@ -1,4 +1,8 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import useUnsavedChanges from "../../hooks/useUnsavedChanges";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import useStaffView from "../../hooks/useStaffView";
+import useStaffPageQuery from "../../hooks/useStaffPageQuery";
+import ReadRefreshStatus from "../fragment/ReadRefreshStatus";
 import QRCode from "qrcode";
 import AdminBirthDateDialog from "../fragment/AdminBirthDateDialog";
 import { Link } from "react-router-dom";
@@ -74,9 +78,16 @@ const getAccountActivationStatus = (account, invitationByEmail) => {
 
 function AccountManagement() {
     const { firebaseUser, role, studentProfile } = useAuth();
-    const [accounts, setAccounts] = useState([]);
-    const [invitations, setInvitations] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const accountQuery = useStaffPageQuery("accounts", async () => {
+        const [accountResult, invitations] = await Promise.all([getManagedAccounts(firebaseUser), listAcademyInvitations(firebaseUser)]);
+        return { accounts: accountResult?.accounts || [], invitations: invitations || [] };
+    });
+    const accounts = useMemo(() => accountQuery.data?.accounts || [], [accountQuery.data]);
+    const invitations = useMemo(() => accountQuery.data?.invitations || [], [accountQuery.data]);
+    const loading = accountQuery.loading;
+    const updateAccounts = accountQuery.update;
+    const setAccounts = useCallback(updater => updateAccounts(data => ({ ...data, accounts: updater(data.accounts) })), [updateAccounts]);
+    const setInvitations = updater => accountQuery.update(data => ({ ...data, invitations: updater(data.invitations) }));
     const [saving, setSaving] = useState(false);
     const [resettingEmail, setResettingEmail] = useState("");
     const [reissuingStudentId, setReissuingStudentId] = useState(null);
@@ -89,19 +100,24 @@ function AccountManagement() {
     const [nicknameHistoryTarget, setNicknameHistoryTarget] = useState(null);
     const [nicknameHistory, setNicknameHistory] = useState([]);
     const [loadingNicknameHistory, setLoadingNicknameHistory] = useState(false);
-    const [errorMessage, setErrorMessage] = useState("");
-    const [searchText, setSearchText] = useState("");
-    const [roleFilter, setRoleFilter] = useState("all");
-    const [classFilter, setClassFilter] = useState("all");
-    const [planFilter, setPlanFilter] = useState("all");
-    const [activationFilter, setActivationFilter] = useState("all");
-    const [accountStatusFilter, setAccountStatusFilter] = useState("active");
-    const [accessFilter, setAccessFilter] = useState("all");
+    const [view, setView] = useStaffView(accountQuery.scope, "accounts", {
+        searchText: "", roleFilter: "all", classFilter: "all", planFilter: "all", activationFilter: "all", accountStatusFilter: "active", accessFilter: "all", page: 1, scrollY: 0
+    }, Boolean(accountQuery.data));
+    const { searchText, roleFilter, classFilter, planFilter, activationFilter, accountStatusFilter, accessFilter } = view;
+    const setFilter = (key, value) => { if (!confirmDiscardEdit()) return; setEditingAccount(null); setView(current => ({ ...current, [key]: value, page: 1, scrollY: 0 })); };
+    const setSearchText = value => setFilter("searchText", value);
+    const setRoleFilter = value => setFilter("roleFilter", value);
+    const setClassFilter = value => setFilter("classFilter", value);
+    const setPlanFilter = value => setFilter("planFilter", value);
+    const setActivationFilter = value => setFilter("activationFilter", value);
+    const setAccountStatusFilter = value => setFilter("accountStatusFilter", value);
+    const setAccessFilter = value => setFilter("accessFilter", value);
+    const accountList = useRef(null);
     const [birthdayTarget, setBirthdayTarget] = useState(null);
     const closeBirthdayDialog = useCallback(() => setBirthdayTarget(null), []);
     const saveBirthdayInList = useCallback(student => {
         setAccounts(items => items.map(item => Number(item.id) === Number(student.id) ? { ...item, date_of_birth: student.date_of_birth } : item));
-    }, []);
+    }, [setAccounts]);
     const [editingAccount, setEditingAccount] = useState(null);
     const [editForm, setEditForm] = useState({
         name: "",
@@ -110,32 +126,12 @@ function AccountManagement() {
         plan: ""
     });
 
+    const editingDirty = Boolean(editingAccount && JSON.stringify(editForm) !== JSON.stringify({
+        name: editingAccount.name || "", role: editingAccount.role || "student", class: editingAccount.class || "", plan: editingAccount.plan || ""
+    }));
+    const confirmDiscardEdit = useUnsavedChanges(editingDirty, { enabled: Boolean(accountQuery.scope) });
+
     const isAdmin = role === "admin";
-
-    const fetchAccounts = useCallback(async () => {
-        setLoading(true);
-        setErrorMessage("");
-
-        try {
-            const [accountResult, invitationResult] = await Promise.all([
-                getManagedAccounts(firebaseUser),
-                listAcademyInvitations(firebaseUser)
-            ]);
-            setAccounts(accountResult?.accounts || []);
-            setInvitations(invitationResult);
-        } catch (error) {
-            console.error("讀取帳號清單失敗:", error);
-            setErrorMessage(error?.message || "帳號清單讀取失敗");
-            setAccounts([]);
-            setInvitations([]);
-        }
-
-        setLoading(false);
-    }, [firebaseUser]);
-
-    useEffect(() => {
-        fetchAccounts();
-    }, [fetchAccounts]);
 
     useEffect(() => {
         const activationUrl = reissuedLoginCard?.credentials?.activation_url;
@@ -214,12 +210,26 @@ function AccountManagement() {
         invitationByEmail
     ]);
 
+    const pageSize = 25;
+    const pageCount = Math.max(1, Math.ceil(filteredAccounts.length / pageSize));
+    const currentPage = Math.min(pageCount, Math.max(1, Number(view.page) || 1));
+    const visibleAccounts = filteredAccounts.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+    const changePage = page => {
+        if (!confirmDiscardEdit()) return;
+        setEditingAccount(null);
+        setView(current => ({ ...current, page: Math.min(pageCount, Math.max(1, page)), scrollY: 0 }));
+        accountList.current?.scrollIntoView?.({ block: "start", behavior: "auto" });
+    };
+    useEffect(() => {
+        if (accountQuery.data && view.page !== currentPage) setView(current => ({ ...current, page: currentPage }));
+    }, [accountQuery.data, view.page, currentPage, setView]);
+
     const pendingInvitations = useMemo(() => invitations.filter(invitation => (
         ["active", "claimed", "expired"].includes(invitation.status)
     )), [invitations]);
 
     const startEdit = account => {
-        if (!isAdmin && account.role !== "student") return;
+        if ((!isAdmin && account.role !== "student") || !confirmDiscardEdit()) return;
 
         setEditingAccount(account);
         setEditForm({
@@ -231,7 +241,7 @@ function AccountManagement() {
     };
 
     const cancelEdit = () => {
-        if (saving) return;
+        if (saving || !confirmDiscardEdit()) return;
         setEditingAccount(null);
     };
 
@@ -449,13 +459,9 @@ function AccountManagement() {
     const advancedFilterCount = [isAdmin ? roleFilter : "all", planFilter, activationFilter, accessFilter].filter(value => value !== "all").length;
 
     const resetFilters = () => {
-        setSearchText("");
-        setRoleFilter("all");
-        setClassFilter("all");
-        setPlanFilter("all");
-        setActivationFilter("all");
-        setAccountStatusFilter("active");
-        setAccessFilter("all");
+        if (!confirmDiscardEdit()) return;
+        setEditingAccount(null);
+        setView(current => ({ ...current, searchText: "", roleFilter: "all", classFilter: "all", planFilter: "all", activationFilter: "all", accountStatusFilter: "active", accessFilter: "all", page: 1, scrollY: 0 }));
     };
 
     return (
@@ -477,6 +483,7 @@ function AccountManagement() {
             </section>
 
             <section className="management-panel">
+                <ReadRefreshStatus query={accountQuery} label="帳號清單" />
                 <div className="management-toolbar"><label className="management-filter management-search-filter">
                         <span>搜尋</span>
                         <input
@@ -555,16 +562,17 @@ function AccountManagement() {
 
                 {loading ? (
                     <div className="management-state">正在讀取帳號資料...</div>
-                ) : errorMessage ? (
-                    <div className="management-state management-error">{errorMessage}</div>
+                ) : !accountQuery.data ? (
+                    <div className="management-state">重新讀取成功後，這裡會顯示帳號清單。</div>
                 ) : (
                     <>
-                        <div className="management-count">
-                            顯示 {filteredAccounts.length} 筆／全部 {accounts.length} 筆帳號
+                        <div className="management-count" ref={accountList}>
+                            <span>顯示 {filteredAccounts.length} 筆／全部 {accounts.length} 筆帳號</span>
+                            {filteredAccounts.length > pageSize && <span>目前第 {(currentPage - 1) * pageSize + 1}～{Math.min(currentPage * pageSize, filteredAccounts.length)} 筆</span>}
                         </div>
 
                         <div className="management-table-wrap management-account-table-wrap">
-                            <table className="management-table management-account-table">
+                            <table className="management-table management-account-table" aria-label="帳號清單">
                                 <thead>
                                     <tr>
                                         <th>姓名</th>
@@ -579,7 +587,7 @@ function AccountManagement() {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {filteredAccounts.length > 0 ? filteredAccounts.map(account => (
+                                    {visibleAccounts.length > 0 ? visibleAccounts.map(account => (
                                         <React.Fragment key={account.id}>
                                             <tr className={`management-account-row ${account.account_status === "archived" ? "is-archived" : ""}`}>
                                                 <td data-label="姓名">
@@ -774,6 +782,11 @@ function AccountManagement() {
                                 </tbody>
                             </table>
                         </div>
+                        {pageCount > 1 && <nav className="management-pagination" aria-label="帳號清單分頁">
+                            <button type="button" onClick={() => changePage(currentPage - 1)} disabled={currentPage === 1}>上一頁</button>
+                            <span role="status">第 {currentPage}／{pageCount} 頁</span>
+                            <button type="button" onClick={() => changePage(currentPage + 1)} disabled={currentPage === pageCount}>下一頁</button>
+                        </nav>}
                     </>
                 )}
             </section>
