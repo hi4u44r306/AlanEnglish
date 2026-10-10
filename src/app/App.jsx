@@ -1,5 +1,6 @@
 import React, { lazy, Suspense } from "react";
-import { BrowserRouter as Router, Navigate, Outlet, Route, Routes, useLocation, useParams } from "react-router-dom";
+import { Navigate, Outlet, Route, Routes, useLocation, useParams } from "react-router-dom";
+import Router from "./GuardedBrowserRouter";
 import { Helmet } from "react-helmet";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";

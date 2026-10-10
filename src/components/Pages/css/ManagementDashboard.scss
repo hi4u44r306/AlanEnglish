@@ -961,3 +961,11 @@
 .management-toolbar .management-filter-reset { min-height: 44px; }
 
 .management-page button { min-height: 44px; }
+
+.management-count { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; scroll-margin-top: 104px; }
+.management-pagination { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 12px; padding: 16px 0 4px;
+  button { min-height: 44px; padding: 8px 16px; border: 1px solid #c4d3e9; border-radius: 8px; background: #fff; color: #17365d; font: inherit; }
+  button:disabled { opacity: .5; cursor: default; }
+  button:focus-visible { outline: 3px solid #2f6fed; outline-offset: 3px; }
+  span { font-weight: 600; color: #17365d; }
+}

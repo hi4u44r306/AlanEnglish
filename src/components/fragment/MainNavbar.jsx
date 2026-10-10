@@ -1,3 +1,4 @@
+import { cancelUnsavedLeaveApproval, confirmUnsavedChanges } from "../../hooks/useUnsavedChanges";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Container from 'react-bootstrap/Container';
@@ -272,13 +273,14 @@ function MainNavbar() {
         setDesktopMaterialsOpen(false);
     };
     const handleLogout = async () => {
-        if (loggingOut) return;
+        if (loggingOut || !confirmUnsavedChanges()) return;
         setLoggingOut(true);
         closeMobileMenu();
         try {
             await logout();
             navigate("/", { replace: true });
         } catch (error) {
+            cancelUnsavedLeaveApproval();
             console.error("登出失敗:", error);
         } finally {
             setLoggingOut(false);

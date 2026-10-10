@@ -1,3 +1,5 @@
+import { clearStaffPageCache } from "../../services/staffPageCache";
+beforeEach(() => clearStaffPageCache());
 import React from "react";
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
@@ -6,7 +8,7 @@ import { createAssignment, createAssignmentV2, getTeacherAssignmentBootstrap, ge
 import { clearTeacherAssignmentDraft, readTeacherAssignmentDraft, saveTeacherAssignmentDraft } from "../../services/teacherAssignmentDraft";
 
 let mockUser = { uid: "teacher-a" };
-jest.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ firebaseUser: mockUser }) }));
+jest.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ firebaseUser: mockUser, role: "teacher" }) }));
 jest.mock("../../services/assignmentService", () => ({ createAssignment: jest.fn(), createAssignmentV2: jest.fn(),
     getTeacherAssignmentBootstrap: jest.fn(), getTeacherAssignments: jest.fn(), deleteAssignment: jest.fn(),
     getAssignmentResults: jest.fn(), previewAssignmentV2: jest.fn(), upsertPageLearningContent: jest.fn() }));
@@ -109,4 +111,11 @@ test("list first, validates steps, keeps draft when switching workspaces, does n
     expect(createAssignment).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole("tab", { name: "已發布作業" })); openCreate();
     expect(screen.getByLabelText("作業名稱")).toHaveValue("本週練習");
+});
+
+
+test("returning to teacher assignments reuses the same login snapshot", async () => {
+    const first = render(<TeacherAssignments />); await ready(); first.unmount(); render(<TeacherAssignments />);
+    expect(screen.getByRole("button", { name: "複製作業" })).toBeEnabled(); await ready();
+    expect(getTeacherAssignments).toHaveBeenCalledTimes(1); expect(getTeacherAssignmentBootstrap).toHaveBeenCalledTimes(1);
 });

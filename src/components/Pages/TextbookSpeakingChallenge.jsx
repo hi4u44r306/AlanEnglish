@@ -1,3 +1,4 @@
+import { speakingReadFailure } from "../../utils/speakingReadFailure";
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { FiAward, FiBookOpen, FiCheck, FiChevronLeft, FiChevronRight, FiMic, FiVolume2 } from "react-icons/fi";
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
@@ -119,7 +120,8 @@ export default function TextbookSpeakingChallenge() {
 
     const [challenge, setChallenge] = useState(null);
     const [loadedChallengeKey, setLoadedChallengeKey] = useState("");
-    const [error, setError] = useState("");
+    const [error, setError] = useState(null);
+    const [readAttempt, setReadAttempt] = useState(0);
     const [audioWorking, setAudioWorking] = useState("");
     const [audioError, setAudioError] = useState("");
     const [activeQuestionIndex, setActiveQuestionIndex] = useState(0);
@@ -316,7 +318,7 @@ export default function TextbookSpeakingChallenge() {
     useEffect(() => {
         if (!firebaseUser || !questionSetId) return;
         let cancelled = false;
-        setError("");
+        setError(null);
         setAudioError("");
         if (questionSetId) {
             setActiveQuestionIndex(0);
@@ -340,12 +342,12 @@ export default function TextbookSpeakingChallenge() {
                     }
                 }
             } catch (loadError) {
-                if (!cancelled && !leavingRef.current) setError(loadError.message || "口說大挑戰載入失敗");
+                if (!cancelled && !leavingRef.current) setError(loadError);
             }
         };
         load();
         return () => { cancelled = true; };
-    }, [firebaseUser, questionSetId, staffPreview, challengeMode, navigate, location.pathname, location.state]);
+    }, [firebaseUser, questionSetId, staffPreview, challengeMode, navigate, location.pathname, location.state, readAttempt]);
 
     const switchToPractice = useCallback(reason => setChallenge(current => current ? { ...current, practice_only: true, practice_reason: reason } : current), []);
     const markComplete = async (question, sessionId = challengeSessionId) => {
@@ -389,8 +391,13 @@ export default function TextbookSpeakingChallenge() {
         audio.play().catch(() => { clear(); setAudioError("示範暫時無法播放，請再按一次試聽；你仍可直接錄音。"); });
     };
 
-    const loadError = questionSetId ? error : !catalogQuery.data ? catalogQuery.error?.message : "";
-    if (loadError) return <main className="speaking-challenge-page"><section className="speaking-challenge-empty"><FiMic /><h1>口說大挑戰暫時無法開啟</h1><p>{loadError}</p>{!questionSetId && <button type="button" onClick={() => catalogQuery.refresh()}>重新讀取</button>}<Link to="/student/membership">查看方案與功能</Link></section></main>;
+    const loadError = questionSetId ? error : !catalogQuery.data ? catalogQuery.error : null;
+    if (loadError) {
+        const failure = speakingReadFailure(loadError);
+        return <main className="speaking-challenge-page"><section className="speaking-challenge-empty" role="status"><FiMic /><h1>{failure.title}</h1><p>{failure.detail}</p>
+            {failure.retry && <button type="button" onClick={() => questionSetId ? setReadAttempt(attempt => attempt + 1) : catalogQuery.refresh()} disabled={catalogQuery.refreshing}>重新讀取</button>}
+            <Link to={failure.link}>{failure.action}</Link></section></main>;
+    }
     if (!questionSetId) {
         const selectedBook = bookKey ? catalogGroups.find(group => group.id === bookKey || encodeURIComponent(group.id) === bookKey) : null;
         if (bookKey && catalogLoading) {
