@@ -138,11 +138,25 @@
 }
 @media (prefers-reduced-motion: reduce) { .learning-home a { transition: none; transform: none !important; } }
 
-.birthday-notice { margin-bottom: 20px; padding: 16px; border: 1px solid #ead68d; border-radius: 14px; background: #fff9de; color: #17365d; overflow-wrap: anywhere;
-    h2 { font-size: 22px; margin-bottom: 8px; }
-    p + p { margin-top: 8px; }
-    @media (max-width: 600px) { padding: 16px; h2 { font-size: 20px; } }
+.birthday-notice {
+    margin-bottom: 20px; padding: 16px; border: 1px solid #ead68d; border-radius: 14px; background: #fff9de; color: #17365d; overflow-wrap: anywhere;
+    h2 { font-size: 22px; margin: 0; }
+    p { margin: 8px 0 0; }
+    &__heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    &__close { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 44px; width: 44px; height: 44px; border: 0; border-radius: 8px; background: transparent; color: inherit; font-size: 22px; }
+    &__close:hover { background: #f3e8bc; }
+    button:focus-visible { outline: 3px solid #17365d; outline-offset: 3px; }
+    &__options { margin-top: 16px; padding-top: 12px; border-top: 1px solid #ead68d; }
+    &__options > p { margin-top: 0; font-size: 14px; }
+    &__choices { display: flex; gap: 12px; margin-top: 12px; }
+    &__choices button { flex: 1; min-width: 0; min-height: 44px; padding: 12px; border: 1px solid #cfba73; border-radius: 8px; background: transparent; color: inherit; text-align: left; }
+    &__choices button:hover { background: #f3e8bc; }
+    &__choices strong, &__choices span { display: block; }
+    &__choices span { margin-top: 4px; font-size: 14px; }
+    &__options > .birthday-notice__error { margin-top: 12px; color: #9a3412; }
+    @media (max-width: 600px) { h2 { font-size: 20px; } &__choices { flex-direction: column; } }
 }
+
 
 // Secondary destinations stay easy to tap without competing with today's task.
 .learning-home .learning-home__section-heading > a { padding: 8px 0; border: 0; border-radius: 6px; background: transparent; box-shadow: none; font-weight: 700; }

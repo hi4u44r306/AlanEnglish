@@ -304,5 +304,11 @@ test("home displays the server birthday benefit without adding another endpoint 
     renderHome();
     await screen.findByText("生日月快樂！");
     expect(screen.getByText("150 AE Points")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "關閉生日月祝福" }));
+    fireEvent.click(screen.getByRole("button", { name: /不再顯示/ }));
+    expect(localStorage.getItem("ae-birthday-notice-hidden-v1:learner-a")).toBe("1");
+    expect(screen.queryByText("生日月快樂！")).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "今天，一起探索英文！" })).toHaveFocus();
+    expect(screen.getByText("180 XP")).toBeInTheDocument();
     expect(getGamificationSummary).toHaveBeenCalledTimes(1);
 });
