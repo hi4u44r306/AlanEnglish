@@ -92,11 +92,13 @@ const buildReport = async (admin: any, student: any, weekStart: string) => {
         assignmentResult,
         aiResult,
         reviewResult,
-        activityResult
+        activityResult,
+        speakingPassedResult,
+        speakingAttemptResult
     ] = await Promise.all([
         admin
             .from("guardian_contacts")
-            .select("id,guardian_name,email,notification_enabled")
+            .select("id,guardian_name,email,notification_enabled,email_verified_at")
             .eq("student_id", student.id)
             .maybeSingle(),
         admin
@@ -128,7 +130,20 @@ const buildReport = async (admin: any, student: any, weekStart: string) => {
             .select("activity_type,occurred_at")
             .eq("student_id", student.id)
             .gte("occurred_at", range.startAt)
-            .lt("occurred_at", range.endAt)
+            .lt("occurred_at", range.endAt),
+        // Challenge-mode passes are what unlock levels, so they are the speaking result parents see.
+        admin
+            .from("speaking_challenge_mode_progress")
+            .select("question_id,completed_at")
+            .eq("student_id", student.id)
+            .gte("completed_at", range.startAt)
+            .lt("completed_at", range.endAt),
+        admin
+            .from("speaking_pronunciation_attempts")
+            .select("id,created_at")
+            .eq("student_id", student.id)
+            .gte("created_at", range.startAt)
+            .lt("created_at", range.endAt)
     ]);
     const firstError = [
         guardianResult.error,
@@ -136,7 +151,9 @@ const buildReport = async (admin: any, student: any, weekStart: string) => {
         assignmentResult.error,
         aiResult.error,
         reviewResult.error,
-        activityResult.error
+        activityResult.error,
+        speakingPassedResult.error,
+        speakingAttemptResult.error
     ].find(Boolean);
     if (firstError) throw firstError;
 
@@ -145,6 +162,7 @@ const buildReport = async (admin: any, student: any, weekStart: string) => {
         0
     );
     const completedAssignments = (assignmentResult.data || []).filter((row: any) => row.completed).length;
+    const startedAssignments = (assignmentResult.data || []).filter((row: any) => !row.completed).length;
     const questionRows = [
         ...(aiResult.data || []).map((row: any) => ({
             correct: Number(row.correct_count || 0),
@@ -162,12 +180,14 @@ const buildReport = async (admin: any, student: any, weekStart: string) => {
     for (const row of listeningResult.data || []) {
         if (Number(row.play_count || 0) > 0) activeDateKeys.add(String(row.activity_date));
     }
-    for (const row of activityResult.data || []) {
-        const timestamp = new Date(row.occurred_at).getTime();
+    const addActiveDay = (value: unknown) => {
+        const timestamp = new Date(String(value)).getTime();
         if (Number.isFinite(timestamp)) {
             activeDateKeys.add(new Date(timestamp + TAIPEI_OFFSET_MS).toISOString().slice(0, 10));
         }
-    }
+    };
+    for (const row of activityResult.data || []) addActiveDay(row.occurred_at);
+    for (const row of speakingAttemptResult.data || []) addActiveDay(row.created_at);
     const conversationCount = (activityResult.data || [])
         .filter((row: any) => row.activity_type === "conversation")
         .length;
@@ -182,6 +202,9 @@ const buildReport = async (admin: any, student: any, weekStart: string) => {
             active_days: activeDateKeys.size,
             listening_count: listening,
             completed_assignments: completedAssignments,
+            started_assignments: startedAssignments,
+            speaking_passed: (speakingPassedResult.data || []).length,
+            speaking_attempts: (speakingAttemptResult.data || []).length,
             ai_passed: aiPassed,
             review_count: (reviewResult.data || []).length,
             conversation_count: conversationCount,
@@ -192,44 +215,60 @@ const buildReport = async (admin: any, student: any, weekStart: string) => {
 };
 
 const buildEmail = (report: any) => {
+    const m = report.metrics;
     const guardianName = report.guardian?.guardian_name
         ? `${escapeHtml(report.guardian.guardian_name)} 家長您好`
         : "家長您好";
     const studentName = escapeHtml(report.student.name || "孩子");
-    const accuracyText = report.metrics.accuracy === null ? "本週尚無測驗" : `${report.metrics.accuracy}%`;
     const subject = `Alan English｜${report.student.name} ${report.range.startDate} 學習週報`;
-    const text = `${guardianName}：\n\n${studentName} 在 ${report.range.startDate}～${report.range.endDate} 的學習摘要：\n` +
-        `・活躍天數：${report.metrics.active_days} 天\n` +
-        `・聽力播放：${report.metrics.listening_count} 次\n` +
-        `・完成作業：${report.metrics.completed_assignments} 份\n` +
-        `・AI 教材通過：${report.metrics.ai_passed} 份\n` +
-        `・複習題數：${report.metrics.review_count} 題\n` +
-        `・作答正確率：${accuracyText}\n\n` +
-        `${report.status.label}：${report.status.message}\n\nAlan English`;
+    const assignmentText = m.completed_assignments || m.started_assignments
+        ? `完成 ${m.completed_assignments} 份${m.started_assignments ? `，另有 ${m.started_assignments} 份做到一半` : ""}`
+        : "本週沒有作業紀錄";
+    const speakingText = m.speaking_attempts
+        ? `開口練習 ${m.speaking_attempts} 次，通過 ${m.speaking_passed} 題`
+        : "本週沒有口說練習";
+    // Optional lines appear only when the student actually used that feature.
+    const extras = [
+        m.ai_passed ? ["AI 教材", `通過 ${m.ai_passed} 份`] : null,
+        m.review_count ? ["智慧複習", `${m.review_count} 題${m.accuracy === null ? "" : `，正確率 ${m.accuracy}%`}`] : null
+    ].filter(Boolean) as string[][];
+    const text = `${guardianName}：\n\n${report.student.name || "孩子"} 在 ${report.range.startDate}～${report.range.endDate} 的學習摘要：\n` +
+        `・練習天數：${m.active_days} / 7 天\n` +
+        `・聽力：有效聆聽 ${m.listening_count} 次\n` +
+        `・口說大挑戰：${speakingText}\n` +
+        `・作業：${assignmentText}\n` +
+        extras.map(([label, value]) => `・${label}：${value}\n`).join("") +
+        `\n${report.status.label}：${report.status.message}\n\nAlan English`;
+    const tile = (value: string | number, unit: string, label: string, color: string) => `
+          <td style="width:33.33%;padding:0 4px;vertical-align:top">
+            <div style="background:${color};border-radius:14px;padding:16px 6px;text-align:center">
+              <div style="font-size:30px;font-weight:800;line-height:1.1;color:#17365d">${value}<span style="font-size:14px;font-weight:700"> ${unit}</span></div>
+              <div style="font-size:13px;color:#42566e;margin-top:6px">${label}</div>
+            </div>
+          </td>`;
+    const row = (label: string, value: string, last = false) => `
+        <tr><td style="padding:14px 4px;${last ? "" : "border-bottom:1px solid #edf0f5;"}color:#42566e;white-space:nowrap">${escapeHtml(label)}</td><td style="padding:14px 4px;${last ? "" : "border-bottom:1px solid #edf0f5;"}text-align:right;font-weight:700;color:#17365d">${escapeHtml(value)}</td></tr>`;
+    const rows = [["口說大挑戰", speakingText], ["作業", assignmentText], ...extras];
     const html = `<!doctype html>
 <html lang="zh-Hant">
-<body style="margin:0;background:#f6f8fb;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#172033">
-  <div style="max-width:640px;margin:0 auto;padding:28px 16px">
-    <div style="background:#173f5f;color:white;border-radius:20px 20px 0 0;padding:28px">
-      <div style="font-size:12px;letter-spacing:.16em;opacity:.78">ALAN ENGLISH WEEKLY REPORT</div>
-      <h1 style="font-size:26px;margin:10px 0 6px">${studentName} 的英文學習週報</h1>
-      <div style="opacity:.84">${report.range.startDate} ～ ${report.range.endDate}</div>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head>
+<body style="margin:0;background:#f5f8fc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft JhengHei',sans-serif;color:#17365d">
+  <div style="max-width:560px;margin:0 auto;padding:24px 14px">
+    <div style="background:#17365d;color:#ffffff;border-radius:20px 20px 0 0;padding:24px">
+      <div style="font-size:22px;font-weight:800;line-height:1.4">${studentName} 這週的英文學習</div>
+      <div style="font-size:14px;opacity:.85;margin-top:4px">${report.range.startDate} ～ ${report.range.endDate}</div>
     </div>
-    <div style="background:white;padding:28px;border-radius:0 0 20px 20px;box-shadow:0 12px 32px rgba(23,63,95,.08)">
-      <p style="font-size:16px;line-height:1.8;margin-top:0">${guardianName}：</p>
-      <div style="background:#eef6ff;border-radius:14px;padding:18px;margin:20px 0">
-        <strong style="font-size:18px;color:#173f5f">${escapeHtml(report.status.label)}</strong>
-        <p style="line-height:1.7;margin:8px 0 0">${escapeHtml(report.status.message)}</p>
+    <div style="background:#ffffff;padding:24px 20px;border-radius:0 0 20px 20px">
+      <p style="font-size:16px;line-height:1.7;margin:0 0 16px">${guardianName}：</p>
+      <table role="presentation" style="width:100%;border-collapse:collapse;table-layout:fixed"><tr>${tile(m.active_days, "/ 7 天", "有練習的天數", "#e4efff")}${tile(m.listening_count, "次", "聽力有效聆聽", "#e4f3ea")}${tile(m.speaking_passed, "題", "口說通過", "#fff6d7")}
+      </tr></table>
+      <div style="background:#f5f8fc;border-radius:14px;padding:16px;margin:18px 0">
+        <strong style="font-size:17px;color:#17365d">${escapeHtml(report.status.label)}</strong>
+        <p style="font-size:15px;line-height:1.7;margin:6px 0 0;color:#42566e">${escapeHtml(report.status.message)}</p>
       </div>
-      <table role="presentation" style="width:100%;border-collapse:collapse;font-size:15px">
-        <tr><td style="padding:12px;border-bottom:1px solid #edf0f5">活躍天數</td><td style="padding:12px;border-bottom:1px solid #edf0f5;text-align:right;font-weight:700">${report.metrics.active_days} 天</td></tr>
-        <tr><td style="padding:12px;border-bottom:1px solid #edf0f5">聽力播放</td><td style="padding:12px;border-bottom:1px solid #edf0f5;text-align:right;font-weight:700">${report.metrics.listening_count} 次</td></tr>
-        <tr><td style="padding:12px;border-bottom:1px solid #edf0f5">完成作業</td><td style="padding:12px;border-bottom:1px solid #edf0f5;text-align:right;font-weight:700">${report.metrics.completed_assignments} 份</td></tr>
-        <tr><td style="padding:12px;border-bottom:1px solid #edf0f5">AI 教材通過</td><td style="padding:12px;border-bottom:1px solid #edf0f5;text-align:right;font-weight:700">${report.metrics.ai_passed} 份</td></tr>
-        <tr><td style="padding:12px;border-bottom:1px solid #edf0f5">智慧複習</td><td style="padding:12px;border-bottom:1px solid #edf0f5;text-align:right;font-weight:700">${report.metrics.review_count} 題</td></tr>
-        <tr><td style="padding:12px">作答正確率</td><td style="padding:12px;text-align:right;font-weight:700">${accuracyText}</td></tr>
+      <table role="presentation" style="width:100%;border-collapse:collapse;font-size:15px">${rows.map(([label, value], index) => row(label, value, index === rows.length - 1)).join("")}
       </table>
-      <p style="font-size:13px;color:#697386;line-height:1.7;margin:26px 0 0">這封信由 Alan English 學習系統自動產生。如需調整收件設定，請聯絡授課老師。</p>
+      <p style="font-size:12px;color:#6b7c93;line-height:1.7;margin:22px 0 0">「有效聆聽」是孩子實際聽滿八成以上才算一次。這封信由 Alan English 自動寄出；如需停止收信或更換信箱，請聯絡授課老師。</p>
     </div>
   </div>
 </body>
@@ -414,10 +453,11 @@ Deno.serve(async (req: Request) => {
         } else {
             const { data, error } = await admin
                 .from("students")
-                .select("id,name,email,class,role,guardian_contacts!inner(id,email,notification_enabled)")
+                .select("id,name,email,class,role,guardian_contacts!inner(id,email,notification_enabled,email_verified_at)")
                 .eq("role", "student")
                 .eq("guardian_contacts.notification_enabled", true)
                 .not("guardian_contacts.email", "is", null)
+                .not("guardian_contacts.email_verified_at", "is", null)
                 .order("id", { ascending: true })
                 .limit(5000);
             if (error) throw error;
@@ -441,6 +481,11 @@ Deno.serve(async (req: Request) => {
                 const report = await buildReport(admin, student, weekStart);
                 if (!report.guardian?.email || !report.guardian?.notification_enabled) {
                     results.push({ student_id: student.id, status: "skipped", reason: "guardian_not_configured" });
+                    continue;
+                }
+                // Reports contain a child's learning data, so they only go to an address the parent verified.
+                if (!report.guardian.email_verified_at) {
+                    results.push({ student_id: student.id, status: "skipped", reason: "guardian_email_not_verified" });
                     continue;
                 }
                 const email = buildEmail(report);
