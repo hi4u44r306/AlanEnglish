@@ -1,5 +1,13 @@
 # Alan English 專案狀態
 
+### 學生頁面底部多餘空白（2026-10-11，PR 待擁有者說「幫我合併」）
+
+- 擁有者以 iPhone 截圖回報我的進度頁尾有大片空白並要求檢查所有頁面長度。發布紀錄補記：PR #530 已合併為 main `b927838f`，Workers Builds 成功，線上口說 chunk 含 `speaking-gap-cue`。
+- 原因：`.app-content` 已為底部導覽列保留 `94px + offset`（播放時更多），但多數頁面根元素仍各自加 58～190px 的 `padding-bottom`，且 Playlist、WeeklyReport、ReviewCenter、AIMaterialGenerator 等在殼層內又設 `min-height: 100vh`，兩者疊加。另發現播放時 `Containerfull` 以 inline `paddingBottom`（預設 110px／`curr_margin`）蓋掉學生版 `has-player` 規則。
+- 修正（只加在 `StudentNavbar.scss`，範圍 `max-width:1279px` 且有底部導覽、排除 `speaking-challenge-active` 與 `sr-immersive`）：`.app-content` 改為直向 flex，頁面根元素 `flex:1 0 auto; min-height:0; padding-bottom:16px`（皆 `!important`）；`has-player` 的 padding 以 `!important` 還原為 `176px + offset`；`html` 背景設為 `#f7f9fc`。各頁 SCSS 未逐一修改。
+- 量測（以實際編譯的殼層與八個學生頁面樣式組成的模擬頁，390×800）：短內容時 playlist、weekly-report、review-center、ai-studio 的多餘捲動由 183px 變 0；長內容時頁尾留白由 156～214px 統一為 130px，內容底端高於導覽列 42px；播放中的 padding 為 196px。
+- 未驗：真實登入頁面、iPhone Safari 實機、桌面寬度（本次規則不套用於桌面）。截圖中導覽列下方半個螢幕的白色區域無法在此重現，推測是 iOS 捲過頭的回彈區，僅以 html 背景色處理，未確認。
+
 ### 看圖挖空句：大字、空格中文、移除圖片（2026-10-11，PR 待擁有者說「幫我合併」）
 
 - 擁有者以 iPhone 截圖回報 #525／#527 沒有套到看圖挖空句畫面：該畫面由 `WorkbookOnePictureChallenge` 渲染，句子在 `.speaking-gap-sentence`（非 h2），且 `hideHelp` 在 easy 模式一律為 true，所以沒有放大、也沒有提示按鈕。
