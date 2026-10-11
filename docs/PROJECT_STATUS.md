@@ -1,5 +1,13 @@
 # Alan English 專案狀態
 
+### 家長每週學習報告 Email：只寄已驗證信箱、加入口說與作業（2026-10-11，PR 待擁有者說「幫我合併」／後端尚未部署）
+
+- 分支 `feature/guardian-weekly-email`，基準 main `ea9da6ad`。只改 `supabase/functions/guardian-email/index.ts`，無 migration、無前端變更。
+- 既有狀況（正式庫唯讀核對）：`guardian-email` 函式、Resend 寄信、`guardian_email_settings`（週一 9 點、寄件信箱已設定）與每小時排程 `alan-english-guardian-weekly-dispatch` 都已存在，但 `enabled = false`，從未寄出過週報；目前 1 筆家長聯絡資料。
+- 變更：收件人必須有 `email_verified_at`（批次查詢與逐筆檢查都加上，未驗證回報 `guardian_email_not_verified`）；報告新增口說大挑戰（`speaking_challenge_mode_progress` 當週通過題數、`speaking_pronunciation_attempts` 當週練習次數）與做到一半的作業數，口說練習也計入練習天數；信件改為三個大數字加明細，AI 教材與智慧複習只在有資料時顯示，加上行動裝置 viewport。
+- 驗證：把信件產生函式抽成純 JS 以假資料執行，文字版與 HTML 皆正常，並於 400px 截圖目視。Edge Function 本身未在 Deno 環境執行或型別檢查；沒有實際寄出任何信。
+- 待發布：合併後由 main 部署 `guardian-email`；部署後請管理員先對一位學生手動寄一封確認，再決定是否把自動寄送打開。
+
 ### 我的進度頁重做：一個下一步＋一張清單（2026-10-11，PR 待擁有者說「幫我合併」）
 
 - 分支 `feature/progress-page-polish`，基準 main `ea9da6ad`。純前端。
@@ -8,6 +16,7 @@
 - `MusicPlayer` 的精簡獎勵文字改用 `LISTENING_MASTERY_REQUIRED_PLAYS`（原本寫死 /10）。
 - 驗證：StudentProgressOverview 7 項、StudentSettings、MusicPlayer.visibility 通過；ESLint、SCSS 編譯通過；編譯後樣式的靜態預覽於 400px 截圖目視，無水平溢位。
 - 未驗：真實登入、桌面寬度、iPhone Safari。已知：`SpeakingChallengeFlow.test.jsx` 仍有既有的 9 項失敗未查。
+
 
 ### 口說簡單版：看圖挖空句隱藏答案、提示取消該題通過（2026-10-11，PR 待擁有者說「幫我合併」／後端尚未部署）
 
