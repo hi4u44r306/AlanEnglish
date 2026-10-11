@@ -5,8 +5,8 @@ import { createPortal } from "react-dom";
 import {
     MdCheck,
     MdClosedCaption,
+    MdHeadphones,
     MdKeyboardArrowDown,
-    MdMusicNote,
     MdMoreVert,
     MdPause,
     MdPlayArrow,
@@ -28,6 +28,7 @@ import {
 import { toast } from "react-toastify";
 import "react-h5-audio-player/lib/styles.css";
 import "../assets/scss/FooterPlayer.scss";
+import "../assets/scss/FooterPlayerMinimal.scss";
 import { useAuth } from "../../auth/AuthContext";
 import {
     recordTrackPlay,
@@ -62,6 +63,22 @@ const formatTime = value => {
 
     return `${minutes}:${seconds}`;
 };
+
+// How much of this listen has really been heard, drawn as a ring that is full at the 80%
+// needed for one valid listen. Display only: counting stays in the coverage logic below.
+function CoverageRing({ percent, ineligible = false }) {
+    const done = !ineligible && percent >= 80;
+    const fill = ineligible ? 0 : Math.min(100, Math.max(0, percent / 80 * 100));
+    return (
+        <span className={`player-coverage-ring${done ? " is-done" : ""}${ineligible ? " is-off" : ""}`} aria-hidden="true">
+            <svg viewBox="0 0 36 36" focusable="false">
+                <circle cx="18" cy="18" r="15" />
+                <circle cx="18" cy="18" r="15" pathLength="100" strokeDasharray={`${fill} 100`} />
+            </svg>
+            {done ? <MdCheck /> : <MdHeadphones />}
+        </span>
+    );
+}
 
 function PlayerOptionsPanel({
     repeatTrack,
@@ -1297,12 +1314,12 @@ function MusicPlayer({
         <div className="footer-player">
             <button
                 type="button"
-                className="player-mobile-expand"
+                className={`player-mobile-expand${sessionIneligible ? " is-ineligible" : ""}`}
                 onClick={() => setIsMobileExpanded(true)}
                 aria-label="展開播放器"
             >
                 <span className="player-track-art" aria-hidden="true">
-                    <MdMusicNote />
+                    <CoverageRing percent={coveragePercent} ineligible={sessionIneligible} />
                 </span>
                 <span className="player-track-summary" aria-live="polite">
                     <span className="player-track-title">
@@ -1392,7 +1409,7 @@ function MusicPlayer({
                     </div>,
                     <div key="desktop-track" className="desktop-player-track">
                         <span className="desktop-player-art" aria-hidden="true">
-                            <MdMusicNote />
+                            <CoverageRing percent={coveragePercent} ineligible={sessionIneligible} />
                         </span>
                         <span className="desktop-player-copy">
                             <strong>
@@ -1512,11 +1529,16 @@ function MusicPlayer({
                     </button>
                     <div className="mobile-overlay-content">
                         <div className="mobile-overlay-art" aria-hidden="true">
-                            <MdMusicNote />
+                            <strong>{page || bookname || "教材音檔"}</strong>
+                            {page && bookname && <span>{bookname}</span>}
                         </div>
                         <div className="mobile-overlay-title">
                             <strong>{bookname || "未命名教材"}{page ? ` · ${page}` : ""}</strong>
                             <span>{sessionIneligible ? "加速播放中，這段不計入次數" : `有效聆聽 ${Math.floor(coveragePercent)}%`}</span>
+                        </div>
+                        <div className={`mobile-overlay-coverage${sessionIneligible ? " is-off" : coveragePercent >= 80 ? " is-done" : ""}`} aria-hidden="true">
+                            <CoverageRing percent={coveragePercent} ineligible={sessionIneligible} />
+                            <b>{sessionIneligible ? "加速播放，這次不算" : coveragePercent >= 80 ? "聽夠了！" : "圈圈滿了算一次"}</b>
                         </div>
                         {masteryText && <div className="mobile-overlay-mastery"><strong>{masteryText.title}</strong><p>{masteryText.detail}</p></div>}
                         <div className="mobile-overlay-progress">

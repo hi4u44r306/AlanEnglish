@@ -1,5 +1,15 @@
 # Alan English 專案狀態
 
+### 聽力播放器精簡（2026-10-12，分支 `feature/player-simplify`，待擁有者說「幫我合併」）
+
+- 純顯示層。`MusicPlayer.jsx` 新增 `CoverageRing`（以既有 `coveragePercent`／`sessionIneligible` 繪製，80% 為滿），取代迷你列、桌面列的音符圖示；全螢幕播放器的圖示區改為頁碼＋教材名，並新增圈圈說明列。新增 `FooterPlayerMinimal.scss`（於 `FooterPlayer.scss` 之後載入）覆寫外觀：淺色全螢幕、隱藏喜歡／不喜歡、熟練說明句、桌面浮動狀態列（保留給輔助科技），全螢幕底部預留學生底部導覽高度，設定選單置中。
+- 未動：覆蓋率計算、`record-play`、seek／倍速判定、noInteraction、續播與音檔載入；`toggleTrackReaction` 邏輯仍在，只是按鈕不顯示。
+- 驗證：MusicPlayer.visibility、ListeningRewardFeedback、Playlist 共 38 項通過；本機 `localhost:3000` 測試學生播放約 3 秒即暫停（不灌次數），實看 375 寬迷你列、全螢幕與設定選單。未驗：聽滿 80% 的打勾狀態與加速狀態（需實際聽完）、桌面列僅以計算樣式確認、iPhone Safari。
+
+### PR #531 已發布（2026-10-12）
+
+- `fix/page-length` 合併至 `main`（merge `fe2235a0`），Workers Builds 成功；正式站 `alanenglish.com.tw` 的 JS／CSS 已含「接著聽」「作業遲交」「今天還能練幾輪」「上次聽到這裡」等字串與 `student-progress__listen`、`playlist-track--last-heard`。未做：正式站登入後逐頁實看、iPhone Safari。
+
 ### 口說大挑戰首頁精簡、作業用語「遲交」（2026-10-12，併入 PR #531，待擁有者說「幫我合併」）
 
 - 同分支 `fix/page-length`。純前端顯示，額度與作業狀態判斷未動。
