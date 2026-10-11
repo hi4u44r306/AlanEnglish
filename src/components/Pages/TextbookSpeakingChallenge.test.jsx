@@ -597,8 +597,8 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(screen.getByText("輪數怎麼算？")).toBeInTheDocument();
         expect(screen.getByText("送評有上限嗎？")).toBeInTheDocument();
         expect(screen.getByText(/每個字母每天最多評分 3 次/)).toBeInTheDocument();
-        expect(screen.getByText(/第一次送評才扣一輪.*同輪重試不多扣/)).toBeInTheDocument();
-        expect(screen.getByText(/字母／拼讀最多 12 秒/)).toBeInTheDocument();
+        expect(screen.getByText(/第一次送評才扣一輪.*同一輪重試不多扣/)).toBeInTheDocument();
+        expect(screen.getByText(/字母／拼讀每段最多錄 12 秒/)).toBeInTheDocument();
         expect(screen.getByText(/完成整關挑戰才算正式通關並解鎖下一頁/)).toBeInTheDocument();
         fireEvent.click(rulesToggle);
         expect(rulesToggle).toHaveAttribute("aria-expanded", "false");

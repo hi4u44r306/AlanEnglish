@@ -4,7 +4,8 @@
 
 - 同分支 `fix/page-length`。純前端顯示，額度與作業狀態判斷未動。
 - `TextbookSpeakingChallenge.jsx`：`speaking-catalog-help` 移入首頁標題卡，summary 改為「麥克風＋剩餘／上限」計數；樣式在 `SpeakingMinimalLevel.scss`（隱藏小標、說明句、三步驟與重複數字）。老師預覽維持原標題文字、不顯示計數。
-- 修正：計數標示原本被 `speaking-challenge-hero__copy`（z-index 2）蓋住而點不到；改為 summary `z-index: 3`、標題層 `pointer-events: none`，並加上「規則」文字與箭頭。已知既有問題：`SpeakingChallengeRules.test.jsx` 有 2 項失敗（斷言的文字在元件中早已不存在，非本次造成）。
+- `SpeakingChallengeRules.jsx` 學生與家長可見文字改為白話（移除「Azure」「本機」），僅文案、規則數值未動；`SpeakingChallengeRules.test.jsx` 原有 2 項過期斷言已更新並新增「不得出現 Azure／本機」檢查，`TextbookSpeakingChallenge.test.jsx` 同步；兩組共 57 項通過。窄畫面計數字級縮小。
+- 修正：計數標示原本被 `speaking-challenge-hero__copy`（z-index 2）蓋住而點不到；改為 summary `z-index: 3`、標題層 `pointer-events: none`，並加上「規則」文字與箭頭。
 - `studentLearning.js` 的 `assignmentStateLabel.overdue` 改為「遲交」，`StudentAssignments.jsx`、`Playlist.jsx` 提醒文字同步；老師與管理端用語未動。
 - 驗證：TextbookSpeakingChallenge、StudentAssignments、Playlist、StudentProgressOverview 等 5 組共 87 項通過；本機測試學生實看口說首頁 375 寬的收合與展開。未驗：桌面寬度、iPhone Safari。
 

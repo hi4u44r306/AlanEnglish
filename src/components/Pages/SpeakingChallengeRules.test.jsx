@@ -12,8 +12,9 @@ test("顯示每天十輪，舊送評月額度資料也不顯示", () => {
     const toggle = screen.getByRole("button", { name: /查看說明/ });
     fireEvent.click(toggle);
     expect(toggle).toHaveAttribute("aria-expanded", "true");
-    expect(screen.getByText(/沒有個人每月送評秒數額度/)).toBeInTheDocument();
+    expect(screen.getByText(/句子練習沒有每月秒數限制/)).toBeInTheDocument();
     expect(screen.getByText(/第一次送評才扣一輪/)).toBeInTheDocument();
+    expect(document.body).not.toHaveTextContent(/Azure|本機/);
 });
 
 test("null 或讀取失敗不冒充剩零輪", () => {
@@ -32,5 +33,6 @@ test("十輪用完仍可完成同輪，不出現月額度耗盡訊息", () => {
     render(<SpeakingChallengeRules policy={{ ...policy, daily_remaining: 0 }} />);
     expect(screen.getByText("0 輪")).toBeInTheDocument();
     expect(screen.getByText(/今天的新挑戰用完了/)).toBeInTheDocument();
+    expect(document.body).not.toHaveTextContent(/Azure|本機/);
     expect(screen.queryByText("本月已用完")).not.toBeInTheDocument();
 });
