@@ -6,6 +6,7 @@
 - 作業：新增 `css/StudentAssignmentsMinimal.scss`（由 `StudentAssignments.jsx` 與 `Playlist.jsx` 最後載入），以覆寫方式隱藏說明性區塊並統一為單欄卡片；頁面標題文字改為「作業」。JSX 結構、資料與作業計次邏輯未動，被隱藏的元素仍在 DOM。
 - Boss：新增 `BossChallengeEntry.jsx`／`BossChallengeEntry.scss`（火焰卡片，含 reduced-motion），`StudentNavbar` 新增 `bossEvent` 參數（預設 null）並在冒險選單與底部導覽顯示。目前沒有任何資料來源傳入 `bossEvent`，學生端不會出現；正式 Boss 場次、通知與後端仍不存在（main 上只有管理員單機預覽 `/admin/boss-preview`）。
 - 驗證：StudentAssignments、Playlist、MusicCard、MainNavbar 共 66 項通過；本機 `localhost:3000` 以測試學生實看作業列表與作業聽力頁（390 與 1440 寬，1440 寬初版卡片被舊 grid 擠窄，已修）；Boss 按鈕以暫時強制開啟方式實看後已還原為 null。
+- 後續：擁有者指出作業聽力頁的音檔卡片分成上下兩層。`MusicCard` 標題去掉重複的教材名稱前綴、作業模式新增精簡次數 `music-card__count`（原文字保留給輔助科技）；`MusicCard.scss` 把聽力頁音檔卡片在所有寬度改為單列（播放、名稱、右側次數與影片圖示），影片按鈕在卡片上只顯示圖示。本機 390 寬實看作業聽力頁與一般聽力頁，卡片高 90px、無水平溢出；MusicCard、Playlist、StudentAssignments 共 31 項通過。
 - 未驗：混合任務包（mission pack）與 AI 測驗型作業的卡片（測試帳號只有聽力作業）；iPhone Safari。
 
 ### 我的進度版面整理（2026-10-11，併入 PR #531，待擁有者說「幫我合併」）
