@@ -1,17 +1,19 @@
 import React from "react";
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { MemoryRouter } from "react-router-dom";
 import StudentProgressOverview from "./StudentProgressOverview";
 import { useAuth } from "../../auth/AuthContext";
 import { getAccessibleCatalog } from "../../services/contentAccessService";
 import { getSpeakingChallengeCatalog } from "../../services/speakingChallengeService";
+import { getStudentAssignments, getStudentAssignmentsV2 } from "../../services/assignmentService";
 import { clearStudentPageCache, studentPageScope } from "../../services/studentPageCache";
 import { saveStudentLearningResume } from "../../services/studentLearningResume";
 
 jest.mock("../../auth/AuthContext", () => ({ useAuth: jest.fn() }));
 jest.mock("../../services/contentAccessService", () => ({ getAccessibleCatalog: jest.fn() }));
 jest.mock("../../services/speakingChallengeService", () => ({ getSpeakingChallengeCatalog: jest.fn() }));
+jest.mock("../../services/assignmentService", () => ({ getStudentAssignments: jest.fn(), getStudentAssignmentsV2: jest.fn() }));
 
 const auth = (features, uid = "learner-a") => ({ firebaseUser: { uid }, role: "student", studentProfile: { membership: { is_active: true, effective_access: { features } } } });
 const scopeOf = value => studentPageScope(value.firebaseUser, value.role, value.studentProfile);
@@ -25,6 +27,12 @@ beforeEach(() => {
         { id: 10, code: "Workbook_1", name: "Workbook 1" },
         { id: 11, code: "Workbook_2", name: "Workbook 2", locked: true }
     ] }, { id: 2, name: "Phonics", books: [{ id: 12, code: "Phonics_1", name: "Phonics 1" }] }] });
+    getStudentAssignments.mockResolvedValue({ assignments: [
+        { id: 1, title: "過往任務", due_at: "2020-01-01T00:00:00Z", progress: {} },
+        { id: 2, title: "這週的聽力", due_at: "2099-01-01T00:00:00Z", progress: {} },
+        { id: 3, title: "已完成的作業", due_at: "2099-01-01T00:00:00Z", progress: { completed: true } }
+    ] });
+    getStudentAssignmentsV2.mockResolvedValue({ assignments: [] });
     getSpeakingChallengeCatalog.mockResolvedValue({ challenges: [
         { id: 1, book: { id: 10, name: "Workbook 1" }, is_completed: true },
         { id: 2, book: { id: 10, name: "Workbook 1" }, is_completed: false },
@@ -54,7 +62,6 @@ test("shows speaking challenge progress per book", async () => {
     const speaking = within(await screen.findByRole("article", { name: "口說大挑戰" }));
     expect(await speaking.findByRole("link", { name: /Workbook 1/ })).toHaveTextContent("已完成 1 / 2 關");
     expect(speaking.getByRole("link", { name: /Phonics 1/ })).toHaveTextContent("已完成 0 / 1 關");
-    expect(screen.getByRole("link", { name: "我的作業" })).toHaveAttribute("href", "/student/assignments");
 });
 
 test("does not load speaking progress or show assignments without those entitlements", async () => {
@@ -63,5 +70,34 @@ test("does not load speaking progress or show assignments without those entitlem
     expect(await screen.findByText(/這台裝置還沒有聽力紀錄/)).toBeInTheDocument();
     expect(getSpeakingChallengeCatalog).not.toHaveBeenCalled();
     expect(screen.queryByRole("article", { name: "口說大挑戰" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "我的作業" })).not.toBeInTheDocument();
+    expect(getStudentAssignments).not.toHaveBeenCalled();
+    expect(getStudentAssignmentsV2).not.toHaveBeenCalled();
+    expect(screen.queryByRole("article", { name: "作業" })).not.toBeInTheDocument();
+    const opened = jest.fn();
+    window.addEventListener("ae:open-student-menu", opened);
+    fireEvent.click(screen.getByRole("button", { name: "去選一本教材" }));
+    window.removeEventListener("ae:open-student-menu", opened);
+    expect(opened.mock.calls[0][0].detail).toBe("materials");
+});
+
+test("shows the next unfinished assignment first and links to the rest", async () => {
+    useAuth.mockReturnValue(auth({ assignments: true, pronunciation: false }));
+    renderOverview();
+    const assignments = within(await screen.findByRole("article", { name: "作業" }));
+    expect(await assignments.findByRole("link", { name: /這週的聽力/ })).toHaveAttribute("href", "/student/assignments?task=v1-2");
+    expect(assignments.getByRole("link", { name: /還有 1 份作業/ })).toHaveAttribute("href", "/student/assignments");
+    expect(assignments.queryByText("已完成的作業")).not.toBeInTheDocument();
+});
+
+test("says so when there is no unfinished assignment and does not hide a failed load", async () => {
+    useAuth.mockReturnValue(auth({ assignments: true, pronunciation: false }));
+    getStudentAssignments.mockResolvedValue({ assignments: [] });
+    const first = renderOverview();
+    expect(await screen.findByText(/目前沒有待完成的作業/)).toBeInTheDocument();
+    first.unmount();
+    clearStudentPageCache();
+    getStudentAssignmentsV2.mockRejectedValue(new Error("unavailable"));
+    renderOverview();
+    expect(await screen.findByText(/部分作業未能讀取/)).toBeInTheDocument();
+    expect(screen.queryByText(/目前沒有待完成的作業/)).not.toBeInTheDocument();
 });

@@ -1,5 +1,16 @@
 # Alan English 專案狀態
 
+### 我的進度成為學生首頁、教材改回選單、設定列表（2026-10-11，本機完成／PR 待擁有者說「幫我合併」）
+
+- 負責：Claude Code。分支 `feature/progress-home`，基準 main `520871f0`（PR #522 已於 2026-10-11 合併並由 Workers Builds 成功發布，正式 `main.730e07fc.js` 含影片對照表）。純前端。
+- 路由：刪除 `StudentLearningHome`（含測試與 SCSS）；`/student/dashboard` 保留 `requiresActiveMembership` 後轉址 `/student/settings`，所以 `getRoleHome` 與各頁「回到首頁」連結不需改動。
+- 導覽：`StudentNavbar` 的「教材」改回開啟 `MaterialsNavigator`（手機抽屜、桌面下拉），教材頁時標示為目前位置；Logo 連到我的進度。
+- `StudentProgressOverview` 新增作業區塊（下一份未完成作業＋其餘數量，僅 `features.assignments`）；空的聽力紀錄改以 `ae:open-student-menu` 開教材選單。
+- `StudentSettings`：移除成長卡、捷徑面板、個人資料與紀錄（基本資料、生日、暱稱紀錄）及其生日儲存程式；「教材與方案」以 `SHOW_PLAN_DETAILS = false` 隱藏；通知與帳號改為列表，推播為 `role="switch"` 開關，家長 Email 為可展開列。
+- 驗證：MainNavbar、StudentSettings、StudentProgressOverview、ProtectedRoute、RoleHomeRedirect、Playlist、MusicCard 共 93 項通過；變更檔 ESLint、SCSS 編譯通過。編譯後樣式的靜態預覽在 412px 量測：無水平溢位、開關 56×44px、開啟時藍色軌道與滑塊位移正確；進度區塊有截圖目視，設定列表截圖工具逾時，僅以量測確認。
+- 未驗：真實登入後整頁、桌面下拉、iPhone Safari。
+- 仍待處理：熟練 30 次獎勵時點、生日活動停用、好友後端停用的遠端套用（見下方 PR #521 發布結果）；家長每週學習報告 Email 未動工。
+
 ### 習作本音檔 YouTube 跳轉（2026-10-11，本機完成／PR 待擁有者說「幫我合併」）
 
 - 負責：Claude Code。分支 `feature/track-video-jump`，基準 main `31edaed7`。純前端。

@@ -118,69 +118,30 @@ describe("StudentSettings", () => {
         fireEvent(target, event);
     };
 
-    it("shows student profile, protected learning honors, and locks an existing birthday", async () => {
+    it("shows the profile card and a short settings list without growth, plan or personal-data sections", async () => {
         render(<StudentSettings />);
 
         expect(await screen.findByRole("heading", { name: "我的進度" })).toBeInTheDocument();
-        expect(screen.getByText("Ming Wang")).toBeInTheDocument();
-        expect(await screen.findByText("Lv.3")).toBeInTheDocument();
-        expect(screen.getByText("390 XP")).toBeInTheDocument();
-        fireEvent.click(screen.getByText("成長與獎品"));
-        expect(screen.getByRole("progressbar", { name: "目前等級成長進度" })).toHaveAttribute("value", "30");
-        expect(screen.getByText("210 XP")).toBeInTheDocument();
+        expect(screen.getByText(/Ming Wang/)).toBeInTheDocument();
         expect(screen.getByText("AI Premium")).toBeInTheDocument();
-        expect(screen.getByText("英文班方案已包含")).toBeInTheDocument();
-
-        expect(screen.getByText("2015-05-12")).toBeInTheDocument();
-        expect(screen.getByText("已鎖定")).toBeInTheDocument();
-        expect(screen.queryByRole("button", { name: "確認並保存生日" })).not.toBeInTheDocument();
+        expect(screen.getByRole("switch", { name: "手機推播通知" })).toBeInTheDocument();
+        expect(screen.getByRole("link", { name: "帳號與密碼" })).toHaveAttribute("href", "/account/security");
+        expect(screen.getByRole("link", { name: "會員與功能" })).toHaveAttribute("href", "/student/membership");
+        expect(screen.getByRole("link", { name: "聯絡客服" })).toHaveAttribute("href", "/support");
+        for (const removed of ["成長與獎品", "教材與方案", "個人資料與紀錄", "基本資料", "出生年月日", "暱稱更改紀錄", "2015-05-12"]) {
+            expect(screen.queryByText(removed)).not.toBeInTheDocument();
+        }
     });
 
-    it("keeps profile settings usable when growth fails and retries without inventing zero points", async () => {
-        getGamificationSummary.mockRejectedValueOnce(new Error("讀取失敗")).mockResolvedValueOnce({
-            balance: { level: 3, total_xp: 390, points_balance: 21, next_level_xp: 600, progress_percent: 30 }
-        });
+    it("keeps profile settings usable when growth data fails", async () => {
+        getGamificationSummary.mockRejectedValue(new Error("讀取失敗"));
         render(<StudentSettings />);
-        fireEvent.click(screen.getByText("成長與獎品"));
-        const retry = await screen.findByRole("button", { name: "重新讀取成長" });
-        expect(screen.queryByText("0 P")).not.toBeInTheDocument();
+        await waitFor(() => expect(screen.getByLabelText("公開暱稱")).toHaveValue("Sunny Fox"));
         expect(screen.getByRole("button", { name: "更換學生頭像" })).toBeEnabled();
-        fireEvent.click(retry);
-        expect(await screen.findByText("390 XP")).toBeInTheDocument();
-        expect(screen.getByText("21 P")).toBeInTheDocument();
+        expect(screen.queryByText("0 P")).not.toBeInTheDocument();
     });
 
-    it("allows a missing birthday to be set exactly once", async () => {
-        useAuth.mockReturnValue({
-            firebaseUser: { uid: "student-1" },
-            setStudentProfile,
-            refreshStudentProfile,
-            studentProfile: {
-                name: "王小明",
-                chinese_name: "王小明",
-                class: "E5",
-                learner_type: "academy_student",
-                date_of_birth: null,
-                membership: { effective_access: { plan_codes: ["academy_internal"], features: {} } }
-            }
-        });
-        render(<StudentSettings />);
-
-        fireEvent.change(screen.getByLabelText("出生年"), { target: { value: "2015" } });
-        fireEvent.click(screen.getByText("個人資料與紀錄"));
-        fireEvent.change(screen.getByLabelText("出生月"), { target: { value: "06" } });
-        fireEvent.change(screen.getByLabelText("出生日"), { target: { value: "01" } });
-        updateStudentProfile.mockResolvedValue({ profile: { date_of_birth: "2015-06-01" } });
-        fireEvent.click(screen.getByRole("button", { name: "確認並保存生日" }));
-
-        await waitFor(() => expect(updateStudentProfile).toHaveBeenCalledWith(
-            { uid: "student-1" },
-            { date_of_birth: "2015-06-01" }
-        ));
-        expect(refreshStudentProfile).toHaveBeenCalled();
-    });
-
-    it("allows the student to change a nickname and shows their own change history", async () => {
+    it("allows the student to change a nickname after confirming", async () => {
         const savedSettings = {
             profile: { nickname: "Brave Owl" },
             nickname_history: [
@@ -210,7 +171,6 @@ describe("StudentSettings", () => {
         await waitFor(() => expect(nicknameInput).toHaveValue("Sunny Fox"));
         expect(nicknameInput.closest(".student-settings-profile-card")).not.toBeNull();
         expect(screen.getByText(/7 天.*只能修改一次/)).toBeInTheDocument();
-        expect(screen.getByText("首次設定")).toBeInTheDocument();
         fireEvent.change(nicknameInput, { target: { value: "Brave Owl" } });
         fireEvent.click(screen.getByRole("button", { name: "儲存暱稱" }));
         expect(updateNickname).not.toHaveBeenCalled();
@@ -222,7 +182,7 @@ describe("StudentSettings", () => {
             "Brave Owl"
         ));
         await waitFor(() => expect(nicknameInput).toHaveValue("Brave Owl"));
-        expect(screen.getAllByText("Brave Owl")).toHaveLength(2);
+        expect(screen.getByRole("heading", { name: "Brave Owl" })).toBeInTheDocument();
         expect(setStudentProfile).toHaveBeenCalled();
     });
 
@@ -267,9 +227,8 @@ describe("StudentSettings", () => {
         confirmGuardianEmailVerification.mockResolvedValue({ success: true });
         render(<StudentSettings />);
 
-        expect(await screen.findByText("parent@example.com")).toBeInTheDocument();
-        expect(screen.getByText("已驗證")).toBeInTheDocument();
-        fireEvent.click(screen.getByText("通知與家長聯絡"));
+        expect(await screen.findByText("parent@example.com · 已驗證")).toBeInTheDocument();
+        fireEvent.click(screen.getByText("家長 Email"));
         fireEvent.change(screen.getByLabelText("新的家長 Email"), {
             target: { value: "new-parent@example.com" }
         });
@@ -279,7 +238,7 @@ describe("StudentSettings", () => {
             { uid: "student-1" },
             "new-parent@example.com"
         ));
-        expect(screen.getByText("parent@example.com")).toBeInTheDocument();
+        expect(screen.getByText("parent@example.com · 已驗證")).toBeInTheDocument();
         fireEvent.change(await screen.findByLabelText("6 位數驗證碼"), { target: { value: "123456" } });
         fireEvent.click(screen.getByRole("button", { name: "確認驗證碼並更新" }));
         await waitFor(() => expect(confirmGuardianEmailVerification).toHaveBeenCalledWith(
@@ -312,85 +271,6 @@ describe("StudentSettings", () => {
         expect(await screen.findByText("AI Premium")).toBeInTheDocument();
         expect(screen.getByLabelText("AI Premium 已啟用"))
             .toHaveAttribute("title", "AI 教材與發音練習可使用");
-    });
-
-    it("shows the latest departure and excludes historical academy access from paid plans", async () => {
-        loadStudentCommerceProfile.mockResolvedValue({
-            profile: {
-                enrollment_status: "departed",
-                current_enrollment: null,
-                enrollment_history: [{ enrolled_at: "2025-09-01", departed_at: "2026-08-31" }],
-                direct_entitlements: [],
-                class_books: [],
-                plans: [
-                    { id: 1, status: "expired", ends_at: "2026-09-01T00:00:00Z", subscription_plans: { code: "academy_internal", name: "英文班在學方案" } },
-                    { id: 2, status: "active", current_period_end: "2026-09-30T00:00:00Z", subscription_plans: { code: "basic_membership_monthly", name: "基本自主學習會員" } },
-                    { id: 3, status: "active", current_period_end: "2026-09-30T00:00:00Z", subscription_plans: { code: "ai_materials_addon_monthly", name: "舊 AI 方案名稱" } }
-                ]
-            }
-        });
-
-        render(<StudentSettings />);
-
-        expect(await screen.findByText("離校")).toBeInTheDocument();
-        expect(screen.getByText("2026-08-31")).toBeInTheDocument();
-        expect(screen.queryByText("英文班在學方案")).not.toBeInTheDocument();
-        expect(screen.getByText("基本自主學習會員")).toBeInTheDocument();
-        expect(screen.getAllByText("AI 教材與發音練習")).toHaveLength(2);
-        expect(screen.getAllByText("續訂日 2026-09-30")).toHaveLength(2);
-    });
-
-    it("does not label an expired paid grant as renewing", async () => {
-        loadStudentCommerceProfile.mockResolvedValue({
-            profile: {
-                enrollment_status: "departed",
-                enrollment_history: [{ departed_at: "2026-08-31" }],
-                direct_entitlements: [],
-                class_books: [],
-                plans: [{
-                    id: 4,
-                    status: "expired",
-                    current_period_end: "2026-08-30T00:00:00Z",
-                    subscription_plans: { code: "basic_membership_monthly", name: "基本自主學習會員" }
-                }]
-            }
-        });
-
-        render(<StudentSettings />);
-
-        expect(await screen.findByText("已結束（2026-08-30）")).toBeInTheDocument();
-        expect(screen.queryByText("續訂日 2026-08-30")).not.toBeInTheDocument();
-    });
-
-    it("shows only the latest record when the same plan has duplicate history", async () => {
-        loadStudentCommerceProfile.mockResolvedValue({
-            profile: {
-                enrollment_status: "departed",
-                enrollment_history: [{ departed_at: "2026-08-31" }],
-                direct_entitlements: [],
-                class_books: [],
-                plans: [
-                    {
-                        id: 5,
-                        status: "expired",
-                        current_period_end: "2026-08-30T00:00:00Z",
-                        subscription_plans: { code: "basic_membership_monthly", name: "基本自主學習會員" }
-                    },
-                    {
-                        id: 6,
-                        status: "expired",
-                        current_period_end: "2026-08-31T00:00:00Z",
-                        subscription_plans: { code: "basic_membership_monthly", name: "基本自主學習會員" }
-                    }
-                ]
-            }
-        });
-
-        render(<StudentSettings />);
-
-        expect(await screen.findByText("已結束（2026-08-31）")).toBeInTheDocument();
-        expect(screen.getAllByText("基本自主學習會員")).toHaveLength(1);
-        expect(screen.queryByText("已結束（2026-08-30）")).not.toBeInTheDocument();
     });
 
     it("requires final confirmation before applying one of twenty-five preset avatars", async () => {
@@ -491,27 +371,26 @@ describe("StudentSettings", () => {
             .mockResolvedValueOnce({ supported: true, active: false });
         render(<StudentSettings />);
 
-        fireEvent.click(screen.getByText("通知與家長聯絡"));
-        const enable = await screen.findByRole("button", { name: "開啟此裝置推播" });
-        await waitFor(() => expect(enable).toBeEnabled());
+        const toggle = screen.getByRole("switch", { name: "手機推播通知" });
+        await waitFor(() => expect(toggle).toBeEnabled());
+        expect(toggle).toHaveAttribute("aria-checked", "false");
         expect(enableWebPush).not.toHaveBeenCalled();
-        fireEvent.click(enable);
+        fireEvent.click(toggle);
         await waitFor(() => expect(enableWebPush).toHaveBeenCalledWith({ uid: "student-1" }, "public-key"));
 
-        const disable = await screen.findByRole("button", { name: "關閉此裝置推播" });
-        fireEvent.click(disable);
+        await waitFor(() => expect(toggle).toHaveAttribute("aria-checked", "true"));
+        await waitFor(() => expect(toggle).toBeEnabled());
+        fireEvent.click(toggle);
         await waitFor(() => expect(disableWebPush).toHaveBeenCalledWith({ uid: "student-1" }));
     });
 
-    it("reuses growth, commerce and nickname data immediately when returning", async () => {
+    it("reuses commerce and nickname data immediately when returning", async () => {
         const first = render(<StudentSettings />);
-        await screen.findByText("Lv.3");
-        await screen.findByText("在校");
+        await screen.findByText("parent@example.com · 已驗證");
         await waitFor(() => expect(screen.getByLabelText("公開暱稱")).toHaveValue("Sunny Fox"));
         first.unmount();
         render(<StudentSettings />);
-        expect(screen.getByText("390 XP")).toBeInTheDocument();
-        expect(screen.getByText("在校")).toBeInTheDocument();
+        expect(screen.getByText("parent@example.com · 已驗證")).toBeInTheDocument();
         expect(screen.getByLabelText("公開暱稱")).toHaveValue("Sunny Fox");
         await act(async () => {});
         expect(getGamificationSummary).toHaveBeenCalledTimes(1);
@@ -521,9 +400,10 @@ describe("StudentSettings", () => {
 
     it("restores snapshots on reload without persisting guardian contact details", async () => {
         const first = render(<StudentSettings />);
-        await screen.findByText("parent@example.com");
-        await screen.findByText("Lv.3");
+        await screen.findByText("parent@example.com · 已驗證");
+        await waitFor(() => expect(getGamificationSummary).toHaveBeenCalled());
         await waitFor(() => expect(screen.getByLabelText("公開暱稱")).toHaveValue("Sunny Fox"));
+        await act(async () => {});
         first.unmount();
         const records = Object.keys(localStorage).filter(key => key.startsWith("ae-student-pages-v1:")).map(key => [key, localStorage.getItem(key)]);
         expect(records.length).toBe(3);
@@ -534,29 +414,22 @@ describe("StudentSettings", () => {
         loadStudentCommerceProfile.mockImplementation(() => new Promise(() => {}));
         getNicknameSettings.mockImplementation(() => new Promise(() => {}));
         render(<StudentSettings />);
-        expect(screen.getByText("390 XP")).toBeInTheDocument();
-        expect(screen.getByText("在校")).toBeInTheDocument();
         expect(screen.getByLabelText("公開暱稱")).toHaveValue("Sunny Fox");
-        expect(screen.queryByText("parent@example.com")).not.toBeInTheDocument();
-        expect(screen.queryByText("正在讀取成長資料…")).not.toBeInTheDocument();
+        expect(screen.queryByText(/parent@example.com/)).not.toBeInTheDocument();
         await act(async () => {});
         expect(loadStudentCommerceProfile).toHaveBeenCalledTimes(2);
     });
 
     it("keeps cached data after a network failure but clears a forbidden commerce response", async () => {
         render(<StudentSettings />);
-        await screen.findByText("在校");
-        getGamificationSummary.mockRejectedValue(new Error("offline"));
+        await screen.findByText("parent@example.com · 已驗證");
         loadStudentCommerceProfile.mockRejectedValue(new Error("offline"));
-        act(() => invalidateStudentPageCache("student-1", ["summary", "settings:commerce"]));
+        act(() => invalidateStudentPageCache("student-1", ["settings:commerce"]));
         await screen.findByText(/部分設定暫時無法更新/);
-        expect(screen.getByText("390 XP")).toBeInTheDocument();
-        expect(screen.getByText("在校")).toBeInTheDocument();
+        expect(screen.getByText("parent@example.com · 已驗證")).toBeInTheDocument();
         loadStudentCommerceProfile.mockRejectedValue(Object.assign(new Error("forbidden"), { status: 403 }));
         fireEvent.click(screen.getByRole("button", { name: "重新讀取設定" }));
-        await waitFor(() => expect(screen.queryByText("在校")).not.toBeInTheDocument());
-        expect(screen.getAllByText("暫時無法讀取").length).toBeGreaterThan(0);
-        expect(screen.queryByText("非在校生")).not.toBeInTheDocument();
+        await waitFor(() => expect(screen.queryByText("parent@example.com · 已驗證")).not.toBeInTheDocument());
     });
 
     it("does not overwrite a nickname being edited when background data arrives", async () => {
@@ -569,26 +442,22 @@ describe("StudentSettings", () => {
         expect(input).toHaveValue("My New Name");
     });
 
-    it("groups infrequent settings, keeps nickname visible, and expansion does not refetch", async () => {
+    it("keeps the guardian email draft when its row is collapsed and reopened, without refetching", async () => {
         render(<StudentSettings />);
         await screen.findByDisplayValue("Sunny Fox");
         expect(screen.getByLabelText("公開暱稱")).toBeVisible();
         const calls = [getGamificationSummary.mock.calls.length, loadStudentCommerceProfile.mock.calls.length, getNicknameSettings.mock.calls.length, getCurrentWebPushStatus.mock.calls.length];
-        for (const title of ["成長與獎品", "教材與方案", "個人資料與紀錄", "通知與家長聯絡"]) {
-            const summary = screen.getByText(title).closest("summary");
-            expect(summary.closest("details")).not.toHaveAttribute("open");
-            fireEvent.click(summary);
-            expect(summary.closest("details")).toHaveAttribute("open");
-        }
-        expect(screen.getByRole("heading", { name: "出生年月日" }).closest(".student-settings-group")).toHaveTextContent("個人資料與紀錄");
+        const summary = screen.getByText("家長 Email").closest("summary");
+        expect(summary.closest("details")).not.toHaveAttribute("open");
+        fireEvent.click(summary);
+        expect(summary.closest("details")).toHaveAttribute("open");
         fireEvent.change(screen.getByLabelText("新的家長 Email"), { target: { value: "draft@example.com" } });
-        fireEvent.click(screen.getByText("通知與家長聯絡"));
+        fireEvent.click(summary);
         expect(screen.getByLabelText("新的家長 Email")).not.toBeVisible();
-        fireEvent.click(screen.getByText("通知與家長聯絡"));
+        fireEvent.click(summary);
         expect(screen.getByLabelText("新的家長 Email")).toHaveValue("draft@example.com");
         expect([getGamificationSummary.mock.calls.length, loadStudentCommerceProfile.mock.calls.length, getNicknameSettings.mock.calls.length, getCurrentWebPushStatus.mock.calls.length]).toEqual(calls);
         expect(requestGuardianEmailVerification).not.toHaveBeenCalled();
-        expect(updateStudentProfile).not.toHaveBeenCalled();
     });
 
     it("loads preset thumbnails only after expanding the picker", async () => {

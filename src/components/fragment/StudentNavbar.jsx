@@ -13,7 +13,6 @@ import {
     FiCreditCard,
     FiGift,
     FiHelpCircle,
-    FiHome,
     FiLock,
     FiLogOut,
     FiMenu,
@@ -72,7 +71,9 @@ const StudentNavbar = ({
     const [drawer, setDrawer] = useState("");
     const [drawerOpen, setDrawerOpen] = useState(false);
     const [materialsResetToken, setMaterialsResetToken] = useState(0);
+    const [materialsOpen, setMaterialsOpen] = useState(false);
     const accessibleCategories = categories || [];
+    const materialCount = accessibleCategories.reduce((total, category) => total + category.books.length, 0);
     const hasActiveLearningAccess = profile?.membership?.is_active === true;
     const features = profile?.membership?.effective_access?.features || {};
     const hasAssignmentsAccess = hasActiveLearningAccess && features.assignments === true;
@@ -80,8 +81,7 @@ const StudentNavbar = ({
     const unreadCount = notifications.filter(item => !item.read_at).length;
     const isPathActive = path => location.pathname === path || location.pathname.startsWith(`${path}/`);
     const speakingActive = isPathActive("/student/speaking-challenges");
-    // The shelf page lists the materials, so material pages stay under 教材.
-    const homeActive = isPathActive("/student/dashboard") || isPathActive("/student/books");
+    const materialsActive = isPathActive("/student/books");
     const profileActive = [
         "/student/settings",
         "/student/leaderboard",
@@ -117,6 +117,7 @@ const StudentNavbar = ({
     }, [resetMaterialsView]);
     const closeDrawer = () => {
         setDrawerOpen(false);
+        setMaterialsOpen(false);
     };
     const closeDrawerThenNavigate = () => closeDrawer();
     const handleDrawerExited = () => {
@@ -212,7 +213,7 @@ const StudentNavbar = ({
                 <NavigationIcon tone="profile"><span className="ae-student-bottom-avatar">{profileAvatar}</span></NavigationIcon>
                 <span>我的進度</span>
             </Link>
-            <Link to="/student/dashboard" aria-current={isPathActive("/student/dashboard") ? "page" : undefined} className={homeActive ? "active" : ""}><NavigationIcon tone="home"><FiHome /></NavigationIcon><span>教材</span></Link>
+            <button type="button" onClick={() => openDrawer("materials")} aria-current={materialsActive ? "page" : undefined} aria-expanded={drawerOpen && drawer === "materials"} aria-controls="student-navigation-drawer" className={`${materialsActive ? "active" : ""} ${drawerOpen && drawer === "materials" ? "is-open" : ""}`}><NavigationIcon tone="books"><FiBookOpen /></NavigationIcon><span>教材</span></button>
             <button type="button" onClick={() => openDrawer("speaking")} aria-current={speakingActive ? "page" : undefined} aria-expanded={drawerOpen && drawer === "speaking"} aria-controls="student-navigation-drawer" className={`${speakingActive ? "active" : ""} ${drawerOpen && drawer === "speaking" ? "is-open" : ""}`}><NavigationIcon tone="adventure"><PiJoystick /></NavigationIcon><span>冒險</span></button>
         </nav>
     );
@@ -221,11 +222,14 @@ const StudentNavbar = ({
         <>
             <Navbar className={`ae-navbar ae-student-navbar ${scrolled ? "scrolled" : ""}`}>
                 <Container fluid className="ae-navbar-container">
-                    <Navbar.Brand as={Link} to="/student/dashboard" className="ae-brand" aria-label="Alan English 教材"><img src="/ae-icon.jpeg" alt="" width="40" height="40" /></Navbar.Brand>
+                    <Navbar.Brand as={Link} to="/student/settings" className="ae-brand" aria-label="Alan English 我的進度"><img src="/ae-icon.jpeg" alt="" width="40" height="40" /></Navbar.Brand>
                     <StudentGrowthHeader key={firebaseUser?.uid} summary={growthSummary} loading={growthLoading} error={growthError} pointsAccess={hasRewardsAccess} onRetry={onGrowthRetry} avatarUrl={avatarUrl} />
                     <Nav as="nav" className="ae-student-desktop-nav" aria-label="學生桌面導覽" onSelect={closeDrawer}>
                         <Nav.Link as={Link} to="/student/settings" aria-current={isPathActive("/student/settings") ? "page" : undefined} className={profileActive ? "active" : ""} aria-label="我的進度"><span><NavigationIcon tone="profile">{profileAvatar}</NavigationIcon>我的進度</span></Nav.Link>
-                        <Nav.Link as={Link} to="/student/dashboard" aria-current={isPathActive("/student/dashboard") ? "page" : undefined} className={homeActive ? "active" : ""}><span><NavigationIcon tone="home"><FiHome /></NavigationIcon>教材</span></Nav.Link>
+                        <NavDropdown id="student-materials" title={<span><NavigationIcon tone="books"><FiBookOpen /></NavigationIcon>教材</span>} show={materialsOpen} onToggle={nextOpen => { setMaterialsOpen(nextOpen); if (nextOpen && !materialsOpen) resetMaterialsView(); }} autoClose="outside" className={materialsActive ? "active" : ""}>
+                            <div className="ae-student-dropdown-heading"><strong>選一本教材</strong><small>{loading ? "教材載入中…" : `${materialCount} 本可使用`}</small></div>
+                            {renderMaterials("desktop")}
+                        </NavDropdown>
                         <NavDropdown id="student-speaking" title={<span><NavigationIcon tone="adventure"><PiJoystick /></NavigationIcon>口說冒險</span>} className={speakingActive ? "active" : ""}>
                                 <div className="ae-student-dropdown-heading"><strong>冒險世界</strong><small>選擇教材，開始闖關</small></div>
                                 {speakingLinks}
