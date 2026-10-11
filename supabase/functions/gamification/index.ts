@@ -18,6 +18,10 @@ const ADMIN_ROLE = "admin";
 const PERIODS = new Set(["week", "month", "all"]);
 const AVATAR_BUCKET = "student-avatars";
 const REWARD_BUCKET = "reward-images";
+// The prize shop is closed. Students can neither browse nor redeem; admin catalogue and
+// redemption-history actions keep working so existing records stay manageable.
+const REWARD_SHOP_OPEN = false;
+const REWARD_SHOP_CLOSED = { error: "獎品商城目前已關閉", code: "reward_shop_closed" };
 const DEFAULT_AVATAR_PATHS = new Set([
     "/default-avatars/alan-cat.png",
     "/default-avatars/alan-fox.png",
@@ -342,6 +346,7 @@ Deno.serve(async (req: Request) => {
         }
 
         if (action === "rewards") {
+            if (!REWARD_SHOP_OPEN) return json(410, REWARD_SHOP_CLOSED);
             if (!await canUseAcademyRewards()) {
                 return json(403, {
                     error: "AE Points 與獎品商城只開放有效在校英文班學生",
@@ -385,6 +390,7 @@ Deno.serve(async (req: Request) => {
         }
 
         if (action === "redeem") {
+            if (!REWARD_SHOP_OPEN) return json(410, REWARD_SHOP_CLOSED);
             if (student.role !== "student") return json(400, { error: "請使用學生帳號兌換獎品" });
             if (!await canUseAcademyRewards()) {
                 return json(403, {
