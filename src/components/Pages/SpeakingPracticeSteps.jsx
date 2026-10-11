@@ -82,6 +82,9 @@ export default function SpeakingPracticeSteps({
     const busy = ["recording", "preparing", "assessing"].includes(recorderPhase) || saving;
     const canListen = allowModelAudio && Boolean(question.model_audio_url);
     const hintRequestRef = useRef(0);
+    // Looking at the hint voids this question for the run: always in challenge mode, and in
+    // easy mode for blanked sentences (the server marks those).
+    const hintVoidsPass = challengeMode === "challenge" || question.hint_voids_pass === true;
     const answerQuestion = revealedAnswer ? { ...question, ...revealedAnswer } : question;
     const answerPattern = answerPatternForLearner(answerQuestion.model_answer);
     const example = naturalExample(answerQuestion);
@@ -101,7 +104,7 @@ export default function SpeakingPracticeSteps({
     const handleScored = async result => {
         if (result?.assessment_status === "uncertain") return false;
         const request = hintRequestRef.current;
-        const scoredResult = challengeMode === "challenge" && revealedAnswer
+        const scoredResult = hintVoidsPass && revealedAnswer
             ? { ...result, hint_used: true }
             : result;
         if (scoredResult?.answer_match !== false && !scoredResult?.hint_used) {
@@ -130,7 +133,7 @@ export default function SpeakingPracticeSteps({
 
     const toggleHelp = async () => {
         if (showHelp) { setShowHelp(false); return; }
-        if (challengeMode === "challenge" && onRevealHint && !revealedAnswer) {
+        if (hintVoidsPass && onRevealHint && !revealedAnswer) {
             const request = hintRequestRef.current;
             setHelpLoading(true);
             setHelpError("");
@@ -157,7 +160,7 @@ export default function SpeakingPracticeSteps({
             </div>
         </details>
 
-        {showAnswerByDefault && answerPattern && <div className="speaking-help-panel speaking-easy-answer" aria-label="簡單模式參考答案">
+        {showAnswerByDefault && answerPattern && !(question.hint_voids_pass && revealedAnswer) && <div className="speaking-help-panel speaking-easy-answer" aria-label="簡單模式參考答案">
             <small>看著題目與答案，勇敢說出完整句子</small><strong>{answerPatternWithSlots(answerQuestion.model_answer)}</strong>
             {canListen && <button type="button" disabled={audioWorking || busy} onClick={onPlayAudio}>
                 <FiVolume2 aria-hidden="true" />{question.model_audio_url ? (audioWorking ? "播放中…" : "聽回答範例") : "語音準備中"}
@@ -168,12 +171,12 @@ export default function SpeakingPracticeSteps({
             <FiVolume2 aria-hidden="true" />{audioWorking ? "播放中…" : "聽示範發音"}
         </button>}
 
-        {!hideHelp && !showAnswerByDefault && (!deferAnswerHelp || lastResult || challengeMode === "challenge") && <button type="button" className="speaking-help-toggle" aria-expanded={showHelp} aria-controls={helpId} onClick={toggleHelp} disabled={helpLoading || busy}>
-            <FiHelpCircle aria-hidden="true" />{helpLoading ? "正在開啟提示…" : showHelp ? "收起回答提示" : challengeMode === "challenge" ? "看提示（本輪此題不計通關）" : "不知道怎麼說？"}
+        {!hideHelp && (!showAnswerByDefault || question.hint_voids_pass) && (!deferAnswerHelp || lastResult || hintVoidsPass) && <button type="button" className="speaking-help-toggle" aria-expanded={showHelp} aria-controls={helpId} onClick={toggleHelp} disabled={helpLoading || busy}>
+            <FiHelpCircle aria-hidden="true" />{helpLoading ? "正在開啟提示…" : showHelp ? "收起回答提示" : challengeMode === "challenge" ? "看提示（本輪此題不計通關）" : hintVoidsPass ? "看提示（這題不算過）" : "不知道怎麼說？"}
         </button>}
 
         {helpError && <p className="speaking-practice-retry" role="alert">{helpError}</p>}
-        {challengeMode === "challenge" && revealedAnswer && <p className="speaking-hint-practice-notice" role="status">
+        {hintVoidsPass && revealedAnswer && <p className="speaking-hint-practice-notice" role="status">
             <strong>這題先練習，稍後不用提示再試一次。</strong>
             <span>本輪這題不計通關；已通過的題目會保留。</span>
         </p>}

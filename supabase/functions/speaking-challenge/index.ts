@@ -340,6 +340,9 @@ Deno.serve(async (req: Request) => {
                     }))
                 };
             }
+            // In easy mode a picture gap sentence is read from the blanked sentence; the full
+            // answer is only available through reveal_hint, which voids that question for the run.
+            const easyGapMode = challengeMode === "easy" && !demoMode && !practiceOnly;
             const questions = [];
             for (const question of (questionSet.speaking_questions || []).sort((a: any, b: any) => a.sort_order - b.sort_order)) {
                 const modelAsset: any = assetByQuestionPurpose.get(`${Number(question.id)}:model_answer`);
@@ -368,7 +371,16 @@ Deno.serve(async (req: Request) => {
                         createR2PresignedUrl(privateObjectKey, "GET", 15 * 60)
                     )
                 });
-                questions.push(challengeMode === "challenge" && !demoMode && !practiceOnly ? {
+                const easyGapQuestion = easyGapMode && publicQuestion.interaction_type === "picture_gap_sentence";
+                questions.push(easyGapQuestion ? {
+                    ...publicQuestion,
+                    hint_zh: "",
+                    keywords: [],
+                    simple_answer: "",
+                    model_answer: "",
+                    pronunciation_notes_zh: "",
+                    hint_voids_pass: true
+                } : challengeMode === "challenge" && !demoMode && !practiceOnly ? {
                     ...publicQuestion,
                     hint_zh: "",
                     keywords: [],
@@ -392,7 +404,6 @@ Deno.serve(async (req: Request) => {
 
         if (action === "reveal_hint") {
             if (demoMode) return json(403, { error: "示範模式不會記錄挑戰提示", code: "demo_read_only" });
-            if (challengeMode !== "challenge") return json(400, { error: "只有挑戰模式可使用這個提示" });
             if (["alphabet_round", "letter_spelling"].includes(readQuestionSetInteractionType(questionSet.generation_metadata))) {
                 return json(400, { error: "A–Z 不使用挑戰提示" });
             }
@@ -401,6 +412,14 @@ Deno.serve(async (req: Request) => {
             const question = (questionSet.speaking_questions || []).find((item: any) => Number(item.id) === questionId);
             if (!question || !CLIENT_SESSION_PATTERN.test(clientSessionId)) {
                 return json(400, { error: "題目或挑戰回合無效，請重新進入關卡" });
+            }
+            if (challengeMode !== "challenge") {
+                const { data: interactionRow, error: interactionError } = await admin.from("speaking_question_interactions")
+                    .select("interaction_type").eq("question_id", questionId).maybeSingle();
+                if (interactionError) throw interactionError;
+                if (interactionRow?.interaction_type !== "picture_gap_sentence") {
+                    return json(400, { error: "這一題不使用提示" });
+                }
             }
             const { error: hintError } = await admin.from("speaking_challenge_hint_reveals").upsert({
                 student_id: Number(user.id), question_set_id: setId,
@@ -576,13 +595,13 @@ Deno.serve(async (req: Request) => {
                 if (!attempt || attempt.answer_match !== true || Number(attempt.pronunciation_score ?? attempt.completeness_score) < 70) {
                     return json(409, { error: "這一題要先完成正確的口說評分", code: "correct_assessment_required" });
                 }
-                if (challengeMode === "challenge") {
+                {
                     const { data: hint, error: hintError } = await admin.from("speaking_challenge_hint_reveals")
                         .select("question_id").eq("student_id", Number(user.id))
                         .eq("question_id", questionId).eq("client_session_id", clientSessionId).maybeSingle();
                     if (hintError) throw hintError;
                     if (hint || attempt.hint_used) {
-                        return json(409, { error: "本輪看過提示，這一題請下次不看提示再挑戰", code: "challenge_hint_used" });
+                        return json(409, { error: "這一題看過提示，請下次不看提示再試一次", code: "challenge_hint_used" });
                     }
                 }
             }
