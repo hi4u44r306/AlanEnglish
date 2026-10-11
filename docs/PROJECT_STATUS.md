@@ -1,6 +1,8 @@
 # Alan English 專案狀態
 
-### 「加到手機桌面」教學頁 `/install`（2026-10-12，PR 待擁有者說「幫我合併」）
+### 「加到手機桌面」教學頁 `/install`（2026-10-12，已發布）
+
+- 發布紀錄：PR #533 合併為 main `e3605a7b`，Workers Builds 成功。正式站 `alanenglish.com.tw/install` 回應 200，桌面寬度實看標題、QR Code、Safari／Chrome 切換、三步驟與示範手機圖示皆正常、無水平溢出。未驗：iPhone／Android／LINE 實機。
 
 - 分支 `claude/web-app-home-screen-guide-e55323`，基準 main `fe2235a0`。純前端、公開頁，不涉及登入、權限、資料庫或 Edge Function。
 - 新增 `Pages/InstallGuide.jsx`、`css/InstallGuide.scss`、`fragment/InstallEntry.jsx`、`utils/installGuide.js`；`App.jsx` 新增公開路由 `/install`（未列入 `publicSeo.json`，維持 noindex）；`Showcase.jsx`（主視覺卡片、FAQ、頁尾連結）與 `Login.jsx` 加入口。
