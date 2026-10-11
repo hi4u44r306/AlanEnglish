@@ -1,0 +1,67 @@
+// Inside a speaking level the student sees only the sentence, its blanks and the record button.
+// This sheet loads last and overrides the many per-breakpoint rules of the older level styles,
+// which is why the sizes below are marked important.
+
+@mixin speaking-sr-only {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    margin: -1px !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    clip-path: inset(50%) !important;
+    white-space: nowrap !important;
+    border: 0 !important;
+}
+
+body.speaking-challenge-active {
+    // Explanations with no state of their own.
+    .speaking-lesson-reward,
+    .speaking-question-number,
+    .speaking-question-heading small,
+    .speaking-question-heading p,
+    .speaking-learning-journey,
+    .speaking-practice-instructions,
+    .speaking-no-reward,
+    .speaking-recording-steps,
+    .speaking-method-note,
+    .speaking-recording-privacy,
+    .speaking-easy-answer > small,
+    .speaking-help-panel > div > small,
+    .speaking-audio-volume-hint { display: none !important; }
+
+    // Still announced to screen readers, just not shown.
+    .speaking-lesson-heading,
+    .speaking-recording-heading,
+    .speaking-recording-status { @include speaking-sr-only; }
+
+    // Readable from about 50 cm on a phone: roughly 9 mm tall capitals at 34px.
+    .speaking-question-heading h2,
+    .speaking-easy-answer > strong,
+    .speaking-help-panel > div > strong {
+        display: block;
+        font-size: clamp(32px, 8.6vw, 46px) !important;
+        line-height: 1.32 !important;
+        font-weight: 800 !important;
+        letter-spacing: 0 !important;
+        overflow-wrap: anywhere;
+    }
+    .speaking-easy-answer > strong,
+    .speaking-help-panel > div > strong { margin: 8px 0 12px; }
+
+    .speaking-answer-slot {
+        display: inline-block;
+        min-width: 2.4em;
+        margin: 0 .12em;
+        padding: 0 .28em;
+        border-bottom: .09em solid currentColor;
+        border-radius: .2em .2em 0 0;
+        background: rgba(255, 223, 120, .5);
+        font-size: .82em;
+        line-height: 1.25;
+        text-align: center;
+        white-space: nowrap;
+    }
+
+    .speaking-pronunciation-mic { min-height: 64px; font-size: 20px; }
+}
