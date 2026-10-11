@@ -7,16 +7,13 @@ import { MemoryRouter } from "react-router-dom";
 import StudentLearningHome from "./StudentLearningHome";
 import { useAuth } from "../../auth/AuthContext";
 import { getAccessibleCatalog } from "../../services/contentAccessService";
-import { getGamificationSummary } from "../../services/gamificationService";
 import { getStudentAssignments, getStudentAssignmentsV2 } from "../../services/assignmentService";
-import { cacheStudentAvatarDisplayUrl } from "../../constants/studentAvatarCache";
 import { loadStudentCommerceProfile } from "../../services/commerceService";
 import { studentPageScope } from "../../services/studentPageCache";
 import { saveStudentLearningResume } from "../../services/studentLearningResume";
 
 jest.mock("../../auth/AuthContext", () => ({ useAuth: jest.fn() }));
 jest.mock("../../services/contentAccessService", () => ({ getAccessibleCatalog: jest.fn() }));
-jest.mock("../../services/gamificationService", () => ({ getGamificationSummary: jest.fn() }));
 jest.mock("../../services/assignmentService", () => ({ getStudentAssignments: jest.fn(), getStudentAssignmentsV2: jest.fn() }));
 jest.mock("../../services/commerceService", () => ({ loadStudentCommerceProfile: jest.fn() }));
 
@@ -31,7 +28,6 @@ beforeEach(() => {
         { id: 1, name: "Workbook", books: [{ id: 10, code: "Workbook_1", name: "Workbook 1" }, { id: 11, code: "Workbook_2", name: "未授權教材", locked: true }] },
         { id: 2, name: "Phonics", books: [{ id: 12, code: "Phonics_1", name: "Phonics 1" }] }
     ] });
-    getGamificationSummary.mockResolvedValue({ balance: { level: 2, total_xp: 180, next_level_xp: 250, progress_percent: 53 } });
     getStudentAssignments.mockResolvedValue({ assignments: [
         { id: 1, title: "過往任務", due_at: "2020-01-01T00:00:00Z", progress: {} },
         { id: 2, title: "這週的聽力", due_at: "2099-01-01T00:00:00Z", progress: {} }
@@ -44,31 +40,16 @@ beforeEach(() => {
     } });
 });
 
-test("shows the current student's local avatar pixels immediately on the home page", async () => {
-    await cacheStudentAvatarDisplayUrl("https://example.com/photo.webp", {
-        ownerUid: "learner-a", sourceKey: "avatars/photo.webp",
-        previewBlob: new Blob(["avatar"], { type: "image/webp" })
-    });
-    useAuth.mockReturnValue({ firebaseUser: { uid: "learner-a" }, role: "student", studentProfile: { ...profile(true), user_image: "avatars/photo.webp" } });
-    const view = renderHome();
-    expect(view.container.querySelector(".ae-student-avatar-image img").getAttribute("src")).toMatch(/^data:image\/webp/);
-    await screen.findByRole("link", { name: "打開這份任務" });
-});
-
-test("the material shelf appears without waiting for slow summary or assignment responses", async () => {
-    getGamificationSummary.mockReturnValue(new Promise(() => {}));
+test("the material shelf appears without waiting for slow assignment responses", async () => {
     getStudentAssignments.mockReturnValue(new Promise(() => {}));
     getStudentAssignmentsV2.mockReturnValue(new Promise(() => {}));
     renderHome();
     expect(await screen.findByRole("link", { name: "Workbook 1" })).toBeInTheDocument();
-    expect(screen.getByText("正在整理作業…")).toBeInTheDocument();
-    expect(screen.getByText("正在讀取成長資料…")).toBeInTheDocument();
 });
 
 test("returning to the home renders the existing shelf and tasks synchronously", async () => {
     const first = renderHome();
     await screen.findByRole("link", { name: "打開這份任務" });
-    await screen.findByText("180 XP");
     first.unmount();
     renderHome();
     expect(screen.getByRole("link", { name: "Workbook 1" })).toBeInTheDocument();
@@ -76,12 +57,17 @@ test("returning to the home renders the existing shelf and tasks synchronously",
     await waitFor(() => expect(getAccessibleCatalog).toHaveBeenCalledTimes(1));
 });
 
-test("recommends an active task, keeps overdue tasks separate, and preserves the task destination", async () => {
-    renderHome();
+test("shows assignments only in the mission card, with the next task first and a link to the rest", async () => {
+    const view = renderHome();
     expect(await screen.findByRole("link", { name: "打開這份任務" })).toHaveAttribute("href", "/student/assignments?task=v1-2");
+    expect(screen.getByRole("heading", { name: "這週的聽力" })).toBeInTheDocument();
     expect(screen.queryByText("過往任務")).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "已逾期 1" }));
-    expect(screen.getByRole("link", { name: /過往任務/ })).toHaveAttribute("href", "/student/assignments?task=v1-1");
+    expect(screen.getByText(/另外還有 1 份作業/)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "查看全部作業" })).toHaveAttribute("href", "/student/assignments");
+    expect(screen.queryByRole("region", { name: "待完成作業提醒" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "老師的任務" })).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("我的成長")).not.toBeInTheDocument();
+    expect(view.container.querySelectorAll('a[href^="/student/assignments"]')).toHaveLength(2);
 });
 
 test("shows each authorized book once as a single card and filters by category", async () => {
@@ -222,20 +208,18 @@ test("does not link locked or disabled class materials from the mission", async 
     expect(screen.getByRole("link", { name: "查看我的教材" })).toHaveAttribute("href", "#learning-books");
 });
 
-test("does not turn a partial assignment failure into an all-complete message", async () => {
+test("reports a partial assignment failure and lets the student retry", async () => {
     getStudentAssignmentsV2.mockRejectedValue(new Error("unavailable"));
     renderHome();
-    await screen.findByText(/這裡可能不是完整清單/);
-    fireEvent.click(screen.getByRole("button", { name: "已完成", exact: true }));
-    expect(screen.queryByText("完成的任務會出現在這裡。")).not.toBeInTheDocument();
+    await screen.findByText(/部分作業未能讀取/);
+    fireEvent.click(screen.getByRole("button", { name: "重新讀取" }));
+    await waitFor(() => expect(getStudentAssignmentsV2).toHaveBeenCalledTimes(2));
 });
 
 test("keeps independent sections usable and lets the student retry a catalog failure", async () => {
     getAccessibleCatalog.mockRejectedValueOnce(new Error("unavailable"));
-    getGamificationSummary.mockRejectedValueOnce(new Error("unavailable"));
     renderHome();
     await screen.findByRole("link", { name: "打開這份任務" });
-    expect(screen.queryByText("0 XP")).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "重新讀取教材" }));
     await screen.findByRole("link", { name: "Workbook 1" });
     expect(getAccessibleCatalog).toHaveBeenCalledTimes(2);
@@ -290,30 +274,20 @@ test("textbook customers can resume their authorized material", async () => {
     expect(await screen.findByRole("link", { name: "繼續 Phonics 1" })).toHaveAttribute("href", "/student/books/Phonics_1?resume=2");
 });
 
-test("no longer shows the birthday notice on the shelf page", async () => {
-    const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Taipei", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
-    getGamificationSummary.mockResolvedValue({ balance: { level: 2, total_xp: 180 }, birthday: { enabled: true, is_birthday_month: true, evaluated_on: today, ends_on: "2026-10-31", xp_multiplier: 2, gift_status: "received", gift_points: 150 } });
-    renderHome();
-    await screen.findByText("180 XP");
-    expect(screen.queryByText("生日月快樂！")).not.toBeInTheDocument();
-    expect(screen.getByRole("heading", { level: 1, name: "教材" })).toBeInTheDocument();
-});
 
-
-test("shows overdue-only work and links straight to the matching assignment", async () => {
+test("shows overdue-only work in the mission card and links straight to the matching assignment", async () => {
     getStudentAssignments.mockResolvedValue({ assignments: [{ id: 4, title: "P22 聽力", source_type: "music_track", due_at: "2020-01-01", tracks: [{ track: { id: 22 }, required_listens: 3, play_count: 1 }], progress: {} }] });
     renderHome();
-    const reminder = await screen.findByRole("region", { name: "待完成作業提醒" });
-    expect(reminder).toHaveTextContent("目前沒有新的作業，你還有 1 份逾期作業尚未完成");
-    expect(reminder).toHaveTextContent("指定音檔：已完成 0 / 1 個");
-    expect(within(reminder).getByRole("link", { name: "查看待補作業" })).toHaveAttribute("href", "/student/assignments?task=v1-4");
-    expect(screen.queryByText(/目前沒有待處理作業/)).not.toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "查看作業與補做方式" })).toHaveAttribute("href", "/student/assignments?task=v1-4");
+    const mission = await screen.findByRole("region", { name: "P22 聽力" });
+    expect(mission).toHaveTextContent("已逾期，請向老師確認補做方式");
+    expect(mission).toHaveTextContent("指定音檔：已完成 0 / 1 個");
+    expect(within(mission).getByRole("link", { name: "查看作業與補做方式" })).toHaveAttribute("href", "/student/assignments?task=v1-4");
+    expect(mission).not.toHaveTextContent("另外還有");
 });
 
 test("completed overdue work does not appear as outstanding work", async () => {
     getStudentAssignments.mockResolvedValue({ assignments: [{ id: 4, title: "已完成作業", due_at: "2020-01-01", progress: { completed: true } }] });
     renderHome();
-    await screen.findByText(/目前沒有待處理作業/);
-    expect(screen.queryByRole("region", { name: "待完成作業提醒" })).not.toBeInTheDocument();
+    await screen.findByRole("link", { name: "打開 Workbook 1" });
+    expect(screen.queryByText("已完成作業")).not.toBeInTheDocument();
 });

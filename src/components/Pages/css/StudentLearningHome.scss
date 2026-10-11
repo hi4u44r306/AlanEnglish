@@ -145,3 +145,4 @@
     a:focus-visible { outline: 3px solid #245fc5; outline-offset: 3px; }
     @media (max-width: 600px) { align-items: stretch; flex-direction: column; gap: 4px; }
 }
+.learning-home__mission-copy > small a, .learning-home__mission-copy > small button { display: inline-flex; align-items: center; min-height: 44px; margin-left: 4px; padding: 0 4px; border: 0; background: transparent; color: var(--learning-blue); font-weight: 700; text-decoration: underline; text-underline-offset: 4px; }
