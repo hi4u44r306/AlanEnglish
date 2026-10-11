@@ -32,6 +32,14 @@ const challengePageLabel = challenge => {
     return titlePage ? `P.${titlePage[1].replace(/\s+/g, "")}` : challenge?.title || "口說挑戰";
 };
 
+// Image descriptions read like "一把鑰匙" or "一顆蘋果和一棵蘋果樹"; the cue is the first thing
+// named, without its measure word.
+export const pictureCueZh = alt => String(alt || "")
+    .split(/[和與跟及、，,。；;（(]/)[0]
+    .trim()
+    .replace(/^[一兩二三四五六七八九十幾]?[顆隻條個把張本支枝件雙棵朵台臺輛位片塊杯瓶頂座間架艘匹頭群些對枚根盒碗盤包串粒種名]/, "")
+    .trim();
+
 export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, staffAudioPreview = false, onComplete, onPracticeOnly, onExit, onFinished, staffPreview = false, adminScoringPreview = false, challengeMode = "easy", onRevealHint }) {
     const interactionType = String(challenge?.generation_metadata?.interaction_type || "");
     const gapMode = interactionType === "picture_gap_sentence";
@@ -89,6 +97,11 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, s
     const sentenceTokens = useMemo(() => tokenizeSpeakingSentence(
         activeQuestion?.picture_interaction?.sentence_pattern
     ), [activeQuestion]);
+
+    // The picture is replaced by its Chinese description: inside the blank when the sentence
+    // has one blank, as a single cue line when it has several.
+    const gapCue = pictureCueZh(activeQuestion?.visual_aid?.alt_zh);
+    const blankCue = sentenceTokens.filter(token => token.kind === "blank").length === 1 ? gapCue : "";
 
     const playAudio = (url, token, errorMessage, blockedMessage) => {
         if (!url) return;
@@ -169,7 +182,7 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, s
         <section className="speaking-question-stage"><article ref={phaseFocusRef} tabIndex="-1" aria-label={`第 ${activeIndex + 1} 題，共 ${round.length} 題`} key={activeQuestion.id} className="speaking-focus-card speaking-foundation-card speaking-picture-card">
             <div className="speaking-game-question-card">
                 <span className="speaking-foundation-count">第 {activeIndex + 1} 題，共 {round.length} 題</span>
-                <SpeakingVisualAid aid={activeQuestion.visual_aid} showCaption={false} />
+                {!gapMode && <SpeakingVisualAid aid={activeQuestion.visual_aid} showCaption={false} />}
                 {staffAudioPreview && gapMode && <button
                 type="button"
                 className="speaking-gap-sentence-audio"
@@ -181,9 +194,10 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, s
                 {sentenceTokens.map(token => token.kind === "word"
                     ? <span key={token.tokenIndex} className="sentence-word">{token.text}</span>
                     : token.kind === "blank"
-                        ? <span key={token.tokenIndex} className="answer-blank" aria-label="請依圖片補上的答案">____</span>
+                        ? <span key={token.tokenIndex} className={`answer-blank${blankCue ? " has-cue" : ""}`} aria-label={blankCue ? `要補上的答案：${blankCue}` : "要補上的答案"}>{blankCue || "____"}</span>
                         : <span key={token.tokenIndex} className="punctuation" aria-hidden="true">{token.text}</span>)}
             </div>}
+                {gapMode && gapCue && !blankCue && <p className="speaking-gap-cue">（{gapCue}）</p>}
                 {audioError && <p className="speaking-foundation-warning" role="alert">{audioError}</p>}
             </div>
             {staffPreview && !adminScoringPreview ? <p className="speaking-staff-preview-banner" role="status">老師唯讀預覽：可使用下方按鈕逐題查看，不啟用麥克風。</p> : <SpeakingPracticeSteps
@@ -195,7 +209,7 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, s
                 challengeMode={challengeMode}
                 showAnswerByDefault={challengeMode === "easy"}
                 onRevealHint={onRevealHint}
-                hideHelp={(staffPreview && !adminScoringPreview) || challengeMode === "easy"}
+                hideHelp={(staffPreview && !adminScoringPreview) || (challengeMode === "easy" && !activeQuestion.hint_voids_pass)}
                 promptTitle={copy.promptTitle}
                 promptDetail={copy.promptDetail}
                 onCompleted={handleCorrect}
