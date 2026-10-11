@@ -10,6 +10,7 @@ import { getSpeakingChallengeCatalog } from "../../services/speakingChallengeSer
 import { findResumeBook, learningResumePath } from "../../services/studentLearningResume";
 import { getLearningTasks, getStudentMaterialCategories } from "../../utils/studentLearning";
 import { assignmentProgressLabel } from "../../utils/assignmentListening";
+import forestScene from "../assets/speaking-map/unified-forest-a-v1.webp";
 
 const formatDay = value => new Intl.DateTimeFormat("zh-TW", { timeZone: "Asia/Taipei", month: "numeric", day: "numeric" }).format(new Date(value));
 const taskPath = task => `/student/assignments?task=${encodeURIComponent(task.taskKey)}`;
@@ -66,20 +67,23 @@ function StudentProgressOverview() {
 
     return <section className="student-progress" aria-label="學習進度">
         {nextTask ? <Link className={`student-progress__next${nextTask.state === "overdue" ? " is-overdue" : ""}`} to={taskPath(nextTask)}>
+            <img className="student-progress__scene" src={forestScene} alt="" />
             <span className="student-progress__next-label">{nextTask.state === "overdue" ? "作業已逾期" : "接下來：作業"}</span>
             <strong>{nextTask.title}</strong>
             <span className="student-progress__next-meta">{nextTask.state === "overdue" ? "請向老師確認補做方式" : Number.isFinite(Date.parse(nextTask.due_at)) ? `${formatDay(nextTask.due_at)} 截止` : "老師的作業"} · {assignmentProgressLabel(nextTask)}</span>
-            <FiArrowRight aria-hidden="true" />
+            <span className="student-progress__next-action">打開作業<FiArrowRight aria-hidden="true" /></span>
         </Link> : resume ? <Link className="student-progress__next" to={learningResumePath(resume.book, resume.bookmark)}>
+            <img className="student-progress__scene" src={forestScene} alt="" />
             <span className="student-progress__next-label">接下來：繼續聽</span>
             <strong>{resume.book.name}</strong>
             <span className="student-progress__next-meta">上次聽到 {where(resume)}</span>
-            <FiArrowRight aria-hidden="true" />
+            <span className="student-progress__next-action">繼續聽<FiArrowRight aria-hidden="true" /></span>
         </Link> : <button type="button" className="student-progress__next" onClick={openMaterials}>
+            <img className="student-progress__scene" src={forestScene} alt="" />
             <span className="student-progress__next-label">接下來</span>
             <strong>選一本教材開始</strong>
             <span className="student-progress__next-meta">{catalogQuery.loading ? "正在讀取教材…" : "點這裡打開教材"}</span>
-            <FiArrowRight aria-hidden="true" />
+            <span className="student-progress__next-action">打開教材<FiArrowRight aria-hidden="true" /></span>
         </button>}
         {taskError && <p className="student-progress__notice" role="status">部分作業未能讀取，這裡可能不完整。<button type="button" onClick={refreshTasks}>重新讀取</button></p>}
 

@@ -1,5 +1,11 @@
 # Alan English 專案狀態
 
+### 我的進度版面整理（2026-10-11，併入 PR #531，待擁有者說「幫我合併」）
+
+- 同分支 `fix/page-length`。`StudentSettings`：標題改為僅供輔助科技讀取；個人卡移除「我的學習角色」、AI Premium 徽章、頭貼格式說明與暱稱長說明，暱稱表單改為卡片的直接子元素並跨兩欄。`StudentProgressOverview`：「接下來」卡加回 `unified-forest-a-v1.webp` 底圖、標籤與卡內按鈕樣式。
+- 驗證：StudentSettings、StudentProgressOverview 共 22 項通過；ESLint、SCSS 編譯通過。於本機 `localhost:3000`（已登入測試學生）在 390、768、1440 寬實看與量測：無水平溢出，頭貼與名稱不重疊（初版在 1440 寬重疊，已改欄寬）。
+- 未驗：iPhone Safari 實機。
+
 ### 學生頁面底部多餘空白（2026-10-11，PR 待擁有者說「幫我合併」）
 
 - 擁有者以 iPhone 截圖回報我的進度頁尾有大片空白並要求檢查所有頁面長度。發布紀錄補記：PR #530 已合併為 main `b927838f`，Workers Builds 成功，線上口說 chunk 含 `speaking-gap-cue`。
