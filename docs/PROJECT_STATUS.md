@@ -1,5 +1,11 @@
 # Alan English 專案狀態
 
+### 教材選單改為雙欄名稱卡片（2026-10-11，PR 待擁有者說「幫我合併」）
+
+- 擁有者回報 PR #523 的教材抽屜仍是逐層選單，要的是雙欄、只有教材名稱的卡片。分支 `fix/materials-drawer-grid`，基準 main `dcd2546c`（PR #523 已合併並由 Workers Builds 成功發布，正式 `main.8a05bf56.js`）。
+- `StudentNavbar` 的學生教材抽屜與桌面下拉改為 `ae-student-material-grid`：列出 `categories` 內所有已授權教材的名稱連結；不再使用 `MaterialsNavigator`（老師／管理員導覽仍使用）。
+- 驗證：MainNavbar 35 項通過，ESLint 與 SCSS 編譯通過。未做瀏覽器目視、真實登入與 iPhone 檢查。
+
 ### 熟練 30 次、生日停用、好友後端停用：後端已套用（2026-10-11）
 
 - 擁有者於本對話指示「把後端三項套用」。程式內容與 main `520871f0` 的 `supabase/` 完全相同（`git diff origin/main -- supabase/functions` 為空）。

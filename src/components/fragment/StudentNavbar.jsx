@@ -26,7 +26,6 @@ import StudentAvatarImage from "./StudentAvatarImage";
 import { getStudentAvatarDisplayUrl } from "../../constants/defaultStudentAvatars";
 import { getStudentNotificationDestination } from "../../constants/studentNotificationRoutes";
 import { useCachedStudentAvatarUrl } from "../../hooks/useCachedStudentAvatarUrl";
-import MaterialsNavigator from "./MaterialsNavigator";
 import "../assets/scss/StudentNavbar.scss";
 import "../assets/scss/StudentAdventureNavigation.scss";
 import "../assets/scss/StudentGrowthHeader.scss";
@@ -70,7 +69,6 @@ const StudentNavbar = ({
     const location = useLocation();
     const [drawer, setDrawer] = useState("");
     const [drawerOpen, setDrawerOpen] = useState(false);
-    const [materialsResetToken, setMaterialsResetToken] = useState(0);
     const [materialsOpen, setMaterialsOpen] = useState(false);
     const accessibleCategories = categories || [];
     const materialCount = accessibleCategories.reduce((total, category) => total + category.books.length, 0);
@@ -106,15 +104,10 @@ const StudentNavbar = ({
         ? <StudentAvatarImage src={avatarUrl} alt="" />
         : <span>{profileInitial}</span>;
 
-    const resetMaterialsView = useCallback(() => {
-        setMaterialsResetToken(current => current + 1);
-    }, []);
-
     const openDrawer = useCallback(view => {
-        if (view === "materials") resetMaterialsView();
         setDrawer(view);
         setDrawerOpen(true);
-    }, [resetMaterialsView]);
+    }, []);
     const closeDrawer = () => {
         setDrawerOpen(false);
         setMaterialsOpen(false);
@@ -122,7 +115,6 @@ const StudentNavbar = ({
     const closeDrawerThenNavigate = () => closeDrawer();
     const handleDrawerExited = () => {
         setDrawer("");
-        resetMaterialsView();
     };
 
     useEffect(() => {
@@ -140,9 +132,15 @@ const StudentNavbar = ({
         closeDrawer();
     }, [location.pathname]);
 
-    const renderMaterials = variant => {
-        return <MaterialsNavigator categories={accessibleCategories} loading={loading} navError={navError} onNavigate={closeDrawerThenNavigate} resetToken={materialsResetToken} variant={variant} />;
-    };
+    // Every authorized book as one big card: the whole card is the link, and it shows only the book name.
+    const renderMaterials = () => loading ? <div className="ae-student-menu-status">教材載入中...</div>
+        : navError ? <div className="ae-student-menu-status error">教材暫時無法載入</div>
+        : !materialCount ? <div className="ae-student-menu-status">目前沒有可使用的教材</div>
+        : <div className="ae-student-material-grid">
+            {accessibleCategories.flatMap(category => category.books).map(book => (
+                <InstantDrawerLink key={book.id || book.code} to={book.path || `/student/books/${encodeURIComponent(book.code)}`} onNavigate={closeDrawerThenNavigate} className={isPathActive(`/student/books/${book.code}`) ? "active" : ""}>{book.name}</InstantDrawerLink>
+            ))}
+        </div>;
 
     const speakingLinks = (
         <div className="ae-student-choice-list">
@@ -226,9 +224,9 @@ const StudentNavbar = ({
                     <StudentGrowthHeader key={firebaseUser?.uid} summary={growthSummary} loading={growthLoading} error={growthError} pointsAccess={hasRewardsAccess} onRetry={onGrowthRetry} avatarUrl={avatarUrl} />
                     <Nav as="nav" className="ae-student-desktop-nav" aria-label="學生桌面導覽" onSelect={closeDrawer}>
                         <Nav.Link as={Link} to="/student/settings" aria-current={isPathActive("/student/settings") ? "page" : undefined} className={profileActive ? "active" : ""} aria-label="我的進度"><span><NavigationIcon tone="profile">{profileAvatar}</NavigationIcon>我的進度</span></Nav.Link>
-                        <NavDropdown id="student-materials" title={<span><NavigationIcon tone="books"><FiBookOpen /></NavigationIcon>教材</span>} show={materialsOpen} onToggle={nextOpen => { setMaterialsOpen(nextOpen); if (nextOpen && !materialsOpen) resetMaterialsView(); }} autoClose="outside" className={materialsActive ? "active" : ""}>
+                        <NavDropdown id="student-materials" title={<span><NavigationIcon tone="books"><FiBookOpen /></NavigationIcon>教材</span>} show={materialsOpen} onToggle={setMaterialsOpen} autoClose="outside" className={materialsActive ? "active" : ""}>
                             <div className="ae-student-dropdown-heading"><strong>選一本教材</strong><small>{loading ? "教材載入中…" : `${materialCount} 本可使用`}</small></div>
-                            {renderMaterials("desktop")}
+                            {renderMaterials()}
                         </NavDropdown>
                         <NavDropdown id="student-speaking" title={<span><NavigationIcon tone="adventure"><PiJoystick /></NavigationIcon>口說冒險</span>} className={speakingActive ? "active" : ""}>
                                 <div className="ae-student-dropdown-heading"><strong>冒險世界</strong><small>選擇教材，開始闖關</small></div>
@@ -255,10 +253,10 @@ const StudentNavbar = ({
 
             <Offcanvas id="student-navigation-drawer" show={drawerOpen} onHide={closeDrawer} onExited={handleDrawerExited} placement={drawer === "speaking" ? "bottom" : "end"} className={`ae-student-drawer ${drawer === "menu" ? "is-menu" : drawer === "materials" ? "is-materials" : "is-choice"}`} backdrop scroll={false}>
                 <Offcanvas.Header closeButton closeLabel="關閉選單">
-                    <div><strong>{drawer === "materials" ? "我的教材" : drawer === "speaking" ? "口說冒險" : "更多功能"}</strong><small>{drawer === "materials" ? "選擇教材、程度與冊別" : drawer === "speaking" ? "選擇教材，開始闖關" : "學習紀錄、角色與獎勵、帳號與幫助"}</small></div>
+                    <div><strong>{drawer === "materials" ? "我的教材" : drawer === "speaking" ? "口說冒險" : "更多功能"}</strong><small>{drawer === "materials" ? "點一本教材開始" : drawer === "speaking" ? "選擇教材，開始闖關" : "學習紀錄、角色與獎勵、帳號與幫助"}</small></div>
                 </Offcanvas.Header>
                 <Offcanvas.Body>
-                    {drawer === "materials" && renderMaterials("mobile")}
+                    {drawer === "materials" && renderMaterials()}
                     {drawer === "speaking" && speakingLinks}
                     {drawer === "menu" && (
                         <>
