@@ -1,0 +1,24 @@
+.team-boss-page .tb-relic-battle-details {
+ margin:16px 20px;padding:18px;background:#102338;color:#dbeaf4;border:1px solid #526f87;border-radius:16px;
+ header { display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap; }
+ header small { color:#a8cbe2;font-size:12px; } h3 { color:#fff1c4;font-size:18px;margin:5px 0; }
+ header>span { color:#fff1a8;border:1px solid #8b794e;padding:6px 9px;border-radius:8px;font-size:12px; }
+ p { color:#b7ccdc;font-size:12px;line-height:1.7;margin:12px 0; }
+ .tb-relic-battle-abilities { list-style:none;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:14px 0;padding:0; }
+ .tb-relic-battle-abilities li { padding:9px;background:#1b334b;border:1px solid #40556b;border-radius:9px; }
+ .tb-relic-battle-abilities strong,.tb-relic-battle-abilities span { display:block; } .tb-relic-battle-abilities span { font-size:11px;color:#b7ccdc;margin-top:4px; }
+ [data-enabled=true] { border-color:#9e894f!important; } [data-enabled=true] strong { color:#fff1a8; }
+ >ol { list-style:none;margin:0;padding:0; } >ol>li { border-top:1px solid #40556b;padding:14px 0 0; }
+ .tb-relic-event-heading { display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:13px; } .tb-relic-event-heading b { color:#fff1a8; }
+ .tb-relic-event-stats { display:flex;gap:8px 16px;flex-wrap:wrap;font-size:12px;margin:10px 0;color:#b7ccdc; }
+ >ol>li>ul { list-style:none;padding:0;margin:0; } >ol>li>ul>li { display:flex;justify-content:space-between;gap:12px;margin:6px 0;font-size:12px; } >ol>li>ul b { font-weight:500;color:#9edcf0; }
+ @media(max-width:650px) { margin:14px 10px;padding:14px;h3 {font-size:16px;} .tb-relic-battle-abilities {grid-template-columns:repeat(2,minmax(0,1fr));} >ol>li>ul>li {flex-wrap:wrap;gap:4px;} }
+}
+
+.team-boss-page .tb-relic-battle-details .tb-relic-progress-event {
+ padding:12px;background:#1b334b;border-radius:10px;margin-top:12px;
+ dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:0;}
+ dt{color:#fff1a8;font-size:13px;font-weight:700;}dd{margin:5px 0;font-size:12px;line-height:1.7;overflow-wrap:anywhere;}
+ ul{padding:0;list-style:none;}li{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-size:12px;line-height:1.7;}li b{color:#9edcf0;font-weight:500;}
+ @media(max-width:650px){dl{grid-template-columns:1fr;}}
+}

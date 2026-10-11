@@ -1,5 +1,13 @@
 # Alan English 專案狀態
 
+### Boss 挑戰管理員預覽頁（2026-10-11，發布中）
+
+- 負責：Claude Code。分支 `feature/boss-preview-admin`，基準 main `256a6fa0`。
+- 內容：新增 `/admin/boss-preview`（`allowedRoles=["admin"]`，lazy chunk），掛上 `src/components/Pages/TeamBossSpeakingPreview/`。只從 `codex/team-boss-2d-preview` 帶入該頁實際相依的 96 個新檔（戰場元件、角色／裝備／Boss 素材約 44MB）與饅頭黑體字型（OFL-1.1）；既有檔案只改 `src/app/App.jsx` 兩行，未帶入 Boss 分支對口說核心 6 個檔案的修改。
+- 性質：純前端單機展示，無後端呼叫、無 migration、無 Edge Function、不寫入正式資料。規則依 Boss 分支 `docs/TEAM_BOSS_SPEC_V2.md`（V2.4）。
+- 驗證：規則測試 14 項通過；`CI=true react-scripts build` 編譯成功，預覽為獨立 chunk、main bundle 不含該頁；本機獨立預覽於 380px 寬實測通過。未驗：管理員登入後在網站版面內的顯示（Navbar 與固定血條是否重疊）、桌面寬度、iPhone Safari、實際麥克風錄音到出分的完整流程。
+- 下一步：合併後等 Cloudflare production build，確認正式網址未登入時被導向登入；請擁有者以管理員帳號在手機實測。Boss 後端設計另批處理。
+
 ### 學生作業與錄音流程改善（2026-10-10，已發布／正式帳號實機待驗）
 
 - 首頁在生日祝福之前顯示簡短的待完成作業提醒，優先進行中，其次未完成逾期；列出名稱、截止日、進度並直接連到對應作業。沒有進行中但仍有逾期時，不再顯示沒有待辦的訊息；已完成作業不納入提醒。
