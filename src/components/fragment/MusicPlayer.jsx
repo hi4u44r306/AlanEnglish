@@ -1485,8 +1485,8 @@ function MusicPlayer({
                     <strong>{masteryText ? masteryText.title : `今日獎勵 ${rewardSummary.daily_rewarded_tracks}/${rewardSummary.daily_track_limit} 首`}</strong>
                     <span>
                         {masteryText ? masteryText.detail : rewardSummary.limit_reached
-                            ? "今日 XP／AE Points 已達上限，仍可繼續聽"
-                            : `再聽 ${rewardSummary.next_point_in} 首不同音檔可得 1 AE Point`}
+                            ? "今日經驗值已達上限，仍可繼續聽"
+                            : "繼續聽可以累積經驗值"}
                     </span>
                 </div>
             )}
@@ -1502,9 +1502,9 @@ function MusicPlayer({
                         <span aria-hidden="true">🎧</span>
                         <h2>還在學習嗎？</h2>
                         {attentionExpired ? (
-                            <p>剛才沒有收到回應，這個工作階段不會發放獎勵。重新播放後會建立新的有效聆聽紀錄。</p>
+                            <p>剛才沒有回應，這一次不算。重新播放就會重新計算。</p>
                         ) : (
-                            <p>播放器已暫停。請在 <strong>{attentionSecondsLeft} 秒</strong>內確認，避免掛機累積 XP 與 AE Points。</p>
+                            <p>請在 <strong>{attentionSecondsLeft} 秒</strong>內按下面的按鈕，這次聆聽才會算。</p>
                         )}
                         <button type="button" onClick={continueAfterAttentionCheck}>
                             {attentionExpired ? "重新開始這首" : "我還在學習"}

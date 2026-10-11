@@ -3,6 +3,9 @@ import "@testing-library/jest-dom";
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { SpeakingChallengeCompletion } from "./SpeakingChallengeAnimation";
 
+// These cases describe the prize shop switched on; the shipped default (off) is covered in rewardShopOff.test.jsx.
+jest.mock("../../constants/rewardShop", () => ({ REWARD_SHOP_ENABLED: true }));
+
 describe("SpeakingChallengeCompletion", () => {
     const originalMatchMedia = window.matchMedia;
     beforeEach(() => { jest.useFakeTimers(); window.matchMedia = jest.fn(() => ({ matches: false })); });

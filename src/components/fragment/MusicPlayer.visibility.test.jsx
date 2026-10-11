@@ -4,6 +4,9 @@ import "@testing-library/jest-dom";
 import MusicPlayer from "./MusicPlayer";
 import { startListeningSession, recordTrackPlay } from "../../services/listeningService";
 
+// These cases describe the prize shop switched on; the shipped default (off) is covered in rewardShopOff.test.jsx.
+jest.mock("../../constants/rewardShop", () => ({ REWARD_SHOP_ENABLED: true }));
+
 const mockDispatch = jest.fn();
 jest.mock("react-redux", () => ({ useDispatch: () => mockDispatch }));
 jest.mock("../../auth/AuthContext", () => {
@@ -58,13 +61,13 @@ const begin = async () => {
 test("切換分頁立即暫停，回來不自動播，確認後從原位置繼續", async () => {
     const { audio } = await begin();
     audio.currentTime = 42;
-    expect(screen.getByText("自主熟練度 6/30 次")).toBeInTheDocument();
+    expect(screen.getByText("已聽 6 / 30 次")).toBeInTheDocument();
     visibility("hidden");
     expect(audio.paused).toBe(true);
     visibility("visible");
     expect(screen.getByRole("alertdialog")).toBeInTheDocument();
     expect(audio.paused).toBe(true);
-    fireEvent.click(screen.getByRole("button", { name: "我知道了，繼續播放" }));
+    fireEvent.click(screen.getByRole("button", { name: "繼續播放" }));
     await waitFor(() => expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument());
     expect(audio.paused).toBe(false);
     expect(audio.currentTime).toBe(42);
@@ -112,10 +115,10 @@ test("續播失敗時仍鎖定確認，可再次點擊成功續播", async () =>
     visibility("hidden");
     visibility("visible");
     HTMLMediaElement.prototype.play.mockRejectedValueOnce(new Error("Network unavailable"));
-    fireEvent.click(screen.getByRole("button", { name: "我知道了，繼續播放" }));
+    fireEvent.click(screen.getByRole("button", { name: "繼續播放" }));
     await screen.findByRole("alert");
     expect(audio.paused).toBe(true);
-    fireEvent.click(screen.getByRole("button", { name: "我知道了，繼續播放" }));
+    fireEvent.click(screen.getByRole("button", { name: "繼續播放" }));
     await waitFor(() => expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument());
     expect(audio.paused).toBe(false);
 });

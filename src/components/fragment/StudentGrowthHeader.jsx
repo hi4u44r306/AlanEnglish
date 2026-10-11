@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { REWARD_SHOP_ENABLED } from "../../constants/rewardShop";
 import Modal from "react-bootstrap/Modal";
 import { Link } from "react-router-dom";
 import { FiChevronRight, FiGift, FiUser } from "react-icons/fi";
@@ -48,10 +49,10 @@ export default function StudentGrowthHeader({ summary, loading = false, error, p
                     <small>{error || remaining == null ? status : <><span className="ae-growth-header__remaining">再 {compact(remaining)} XP 升級</span><span className="ae-growth-header__short">差 {compact(remaining)} XP</span></>}</small>
                 </span>
             </button>
-            <button type="button" className="ae-growth-header__points" aria-label={`查看點數詳情，${pointsLabel}${hasPoints ? ` ${number(balance.points_balance)} 點` : ` ${status}`}`} onClick={() => setDetail("points")}>
+            {REWARD_SHOP_ENABLED && <button type="button" className="ae-growth-header__points" aria-label={`查看點數詳情，${pointsLabel}${hasPoints ? ` ${number(balance.points_balance)} 點` : ` ${status}`}`} onClick={() => setDetail("points")}>
                 <span className="ae-growth-header__coin" aria-hidden="true"><AEPointCoin /></span>
                 <span><strong>{hasPoints ? compact(balance.points_balance) : "—"}</strong><small>AE Points</small></span>
-            </button>
+            </button>}
         </div>
         <Modal show={Boolean(detail)} onHide={() => setDetail("")} centered className={`ae-growth-detail ${detail === "points" ? "is-points" : "is-experience"}`} backdropClassName="ae-growth-backdrop" aria-labelledby="growth-detail-title">
             <Modal.Header closeButton closeLabel="關閉詳情">

@@ -44,13 +44,13 @@ export default function PlaybackPausedDialog({ onResume }) {
         <div className="playback-paused-overlay">
             <section className="playback-paused-dialog" role="alertdialog" aria-modal="true"
                 aria-labelledby="playback-paused-title" aria-describedby="playback-paused-description">
-                <span className="playback-paused-icon" aria-hidden="true">Ⅱ</span>
+                <span className="playback-paused-icon" aria-hidden="true"><i /><i /></span>
                 <h2 id="playback-paused-title">播放已暫停</h2>
-                <p id="playback-paused-description">切換分頁或鎖定畫面期間不計入有效聆聽。<br />請留在學習頁面，準備好後再繼續。</p>
-                <p className="playback-paused-note">已聽過的有效進度會保留，不需要從頭開始。</p>
+                <p id="playback-paused-description">離開畫面的時候不算聆聽。</p>
+                <p className="playback-paused-note">聽過的部分都還在，不用從頭開始。</p>
                 {error && <p role="alert">{error}</p>}
                 <button ref={buttonRef} type="button" onClick={resume} aria-disabled={resuming}>
-                    {resuming ? "正在恢復播放…" : "我知道了，繼續播放"}
+                    {resuming ? "正在恢復播放…" : "繼續播放"}
                 </button>
             </section>
         </div>, document.body
