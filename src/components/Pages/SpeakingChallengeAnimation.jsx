@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from "react";
+import { REWARD_SHOP_ENABLED } from "../../constants/rewardShop";
 import { FiArrowRight, FiMap, FiZap, FiHexagon } from "react-icons/fi";
 import "./css/SpeakingChallengeAnimation.scss";
 
@@ -62,9 +63,9 @@ export function SpeakingChallengeCompletion({ notice, mode, reference, staffPrev
             <span className="speaking-celebration-star-count">全部完成！</span>
             <div className="speaking-celebration-rewards">
                 <div aria-label={`本次獲得 ${xp} XP`}><span className="speaking-celebration-rewards__icon is-xp"><FiZap aria-hidden="true" /></span><small>經驗值</small><strong><AnimatedReward amount={xp} /><em>XP</em></strong></div>
-                <div aria-label={`本次獲得 ${points} AE Points`}><span className="speaking-celebration-rewards__icon is-points"><FiHexagon aria-hidden="true" /></span><small>獲得點數</small><strong><AnimatedReward amount={points} /><em>AE Points</em></strong></div>
+                {REWARD_SHOP_ENABLED && <div aria-label={`本次獲得 ${points} AE Points`}><span className="speaking-celebration-rewards__icon is-points"><FiHexagon aria-hidden="true" /></span><small>獲得點數</small><strong><AnimatedReward amount={points} /><em>AE Points</em></strong></div>}
             </div>
-            {!staffPreview && xp === 0 && points === 0 && <small className="speaking-celebration-reward-note">{mode === "challenge" ? "獎勵只在首次通關發放" : "練習不發放 XP 或 AE Points"}</small>}
+            {!staffPreview && xp === 0 && (!REWARD_SHOP_ENABLED || points === 0) && <small className="speaking-celebration-reward-note">{mode === "challenge" ? "獎勵只在首次通關發放" : REWARD_SHOP_ENABLED ? "練習不發放 XP 或 AE Points" : "練習不發放 XP"}</small>}
             {nextTopic && onNext && <p className="speaking-celebration-next-topic"><small>下一個目標</small><strong>{nextTopic}</strong></p>}
             <button type="button" className="speaking-celebration-next" onClick={onNext || onReturn}>{onNext ? "前往下一關" : "回地圖繼續冒險"}<FiArrowRight aria-hidden="true" /></button>
             <button type="button" className="speaking-celebration-return" onClick={onReturn}>返回地圖</button>

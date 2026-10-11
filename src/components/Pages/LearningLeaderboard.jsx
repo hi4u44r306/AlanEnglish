@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
+import { REWARD_SHOP_ENABLED } from "../../constants/rewardShop";
 import { FiGift, FiRefreshCw, FiSettings, FiStar, FiTrendingUp } from "react-icons/fi";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -28,7 +29,7 @@ function LearningLeaderboard() {
     const { firebaseUser, role, studentProfile } = useAuth();
     const isStudent = role === "student";
     const isStaff = role === "teacher" || role === "admin";
-    const hasRewardsAccess = isStudent
+    const hasRewardsAccess = REWARD_SHOP_ENABLED && isStudent
         && studentProfile?.learner_type === "academy_student"
         && studentProfile?.membership?.effective_access?.plan_codes?.includes("academy_internal") === true;
     const [period, setPeriod] = useState("week");
@@ -99,7 +100,7 @@ function LearningLeaderboard() {
                 <div>
                     <span className="gamification-eyebrow"><FiTrendingUp /> {isOverall ? "OVERALL LEADERBOARD" : "CLASS LEADERBOARD"}</span>
                     <h1>{isOverall ? "綜合排行榜" : (currentClass ? `${currentClass} 班排行榜` : "我的班級排行榜")}</h1>
-                    <p>完成聽力、作業與遊戲都能累積 XP；排行榜以 XP 排名，兌換獎品不會讓排名下降。</p>
+                    <p>{REWARD_SHOP_ENABLED ? "完成聽力、作業與遊戲都能累積 XP；排行榜以 XP 排名，兌換獎品不會讓排名下降。" : "完成聽力、作業與口說都能累積 XP；排行榜以 XP 排名。"}</p>
                 </div>
                 <div className="gamification-hero__actions">
                     <div className="gamification-segment" role="group" aria-label="排行榜範圍">
@@ -167,10 +168,10 @@ function LearningLeaderboard() {
                             <span>TOTAL XP</span>
                             <strong>{formatNumber(summary.balance?.total_xp)} XP</strong>
                         </div>
-                        <div className="gamification-stat">
+                        {REWARD_SHOP_ENABLED && <div className="gamification-stat">
                             <span>AE POINTS</span>
                             <strong>{formatNumber(summary.balance?.points_balance)} P</strong>
-                        </div>
+                        </div>}
                     </div>
                     {hasRewardsAccess && <Link className="gamification-reward-link" to="/student/rewards"><FiGift />獎品商城</Link>}
                 </section>
@@ -182,7 +183,7 @@ function LearningLeaderboard() {
                         <span>RANKING</span>
                         <h2>{period === "week" ? "本週 XP 排行" : period === "month" ? "本月 XP 排行" : "累積 XP 排行"}</h2>
                     </div>
-                    <div className="gamification-scoring-note"><FiStar />XP 不會因為兌換獎品而扣除</div>
+                    {REWARD_SHOP_ENABLED && <div className="gamification-scoring-note"><FiStar />XP 不會因為兌換獎品而扣除</div>}
                 </header>
 
                 {loading ? (

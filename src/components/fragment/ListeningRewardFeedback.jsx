@@ -1,4 +1,5 @@
 import React, { useEffect } from "react";
+import { REWARD_SHOP_ENABLED } from "../../constants/rewardShop";
 import { createPortal } from "react-dom";
 import { listeningRewardText } from "../../utils/listeningRewardText";
 import { LISTENING_MASTERY_REQUIRED_PLAYS } from "../../constants/listeningProgress";
@@ -31,10 +32,10 @@ function ListeningRewardFeedback({ reward, onDismiss }) {
                     <strong className="level-up-number">Lv.{number(reward.level_after)}</strong>
                     <h2>太棒了，你升等了！</h2>
                     <p>這次獲得 <b>{number(reward.total_xp_added)} XP</b></p>
-                    <div className="level-up-points">
+                    {REWARD_SHOP_ENABLED && <div className="level-up-points">
                         <span>{hasNewMasteryReward ? "本次熟練與升等獎勵" : "升等獎勵"}</span>
                         <strong>+{number(Number(reward.level_points_added || 0) + Number(reward.listening_points_added || 0))} AE Points</strong>
-                    </div>
+                    </div>}
                     <button type="button" onClick={onDismiss}>繼續學習</button>
                 </section>
             </div>,
@@ -55,7 +56,7 @@ function ListeningRewardFeedback({ reward, onDismiss }) {
                     <p>你完成了 {LISTENING_MASTERY_REQUIRED_PLAYS} 次有效聆聽</p>
                     <div>
                         <strong>+{number(reward.listening_xp_added)} XP</strong>
-                        {Number(reward.listening_points_added || 0) > 0 && <strong>+{number(reward.listening_points_added)} AE Point</strong>}
+                        {REWARD_SHOP_ENABLED && Number(reward.listening_points_added || 0) > 0 && <strong>+{number(reward.listening_points_added)} AE Point</strong>}
                     </div>
                     <button type="button" onClick={onDismiss}>收下獎勵</button>
                 </section>
@@ -66,14 +67,16 @@ function ListeningRewardFeedback({ reward, onDismiss }) {
 
     const masteryText = listeningRewardText(reward.reward_status);
     const title = masteryText
-        ? (Number(reward.listening_xp_added) > 0 ? "自主熟練達成 +10 XP" : masteryText.title)
+        ? (Number(reward.listening_xp_added) > 0 ? "聽滿 30 次！+10 XP" : masteryText.title)
         : reward.eligible
         ? `有效聆聽 +${number(reward.listening_xp_added)} XP`
         : reward.limit_reached
             ? "今日聽力獎勵已達上限"
             : "這首今天已領過獎勵";
     const pointText = masteryText
-        ? (Number(reward.listening_points_added) > 0 ? "獲得 +1 AE Point，每檔熟練獎勵限領一次" : masteryText.detail)
+        ? (REWARD_SHOP_ENABLED && Number(reward.listening_points_added) > 0 ? "獲得 +1 AE Point，每檔熟練獎勵限領一次" : masteryText.detail)
+        : !REWARD_SHOP_ENABLED
+        ? (reward.limit_reached ? "仍可繼續播放與保留聆聽紀錄" : "")
         : Number(reward.listening_points_added || 0) > 0
         ? `並獲得 +${number(reward.listening_points_added)} AE Point`
         : reward.limit_reached

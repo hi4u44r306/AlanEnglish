@@ -1,4 +1,5 @@
 import React, { lazy, Suspense } from "react";
+import { REWARD_SHOP_ENABLED } from "../constants/rewardShop";
 import { Navigate, Outlet, Route, Routes, useLocation, useParams } from "react-router-dom";
 import Router from "./GuardedBrowserRouter";
 import { Helmet } from "react-helmet";
@@ -181,7 +182,7 @@ const App = () => {
                         <Route path="/student/friends" element={<Navigate to="/student/settings" replace />} />
                         <Route path="/student/level" element={<Navigate to="/student/leaderboard" replace />} />
                         <Route path="/student/leaderboard" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><LearningLeaderboard /></ProtectedRoute>} />
-                        <Route path="/student/rewards" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><Rewards /></ProtectedRoute>} />
+                        <Route path="/student/rewards" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership>{REWARD_SHOP_ENABLED ? <Rewards /> : <Navigate to="/student/settings" replace />}</ProtectedRoute>} />
                         <Route path="/student/conversation" element={<ProtectedRoute allowedRoles={["student", "teacher", "admin"]} requiresActiveMembership><ConversationPractice /></ProtectedRoute>} />
                         <Route path="/student/pronunciation" element={<ProtectedRoute allowedRoles={["teacher", "admin"]}><PronunciationCoach /></ProtectedRoute>} />
                         <Route path="/student/speaking-challenges" element={<ProtectedRoute allowedRoles={["student", "teacher", "admin"]} requiresActiveMembership><TextbookSpeakingChallenge /></ProtectedRoute>} />

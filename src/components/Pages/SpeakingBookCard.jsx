@@ -1,4 +1,5 @@
 import React from "react";
+import { REWARD_SHOP_ENABLED } from "../../constants/rewardShop";
 import { FiChevronRight } from "react-icons/fi";
 import { getSpeakingBookTheme } from "../../utils/speakingCartoonMap";
 import { UNIFIED_MAP_ASSETS } from "./speakingUnifiedAssets";
@@ -18,7 +19,7 @@ const SpeakingBookCard = ({ group, index, onOpen, rewardPolicy }) => {
     const rewardPoints = Number(rewardPolicy?.ae_points);
     const hasRewardPolicy = Number.isFinite(rewardXp) && Number.isFinite(rewardPoints);
     const rewardLabel = hasRewardPolicy
-        ? `，每關首次通關 ${rewardXp} XP、最多 ${rewardPoints} AE Points`
+        ? `，每關首次通關 ${rewardXp} XP${REWARD_SHOP_ENABLED ? `、最多 ${rewardPoints} AE Points` : ""}`
         : "";
 
     return <button

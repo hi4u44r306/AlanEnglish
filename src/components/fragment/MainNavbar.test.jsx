@@ -12,6 +12,9 @@ import { getGamificationSummary } from "../../services/gamificationService";
 import { getStudentNotifications, markStudentNotificationRead } from "../../services/membershipService";
 import { prefetchReviewDashboard } from "../../services/reviewService";
 
+// These cases describe the prize shop switched on; the shipped default (off) is covered in rewardShopOff.test.jsx.
+jest.mock("../../constants/rewardShop", () => ({ REWARD_SHOP_ENABLED: true }));
+
 jest.mock("../../auth/AuthContext", () => ({ useAuth: jest.fn() }));
 jest.mock("../../services/contentAccessService", () => ({ getAccessibleCatalog: jest.fn() }));
 jest.mock("../../services/gamificationService", () => ({ getGamificationSummary: jest.fn() }));

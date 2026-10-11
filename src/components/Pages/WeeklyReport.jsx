@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { REWARD_SHOP_ENABLED } from "../../constants/rewardShop";
 import { Link, useSearchParams } from "react-router-dom";
 import {
     FiAlertCircle,
@@ -289,7 +290,7 @@ const WeeklyReport = () => {
                         <strong>{speakingChallenge.completed_questions}<small> 題新完成</small></strong>
                         <p>
                             {speakingChallenge.completed_challenges
-                                ? `本週通過 ${speakingChallenge.completed_challenges} 關，獲得 ${speakingChallenge.xp_awarded} XP${speakingChallenge.ae_points_awarded ? `、${speakingChallenge.ae_points_awarded} AE Points` : ""}`
+                                ? `本週通過 ${speakingChallenge.completed_challenges} 關，獲得 ${speakingChallenge.xp_awarded} XP${REWARD_SHOP_ENABLED && speakingChallenge.ae_points_awarded ? `、${speakingChallenge.ae_points_awarded} AE Points` : ""}`
                                 : "完成整個小關卡即可獲得通關獎勵"}
                         </p>
                         {speakingChallenge.current_challenge && (

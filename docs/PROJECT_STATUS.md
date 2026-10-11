@@ -10,6 +10,38 @@
 - 驗證：`InstallGuide.test.jsx` 與 `Login.test.jsx` 共 12 項通過；本機 `localhost:3210` 實看 `/install`（375／390 寬與桌面 1024 寬）、首頁與登入頁入口，無水平溢出。未跑完整測試與 production build（低風險 UI，依 16.1）。
 - 未驗：iPhone Safari、Android Chrome、LINE 內建瀏覽器實機（含一鍵安裝與 LINE 轉外部瀏覽器是否生效）；iOS 各版本「分享」按鈕位置不同，文案以「沒看到就先點⋯」涵蓋。
 - 已知：`Showcase.test.jsx` 的 2 項斷言在本次修改前就已過期（找不到「AI 口說大挑戰」等標題），本次未處理。此 worktree 路徑含 `.claude`，`react-scripts test` 的 testMatch 找不到測試，需以相對 glob 的 jest 設定執行。
+### 後端停止發放 AE Points、關閉兌換（2026-10-12，已發布）
+
+- 發布紀錄：PR #534 合併至 `main`（merge `b4647c80`）。正式庫 migration 版本 `20261011170703 disable_ae_points_earning`（repo 檔名已對齊）；`gamification` 部署為 v44。套用後唯讀驗證：函式本體為 `select false`、對所有學生皆回 false、`authenticated` 無執行權、`service_role` 有；下載線上 `gamification` 原始碼確認含 `REWARD_SHOP_OPEN = false` 與兩處 410；既有餘額（1 位測試帳號）與 ledger（4 筆）未變。PR #532 的 Workers Builds 成功，正式站 JS／CSS 已含新播放器與暫停提示。未驗：以學生身分實際呼叫 `rewards` 得 410、實際聽完一首確認只發 XP。
+
+- 擁有者已同意改後端（2026-10-12）。高風險：migration＋Edge Function。
+- `supabase/migrations/20261012090000_disable_ae_points_earning.sql`：只重新定義 `private.ae_student_can_earn_points(bigint)` 為 `select false`。所有發獎路徑（`ae_gamification_grant_v2`、口說通關、生日）皆以此判斷是否給點並將正點數歸零，因此 XP／等級／ledger／既有餘額不變，不刪改任何資料列。還原方式寫在 migration 註解（恢復原函式本體）。
+- `supabase/functions/gamification/index.ts`：新增 `REWARD_SHOP_OPEN = false`，`rewards` 與 `redeem` 回 410 `reward_shop_closed`；admin 動作不變。還原：改回 true 重新部署。
+- 套用前唯讀確認（正式庫）：線上函式本體與 repo 相同、無多載；有點數餘額的學生 1 位（測試帳號）；兌換紀錄 0 筆；啟用中的獎品 1 項；最後 migration `20261011124042`。
+- 套用步驟（合併至 `main` 後）：`apply_migration` → 部署 `gamification` → 唯讀驗證函式本體與以測試學生呼叫 `rewards` 得 410。
+- 未驗：無法在本機執行 Deno 測試；發獎回傳值為 0 點需於套用後以實際完成一次有效聆聽確認（會動到測試帳號資料，待擁有者同意）。
+
+### PR #532 已發布（2026-10-12）
+
+- `feature/player-simplify` 合併至 `main`（merge `756175e3`）：播放器精簡、獎品商城與 AE Points 前端收起、暫停提示改版。Workers Builds 結果與正式站字串檢查見對話回報。
+
+### 獎品商城與 AE Points 前端收起、暫停提示改版（2026-10-12，同分支 `feature/player-simplify`／PR #532，待擁有者說「幫我合併」）
+
+- 擁有者決定：收起獎品商城，聽力只給經驗值（目前無正式學生帳號）。
+- 新增 `src/constants/rewardShop.js` 的 `REWARD_SHOP_ENABLED = false`；`/student/rewards` 導回 `/student/settings`，`MainNavbar`／`LearningLeaderboard` 的 `hasRewardsAccess`、`StudentGrowthHeader` 點數按鈕、`ListeningRewardFeedback`、`listeningRewardText`、`SpeakingBookCard`、`SpeakingChallengeAnimation`、`WeeklyReport`、`AcademyInviteSignup` 的 AE Points 顯示皆依旗標隱藏。既有「商城開啟」測試以 `jest.mock` 明示旗標為 true 保留；新增 `rewardShopOff.test.jsx` 驗證出貨預設。
+- `PlaybackPausedDialog` 與「還在學習嗎？」改文案與樣式（`FooterPlayerMinimal.scss`），焦點鎖定、倒數與恢復邏輯未動。
+- **尚未做（高風險，需擁有者該批明確授權）**：後端 `record-play`／`gamification`／`speaking-challenge` 仍會寫入 AE Points ledger，`gamification` 兌換端點仍可被有效在校生直接呼叫。建議下一步：後端停止新增 AE Points 並讓兌換端點回 410，採 additive migration／函式更新，於 `main` 部署。
+- 驗證：11 組共 151 項通過；本機測試學生實看頂端列無金幣、`/student/rewards` 導回、排行榜無金幣、「播放已暫停」新樣式（以模擬分頁隱藏觸發，未恢復播放）。未驗：「還在學習嗎？」實際畫面、升等與熟練慶祝畫面、iPhone Safari。
+
+### 聽力播放器精簡（2026-10-12，分支 `feature/player-simplify`，待擁有者說「幫我合併」）
+
+- 純顯示層。`MusicPlayer.jsx` 新增 `CoverageRing`（以既有 `coveragePercent`／`sessionIneligible` 繪製，80% 為滿），取代迷你列、桌面列的音符圖示；全螢幕播放器的圖示區改為頁碼＋教材名，並新增圈圈說明列。新增 `FooterPlayerMinimal.scss`（於 `FooterPlayer.scss` 之後載入）覆寫外觀：淺色全螢幕、隱藏喜歡／不喜歡、熟練說明句、桌面浮動狀態列（保留給輔助科技），全螢幕底部預留學生底部導覽高度，設定選單置中。
+- 未動：覆蓋率計算、`record-play`、seek／倍速判定、noInteraction、續播與音檔載入；`toggleTrackReaction` 邏輯仍在，只是按鈕不顯示。
+- 驗證：MusicPlayer.visibility、ListeningRewardFeedback、Playlist 共 38 項通過；本機 `localhost:3000` 測試學生播放約 3 秒即暫停（不灌次數），實看 375 寬迷你列、全螢幕與設定選單。未驗：聽滿 80% 的打勾狀態與加速狀態（需實際聽完）、桌面列僅以計算樣式確認、iPhone Safari。
+
+### PR #531 已發布（2026-10-12）
+
+- `fix/page-length` 合併至 `main`（merge `fe2235a0`），Workers Builds 成功；正式站 `alanenglish.com.tw` 的 JS／CSS 已含「接著聽」「作業遲交」「今天還能練幾輪」「上次聽到這裡」等字串與 `student-progress__listen`、`playlist-track--last-heard`。未做：正式站登入後逐頁實看、iPhone Safari。
 
 ### 口說大挑戰首頁精簡、作業用語「遲交」（2026-10-12，併入 PR #531，待擁有者說「幫我合併」）
 

@@ -4,6 +4,9 @@ import "@testing-library/jest-dom";
 import { MemoryRouter } from "react-router-dom";
 import StudentGrowthHeader from "./StudentGrowthHeader";
 
+// These cases describe the prize shop switched on; the shipped default (off) is covered in rewardShopOff.test.jsx.
+jest.mock("../../constants/rewardShop", () => ({ REWARD_SHOP_ENABLED: true }));
+
 const balance = { level: 12, total_xp: 1860, next_level_xp: 2000, progress_percent: 70, points_balance: 1280 };
 const mount = props => render(<MemoryRouter><StudentGrowthHeader {...props} /></MemoryRouter>);
 
