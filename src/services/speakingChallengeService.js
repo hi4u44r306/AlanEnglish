@@ -10,8 +10,8 @@ const callChallenge = async (firebaseUser, action, payload = {}) => {
 export const getSpeakingChallengeCatalog = firebaseUser => callChallenge(firebaseUser, "catalog");
 export const getSpeakingAlphabetCostUsage = firebaseUser => callChallenge(firebaseUser, "alphabet_cost_usage");
 export const getSpeakingChallengeSet = (firebaseUser, questionSetId, mode = "easy") => callChallenge(firebaseUser, "question_set", { question_set_id: questionSetId, mode });
-export const revealSpeakingChallengeHint = (firebaseUser, questionSetId, questionId, challengeSessionId) => callChallenge(firebaseUser, "reveal_hint", {
-    question_set_id: questionSetId, question_id: questionId, challenge_session_id: challengeSessionId, mode: "challenge"
+export const revealSpeakingChallengeHint = (firebaseUser, questionSetId, questionId, challengeSessionId, mode = "challenge") => callChallenge(firebaseUser, "reveal_hint", {
+    question_set_id: questionSetId, question_id: questionId, challenge_session_id: challengeSessionId, mode
 });
 export const startSpeakingFoundationRound = (firebaseUser, questionSetId) => callChallenge(firebaseUser, "start_foundation_round", { question_set_id: questionSetId, mode: "challenge" });
 export const startAlphabetIntroListen = (firebaseUser, questionSetId) => callChallenge(firebaseUser, "start_alphabet_intro_listen", { question_set_id: questionSetId });

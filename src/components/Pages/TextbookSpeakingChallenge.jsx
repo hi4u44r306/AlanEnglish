@@ -377,7 +377,7 @@ export default function TextbookSpeakingChallenge() {
             model_answer: question.model_answer,
             pronunciation_notes_zh: question.pronunciation_notes_zh
         })
-        : revealSpeakingChallengeHint(firebaseUser, challenge.id, question.id, sessionId);
+        : revealSpeakingChallengeHint(firebaseUser, challenge.id, question.id, sessionId, challengeMode);
 
     const playModelAudio = question => {
         if (!question.model_audio_url) return;

@@ -217,4 +217,20 @@ describe("SpeakingPracticeSteps", () => {
         expect(screen.queryByRole("status")).not.toBeInTheDocument();
         expect(screen.getByRole("button", { name: "看提示（本輪此題不計通關）" })).toBeEnabled();
     });
+    it("簡單模式的挖空句預設只顯示挖空，看提示要先向伺服器登記且本題不算過", async () => {
+        const onRevealHint = jest.fn().mockResolvedValue({ model_answer: "They are tables.", simple_answer: "They are tables.", hint_zh: "" });
+        const gapQuestion = { ...question, model_answer: "They are [餐桌].", simple_answer: "", hint_zh: "", hint_voids_pass: true };
+        render(<SpeakingPracticeSteps firebaseUser={{}} question={gapQuestion} challengeMode="easy" showAnswerByDefault challengeSessionId="s1" onRevealHint={onRevealHint} onPlayAudio={jest.fn()} />);
+        expect(screen.getByLabelText("簡單模式參考答案")).toHaveTextContent("They are 餐桌.");
+        expect(screen.queryByText(/They are tables./)).not.toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "看提示（這題不算過）" }));
+        await waitFor(() => expect(onRevealHint).toHaveBeenCalledWith(gapQuestion, "s1"));
+        expect(await screen.findByText("They are tables.")).toBeInTheDocument();
+        expect(screen.getByText("這題先練習，稍後不用提示再試一次。")).toBeInTheDocument();
+    });
+    it("沒有挖空的簡單模式題目維持直接顯示答案，不出現會取消過關的提示", () => {
+        render(<SpeakingPracticeSteps firebaseUser={{}} question={{ ...question, model_answer: "They are tables." }} challengeMode="easy" showAnswerByDefault onPlayAudio={jest.fn()} />);
+        expect(screen.getByLabelText("簡單模式參考答案")).toHaveTextContent("They are tables.");
+        expect(screen.queryByRole("button", { name: /看提示/ })).not.toBeInTheDocument();
+    });
 });
