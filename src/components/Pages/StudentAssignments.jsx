@@ -606,7 +606,7 @@ const StudentAssignments = () => {
                                             <div className="student-homework-listening">
                                                 <div className="student-homework-listening__heading">
                                                     <div>
-                                                        <strong>指定音檔</strong>
+                                                        <strong>{listening.tracks?.[0]?.book?.name || "指定音檔"}</strong>
                                                         <span>
                                                             {listening.completedTracks}
                                                             {" / "}

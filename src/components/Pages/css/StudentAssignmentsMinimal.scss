@@ -19,7 +19,6 @@
     .student-homework-section-heading,
     .student-homework-task__type,
     .student-homework-task__meta > :first-child,
-    .student-homework-listening__heading > div > strong,
     .student-homework-listening__tracks,
     .student-homework-task__footer > span { display: none !important; }
 
@@ -42,7 +41,9 @@
 
     .student-homework-listening { margin: 0 !important; padding: 0 !important; border: 0 !important; background: none !important; box-shadow: none !important; }
     .student-homework-listening__heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 0 0 6px !important; font-size: 15px; color: #17365d; }
-    .student-homework-listening__heading span { font-size: 15px !important; font-weight: 700; color: #17365d !important; }
+    .student-homework-listening__heading > div { display: grid; gap: 2px; }
+    .student-homework-listening__heading > div > strong { font-size: 20px !important; font-weight: 800 !important; color: #17365d !important; }
+    .student-homework-listening__heading span { font-size: 15px !important; font-weight: 700; color: #526780 !important; }
     .student-homework-listening__bar { height: 10px !important; margin: 0 !important; border-radius: 10px !important; overflow: hidden; background: #e8f1eb !important; > span { display: block; height: 100%; border-radius: 10px; background: #247a56 !important; } }
 
     .student-homework-task__footer { margin: 0 !important; padding: 0 !important; border: 0 !important; }
@@ -72,3 +73,14 @@
     .music-card--assignment .music-card__check { display: none !important; }
     .music-card--assignment .music-card__assignment span { font-size: 16px !important; font-weight: 800 !important; color: #17365d !important; }
 }
+
+// In an assignment the book name leads the track list, since the cards show only the page.
+.playlist-page:has(.playlist-homework-banner) .playlist-list-heading h2 { font-size: 24px !important; font-weight: 800 !important; }
+.playlist-page:has(.playlist-homework-banner) .playlist-list-heading > span { font-size: 15px !important; }
+.playlist-page:has(.playlist-homework-banner) .playlist-header h1 { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+// Book title with finished / total on the same line.
+.playlist-page .playlist-header__title { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.playlist-page .playlist-header__title h1 { min-width: 0; margin: 0; }
+.playlist-page .playlist-header__count { flex: 0 0 auto; font-size: 22px; font-weight: 800; color: #17365d; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.playlist-page .playlist-header__copy { flex: 1 1 auto; width: 100%; }

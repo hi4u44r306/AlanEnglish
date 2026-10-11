@@ -125,6 +125,8 @@ function Playlist() {
     const homeworkTracks = useMemo(() => tracks.filter(track => homeworkTrackSet.has(String(track.id))), [tracks, homeworkTrackSet]);
     const speakingTracks = speakingContext ? tracks.filter(track => speakingContext.trackIds.has(String(track.id))) : [];
     const visibleTracks = homeworkContext.active ? homeworkTracks : speakingContext ? speakingTracks : tracks;
+    // The whole book, opened from 教材: the header carries the count, so the list needs no heading.
+    const plainList = !homeworkContext.active && !speakingContext;
     const resumeTrackId = new URLSearchParams(location.search).get("resume");
     const resumeLocated = useRef("");
     useEffect(() => {
@@ -180,7 +182,10 @@ function Playlist() {
                                     返回這份作業
                                 </Link>
                             )}
-                            <h1>{book?.name || playlistId}</h1>
+                            <div className="playlist-header__title">
+                                <h1>{book?.name || playlistId}</h1>
+                                {plainList && tracks.length > 0 && <strong className="playlist-header__count" aria-label={progressStatus === "ready" ? `已完成 ${stats.completed} 個，共 ${stats.total} 個音檔` : `共 ${stats.total} 個音檔`}>{progressStatus === "ready" ? `${stats.completed} / ${stats.total}` : stats.total}</strong>}
+                            </div>
                         </div>
                     </div>
                 </header>
@@ -235,9 +240,9 @@ function Playlist() {
                 </section>}
 
                 <div className="playlist-learning-layout">
-                <section className="playlist-list-section" aria-labelledby="listening-track-list-title">
+                <section className="playlist-list-section" aria-labelledby={plainList ? undefined : "listening-track-list-title"} aria-label={plainList ? "音檔列表" : undefined}>
                     {homeworkContext.active && <div className="playlist-homework-rules"><p>每次以原速或較慢速度實際聽滿 80%，播放結束並經系統確認後才計一次；拖到結尾或倍速播放不計次數。</p><p>長期熟練累積與本次作業完成條件分開呈現。{progressStatus === "ready" ? `整本教材累計有效聆聽 ${stats.totalPlayCount} 次，包含作業以外的聆聽。` : "整本教材累計紀錄尚未載入。"}</p></div>}
-                    <div className="playlist-list-heading"><h2 id="listening-track-list-title">{homeworkContext.active ? "指定音檔" : speakingContext ? "本關練習音檔" : "聽力任務列表"}</h2><span>{visibleTracks.length} 個音檔</span></div>
+                    {!plainList && <div className="playlist-list-heading"><h2 id="listening-track-list-title">{homeworkContext.active ? book?.name || "指定音檔" : "本關練習音檔"}</h2><span>{homeworkContext.active ? "指定音檔 " : ""}{visibleTracks.length} 個{homeworkContext.active ? "" : "音檔"}</span></div>}
                     <div className="playlist-list" id="listening-track-list" tabIndex={-1}>
                         {visibleTracks.length > 0 ? visibleTracks.map((track, index) => (
                             <div className={homeworkTrackSet.has(String(track.id)) ? "playlist-homework-track" : ""} id={`listening-track-${track.id}`} tabIndex={-1} key={track.id}>

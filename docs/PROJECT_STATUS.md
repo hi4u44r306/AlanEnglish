@@ -1,5 +1,12 @@
 # Alan English 專案狀態
 
+### 作業標示教材名稱、教材聽力頁標題旁完成數（2026-10-12，併入 PR #531，待擁有者說「幫我合併」）
+
+- 同分支 `fix/page-length`。純前端顯示，計次與作業邏輯未動。
+- `StudentAssignments.jsx`：作業卡片聽力區標題改顯示教材名稱（無教材資料時維持「指定音檔」）。
+- `Playlist.jsx`：作業模式的列表標題改為教材名稱＋「指定音檔 N 個」，頁首重複的教材名稱只留給輔助科技；一般教材模式移除「聽力任務列表」標題，改在頁首教材名稱右側顯示 `已完成 / 全部`（沿用既有 `stats`，完成＝熟練 30 次），列表區塊改用 `aria-label`。樣式在 `StudentAssignmentsMinimal.scss`。
+- 驗證：Playlist、StudentAssignments、MusicCard 共 31 項通過；本機 `localhost:3000` 以測試學生實看 375 與 1440 寬。未驗：iPhone Safari、口說關卡練習音檔模式（標題維持原樣）。
+
 ### 作業頁重新設計、Boss 挑戰入口元件（2026-10-11，併入 PR #531，待擁有者說「幫我合併」）
 
 - 同分支 `fix/page-length`。純前端。
