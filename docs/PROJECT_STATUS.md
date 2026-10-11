@@ -9,6 +9,16 @@
 - 待發布：合併後由 main 部署 `speaking-challenge`；部署前後端不一致期間，easy 挖空題仍會顯示完整答案（舊後端），不會壞。
 - 未驗：真實學生帳號的 easy 挖空題流程、提示後 409 的畫面呈現。
 
+### 獅頭 Favicon、學生頂端列移除 Logo、成長列改版（2026-10-11，PR 待擁有者說「幫我合併」）
+
+- 分支 `feature/lion-favicon-growth-header`，基準 main `2aa78382`。純前端與靜態資產。
+- Favicon：來源為擁有者提供的「Alan English 獅頭剪裁圖.png」（1360×1156，透明底），裁到可見範圍後置中縮成 16／32／48px；覆寫 `public/favicon-16x16.png`、`favicon-32x32.png`、`favicon.ico`（內含三種尺寸），`index.html` 與 `App.jsx` 的連結加上 `?v=lion1` 以避開瀏覽器快取。另新增 `apple-touch-icon-v3.png`、`android-chrome-192x192-v3.png`、`android-chrome-512x512-v3.png`（白底，獅頭占 62～72% 以符合 maskable 安全區），並更新 `index.html`、`App.jsx`、`manifest.json`、`web-push-sw.js` 的引用；舊檔保留。分享預覽圖 `og-image.png` 依擁有者決定維持原圖。推播通知的小徽章沿用 favicon-32，會一併變成獅頭。
+- `StudentNavbar` 移除 `Navbar.Brand`（老師／管理員的 `MainNavbar` 品牌保留）。
+- `StudentGrowthHeader.scss`：成長列改為兩個獨立圓角格（等級白底、點數淡黃底），等級與點數 18px（手機 16px）、進度條 6px、觸控高度 48px；格內的小字說明以 CSS 隱藏，JSX 與詳情視窗未改。
+- 驗證：MainNavbar、StudentGrowthHeader 共 39 項通過；ESLint、SCSS 編譯通過。以編譯後樣式的模擬頂端列在 390px 量測：成長列 266px、與通知／選單按鈕同列、無水平溢位；截圖工具多次逾時，只目視到等級格。
+- 未驗：真實登入後的頂端列、桌面寬度、iPhone Safari、分頁圖示實際顯示。
+
+
 ### 口說關卡畫面精簡（2026-10-11，PR 待擁有者說「幫我合併」）
 
 - 分支 `feature/speaking-level-minimal`，基準 main `2aa78382`（PR #524 已合併並由 Workers Builds 成功發布，正式 `main.77029cef.js`／`main.95262401.css` 含雙欄教材卡片）。純前端顯示，未動錄音、評分、進度或獎勵邏輯。
@@ -17,6 +27,7 @@
 - 驗證：SpeakingPracticeSteps、SpeakingPronunciationRecorder、TextbookSpeakingChallenge 共 113 項通過；ESLint、SCSS 編譯通過。把全部口說樣式編譯後套在模擬的關卡 HTML 上，於 390px 實測：題目與參考句 33.5px、挖空中文 27.5px、12 類說明元素皆不可見、無水平溢位，並有截圖目視。
 - 已知：`SpeakingChallengeFlow.test.jsx` 在改動前的 main 就有 9 項失敗（以 main 版本的兩個檔案重跑確認），與本次無關，原因未查。
 - 未驗：真實登入的關卡、圖片題與字母題版面、評分結果畫面、iPhone Safari。
+
 
 ### 教材選單改為雙欄名稱卡片（2026-10-11，PR 待擁有者說「幫我合併」）
 
