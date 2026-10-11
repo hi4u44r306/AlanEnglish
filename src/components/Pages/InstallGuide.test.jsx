@@ -40,21 +40,21 @@ describe("InstallGuide", () => {
         useUserAgent(IPHONE_SAFARI);
         renderGuide();
 
-        expect(screen.getByRole("heading", { level: 1, name: "把 Alan English 放到手機桌面" })).toBeInTheDocument();
+        expect(screen.getByRole("heading", { level: 1, name: "把 Alan English 加到手機桌面" })).toBeInTheDocument();
         expect(screen.getByRole("button", { name: "iPhone／iPad" })).toHaveAttribute("aria-pressed", "true");
-        expect(screen.getByRole("button", { name: /點「分享」按鈕/ })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: /點下方的「分享」/ })).toBeInTheDocument();
         expect(screen.getByText("往下滑，點「加入主畫面」")).toBeInTheDocument();
         expect(screen.getByText("點右上角的「加入」")).toBeInTheDocument();
-        expect(screen.queryByText("先用手機打開這一頁")).not.toBeInTheDocument();
+        expect(screen.queryByText("請用手機相機掃這個 QR Code")).not.toBeInTheDocument();
     });
 
-    it("teaches both Safari and Google Chrome on iPhone and iPad", () => {
+    it("teaches both Safari and Chrome on iPhone and iPad", () => {
         useUserAgent(IPHONE_SAFARI);
         renderGuide();
 
         expect(screen.getByRole("button", { name: /Safari/ })).toHaveAttribute("aria-pressed", "true");
-        fireEvent.click(screen.getByRole("button", { name: /Google Chrome/ }));
-        expect(screen.getByRole("button", { name: /點右上角的「分享」按鈕/ })).toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "Chrome" }));
+        expect(screen.getByRole("button", { name: /點右上角的「分享」/ })).toBeInTheDocument();
         expect(screen.getByText("往下滑，點「加入主畫面」")).toBeInTheDocument();
     });
 
@@ -62,8 +62,8 @@ describe("InstallGuide", () => {
         useUserAgent(IPHONE_CHROME);
         renderGuide();
 
-        expect(screen.getByRole("button", { name: /Google Chrome/ })).toHaveAttribute("aria-pressed", "true");
-        expect(screen.getByRole("button", { name: /點右上角的「分享」按鈕/ })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "Chrome" })).toHaveAttribute("aria-pressed", "true");
+        expect(screen.getByRole("button", { name: /點右上角的「分享」/ })).toBeInTheDocument();
     });
 
     it("shows Android steps on Android and lets the parent switch device", () => {
@@ -72,21 +72,21 @@ describe("InstallGuide", () => {
 
         expect(screen.getByRole("button", { name: /點右上角的「⋮」/ })).toBeInTheDocument();
         fireEvent.click(screen.getByRole("button", { name: "iPhone／iPad" }));
-        expect(screen.getByRole("button", { name: /點「分享」按鈕/ })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: /點下方的「分享」/ })).toBeInTheDocument();
     });
 
     it("tells LINE visitors to open the real browser first", () => {
         useUserAgent(IPHONE_LINE);
         renderGuide();
 
-        expect(screen.getByRole("heading", { name: "先換一個地方打開" })).toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: "LINE 裡面不能加到桌面" })).toBeInTheDocument();
         expect(screen.getByRole("link", { name: /Safari/ })).toHaveAttribute("href", expect.stringContaining("openExternalBrowser=1"));
     });
 
     it("asks desktop visitors to open the page on a phone", () => {
         renderGuide();
 
-        expect(screen.getByRole("heading", { name: "先用手機打開這一頁" })).toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: "請用手機相機掃這個 QR Code" })).toBeInTheDocument();
     });
 
     it("highlights the step a parent taps", () => {
@@ -96,7 +96,6 @@ describe("InstallGuide", () => {
         const second = screen.getByText("往下滑，點「加入主畫面」").closest("button");
         fireEvent.click(second);
         expect(second).toHaveAttribute("aria-current", "step");
-        expect(screen.getByRole("button", { name: "▶ 播放示範" })).toBeInTheDocument();
     });
 });
 

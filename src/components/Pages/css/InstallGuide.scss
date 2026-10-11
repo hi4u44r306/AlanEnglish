@@ -7,7 +7,7 @@
   --ig-line: #e1e7f0;
   min-height: 100vh;
   min-height: 100dvh;
-  padding: calc(16px + env(safe-area-inset-top)) 16px calc(32px + env(safe-area-inset-bottom));
+  padding: calc(12px + env(safe-area-inset-top)) 16px calc(28px + env(safe-area-inset-bottom));
   background: #f3f6fb;
   color: var(--ig-ink);
   font-family: "Inter", "Noto Sans TC", sans-serif;
@@ -26,14 +26,15 @@
 
   button {
     font: inherit;
+    text-transform: none !important;
     cursor: pointer;
   }
 }
 
 .install-guide__shell {
   display: grid;
-  gap: 16px;
-  width: min(880px, 100%);
+  gap: 14px;
+  width: min(760px, 100%);
   margin: 0 auto;
 }
 
@@ -49,31 +50,33 @@
 
 .install-guide__header {
   display: grid;
-  justify-items: center;
-  gap: 10px;
-  text-align: center;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 2px 14px;
 
   img {
-    border-radius: 18px;
-    box-shadow: 0 10px 24px rgba(7, 55, 99, 0.18);
+    grid-row: span 2;
+    width: 56px;
+    height: 56px;
+    border-radius: 14px;
+    box-shadow: 0 6px 16px rgba(7, 55, 99, 0.18);
   }
 
   h1 {
     color: var(--ig-navy);
-    font-size: clamp(1.45rem, 5.4vw, 2.1rem);
+    font-size: clamp(1.25rem, 5vw, 1.7rem);
     font-weight: 800;
     line-height: 1.3;
   }
 
   p {
     color: var(--ig-muted);
-    font-size: 1.05rem;
-    line-height: 1.6;
+    font-size: 1rem;
   }
 }
 
 .install-guide__card {
-  padding: 20px;
+  padding: 16px;
   border: 1px solid var(--ig-line);
   border-radius: 22px;
   background: #fff;
@@ -84,32 +87,26 @@
     font-size: 1.15rem;
     font-weight: 800;
   }
-
-  p {
-    margin-top: 6px;
-    color: var(--ig-muted);
-    line-height: 1.6;
-  }
 }
 
 .install-guide__notice {
-  padding: 16px 18px;
+  padding: 14px 16px;
   border-radius: 18px;
   font-weight: 700;
   line-height: 1.6;
 
   h2 {
-    font-size: 1.15rem;
+    font-size: 1.1rem;
     font-weight: 800;
   }
 
   p {
-    margin-top: 6px;
+    margin-top: 4px;
     font-weight: 500;
   }
 
   .install-guide__primary {
-    margin-top: 12px;
+    margin-top: 10px;
   }
 }
 
@@ -157,33 +154,26 @@
   }
 }
 
-.install-guide__oneTap {
-  display: grid;
-  justify-items: center;
-  gap: 10px;
-  text-align: center;
-
-  p {
-    margin: 0;
-  }
-}
-
-.install-guide__tabs {
+.install-guide__tabs,
+.install-guide__browsers {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 6px;
-  padding: 6px;
+  padding: 5px;
   border-radius: 999px;
   background: #e3e9f3;
 
   button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
     min-height: 46px;
     border: 0;
     border-radius: 999px;
     background: transparent;
     color: var(--ig-muted);
     font-weight: 800;
-    text-transform: none !important;
 
     &[aria-pressed="true"] {
       background: #fff;
@@ -193,105 +183,22 @@
   }
 }
 
-.install-guide__browsers {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-
-  p {
-    grid-column: 1 / -1;
-    color: var(--ig-navy);
-    font-weight: 800;
-    text-align: center;
-  }
-
-  button {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    min-height: 64px;
-    padding: 10px 12px;
-    border: 2px solid var(--ig-line);
-    border-radius: 18px;
-    background: #fff;
-    color: var(--ig-ink);
-    text-align: left;
-    text-transform: none !important;
-
-    &[aria-pressed="true"] {
-      border-color: var(--ig-blue);
-      background: #eef3ff;
-    }
-
-    > span {
-      display: grid;
-      gap: 2px;
-      min-width: 0;
-      line-height: 1.3;
-    }
-
-    strong {
-      font-size: 1rem;
-    }
-
-    small {
-      color: var(--ig-muted);
-      font-size: 0.8rem;
-    }
-  }
-}
-
 .install-guide__browserIcon {
   flex: none;
-  width: 40px;
-  height: 40px;
+  width: 28px;
+  height: 28px;
 }
 
 .install-guide__demo {
   display: grid;
-  gap: 20px;
-}
-
-.install-guide__stage {
-  display: grid;
   justify-items: center;
-  gap: 10px;
-}
-
-.install-guide__caption {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-height: 44px;
-  color: var(--ig-navy);
-  font-size: 1.2rem;
-  font-weight: 800;
-  line-height: 1.4;
-
-  b {
-    display: grid;
-    flex: none;
-    place-items: center;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    background: var(--ig-yellow);
-  }
-}
-
-.install-guide__play {
-  min-height: 44px;
-  padding: 0 18px;
-  border: 1px solid var(--ig-line);
-  border-radius: 999px;
-  background: #fff;
-  color: var(--ig-navy);
-  font-weight: 700;
+  gap: 16px;
 }
 
 .install-guide__steps {
   display: grid;
-  gap: 10px;
+  gap: 8px;
+  width: 100%;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -299,16 +206,17 @@
   button {
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 12px;
     width: 100%;
-    min-height: 72px;
-    padding: 12px 14px;
-    border: 2px solid var(--ig-line);
-    border-radius: 18px;
-    background: #fff;
+    min-height: 60px;
+    padding: 8px 12px;
+    border: 2px solid transparent;
+    border-radius: 16px;
+    background: #f3f6fb;
     color: inherit;
+    font-size: 1.12rem;
+    line-height: 1.4;
     text-align: left;
-    transition: border-color 0.2s, background-color 0.2s;
 
     &.is-active {
       border-color: var(--ig-blue);
@@ -321,12 +229,12 @@
   display: grid;
   flex: none;
   place-items: center;
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   background: var(--ig-navy);
   color: #fff;
-  font-size: 1.3rem;
+  font-size: 1.25rem;
   font-weight: 800;
 
   .is-active & {
@@ -335,52 +243,10 @@
   }
 }
 
-.install-guide__copy {
-  display: grid;
-  gap: 2px;
-
-  strong {
-    font-size: 1.12rem;
-    line-height: 1.4;
-  }
-
-  small {
-    color: var(--ig-muted);
-    font-size: 0.92rem;
-    line-height: 1.5;
-  }
-}
-
-.install-guide__help {
-  display: grid;
-  gap: 8px;
-
-  details {
-    padding: 0 16px;
-    border: 1px solid var(--ig-line);
-    border-radius: 16px;
-    background: #fff;
-  }
-
-  summary {
-    display: flex;
-    align-items: center;
-    min-height: 52px;
-    font-weight: 700;
-    cursor: pointer;
-  }
-
-  p {
-    padding-bottom: 14px;
-    color: var(--ig-muted);
-    line-height: 1.7;
-  }
-}
-
 .install-guide__footer {
   display: grid;
   justify-items: center;
-  gap: 6px;
+  gap: 4px;
 
   a:not(.install-guide__primary) {
     display: inline-flex;
@@ -487,9 +353,13 @@
   padding: 16px 14px;
 
   img {
-    width: 40px;
-    height: 40px;
-    border-radius: 10px;
+    width: 44px;
+    height: 44px;
+    border: 1px solid #e1e7f0;
+    border-radius: 11px;
+    background: #fff;
+    box-shadow: 0 2px 6px rgba(16, 24, 40, 0.12);
+    object-fit: cover;
   }
 }
 
@@ -661,45 +531,6 @@
   border-radius: 10px;
 }
 
-.ig-home {
-  display: grid;
-  flex: 1;
-  grid-template-columns: repeat(3, 1fr);
-  align-content: start;
-  gap: 22px 14px;
-  padding: 40px 18px;
-  background: linear-gradient(160deg, #1d4e89, #6aa5e8);
-}
-
-.ig-home__app {
-  position: relative;
-  aspect-ratio: 1;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.28);
-
-  img {
-    width: 100%;
-    height: 100%;
-    border-radius: 14px;
-  }
-
-  small {
-    position: absolute;
-    top: calc(100% + 3px);
-    left: 50%;
-    color: #fff;
-    font-size: 9px;
-    white-space: nowrap;
-    transform: translateX(-50%);
-  }
-}
-
-.ig-home__app--ae {
-  background: none;
-  box-shadow: 0 0 0 3px #ffc83d;
-  animation: ig-pop 0.6s ease;
-}
-
 @keyframes ig-fade {
   from { opacity: 0; }
   to { opacity: 1; }
@@ -715,25 +546,12 @@
   50% { opacity: 0.35; transform: scale(1.12); }
 }
 
-@keyframes ig-pop {
-  0% { transform: scale(0); }
-  70% { transform: scale(1.15); }
-  100% { transform: scale(1); }
-}
-
 @media (min-width: 760px) {
   .install-guide__demo {
-    grid-template-columns: auto 1fr;
+    grid-template-columns: 1fr auto;
     align-items: center;
     gap: 32px;
     padding: 28px;
-  }
-}
-
-@media (max-width: 520px) {
-  .install-guide__qr {
-    flex-direction: column;
-    text-align: center;
   }
 }
 
@@ -742,7 +560,6 @@
   .ig-sheet,
   .ig-menu,
   .ig-dialog,
-  .ig-home__app--ae,
   .ig-target::after {
     animation: none;
   }
