@@ -1,5 +1,12 @@
 # Alan English 專案狀態
 
+### 口說大挑戰首頁精簡、作業用語「遲交」（2026-10-12，併入 PR #531，待擁有者說「幫我合併」）
+
+- 同分支 `fix/page-length`。純前端顯示，額度與作業狀態判斷未動。
+- `TextbookSpeakingChallenge.jsx`：`speaking-catalog-help` 移入首頁標題卡，summary 改為「麥克風＋剩餘／上限」計數；樣式在 `SpeakingMinimalLevel.scss`（隱藏小標、說明句、三步驟與重複數字）。老師預覽維持原標題文字、不顯示計數。
+- `studentLearning.js` 的 `assignmentStateLabel.overdue` 改為「遲交」，`StudentAssignments.jsx`、`Playlist.jsx` 提醒文字同步；老師與管理端用語未動。
+- 驗證：TextbookSpeakingChallenge、StudentAssignments、Playlist、StudentProgressOverview 等 5 組共 87 項通過；本機測試學生實看口說首頁 375 寬的收合與展開。未驗：桌面寬度、iPhone Safari。
+
 ### 我的進度：「接著聽」大卡與彩色圖示（2026-10-12，併入 PR #531，待擁有者說「幫我合併」）
 
 - 同分支 `fix/page-length`。純前端：`StudentProgressOverview.jsx`、`css/StudentSettings.scss`、對應測試。

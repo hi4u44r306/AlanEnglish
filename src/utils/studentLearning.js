@@ -43,7 +43,7 @@ export const getAssignmentState = (assignment, now = Date.now()) => {
     return Number.isFinite(deadline) && deadline < now ? "overdue" : "pending";
 };
 
-export const assignmentStateLabel = { pending: "進行中", overdue: "已逾期", completed: "已完成" };
+export const assignmentStateLabel = { pending: "進行中", overdue: "遲交", completed: "已完成" };
 
 export const getLearningTasks = (legacy = [], mixed = [], now = Date.now()) => (
     [...legacy.map(item => ({ ...item, taskKey: `v1-${item.id}` })),

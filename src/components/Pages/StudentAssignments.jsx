@@ -468,7 +468,7 @@ const StudentAssignments = () => {
                                             </span>
                                         </div>
 
-                                        {getAssignmentState(item) === "overdue" && <p className="student-homework-overdue" role="note">這份作業已逾期，請向老師確認是否可以補做。{item.listening_progress_mode === "assignment_window" ? "目前繼續聆聽不會增加這份作業的次數。" : ""}</p>}
+                                        {getAssignmentState(item) === "overdue" && <p className="student-homework-overdue" role="note">這份作業遲交了，請向老師確認是否可以補做。{item.listening_progress_mode === "assignment_window" ? "目前繼續聆聽不會增加這份作業的次數。" : ""}</p>}
                                         {!isMissionPack && includesListening && listening.url && <Link className="student-homework-quick-start" to={listening.url}><Headphones size={18} />{isCompleted ? "再次聆聽" : getAssignmentState(item) === "overdue" ? "查看指定音檔" : "繼續完成作業"}<ArrowRight size={18} /></Link>}
 
                                         {isMissionPack ? (

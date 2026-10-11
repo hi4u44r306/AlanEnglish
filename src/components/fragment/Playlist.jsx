@@ -204,7 +204,7 @@ function Playlist() {
                             <p>每首需要的次數都在下方清單，以老師指定次數為準。</p>
                             {homeworkComplete && !confirmedTrack && !assignmentQuery.error && !assignmentQuery.refreshing && <p role="status">{homeworkAssignment?.source_type === "music_track" ? "本次作業已完成" : "本次指定聽力已完成"}。<Link to={homeworkReturnPath}>返回作業頁</Link></p>}
                             {homeworkAssignment?.listening_progress_mode === "legacy_lifetime" && <p>這份作業採累計聆聽制：以作業紀錄顯示的累計次數達標。</p>}
-                            {homeworkOverdue && <p className="playlist-homework-deadline">作業已逾期，請向老師確認是否可以補做。{homeworkClosed ? "目前繼續聆聽不會增加這份作業的次數。" : ""}</p>}
+                            {homeworkOverdue && <p className="playlist-homework-deadline">作業遲交了，請向老師確認是否可以補做。{homeworkClosed ? "目前繼續聆聽不會增加這份作業的次數。" : ""}</p>}
                             {(assignmentQuery.error || homeworkStatus === "error") && <button type="button" onClick={() => assignmentQuery.refresh()}>重新讀取作業進度</button>}
                             {assignmentQuery.error && homeworkAssignment && <p role="alert">目前顯示上次作業進度，最新次數暫時無法同步。</p>}
                             {assignmentQuery.refreshing && homeworkAssignment && <p role="status">正在更新本次作業進度…</p>}
