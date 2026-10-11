@@ -1,6 +1,8 @@
 # Alan English 專案狀態
 
-### 後端停止發放 AE Points、關閉兌換（2026-10-12，分支 `feature/disable-ae-points`，**尚未套用**；待擁有者確認合併並套用）
+### 後端停止發放 AE Points、關閉兌換（2026-10-12，已發布）
+
+- 發布紀錄：PR #534 合併至 `main`（merge `b4647c80`）。正式庫 migration 版本 `20261011170703 disable_ae_points_earning`（repo 檔名已對齊）；`gamification` 部署為 v44。套用後唯讀驗證：函式本體為 `select false`、對所有學生皆回 false、`authenticated` 無執行權、`service_role` 有；下載線上 `gamification` 原始碼確認含 `REWARD_SHOP_OPEN = false` 與兩處 410；既有餘額（1 位測試帳號）與 ledger（4 筆）未變。PR #532 的 Workers Builds 成功，正式站 JS／CSS 已含新播放器與暫停提示。未驗：以學生身分實際呼叫 `rewards` 得 410、實際聽完一首確認只發 XP。
 
 - 擁有者已同意改後端（2026-10-12）。高風險：migration＋Edge Function。
 - `supabase/migrations/20261012090000_disable_ae_points_earning.sql`：只重新定義 `private.ae_student_can_earn_points(bigint)` 為 `select false`。所有發獎路徑（`ae_gamification_grant_v2`、口說通關、生日）皆以此判斷是否給點並將正點數歸零，因此 XP／等級／ledger／既有餘額不變，不刪改任何資料列。還原方式寫在 migration 註解（恢復原函式本體）。
