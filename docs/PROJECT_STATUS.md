@@ -1,5 +1,10 @@
 # Alan English 專案狀態
 
+### 頂端列顯示學生頭貼（2026-10-12，分支 `feature/header-avatar`，待擁有者說「幫我合併」）
+
+- 純前端：`StudentGrowthHeader.jsx` 的 `ae-growth-header__mark` 只在有 `avatarUrl` 時渲染 `StudentAvatarImage`（無頭貼不顯示圖案；1280px 以上隱藏，因桌面帳號區已有頭貼）。`StudentNavbar.jsx` 的「我的進度」按鈕圖示由頭貼改為 `FiTrendingUp`。
+- 驗證：StudentGrowthHeader、MainNavbar 共 40 項通過；本機測試學生實看 375 寬與面板寬度。未驗：未設定頭貼的帳號畫面（僅測試確認）、1440 桌面、iPhone Safari。
+
 ### 「加到手機桌面」教學頁 `/install`（2026-10-12，已發布）
 
 - 發布紀錄：PR #533 合併為 main `e3605a7b`，Workers Builds 成功。正式站 `alanenglish.com.tw/install` 回應 200，桌面寬度實看標題、QR Code、Safari／Chrome 切換、三步驟與示範手機圖示皆正常、無水平溢出。未驗：iPhone／Android／LINE 實機。
@@ -13,6 +18,7 @@
 - 驗證：`InstallGuide.test.jsx` 與 `Login.test.jsx` 共 12 項通過；本機 `localhost:3210` 實看 `/install`（375／390 寬與桌面 1024 寬）、首頁與登入頁入口，無水平溢出。未跑完整測試與 production build（低風險 UI，依 16.1）。
 - 未驗：iPhone Safari、Android Chrome、LINE 內建瀏覽器實機（含一鍵安裝與 LINE 轉外部瀏覽器是否生效）；iOS 各版本「分享」按鈕位置不同，文案以「沒看到就先點⋯」涵蓋。
 - 已知：`Showcase.test.jsx` 的 2 項斷言在本次修改前就已過期（找不到「AI 口說大挑戰」等標題），本次未處理。此 worktree 路徑含 `.claude`，`react-scripts test` 的 testMatch 找不到測試，需以相對 glob 的 jest 設定執行。
+
 ### 後端停止發放 AE Points、關閉兌換（2026-10-12，已發布）
 
 - 發布紀錄：PR #534 合併至 `main`（merge `b4647c80`）。正式庫 migration 版本 `20261011170703 disable_ae_points_earning`（repo 檔名已對齊）；`gamification` 部署為 v44。套用後唯讀驗證：函式本體為 `select false`、對所有學生皆回 false、`authenticated` 無執行權、`service_role` 有；下載線上 `gamification` 原始碼確認含 `REWARD_SHOP_OPEN = false` 與兩處 410；既有餘額（1 位測試帳號）與 ledger（4 筆）未變。PR #532 的 Workers Builds 成功，正式站 JS／CSS 已含新播放器與暫停提示。未驗：以學生身分實際呼叫 `rewards` 得 410、實際聽完一首確認只發 XP。

@@ -62,3 +62,12 @@ it("hides stale, failed, disabled and expired birthday confirmation including a 
     expect(screen.queryByText("XP ×2")).not.toBeInTheDocument();
     jest.useRealTimers();
 });
+
+test("shows the student's picture in the level chip, and no icon without one", () => {
+    const summary = { balance: { level: 2, total_xp: 120, points_balance: 0 } };
+    const { container, rerender } = render(<MemoryRouter><StudentGrowthHeader summary={summary} avatarUrl="https://example.test/a.webp" /></MemoryRouter>);
+    expect(container.querySelector(".ae-growth-header__mark.has-avatar img")).toHaveAttribute("src", "https://example.test/a.webp");
+    rerender(<MemoryRouter><StudentGrowthHeader summary={summary} /></MemoryRouter>);
+    expect(container.querySelector(".ae-growth-header__mark")).toBeNull();
+    expect(screen.getByText("Lv.2")).toBeInTheDocument();
+});
