@@ -1,5 +1,14 @@
 # Alan English 專案狀態
 
+### 我的進度頁重做：一個下一步＋一張清單（2026-10-11，PR 待擁有者說「幫我合併」）
+
+- 分支 `feature/progress-page-polish`，基準 main `ea9da6ad`。純前端。
+- 發布紀錄補記：PR #525（`f42dba84`）、#526（`2bf2a561`）、#527（`ea9da6ad`）已於 2026-10-11 合併，Workers Builds 成功，正式 `main.97151943.js`／`main.a24adfd2.css`；`speaking-challenge` 已由 main 以 CLI 部署，OPTIONS 200、未登入 401。線上確認：favicon 連結帶 `?v=lion1`、manifest 與 apple-touch 指向 v3 圖示、分享圖仍為 `og-image.png`、口說 chunk 含 `hint_voids_pass` 與 `speaking-answer-slot`。#526、#527 合併前各自同步 main 並解掉文件與 `SpeakingPracticeSteps.jsx` 的衝突。帶登入的口說 easy 挖空題流程未驗。
+- `StudentProgressOverview` 重寫：頂部單一「接下來」卡（作業 → 續聽 → 選教材），下方沿用 `student-settings-list` 的列表（作業數、最近教材位置、進行中的口說教材、每週報告、排行榜）。資料來源與權限判斷不變。
+- `MusicPlayer` 的精簡獎勵文字改用 `LISTENING_MASTERY_REQUIRED_PLAYS`（原本寫死 /10）。
+- 驗證：StudentProgressOverview 7 項、StudentSettings、MusicPlayer.visibility 通過；ESLint、SCSS 編譯通過；編譯後樣式的靜態預覽於 400px 截圖目視，無水平溢位。
+- 未驗：真實登入、桌面寬度、iPhone Safari。已知：`SpeakingChallengeFlow.test.jsx` 仍有既有的 9 項失敗未查。
+
 ### 口說簡單版：看圖挖空句隱藏答案、提示取消該題通過（2026-10-11，PR 待擁有者說「幫我合併」／後端尚未部署）
 
 - 分支 `feature/speaking-easy-gap`，疊在 `feature/speaking-level-minimal`（PR #525）之上。擁有者決定：圖片挖空句用圖片當線索（不補中文）、中文線索問答保留原樣、不做 Azure 拼字題；因此不需要新資料表，先前草擬的 `speaking_question_easy_gaps` migration 已移除，從未套用到遠端。
