@@ -1,5 +1,20 @@
 # Alan English 專案狀態
 
+### 習作本音檔 YouTube 跳轉（2026-10-11，本機完成／PR 待擁有者說「幫我合併」）
+
+- 負責：Claude Code。分支 `feature/track-video-jump`，基準 main `31edaed7`。純前端。
+- `src/constants/workbookVideoChapters.js`：Workbook 1～4 的「頁碼 → 影片秒數」對照表，取自四支公開 YouTube 影片說明的時間表（影片 ID 與 `/links` 的習作本 1～4 相同）。`MusicCard` 依 `music.type`（教材 code）與 `page` 產生 `watch?v=…&t=…s` 連結，另開分頁。
+- 對照結果（以正式庫音檔頁碼比對）：Workbook 1 33/48、Workbook 2 65/66、Workbook 3 48/51、Workbook 4 48/50，共 194/215。Workbook 5 的時間表是題號範圍，無法對頁碼。
+- 驗證：對照表 2 項、MusicCard 新增 1 項與 Playlist 既有測試共 31 項通過；ESLint、SCSS 編譯通過。未做瀏覽器目視與實際點擊 YouTube 的檢查。
+
+### PR #521 發布結果（2026-10-11）
+
+- 擁有者指示「幫我合併」。PR #521 squash 合併為 main `31edaed7`；Workers Builds 於 2026-10-11 20:01 台灣時間成功。
+- 正式站核對：`/`、`/student/dashboard`、`/student/settings`、`/student/friends` 皆 HTTP 200；主程式 `main.07a349d7.js` 含「我的進度／上次聽到這裡／另外還有」，且不再含「今日學習／我的好友／生日月快樂／目前學習區」。未做登入後實測。
+- 後端尚未套用：合併前已在正式庫以「執行後還原」方式試跑兩個 migration 並確認結果正確（門檻 30、函式權限不變、生日開關關閉），但正式套用與三個 Edge Function 部署被本工作階段的權限分類器擋下（Production Deploy），未繞過。
+- 目前線上不一致：前端顯示「N / 30」，但後端仍在第 10 次發熟練獎勵、生日活動仍啟用、`student-social` 仍接受好友請求。正式庫目前只有 1 個學生帳號。
+- 待辦：套用 `listening_mastery_thirty_listens`、`disable_birthday_rewards`；部署 `record-play`、`get-playback-progress`、`student-social`；套用後把本機 migration 檔名改成遠端紀錄的版本號。
+
 ### 教材頁再精簡、熟練 30 次、生日／好友後端停用（2026-10-11，本機完成／尚未合併、尚未套用任何遠端變更）
 
 - 負責：Claude Code。同分支、同 PR #521。擁有者於本對話指示執行這四項；合併仍待「幫我合併」。

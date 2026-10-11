@@ -163,3 +163,7 @@
     .music-card--assignment { display: grid; grid-template-columns: 50px minmax(0, 1fr); }
     .music-card--assignment .music-card__status { grid-column: 1 / -1; width: 100%; padding-top: 10px; border-top: 1px solid #dbe6ef; }
 }
+.music-card__video { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-width: 44px; min-height: 44px; padding: 8px 12px; border: 1px solid #f0c4c4; border-radius: 15px; background: #fff; color: #b3261e; font-size: 14px; font-weight: 800; text-decoration: none; white-space: nowrap; }
+.music-card__video:hover { border-color: #b3261e; background: #fff5f5; color: #b3261e; }
+.music-card__video:focus-visible { outline: 3px solid #17365d; outline-offset: 3px; }
+.music-card__video svg { width: 20px; height: 20px; }
