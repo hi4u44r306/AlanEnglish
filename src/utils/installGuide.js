@@ -30,6 +30,12 @@ export const detectInstallEnvironment = (nav = typeof navigator === "undefined" 
     };
 };
 
+// 手機開「電腦版網站」時 User-Agent 會偽裝成電腦，所以另外用觸控與螢幕寬度判斷。
+export const isHandheldScreen = () => {
+    if (typeof window === "undefined") return false;
+    return Boolean(window.matchMedia?.("(pointer: coarse)")?.matches) || window.innerWidth < 760;
+};
+
 export const isRunningAsInstalledApp = () => {
     if (typeof window === "undefined") return false;
     return Boolean(window.matchMedia?.("(display-mode: standalone)")?.matches) || window.navigator?.standalone === true;

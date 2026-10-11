@@ -7,6 +7,7 @@ import {
     detectInstallEnvironment,
     externalBrowserUrl,
     getInstallPrompt,
+    isHandheldScreen,
     isRunningAsInstalledApp,
     runInstallPrompt,
     subscribeInstallPrompt
@@ -179,7 +180,11 @@ const prefersReducedMotion = () => Boolean(window.matchMedia?.("(prefers-reduced
 function InstallGuide() {
     const environment = useMemo(() => detectInstallEnvironment(), []);
     const [installed, setInstalled] = useState(isRunningAsInstalledApp);
-    const [device, setDevice] = useState(environment.platform === "android" ? "android" : "ios");
+    // QR Code 只給真的在用電腦的人；手機即使被判成電腦也不顯示。
+    const isDesktop = useMemo(() => environment.platform === "desktop" && !isHandheldScreen(), [environment]);
+    const looksLikeAndroid = environment.platform === "android"
+        || (environment.platform === "desktop" && !isDesktop && /Linux/.test(window.navigator.userAgent));
+    const [device, setDevice] = useState(looksLikeAndroid ? "android" : "ios");
     const [iosBrowser, setIosBrowser] = useState(environment.browser === "ios-chrome" ? "chrome" : "safari");
     const [activeIndex, setActiveIndex] = useState(0);
     const [playing, setPlaying] = useState(() => !prefersReducedMotion());
@@ -190,7 +195,6 @@ function InstallGuide() {
     const guide = GUIDES[device === "ios" ? `ios-${iosBrowser}` : device];
     const { steps } = guide;
     const pageUrl = `${window.location.origin}${INSTALL_GUIDE_PATH}`;
-    const isDesktop = environment.platform === "desktop";
     const inApp = environment.inAppName;
 
     useEffect(() => subscribeInstallPrompt(setInstallPrompt), []);
