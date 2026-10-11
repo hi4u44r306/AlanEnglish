@@ -74,3 +74,6 @@ body:has(.ae-student-bottom-nav) .mobile-player-overlay { padding-bottom: calc(9
   .desktop-player-copy strong { font-size: 18px !important; font-weight: 800 !important; color: #17365d !important; }
   .desktop-player-copy small { font-size: 13px !important; color: #526780 !important; }
 }
+// The play button is 96px, so its column must be too — otherwise it spills onto the skip buttons.
+.mobile-overlay-controls { grid-template-columns: 56px 96px 56px !important; justify-items: center; }
+.mobile-overlay-controls button:not(.mobile-overlay-play) { width: 56px !important; height: 56px !important; }
