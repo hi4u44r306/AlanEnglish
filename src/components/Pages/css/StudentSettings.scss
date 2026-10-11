@@ -329,6 +329,24 @@ a.student-settings-row:focus-visible, summary.student-settings-row:focus-visible
 .student-progress__next-meta { max-width: 74%; font-size: 14px; line-height: 1.5; color: #3e5d50; overflow-wrap: anywhere; }
 .student-progress__next-action { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; margin-top: 4px; padding: 8px 18px; border-radius: 14px; background: #245fc5; color: #fff; font-weight: 800; box-shadow: 0 4px 0 #17468f; > svg { width: 20px; height: 20px; } }
 .student-progress__next:active .student-progress__next-action { transform: translateY(2px); box-shadow: 0 2px 0 #17468f; }
+// The track the student stopped at: the page is the headline, the book is the caption.
+.student-progress__listen { box-sizing: border-box; position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "label play" "page play" "book play"; align-items: center; column-gap: 16px; row-gap: 2px; width: 100%; padding: 16px 20px; border: 2px solid #f2c94c; border-radius: 20px; background: #fff6d6; color: #17365d; text-decoration: none;
+    strong { grid-area: page; font-size: clamp(30px, 9vw, 44px); font-weight: 900; line-height: 1.1; overflow-wrap: anywhere; }
+    &:hover { color: #17365d; border-color: #e0ac1c; }
+    &:focus-visible { outline: 3px solid #17365d; outline-offset: 4px; }
+}
+.student-progress__listen-label { grid-area: label; justify-self: start; padding: 2px 10px; border-radius: 8px; background: #f2b61c; color: #3d2c00; font-size: 13px; font-weight: 800; }
+.student-progress__listen-book { grid-area: book; font-size: 16px; font-weight: 700; color: #5c4a12; overflow-wrap: anywhere; }
+.student-progress__listen-play { grid-area: play; display: grid; place-items: center; width: 64px; height: 64px; border-radius: 50%; background: #17365d; color: #ffd84d; box-shadow: 0 4px 0 #0c2140; > svg { width: 28px; height: 28px; margin-left: 4px; fill: currentColor; } }
+.student-progress__listen:active .student-progress__listen-play { transform: translateY(2px); box-shadow: 0 2px 0 #0c2140; }
+// Row icons sit on a soft coloured tile: colour for the eye, white rows for reading.
+.student-progress__tile { flex-shrink: 0; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 14px; > svg { width: 24px; height: 24px; } }
+.student-progress__tile--blue { background: #dbe8ff; color: #1d4fa8; }
+.student-progress__tile--orange { background: #ffe1cc; color: #b54708; }
+.student-progress__tile--green { background: #d6f2e1; color: #17694a; }
+.student-progress__tile--yellow { background: #ffe9a8; color: #8a5a00; }
+.student-progress__list .student-settings-row { min-height: 68px; gap: 14px; }
+.student-progress__list .student-settings-row strong { font-size: 18px; font-weight: 800; }
 .student-progress__notice { margin: 0; font-size: 14px; color: #49617d; button { min-height: 44px; margin-left: 8px; padding: 0 4px; border: 0; background: transparent; color: #245fc5; font: inherit; font-weight: 700; text-decoration: underline; cursor: pointer; } }
 .student-progress__list { margin: 0; }
 .student-progress__list > .student-settings-row:first-child { border-top: 0; }
