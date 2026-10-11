@@ -12,6 +12,7 @@ import {
 } from "react-icons/bi";
 import ShowcaseNavbar from "../fragment/ShowcaseNavbar";
 import SeoHead from "../fragment/SeoHead";
+import InstallEntry from "../fragment/InstallEntry";
 import "./css/Showcase.scss";
 
 const features = [
@@ -42,6 +43,11 @@ const faqs = [
     {
         question: "手機和平板可以使用嗎？",
         answer: "可以。Alan English 支援電腦、平板與手機瀏覽器，學習紀錄會跟著同一個帳號保存。"
+    },
+    {
+        question: "可以像 App 一樣放在手機桌面嗎？",
+        answer: "可以，不用下載。照著教學做 3 個步驟，手機桌面就會出現 Alan English 圖示。",
+        link: { to: "/install", label: "看 3 步驟教學" }
     }
 ];
 
@@ -81,6 +87,7 @@ const Showcase = () => {
                                     <BiChevronRight />
                                 </a>
                             </div>
+                            <InstallEntry />
                             <div className="showcase-trust-row">
                                 <span><BiShieldQuarter /> 教材與練習集中管理</span>
                                 <span><BiTimeFive /> 每天短時間練習</span>
@@ -257,7 +264,7 @@ const Showcase = () => {
                             {faqs.map((faq, index) => (
                                 <details key={faq.question} open={index === 0}>
                                     <summary>{faq.question}<span>＋</span></summary>
-                                    <p>{faq.answer}</p>
+                                    <p>{faq.answer}{faq.link && <> <Link to={faq.link.to}>{faq.link.label}</Link></>}</p>
                                 </details>
                             ))}
                         </div>
@@ -270,7 +277,7 @@ const Showcase = () => {
             <footer className="showcase-footer">
                 <div className="showcase-shell showcase-footer-inner">
                     <div><strong>ALAN ENGLISH</strong><span>Listen. Practice. Progress.</span></div>
-                    <div className="showcase-footer-links"><Link to="/login">登入</Link></div>
+                    <div className="showcase-footer-links"><Link to="/install">加到手機桌面</Link><Link to="/login">登入</Link></div>
                     <p>© {new Date().getFullYear()} Alan English. All rights reserved.</p>
                 </div>
             </footer>
