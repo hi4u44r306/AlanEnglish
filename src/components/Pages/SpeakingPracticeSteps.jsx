@@ -19,6 +19,20 @@ export const answerPatternForLearner = answer => String(answer || "")
     .replace(/\s+/g, " ")
     .trim();
 
+// Blanks keep their Chinese label so the student knows what belongs there ("My name is 名字.").
+const answerPatternWithSlots = answer => {
+    const text = String(answer || "").replace(/\s+/g, " ").trim();
+    const parts = [];
+    let cursor = 0;
+    for (const match of text.matchAll(ANSWER_SLOT_PATTERN)) {
+        if (match.index > cursor) parts.push(text.slice(cursor, match.index));
+        parts.push(<span className="speaking-answer-slot" key={match.index}>{String(match[1] || "").trim()}</span>);
+        cursor = match.index + match[0].length;
+    }
+    if (cursor < text.length) parts.push(text.slice(cursor));
+    return parts;
+};
+
 const naturalExample = question => {
     const simple = String(question.simple_answer || "").trim();
     if (simple && !extractAnswerSlots(simple).length) return simple;
@@ -144,7 +158,7 @@ export default function SpeakingPracticeSteps({
         </details>
 
         {showAnswerByDefault && answerPattern && <div className="speaking-help-panel speaking-easy-answer" aria-label="簡單模式參考答案">
-            <small>看著題目與答案，勇敢說出完整句子</small><strong>{answerPattern}</strong>
+            <small>看著題目與答案，勇敢說出完整句子</small><strong>{answerPatternWithSlots(answerQuestion.model_answer)}</strong>
             {canListen && <button type="button" disabled={audioWorking || busy} onClick={onPlayAudio}>
                 <FiVolume2 aria-hidden="true" />{question.model_audio_url ? (audioWorking ? "播放中…" : "聽回答範例") : "語音準備中"}
             </button>}
@@ -166,7 +180,7 @@ export default function SpeakingPracticeSteps({
 
         {!hideHelp && showHelp && <div className="speaking-help-panel" id={helpId}>
             {answerQuestion.hint_zh && <p>{answerQuestion.hint_zh}</p>}
-            <div><small>可以這樣說</small><strong>{answerPattern}</strong></div>
+            <div><small>可以這樣說</small><strong>{answerPatternWithSlots(answerQuestion.model_answer)}</strong></div>
             {canListen && <button type="button" disabled={audioWorking || busy} onClick={onPlayAudio}>
                 <FiVolume2 aria-hidden="true" />{question.model_audio_url ? (audioWorking ? "播放中…" : "聽回答範例") : "語音準備中"}
             </button>}
