@@ -800,20 +800,20 @@
 .ae-student-material-grid > a:focus-visible { outline: 3px solid #17365d; outline-offset: 3px; }
 .ae-student-navbar #student-materials + .dropdown-menu { width: min(560px, calc(100vw - 32px)); max-height: min(70vh, 640px); overflow-y: auto; }
 
-// Page length with the bottom navigation. The shell (.app-content) already reserves room for
-// the fixed header, the bottom navigation and the player, but most pages were written before
-// that and still add their own 70–190px of bottom padding and a full-viewport minimum height.
-// Stacked, that leaves a long empty stretch to scroll through. Inside the shell a page now
-// fills what is left of the screen and no more. Immersive speaking screens manage their own
-// full-screen layout and are left alone.
+// Page length. The shell (.app-content) already reserves room for the fixed header, the bottom
+// navigation and the player, but most pages were written before that and still add their own
+// 58–190px of bottom padding and a full-viewport minimum height. Stacked, that leaves a long
+// empty stretch to scroll through, and short pages scroll for no reason. Inside the shell a
+// student page now fills what is left of the screen and no more, at every width. Immersive
+// speaking screens manage their own full-screen layout and are left alone.
+body:has(.ae-student-navbar):not(.speaking-challenge-active):not(.sr-immersive) {
+  .app-content { display: flex; flex-direction: column; }
+  .app-content > * { flex: 1 0 auto; min-height: 0 !important; padding-bottom: 16px !important; }
+}
 @media (max-width: 1279px) {
-  body:has(.ae-student-bottom-nav):not(.speaking-challenge-active):not(.sr-immersive) {
-    .app-content { display: flex; flex-direction: column; }
-    .app-content > * { flex: 1 0 auto; min-height: 0 !important; padding-bottom: 16px !important; }
-    // The player sets an inline bottom padding sized for the desktop layout; with the bottom
-    // navigation the content has to clear both bars.
-    .app-content.has-player:not(.has-mini-player) { padding-bottom: calc(176px + var(--student-bottom-nav-offset)) !important; }
-  }
+  // The player sets an inline bottom padding sized for the desktop layout; with the bottom
+  // navigation the content has to clear both bars.
+  body:has(.ae-student-bottom-nav):not(.speaking-challenge-active):not(.sr-immersive) .app-content.has-player:not(.has-mini-player) { padding-bottom: calc(176px + var(--student-bottom-nav-offset)) !important; }
 }
 
 // iOS shows the page background while rubber-banding past the end; match the shell instead of white.

@@ -6,7 +6,8 @@
 - 原因：`.app-content` 已為底部導覽列保留 `94px + offset`（播放時更多），但多數頁面根元素仍各自加 58～190px 的 `padding-bottom`，且 Playlist、WeeklyReport、ReviewCenter、AIMaterialGenerator 等在殼層內又設 `min-height: 100vh`，兩者疊加。另發現播放時 `Containerfull` 以 inline `paddingBottom`（預設 110px／`curr_margin`）蓋掉學生版 `has-player` 規則。
 - 修正（只加在 `StudentNavbar.scss`，範圍 `max-width:1279px` 且有底部導覽、排除 `speaking-challenge-active` 與 `sr-immersive`）：`.app-content` 改為直向 flex，頁面根元素 `flex:1 0 auto; min-height:0; padding-bottom:16px`（皆 `!important`）；`has-player` 的 padding 以 `!important` 還原為 `176px + offset`；`html` 背景設為 `#f7f9fc`。各頁 SCSS 未逐一修改。
 - 量測（以實際編譯的殼層與八個學生頁面樣式組成的模擬頁，390×800）：短內容時 playlist、weekly-report、review-center、ai-studio 的多餘捲動由 183px 變 0；長內容時頁尾留白由 156～214px 統一為 130px，內容底端高於導覽列 42px；播放中的 padding 為 196px。
-- 未驗：真實登入頁面、iPhone Safari 實機、桌面寬度（本次規則不套用於桌面）。截圖中導覽列下方半個螢幕的白色區域無法在此重現，推測是 iOS 捲過頭的回彈區，僅以 html 背景色處理，未確認。
+- 後續（同日）：依擁有者要求以 `npm start` 在本機 `localhost:3000` 啟動本分支並以已登入的測試學生實測（連正式後端，僅瀏覽、未送出任何資料）。12 個學生頁面於 390×844、768×1024、1440×900 量測：手機／平板頁尾留白 130～173px（含導覽列 88px）；桌面原本未套用規則，短頁面（review、speaking-challenges、account/security）被撐出 19～147px 的多餘捲動、頁尾 136～306px，因此把頁面填滿規則改為所有寬度的學生頁面（`body:has(.ae-student-navbar)`），重量後短頁面多餘捲動為 0、頁尾 94～137px。三種寬度皆無水平溢出。`localhost:3100` 無法登入（後端允許來源只有 3000）。
+- 未驗：iPhone Safari 實機；老師／管理員頁面未套用也未檢查。截圖中導覽列下方半個螢幕的白色區域無法在此重現，推測是 iOS 捲過頭的回彈區，僅以 html 背景色處理，未確認。
 
 ### 看圖挖空句：大字、空格中文、移除圖片（2026-10-11，PR 待擁有者說「幫我合併」）
 
