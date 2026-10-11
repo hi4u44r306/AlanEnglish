@@ -103,3 +103,7 @@ body.speaking-challenge-active {
 @media (prefers-reduced-motion: reduce) { .speaking-challenge-hero .speaking-catalog-help > summary > .speaking-catalog-help__chevron { transition: none; } }
 @media (max-width: 380px) { .speaking-challenge-hero .speaking-catalog-help > summary > svg:first-child { display: none; } }
 @media (max-width: 340px) { .speaking-challenge-hero:has(.speaking-catalog-help) .speaking-challenge-hero__copy h1 { font-size: 20px !important; } }
+@media (max-width: 420px) {
+  .speaking-challenge-hero .speaking-catalog-help > summary > b { font-size: 16px; }
+  .speaking-challenge-hero .speaking-catalog-help > summary > span { font-size: 14px; }
+}
