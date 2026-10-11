@@ -2,7 +2,7 @@
 
 ### 頂端列顯示學生頭貼（2026-10-12，分支 `feature/header-avatar`，待擁有者說「幫我合併」）
 
-- 純前端：`StudentGrowthHeader.jsx` 的 `ae-growth-header__mark` 有 `avatarUrl` 時改渲染 `StudentAvatarImage`（否則維持盾牌），樣式在 `StudentGrowthHeader.scss`。
+- 純前端：`StudentGrowthHeader.jsx` 的 `ae-growth-header__mark` 只在有 `avatarUrl` 時渲染 `StudentAvatarImage`（無頭貼不顯示圖案；1280px 以上隱藏，因桌面帳號區已有頭貼）。`StudentNavbar.jsx` 的「我的進度」按鈕圖示由頭貼改為 `FiTrendingUp`。
 - 驗證：StudentGrowthHeader、MainNavbar 共 40 項通過；本機測試學生實看 375 寬與面板寬度。未驗：未設定頭貼的帳號畫面（僅測試確認）、1440 桌面、iPhone Safari。
 
 ### 後端停止發放 AE Points、關閉兌換（2026-10-12，已發布）
