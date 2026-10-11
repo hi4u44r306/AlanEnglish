@@ -42,7 +42,7 @@ export default function StudentGrowthHeader({ summary, loading = false, error, p
     return <>
         <div className="ae-growth-header" aria-label="我的等級與點數" aria-busy={loading}>
             <button type="button" className="ae-growth-header__level" aria-label="查看成長詳情" onClick={() => setDetail("growth")}>
-                <span className="ae-growth-header__mark" aria-hidden="true"><RiShieldStarLine /></span>
+                <span className={`ae-growth-header__mark${avatarUrl ? " has-avatar" : ""}`} aria-hidden="true">{avatarUrl ? <StudentAvatarImage src={avatarUrl} alt="" /> : <RiShieldStarLine />}</span>
                 <span className="ae-growth-header__copy">
                     <span className="ae-growth-header__heading"><strong>{hasLevel ? `Lv.${compact(balance.level)}` : "—"}</strong>{boosted && <span className="ae-growth-header__boost">XP ×2</span>}</span>
                     {progress != null && <progress value={progress} max="100" aria-label="目前等級成長進度" />}
