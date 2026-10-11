@@ -9,6 +9,16 @@
 - 驗證：MainNavbar、StudentGrowthHeader 共 39 項通過；ESLint、SCSS 編譯通過。以編譯後樣式的模擬頂端列在 390px 量測：成長列 266px、與通知／選單按鈕同列、無水平溢位；截圖工具多次逾時，只目視到等級格。
 - 未驗：真實登入後的頂端列、桌面寬度、iPhone Safari、分頁圖示實際顯示。
 
+### 口說關卡畫面精簡（2026-10-11，PR 待擁有者說「幫我合併」）
+
+- 分支 `feature/speaking-level-minimal`，基準 main `2aa78382`（PR #524 已合併並由 Workers Builds 成功發布，正式 `main.77029cef.js`／`main.95262401.css` 含雙欄教材卡片）。純前端顯示，未動錄音、評分、進度或獎勵邏輯。
+- 新增 `css/SpeakingMinimalLevel.scss`（最後載入，以 `body.speaking-challenge-active` 為範圍）：隱藏說明性元素，狀態訊息改為僅螢幕閱讀器可讀，句子字級 `clamp(32px, 8.6vw, 46px)`。因既有口說樣式在多個斷點重複覆寫字級，這份樣式使用 `!important`。
+- `SpeakingPracticeSteps`：參考句型的挖空改為顯示中文標籤（`speaking-answer-slot`），不再替換成底線；`answerPatternForLearner` 仍保留給其他用途。
+- 驗證：SpeakingPracticeSteps、SpeakingPronunciationRecorder、TextbookSpeakingChallenge 共 113 項通過；ESLint、SCSS 編譯通過。把全部口說樣式編譯後套在模擬的關卡 HTML 上，於 390px 實測：題目與參考句 33.5px、挖空中文 27.5px、12 類說明元素皆不可見、無水平溢位，並有截圖目視。
+- 已知：`SpeakingChallengeFlow.test.jsx` 在改動前的 main 就有 9 項失敗（以 main 版本的兩個檔案重跑確認），與本次無關，原因未查。
+- 未驗：真實登入的關卡、圖片題與字母題版面、評分結果畫面、iPhone Safari。
+
+
 ### 教材選單改為雙欄名稱卡片（2026-10-11，PR 待擁有者說「幫我合併」）
 
 - 擁有者回報 PR #523 的教材抽屜仍是逐層選單，要的是雙欄、只有教材名稱的卡片。分支 `fix/materials-drawer-grid`，基準 main `dcd2546c`（PR #523 已合併並由 Workers Builds 成功發布，正式 `main.8a05bf56.js`）。
