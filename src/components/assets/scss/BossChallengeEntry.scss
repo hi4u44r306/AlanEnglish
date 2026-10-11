@@ -1,0 +1,160 @@
+// Boss challenge entry: a card that looks like it is on fire. Layers, bottom to top:
+// ember-dark base, a hot core glow, five flame tongues that flicker at different speeds,
+// rising sparks, then the label. Everything animated is decoration only.
+$boss-fire: radial-gradient(120% 90% at 50% 118%, #ffe27a 0%, #ff9a1f 26%, #e2400f 52%, rgba(120, 18, 4, 0) 76%), linear-gradient(180deg, #2a0705 0%, #5a0f06 55%, #8f1c08 100%);
+
+// The class is doubled so these rules win over the generic adventure-menu item styles.
+a.ae-boss-entry.ae-boss-entry {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  min-height: 96px;
+  box-sizing: border-box;
+  padding: 16px 18px;
+  border: 2px solid #ffb648;
+  border-radius: 20px;
+  background: $boss-fire;
+  color: #fff;
+  text-decoration: none;
+  box-shadow: 0 0 0 3px rgba(255, 120, 20, .28), 0 10px 28px rgba(226, 64, 15, .5), 0 0 42px rgba(255, 154, 31, .45);
+  animation: ae-boss-pulse 1.5s ease-in-out infinite;
+
+  &:hover, &:focus-visible, &.active { border-color: #ffd27a; background: $boss-fire; color: #fff; }
+  &:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+  &:active { transform: scale(.98); }
+}
+
+a.ae-boss-entry.ae-boss-entry .ae-boss-entry__flames,
+a.ae-boss-entry.ae-boss-entry .ae-boss-entry__sparks { position: absolute; inset: 0; z-index: -1; display: block; width: auto; height: auto; margin: 0; padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; pointer-events: none; }
+
+a.ae-boss-entry.ae-boss-entry .ae-boss-entry__flames > i {
+  position: absolute;
+  bottom: -18%;
+  width: 30%;
+  height: 120%;
+  border-radius: 50% 50% 22% 22% / 68% 68% 32% 32%;
+  background: radial-gradient(ellipse at 50% 100%, #fff3b0 0%, #ffc233 24%, #ff6a12 52%, rgba(214, 40, 8, 0) 74%);
+  mix-blend-mode: screen;
+  opacity: .9;
+  transform-origin: 50% 100%;
+  animation: ae-boss-flicker 1.1s ease-in-out infinite alternate;
+}
+a.ae-boss-entry.ae-boss-entry .ae-boss-entry__flames > i:nth-child(1) { left: -8%; height: 96%; animation-duration: .9s; }
+a.ae-boss-entry.ae-boss-entry .ae-boss-entry__flames > i:nth-child(2) { left: 14%; height: 132%; animation-duration: 1.25s; animation-delay: -.3s; }
+a.ae-boss-entry.ae-boss-entry .ae-boss-entry__flames > i:nth-child(3) { left: 36%; height: 112%; animation-duration: 1s; animation-delay: -.6s; }
+a.ae-boss-entry.ae-boss-entry .ae-boss-entry__flames > i:nth-child(4) { left: 58%; height: 138%; animation-duration: 1.35s; animation-delay: -.15s; }
+a.ae-boss-entry.ae-boss-entry .ae-boss-entry__flames > i:nth-child(5) { left: 80%; height: 100%; animation-duration: .95s; animation-delay: -.45s; }
+
+a.ae-boss-entry.ae-boss-entry .ae-boss-entry__sparks > i {
+  position: absolute;
+  bottom: 6%;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #fff1a8;
+  box-shadow: 0 0 8px 2px #ffb21f;
+  opacity: 0;
+  animation: ae-boss-spark 1.8s linear infinite;
+}
+a.ae-boss-entry.ae-boss-entry .ae-boss-entry__sparks > i:nth-child(1) { left: 12%; animation-delay: -.2s; }
+a.ae-boss-entry.ae-boss-entry .ae-boss-entry__sparks > i:nth-child(2) { left: 28%; animation-delay: -1.1s; animation-duration: 2.2s; }
+a.ae-boss-entry.ae-boss-entry .ae-boss-entry__sparks > i:nth-child(3) { left: 46%; animation-delay: -.7s; }
+a.ae-boss-entry.ae-boss-entry .ae-boss-entry__sparks > i:nth-child(4) { left: 62%; animation-delay: -1.5s; animation-duration: 2.4s; }
+a.ae-boss-entry.ae-boss-entry .ae-boss-entry__sparks > i:nth-child(5) { left: 78%; animation-delay: -.4s; }
+a.ae-boss-entry.ae-boss-entry .ae-boss-entry__sparks > i:nth-child(6) { left: 90%; animation-delay: -1.3s; animation-duration: 2s; }
+
+a.ae-boss-entry.ae-boss-entry .ae-boss-entry__icon {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border: 2px solid #ffe08a;
+  border-radius: 18px;
+  background: radial-gradient(circle at 50% 70%, #ffb21f, #c9240a 72%);
+  box-shadow: 0 0 18px rgba(255, 210, 90, .9), inset 0 -6px 12px rgba(80, 8, 0, .5);
+  > svg { width: 34px; height: 34px; color: #fff6c9; filter: drop-shadow(0 2px 3px rgba(80, 8, 0, .7)); animation: ae-boss-icon 0.8s ease-in-out infinite alternate; }
+}
+
+a.ae-boss-entry.ae-boss-entry .ae-boss-entry__copy {
+  min-width: 0;
+  display: grid;
+  gap: 1px;
+  text-shadow: 0 2px 4px rgba(60, 6, 0, .85), 0 0 14px rgba(255, 150, 20, .9);
+  small { display: block; margin: 0; font-size: 13px; font-weight: 800; letter-spacing: .08em; color: #ffe9a3; }
+  strong { display: block; font-size: 26px; font-weight: 900; line-height: 1.1; letter-spacing: .04em; color: #fff; }
+  > span { font-size: 13px; font-weight: 700; color: #ffe9d2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+}
+
+a.ae-boss-entry.ae-boss-entry .ae-boss-entry__go {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 2px solid #fff3c4;
+  border-radius: 14px;
+  background: linear-gradient(180deg, #fff0a6, #ffc233);
+  color: #6a1404;
+  font-size: 16px;
+  font-weight: 900;
+  box-shadow: 0 4px 0 #a8480a, 0 0 16px rgba(255, 230, 140, .8);
+  > svg { width: 20px; height: 20px; }
+}
+
+// A small flame on the 冒險 navigation button while a Boss is out.
+.ae-boss-nav-badge {
+  position: absolute;
+  top: 2px;
+  right: calc(50% - 26px);
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 70%, #ffc233, #e2400f 75%);
+  color: #fff6c9;
+  box-shadow: 0 0 10px rgba(255, 140, 20, .9);
+  animation: ae-boss-icon .8s ease-in-out infinite alternate;
+  > svg { width: 13px; height: 13px; }
+}
+
+.ae-boss-nav-flame { width: 18px; height: 18px; margin-left: 4px; color: #e2400f; filter: drop-shadow(0 0 4px rgba(255, 140, 20, .9)); animation: ae-boss-icon .8s ease-in-out infinite alternate; }
+
+@keyframes ae-boss-pulse {
+  0%, 100% { box-shadow: 0 0 0 3px rgba(255, 120, 20, .28), 0 10px 28px rgba(226, 64, 15, .5), 0 0 42px rgba(255, 154, 31, .45); }
+  50% { box-shadow: 0 0 0 6px rgba(255, 120, 20, .16), 0 12px 34px rgba(226, 64, 15, .7), 0 0 64px rgba(255, 190, 60, .75); }
+}
+@keyframes ae-boss-flicker {
+  0% { transform: scaleY(.82) scaleX(1.06) skewX(-3deg); opacity: .75; }
+  50% { transform: scaleY(1.04) scaleX(.94) skewX(2deg); opacity: .95; }
+  100% { transform: scaleY(.9) scaleX(1.02) skewX(-1deg); opacity: .82; }
+}
+@keyframes ae-boss-spark {
+  0% { transform: translate(0, 0) scale(1); opacity: 0; }
+  12% { opacity: 1; }
+  100% { transform: translate(10px, -110px) scale(.3); opacity: 0; }
+}
+@keyframes ae-boss-icon {
+  from { transform: scale(.94) rotate(-4deg); }
+  to { transform: scale(1.08) rotate(4deg); }
+}
+
+@media (max-width: 380px) {
+  a.ae-boss-entry.ae-boss-entry { gap: 10px; padding: 14px 12px; }
+  a.ae-boss-entry.ae-boss-entry .ae-boss-entry__icon { width: 48px; height: 48px; > svg { width: 28px; height: 28px; } }
+  a.ae-boss-entry.ae-boss-entry .ae-boss-entry__copy strong { font-size: 22px; }
+  a.ae-boss-entry.ae-boss-entry .ae-boss-entry__go { padding: 8px 10px; font-size: 15px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  a.ae-boss-entry.ae-boss-entry,
+  a.ae-boss-entry.ae-boss-entry .ae-boss-entry__flames > i,
+  a.ae-boss-entry.ae-boss-entry .ae-boss-entry__icon > svg,
+  .ae-boss-nav-badge { animation: none; }
+  a.ae-boss-entry.ae-boss-entry .ae-boss-entry__sparks { display: none; }
+}

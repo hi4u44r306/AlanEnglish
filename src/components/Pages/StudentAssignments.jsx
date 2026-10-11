@@ -27,6 +27,7 @@ import { normalizeListeningTracks } from "../../utils/assignmentListening";
 import "./css/Assignments.scss";
 import "./css/StudentAssignments.scss";
 import "./css/StudentAssignmentsJourney.scss";
+import "./css/StudentAssignmentsMinimal.scss";
 
 const EMPTY_LIST = [];
 
@@ -276,7 +277,7 @@ const StudentAssignments = () => {
                             {formatToday(today)}
                         </span>
                         <h1>
-                            {loading ? "正在整理我的作業" : message ? "作業暫時無法讀取" : "我的學習任務"}
+                            {loading ? "正在整理我的作業" : message ? "作業暫時無法讀取" : "作業"}
                         </h1>
                         <p>
                             選一份任務開始，完成老師指定的練習。過往任務與截止時間也能在這裡查看。

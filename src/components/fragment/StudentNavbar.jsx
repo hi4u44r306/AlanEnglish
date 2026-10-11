@@ -20,8 +20,9 @@ import {
     FiStar,
     FiTrendingUp,    FiZap
 } from "react-icons/fi";
-import { PiJoystick } from "react-icons/pi";
+import { PiFireFill, PiJoystick } from "react-icons/pi";
 import StudentGrowthHeader from "./StudentGrowthHeader";
+import BossChallengeEntry from "./BossChallengeEntry";
 import StudentAvatarImage from "./StudentAvatarImage";
 import { getStudentAvatarDisplayUrl } from "../../constants/defaultStudentAvatars";
 import { getStudentNotificationDestination } from "../../constants/studentNotificationRoutes";
@@ -44,6 +45,7 @@ const InstantDrawerLink = ({ onNavigate, onClick, to, ...props }) => {
 const NavigationIcon = ({ tone, children }) => <span className={`ae-student-nav-icon is-${tone}`} aria-hidden="true">{children}</span>;
 
 const StudentNavbar = ({
+    bossEvent = null,
     categories,
     firebaseUser,
     gamificationLevel,
@@ -144,6 +146,7 @@ const StudentNavbar = ({
 
     const speakingLinks = (
         <div className="ae-student-choice-list">
+            <BossChallengeEntry event={bossEvent} onNavigate={closeDrawerThenNavigate} />
             {hasSpeakingChallengeAccess ? <InstantDrawerLink to="/student/speaking-challenges" onNavigate={closeDrawerThenNavigate}>
                 <span className="is-orange"><FiStar /></span>
                 <span><strong>口說大挑戰</strong><small>選擇教材，開始闖關</small></span>
@@ -212,7 +215,7 @@ const StudentNavbar = ({
                 <span>我的進度</span>
             </Link>
             <button type="button" onClick={() => openDrawer("materials")} aria-current={materialsActive ? "page" : undefined} aria-expanded={drawerOpen && drawer === "materials"} aria-controls="student-navigation-drawer" className={`${materialsActive ? "active" : ""} ${drawerOpen && drawer === "materials" ? "is-open" : ""}`}><NavigationIcon tone="books"><FiBookOpen /></NavigationIcon><span>教材</span></button>
-            <button type="button" onClick={() => openDrawer("speaking")} aria-current={speakingActive ? "page" : undefined} aria-expanded={drawerOpen && drawer === "speaking"} aria-controls="student-navigation-drawer" className={`${speakingActive ? "active" : ""} ${drawerOpen && drawer === "speaking" ? "is-open" : ""}`}><NavigationIcon tone="adventure"><PiJoystick /></NavigationIcon><span>冒險</span></button>
+            <button type="button" onClick={() => openDrawer("speaking")} aria-current={speakingActive ? "page" : undefined} aria-expanded={drawerOpen && drawer === "speaking"} aria-controls="student-navigation-drawer" className={`${speakingActive ? "active" : ""} ${drawerOpen && drawer === "speaking" ? "is-open" : ""}`}><NavigationIcon tone="adventure"><PiJoystick /></NavigationIcon><span>冒險</span>{bossEvent && <span className="ae-boss-nav-badge" aria-label="Boss 挑戰出現了"><PiFireFill aria-hidden="true" /></span>}</button>
         </nav>
     );
 
@@ -227,7 +230,7 @@ const StudentNavbar = ({
                             <div className="ae-student-dropdown-heading"><strong>選一本教材</strong><small>{loading ? "教材載入中…" : `${materialCount} 本可使用`}</small></div>
                             {renderMaterials()}
                         </NavDropdown>
-                        <NavDropdown id="student-speaking" title={<span><NavigationIcon tone="adventure"><PiJoystick /></NavigationIcon>口說冒險</span>} className={speakingActive ? "active" : ""}>
+                        <NavDropdown id="student-speaking" title={<span><NavigationIcon tone="adventure"><PiJoystick /></NavigationIcon>口說冒險{bossEvent && <PiFireFill className="ae-boss-nav-flame" aria-label="Boss 挑戰出現了" />}</span>} className={speakingActive ? "active" : ""}>
                                 <div className="ae-student-dropdown-heading"><strong>冒險世界</strong><small>選擇教材，開始闖關</small></div>
                                 {speakingLinks}
                         </NavDropdown>

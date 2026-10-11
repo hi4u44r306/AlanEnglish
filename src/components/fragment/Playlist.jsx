@@ -5,6 +5,7 @@ import MusicCard from "./MusicCard";
 import "../assets/scss/Playlist.scss";
 import "../Pages/css/SpeakingAdventureSession.scss";
 import "../assets/scss/ListeningLearning.scss";
+import "../Pages/css/StudentAssignmentsMinimal.scss";
 import useStudentPageQuery from "../../hooks/useStudentPageQuery";
 import { useAuth } from "../../auth/AuthContext";
 import { getStudentAssignments } from "../../services/assignmentService";
