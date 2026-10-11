@@ -7,6 +7,7 @@ import TeamBossClassProfileCard from '../../fragment/TeamBossClassProfileCard';
 import TeamBossNativeArt from '../../fragment/TeamBossNativeArt';
 import useLocalRecording from './useLocalRecording';
 import {scoreReading} from './scoring.mjs';
+import {BATTLE_SOUNDS} from './sound.mjs';
 import {retainLocalSpeakingRecognizer} from '../../../services/localSpeakingRecognizer';
 import {convertAudioBlobToWav} from '../../../utils/audioWav';
 import {useAuth} from '../../../auth/AuthContext';
@@ -26,31 +27,25 @@ const names = {star: '星光勇者', moon: '月光法師', leaf: '森語夥伴'}
 const slotNames = {weapon: '武器', shield: '盾牌', head: '頭部', cape: '披風', armor: '胸甲', boots: '靴子'};
 const percent = value => Math.round(value * 100);
 // Drawn as SVG: a "♥" character can render as a colour emoji that ignores CSS, which made lost hearts look full.
-// Battle sounds are CC0 clips (public/sounds/boss/LICENSE.txt). Browsers only allow audio after a tap, so the first tap
-// anywhere loads and unlocks them; nothing plays while the tab is in the background.
-const SOUNDS = ['slash', 'cast', 'hit', 'hit-heavy', 'hurt', 'heart-break', 'skill', 'combo', 'victory', 'coins'];
+// Battle sounds are synthesized (see sound.mjs). Browsers only allow audio after a tap, so the first tap anywhere
+// unlocks them; nothing plays while the tab is in the background.
 function useBattleSound() {
-  const store = useRef({context: null, buffers: {}, muted: false}), [muted, setMuted] = useState(false);
+  const store = useRef({context: null, muted: false}), [muted, setMuted] = useState(false);
   useEffect(() => {
     const held = store.current;
     const unlock = () => {
       const Context = window.AudioContext || window.webkitAudioContext;
-      if (held.context) {held.context.resume?.(); return;}
-      if (!Context) return;
-      held.context = new Context();
-      SOUNDS.forEach(name => fetch('/sounds/boss/' + name + '.wav').then(response => response.arrayBuffer())
-        .then(data => new Promise((resolve, reject) => held.context.decodeAudioData(data, resolve, reject)))
-        .then(buffer => {held.buffers[name] = buffer;}).catch(() => { /* a missing clip only means silence */ }));
+      if (!held.context && Context) held.context = new Context();
+      held.context?.resume?.();
     };
     window.addEventListener('pointerdown', unlock);
-    return () => {window.removeEventListener('pointerdown', unlock); held.context?.close?.();};
+    return () => {window.removeEventListener('pointerdown', unlock); held.context?.close?.(); held.context = null;};
   }, []);
   function play(name, delay = 0, volume = 0.7) {
-    const held = store.current;
-    if (held.muted || !held.context || !held.buffers[name] || document.hidden) return;
-    const source = held.context.createBufferSource(), gain = held.context.createGain();
-    source.buffer = held.buffers[name]; gain.gain.value = volume; source.connect(gain); gain.connect(held.context.destination);
-    source.start(held.context.currentTime + delay);
+    const held = store.current, cue = BATTLE_SOUNDS[name];
+    if (held.muted || !held.context || !cue || document.hidden) return;
+    const out = held.context.createGain(); out.gain.value = volume; out.connect(held.context.destination);
+    cue(held.context, out, held.context.currentTime + 0.02 + delay);
   }
   return {play, muted, toggle() {store.current.muted = !store.current.muted; setMuted(store.current.muted);}};
 }
@@ -82,13 +77,13 @@ export default function Preview() {
     const at = Date.now(); setNow(at);
     recording.cancel(); const result = simulate(round, learner, q.id, outcome, characterOf(learner), at, gear.damage);
     setRounds(old => old.map(r => r.revision === activity ? result.round : r));
-    setMessage(result.message); if (result.counter) {setCounter(old => ({id: Date.now(), flip: !old?.flip})); sound.play('hurt', 0.3, 0.8); sound.play('heart-break', 0.42, 0.6);}
+    setMessage(result.message); if (result.counter) {setCounter(old => ({id: Date.now(), flip: !old?.flip})); sound.play('hurt', 0.3); sound.play('heart-break', 0.5);}
     if (result.round.events.length > round.events.length) {const event = result.round.events.at(-1); setArrivals([event]); const mage = characterOf(learner).endsWith('mage'), big = !!event.skills || !!event.teamwork;
       setHit({id: event.id, damage: event.damage, skill: event.skills?.key, combo: !!event.teamwork, mage});
-      if (big) sound.play(event.teamwork ? 'combo' : 'skill', 0, 0.6);
-      sound.play(mage ? 'cast' : 'slash', mage ? 0.2 : 0.32, mage ? 0.45 : 0.7); sound.play(big ? 'hit-heavy' : 'hit', 0.5, 0.8);
-      if (big) sound.play('hit-heavy', 0.62, 0.6); if (event.teamwork) sound.play('hit-heavy', 0.76, 0.6);
-      if (event.won) {sound.play('victory', 1.1, 0.7); sound.play('coins', 1.5, 0.6);}}
+      if (big) sound.play(event.teamwork ? 'combo' : 'skill', 0);
+      sound.play(mage ? 'cast' : 'slash', mage ? 0.2 : 0.32); sound.play(big ? 'hit-heavy' : 'hit', 0.5);
+      if (big) sound.play('hit-heavy', 0.62, 0.5); if (event.teamwork) sound.play('hit-heavy', 0.76, 0.5);
+      if (event.won) {sound.play('victory', 1.1); sound.play('coins', 2.6);}}
     if (outcome === 'pass' || outcome === 'skip') setReview(null);
   }
   // Preview shortcut: classmates take turns until the Boss falls, so the victory screen can be reviewed quickly.
@@ -99,13 +94,16 @@ export default function Preview() {
       if (question) next = simulate(next, key, question.id, 'pass', characterOf(key), at, gearBonus(gearBy[key]).damage).round;
     }
     recording.cancel(); setRounds(old => old.map(r => r.revision === activity ? next : r)); setReview(null); setArrivals(next.events.slice(-1)); setMessage('預覽：全班輪流念到 Boss 倒下。');
-    if (next.won) {sound.play('victory', 0.2, 0.7); sound.play('coins', 0.6, 0.6);}
+    if (next.won) {sound.play('victory', 0.2); sound.play('coins', 1.7);}
   }
   // Same on-device recognizer as the speaking challenge. It warms up as soon as the battle opens so the first score is not slow,
   // except on data-saver or very slow connections, where it waits until the learner asks for a score.
   // The battle is a full-screen page: site chrome (header, bottom nav, floating shortcut) is hidden while it is open.
   useEffect(() => {document.body.classList.add('sr-immersive'); return () => document.body.classList.remove('sr-immersive');}, []);
   const [tools, setTools] = useState(false), sound = useBattleSound();
+  // On by default even when the device asks for reduced motion: on Windows that setting is often switched off for speed,
+  // which silently hid every effect from the owner. The top-bar switch turns them off for anyone who needs that.
+  const [effects, setEffects] = useState(true);
   // The battle switches its own animation off whenever the tab goes to the background and never turns it back on.
   // Remounting it when the tab is visible again restores the default (on, unless the device asks for reduced motion).
   const [wake, setWake] = useState(0);
@@ -177,8 +175,8 @@ export default function Preview() {
   const snapshot = {mode: 'class_raid', team_name: round.config.classCode + ' 的森林冒險', team_version: activity, status: round.won ? 'won' : 'active', max_hp: round.maxHp, hp: round.hp,
     encounter: {boss_id: round.config.boss, presentation_version: 1, mechanics_profile: 'book-dragon-phases-v1', source: 'teacher_selected'},
     members: [learner].map(key => ({member_key: key, is_me: key === learner, currently_active: true, alias: names[key], character_id: characterOf(key), loadout: Object.entries(gearBy[key]).map(([slot, asset_key]) => ({slot, asset_key})), sources: round.progress[key].done.length, damage: round.progress[key].damage}))};
-  return <main className="sr-preview" ref={shell}>
-    <div className="sr-topbar"><button type="button" className="sr-ghost" onClick={() => {if ((recording.blob || recording.phase === 'recording') && !window.confirm('你有一段錄音還沒送出，離開後要重錄。確定要離開嗎？')) return; if (window.history.length > 1) window.history.back(); else window.location.assign('/');}}>← 離開</button><strong>Boss 挑戰</strong><span className="sr-topbar-end"><button type="button" className="sr-ghost" aria-pressed={!sound.muted} aria-label={sound.muted ? '開啟音效' : '關閉音效'} onClick={sound.toggle}>{sound.muted ? '🔇' : '🔊'}</button><button type="button" className="sr-ghost" aria-expanded={tools || view !== 'student'} disabled={view !== 'student'} onClick={() => setTools(open => !open)}>預覽工具</button></span></div>
+  return <main className="sr-preview" ref={shell} data-fx={effects ? 'on' : 'off'}>
+    <div className="sr-topbar"><button type="button" className="sr-ghost" onClick={() => {if ((recording.blob || recording.phase === 'recording') && !window.confirm('你有一段錄音還沒送出，離開後要重錄。確定要離開嗎？')) return; if (window.history.length > 1) window.history.back(); else window.location.assign('/');}}>← 離開</button><strong>Boss 挑戰</strong><span className="sr-topbar-end"><button type="button" className="sr-ghost" aria-pressed={effects} aria-label={effects ? '關閉特效' : '開啟特效'} onClick={() => setEffects(on => !on)}>{effects ? '✨' : '💤'}</button><button type="button" className="sr-ghost" aria-pressed={!sound.muted} aria-label={sound.muted ? '開啟音效' : '關閉音效'} onClick={sound.toggle}>{sound.muted ? '🔇' : '🔊'}</button><button type="button" className="sr-ghost" aria-expanded={tools || view !== 'student'} disabled={view !== 'student'} aria-label="預覽工具" onClick={() => setTools(open => !open)}>⚙</button></span></div>
     {(tools || view !== 'student') && <div className="sr-toolbox">
     <div className="sr-concept"><strong>預覽版</strong><span>可以真的開口念，也能用模擬按鈕；不產生正式金幣或紀錄，重新整理會清除試玩。</span></div>
     <header className="sr-header"><div><h1>全班一起念，一起打倒 Boss</h1><p>同班同場題目順序相同，每個人依自己的步調練習，不會念可以先跳過。</p></div><nav aria-label="預覽畫面"><button aria-pressed={view === 'student'} onClick={() => {setView('student'); setConfirm(false);}}>學生戰場</button><button aria-pressed={view === 'teacher'} onClick={() => setView('teacher')}>老師設定</button><button aria-pressed={view === 'map'} onClick={() => {setView('map'); setConfirm(false);}}>地圖角色</button><button aria-pressed={view === 'settings'} onClick={() => {setView('settings'); setConfirm(false);}}>我的設定</button></nav></header>
