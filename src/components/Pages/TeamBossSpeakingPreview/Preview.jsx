@@ -2,7 +2,7 @@ import React, {useEffect, useRef, useState} from 'react';
 import {NativeBattle} from '../../fragment/TeamBossNativeBattle';
 import {EXPANSION_PROFILES} from '../../../game/teamBossRpg/native/bosses/expansion-profiles.mjs';
 import {NATIVE_CHARACTERS, NATIVE_ITEMS, NATIVE_SLOTS} from '../../../game/teamBossRpg/native/native-rig.mjs';
-import {CLASSES, LEARNERS, defaultDraft, candidates, selectedQuestions, publish, join, hpShare, currentQuestion, simulate, rewards, heartsOf, gearBonus, GEAR_TIERS, ITEM_TIERS, RULES} from './model.mjs';
+import {CLASSES, LEARNERS, defaultDraft, candidates, selectedQuestions, publish, join, hpShare, listeningTracks, currentQuestion, simulate, rewards, heartsOf, gearBonus, GEAR_TIERS, ITEM_TIERS, RULES} from './model.mjs';
 import TeamBossClassProfileCard from '../../fragment/TeamBossClassProfileCard';
 import TeamBossNativeArt from '../../fragment/TeamBossNativeArt';
 import useLocalRecording from './useLocalRecording';
@@ -12,7 +12,7 @@ import {convertAudioBlobToWav} from '../../../utils/audioWav';
 import {useAuth} from '../../../auth/AuthContext';
 import {getSpeakingChallengeSet} from '../../../services/speakingChallengeService';
 import {getAccessibleBook} from '../../../services/contentAccessService';
-import {matchedSpeakingTracks, speakingListeningPath, speakingListeningSource} from '../../../utils/speakingListening';
+import {speakingListeningPath, speakingListeningSource} from '../../../utils/speakingListening';
 import './preview.scss';
 
 // Registered at runtime so the bundler does not try to resolve the url(); the file is served from public/fonts.
@@ -82,24 +82,26 @@ export default function Preview() {
   }, []);
   // Whoever opens the battle joins it; the Boss gains that classmate's share of HP the first time.
   useEffect(() => {setRounds(old => old.map(r => r.revision === activity ? join(r, learner) : r));}, [activity, learner]);
-  // Same free "listen to this page" link as the speaking challenge: the textbook's own recording for the sentence's page.
-  // Both calls are read-only; without a login or a matching track the button stays disabled.
+  // "聽本頁教材" opens the textbook's own recording for the sentence's page, through the same listening page the speaking
+  // challenge links to: the Answer recording when there is one, otherwise the main one, with every part of a split page.
+  // Both calls are read-only; without a login or a recording the button stays disabled.
   const {firebaseUser} = useAuth();
-  const [listenPaths, setListenPaths] = useState({}), setId = q?.setId, listenPath = listenPaths[setId] || null;
+  const [listening, setListening] = useState({}), setId = q?.setId, pageKey = q ? q.setId + ':' + q.page : '', listen = listening[pageKey] || null;
   useEffect(() => {
-    if (!firebaseUser || !setId || setId in listenPaths) return undefined;
-    let alive = true;
+    if (!firebaseUser || !pageKey || pageKey in listening) return undefined;
+    let alive = true; const page = q.page;
     (async () => {
-      let path = null;
+      let found = {path: null, count: 0};
       try {
         const challenge = (await getSpeakingChallengeSet(firebaseUser, setId, 'easy'))?.challenge, source = speakingListeningSource(challenge);
-        const tracks = source ? matchedSpeakingTracks(source, await getAccessibleBook(firebaseUser, source.bookCode)) : [];
-        if (tracks.length) path = speakingListeningPath(source, challenge.id, 'easy', tracks);
+        const book = source ? await getAccessibleBook(firebaseUser, source.bookCode) : null;
+        const tracks = listeningTracks((book?.tracks || []).filter(track => Number(track.book_id) === source.bookId), page);
+        if (tracks.length) found = {path: speakingListeningPath(source, challenge.id, 'easy', tracks), count: tracks.length};
       } catch { /* optional: the battle works without it */ }
-      if (alive) setListenPaths(old => ({...old, [setId]: path}));
+      if (alive) setListening(old => ({...old, [pageKey]: found}));
     })();
     return () => {alive = false;};
-  }, [firebaseUser, setId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [firebaseUser, pageKey]); // eslint-disable-line react-hooks/exhaustive-deps
   const engine = useRef(null), live = useRef('');
   const [judge, setJudge] = useState({working: false, note: '', result: null}), [engineNote, setEngineNote] = useState(''), [card, setCard] = useState(null);
   const [mapLevel, setMapLevel] = useState(2), [inLevel, setInLevel] = useState(false), [avatar, setAvatar] = useState(avatars[0]);
@@ -173,7 +175,7 @@ export default function Preview() {
       {round.won && <section className="sr-victory" aria-label="勝利結算"><p className="sr-victory-title">勝利！</p><p>全班一起打倒了{EXPANSION_PROFILES.find(b => b.id === round.config.boss)?.name}</p><div className="sr-victory-gold"><span>我拿到</span><strong>{mine.gold}</strong><span>金幣</span></div><dl><div><dt>念對 {mine.correct} 句的保底</dt><dd>{mine.base}</dd></div><div><dt>打倒 Boss 加碼（我的傷害 {mine.damage}）</dt><dd>{mine.bonus}</dd></div><div><dt>裝備加成 +{percent(gear.gold)}%</dt><dd>{mine.equip}</dd></div></dl><ol>{[...pay].sort((a, b) => b.damage - a.damage).map((r, i) => <li key={r.key} data-me={r.key === learner}><i aria-hidden="true">{i + 1}</i><b>{r.key === learner ? '我' : names[r.key]}</b><span>念對 {r.correct} 句 · 傷害 {r.damage}</span><strong>{r.gold} 金幣</strong></li>)}</ol>{p.skipped.length > 0 && <p className="sr-victory-note">你還有 {p.skipped.length} 句待補練，之後可以到口說大挑戰繼續練。</p>}{mine.correct === 0 && <p className="sr-victory-note">這一場你還沒念對句子，所以沒有金幣；下一場一起加油。</p>}</section>}
       <section className="sr-reading" data-over={round.won && !q} aria-label="Boss朗讀句子"><div className="sr-reading-head"><span>{review ? '補練時間' : '輪到你朗讀'}</span><strong>{q ? '第 ' + (round.questions.findIndex(x => x.id === q.id) + 1) + ' / ' + round.questions.length + ' 句' : '本輪句子已看完'} · 已完成 {p.done.length} 句</strong></div>
         <h2>{round.won ? (q ? 'Boss 倒下了！把剩下的句子念完，一樣算保底金幣：' : '全班一起打倒 Boss 了！') : q ? 'Boss 問你：' : p.skipped.length ? '還有句子等你回來補練' : '你完成了本場所有句子'}</h2>
-        {q && <><p className="sr-prompt" lang="en" data-testid="prompt">{q.prompt}<span lang="zh-Hant">（{q.hint}）</span></p>{resting && <p className="sr-rest" role="status">愛心用完了，角色休息中… {Math.ceil((p.restUntil - now) / 1000)} 秒後愛心全滿，就能繼續。</p>}<p className="sr-answer-label">請念出這句回答：</p><p className="sr-sentence" lang="en" data-testid="sentence">{q.text}</p><p className="sr-source">{round.config.book} · 學生版 P{q.page} · 再念對 {RULES.skillEvery - p.done.length % RULES.skillEvery} 句發動{character.endsWith('mage') ? '星光術' : '月光斬'}</p><div className="sr-read-actions"><button disabled={['permission', 'recording', 'stopping'].includes(recording.phase)} onClick={() => recording.listen(q.text)}>🔈 聽這句示範</button>{recording.phase === 'recording' ? <button className="sr-record" onClick={recording.stop}>停止錄音</button> : recording.phase === 'permission' ? <button onClick={() => recording.cancel()}>取消麥克風請求</button> : <button className="sr-record" disabled={resting || recording.phase === 'stopping'} onClick={recording.start}>開始錄音</button>}{recording.blob && <button className="sr-primary" disabled={judge.working || resting} onClick={assess}>{judge.working ? '評分中…' : '送出評分'}</button>}{listenPath ? <a className="sr-listen" href={listenPath}>🎧 聽本頁教材</a> : <button disabled>🎧 聽本頁教材</button>}<button disabled={resting || judge.working} onClick={() => run('skip')}>先跳過</button></div>{recording.url && <audio controls src={recording.url} aria-label="回聽我的錄音"/>}<p role="status">{recording.message}</p><small>{engineNote} 錄音只在這台裝置上辨識，不會上傳。「聽這句示範」用的是這台裝置內建的語音，免費，聲音比較機械。{listenPath ? '「聽本頁教材」會離開戰場，去聽這一頁的教材錄音。' : !firebaseUser ? '這個預覽沒有登入，無法連到教材聽力。' : setId in listenPaths ? '這一頁找不到可以聽的教材錄音。' : '正在找這一頁的教材錄音…'}</small></>}
+        {q && <><p className="sr-prompt" lang="en" data-testid="prompt">{q.prompt}<span lang="zh-Hant">（{q.hint}）</span></p>{resting && <p className="sr-rest" role="status">愛心用完了，角色休息中… {Math.ceil((p.restUntil - now) / 1000)} 秒後愛心全滿，就能繼續。</p>}<p className="sr-answer-label">請念出這句回答：</p><p className="sr-sentence" lang="en" data-testid="sentence">{q.text}</p><p className="sr-source">{round.config.book} · 學生版 P{q.page} · 再念對 {RULES.skillEvery - p.done.length % RULES.skillEvery} 句發動{character.endsWith('mage') ? '星光術' : '月光斬'}</p><div className="sr-read-actions"><button disabled={['permission', 'recording', 'stopping'].includes(recording.phase)} onClick={() => recording.listen(q.text)}>🔈 聽這句示範</button>{recording.phase === 'recording' ? <button className="sr-record" onClick={recording.stop}>停止錄音</button> : recording.phase === 'permission' ? <button onClick={() => recording.cancel()}>取消麥克風請求</button> : <button className="sr-record" disabled={resting || recording.phase === 'stopping'} onClick={recording.start}>開始錄音</button>}{recording.blob && <button className="sr-primary" disabled={judge.working || resting} onClick={assess}>{judge.working ? '評分中…' : '送出評分'}</button>}{listen?.path ? <a className="sr-listen" href={listen.path}>🎧 聽本頁教材{listen.count > 1 ? '（' + listen.count + ' 段）' : ''}</a> : <button disabled>🎧 聽本頁教材</button>}<button disabled={resting || judge.working} onClick={() => run('skip')}>先跳過</button></div>{recording.url && <audio controls src={recording.url} aria-label="回聽我的錄音"/>}<p role="status">{recording.message}</p><small>{engineNote} 錄音只在這台裝置上辨識，不會上傳。「聽這句示範」用的是這台裝置內建的語音，免費，聲音比較機械。{listen?.path ? '「聽本頁教材」會離開戰場，去聽這一頁的教材錄音（有 Answer 錄音就聽 Answer）。' : !firebaseUser ? '這個預覽沒有登入，無法連到教材聽力。' : listen ? '這一頁找不到可以聽的教材錄音。' : '正在找這一頁的教材錄音…'}</small></>}
         {judge.working && <p className="sr-heard" role="status">{judge.note}</p>}{judge.result && <p className="sr-heard" role="status" data-pass={judge.result.pass}><b>{judge.result.pass ? '過關！' : '還差一點'} 朗讀完整度 {judge.result.score} 分</b><span lang="en">{judge.result.words.map((word, i) => <i key={i} data-hit={word.hit}>{word.text}</i>)}</span><small>系統聽到：「{judge.result.heard}」。這是有沒有把句子念完整，不是發音準確度。</small></p>}
         <details className="sr-lab" open={!round.won}><summary>不開口也能測：手動模擬評分（預覽專用）</summary><p>不方便用麥克風時，用這三個按鈕代替評分結果。</p><div><button disabled={!q || resting} onClick={() => run('pass')}>模擬：念對了（70 分以上）</button><button disabled={!q || resting} onClick={() => run('retry')}>模擬：未達 70 分</button><button disabled={!q || resting} onClick={() => run('technical')}>模擬：網路或評分失敗</button></div><div><button disabled={round.won} onClick={finish}>模擬：全班一起念到打倒 Boss</button></div><details className="sr-rules"><summary>查看規則</summary><p>規則：每念對一句 100 點傷害，同一句只算一次；每念對 3 句發動技能（劍士月光斬 ×2、法師星光術 ×1.5 並多 1 格全班能量）；全班能量集滿「人數 × 2」自動發動合體技，扣 Boss 最大血量 5%。Boss 血量＝每位進場同學 × 句數 × 100 × 2；Boss 倒下後還能繼續念完，照樣算保底金幣。跳過扣 1 顆愛心（固定 1 顆），念對一句回 1 顆；愛心歸零休息 10 秒後全滿，不扣金幣、不影響同學。</p></details></details>
         <p className="sr-feedback" role="status">{message}</p>

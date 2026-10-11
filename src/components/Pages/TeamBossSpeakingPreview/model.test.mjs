@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {LEARNERS, defaultDraft, candidates, publish, join, simulate, currentQuestion, rewards, heartsOf, gearBonus} from './model.mjs';
+import {LEARNERS, defaultDraft, candidates, publish, join, simulate, currentQuestion, rewards, heartsOf, gearBonus, listeningTracks} from './model.mjs';
 const start = () => LEARNERS.reduce(join, publish(defaultDraft(), 1));
 const pass = (r, who, n, character) => {for (let i = 0; i < n && currentQuestion(r, who); i += 1) r = simulate(r, who, currentQuestion(r, who).id, 'pass', character).round; return r;};
 test('Workbook 4 P13-P17 gives 21 sentences on P13/P15/P17 only; invalid ranges publish nothing', () => {
@@ -74,6 +74,15 @@ test('The last hit is clamped and wins; afterwards sentences still count for bas
   assert.deepEqual(r.joined, ['star', 'moon']); assert.equal(r.maxHp, live.maxHp); assert.equal(r.hp, 0); assert.equal(r.events.length, 1); assert.equal(r.progress.moon.done.length, 1); assert.equal(r.progress.moon.damage, 0);
   const skipped = simulate(r, 'moon', currentQuestion(r, 'moon').id, 'skip'); assert.equal(skipped.counter, undefined); assert.equal(skipped.round.progress.moon.hearts, 5);
   const paid = rewards(r); assert.equal(paid[1].base, 3); assert.equal(paid[1].bonus, 0); assert.equal(paid[0].bonus, 40);
+});
+test('Page listening prefers the Answer recording, falls back to the main one, and keeps every part of a split page', () => {
+  const t = (id, base_page, track_type, part_number = null, audio_url = 'signed') => ({id, base_page, page: base_page, track_type, part_number, audio_url});
+  const tracks = [t(205, 'P13', 'question'), t(206, 'P13', 'main'), t(204, 'P13', 'answer'), t(166, 'P21', 'main', 2), t(165, 'P21', 'main', 1), t(179, 'P40', 'main'), t(300, 'P50', 'question'), t(301, 'P60', 'answer', null, '')];
+  assert.deepEqual(listeningTracks(tracks, 13).map(x => x.id), [204]);
+  assert.deepEqual(listeningTracks(tracks, 40).map(x => x.id), [179]);
+  assert.deepEqual(listeningTracks(tracks, 21).map(x => x.id), [165, 166]);
+  for (const page of [14, 50, 60]) assert.deepEqual(listeningTracks(tracks, page), []);
+  assert.deepEqual(listeningTracks(null, 13), []); assert.deepEqual(listeningTracks([{id: 1, page: 'P13 Answer', track_type: 'answer', audio_url: 'x'}], '13').map(x => x.id), [1]);
 });
 test('Gold: base is 3 per correct sentence capped at 30; 20 per entered classmate is shared by damage only on a win', () => {
   let r = pass(start(), 'star', 6, 'girl-knight'); r = pass(r, 'moon', 2, 'boy-knight');

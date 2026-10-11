@@ -56,6 +56,16 @@ export function selectedQuestions(draft) {
   const allowed = eligible(draft), ids = draft.selected ?? allowed.map(q => q.id);
   return [...new Set(ids)].map(id => allowed.find(q => q.id === id)).filter(Boolean);
 }
+// Which textbook recordings "聽本頁教材" opens for a page: the Answer recording when the page has one, otherwise the
+// page's main recording. A page split into parts (for example P21-1 and P21-2) returns every part, in order.
+// The Question recording is never used: the Boss already asks the question on screen.
+export function listeningTracks(tracks, page) {
+  const pageOf = track => Number((String(track.base_page || track.page || '').match(/^P?[.\s]*(\d+)/i) || [])[1]);
+  const onPage = (tracks || []).filter(track => pageOf(track) === Number(page) && track.audio_url);
+  const answers = onPage.filter(track => track.track_type === 'answer');
+  const chosen = answers.length ? answers : onPage.filter(track => (track.track_type || 'main') === 'main');
+  return [...chosen].sort((a, b) => (a.part_number || 0) - (b.part_number || 0) || Number(a.id) - Number(b.id));
+}
 // Nobody is in the roster at publish. Each classmate adds sentences x 100 x 2 HP the first time they enter,
 // so absent classmates never make the Boss unbeatable.
 export function publish(draft, revision) {
