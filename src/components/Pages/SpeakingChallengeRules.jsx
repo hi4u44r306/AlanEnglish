@@ -19,7 +19,7 @@ export default function SpeakingChallengeRules({ policy, loading = false }) {
         </ol>
         <div className="speaking-challenge-rules__usage" aria-label="我的口說用量" aria-live="polite">
             <div className="speaking-usage-card">
-                <span className="speaking-usage-card__label">Azure 字母與拼字今日剩餘輪數</span>
+                <span className="speaking-usage-card__label">今天還能練幾輪（字母與拼字）</span>
                 <strong>{dailyReady ? `${dailyRemaining} 輪` : "—"}</strong>
                 <div className={`speaking-round-slots ${dailyReady ? "" : "is-unknown"}`} role="img" aria-label={dailyReady ? `今天 ${policy.daily_limit} 輪，剩 ${dailyRemaining} 輪，已用 ${policy.daily_limit - dailyRemaining} 輪` : unavailable}>
                     {Array.from({ length: dailyReady ? policy.daily_limit : 10 }, (_, index) => <span key={index} aria-hidden="true" className={dailyReady && index >= policy.daily_limit - dailyRemaining ? "is-available" : ""}><FiMic /></span>)}
