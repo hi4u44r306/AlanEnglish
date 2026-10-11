@@ -82,7 +82,7 @@ export default function StudentGrowthHeader({ summary, loading = false, error, p
                 </>}
                 {(error || (!balance && !loading)) && <div className="ae-growth-detail__notice" role="status">{balance ? "暫時無法更新，這裡顯示上次讀取的資料。" : "暫時無法讀取成長資料。"}{onRetry && <button type="button" onClick={onRetry} disabled={loading}>重新讀取成長</button>}</div>}
                 {loading && <p role="status">正在讀取成長資料…</p>}
-                <Link to="/student/settings" className={detail === "growth" ? "ae-growth-detail__primary" : "ae-growth-detail__secondary"} onClick={() => setDetail("")}>{detail === "growth" && <FiUser aria-hidden="true" />}前往我的設定{detail === "growth" && <FiChevronRight aria-hidden="true" />}</Link>
+                <Link to="/student/settings" className={detail === "growth" ? "ae-growth-detail__primary" : "ae-growth-detail__secondary"} onClick={() => setDetail("")}>{detail === "growth" && <FiUser aria-hidden="true" />}前往我的進度{detail === "growth" && <FiChevronRight aria-hidden="true" />}</Link>
             </Modal.Body>
         </Modal>
     </>;

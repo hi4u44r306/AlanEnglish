@@ -8,11 +8,6 @@
   .playlist-header__copy { padding-right: 0; }
   .playlist-header h1 { color: #17365d; font-size: clamp(23px, 3vw, 30px); overflow-wrap: anywhere; }
   .playlist-header__copy > p { color: #526580; line-height: 1.6; font-size: 14px; }
-  .playlist-header__eyebrow { color: #245fc5; letter-spacing: 0; font-size: 13px; }
-  .playlist-header__art { display: none; }
-  .playlist-header__stats { flex-wrap: wrap; white-space: normal; }
-  .playlist-header__stats small { font-size: 12px; color: #526580; }
-  .playlist-header__stats > span { min-width: 100px; }
   .playlist-homework-back { min-height: 44px; padding: 0 12px; border: 1px solid #aac5ff; border-radius: 12px; color: #fff; background: #174597; font-size: 13px; }
   .playlist-homework-banner__copy > span { letter-spacing: 0; font-size: 12px; }
 
@@ -36,9 +31,7 @@
   .music-card__play-ring { display: none; }
   .music-card__play-label { font-size: 13px; line-height: 1.1; font-weight: 850; }
   .music-card__equalizer { width: 28px; height: 24px; }
-  .music-card__eyebrow { color: #526b8e; font-size: 11px; letter-spacing: 0; }
   .music-card__title { font-size: 17px; font-weight: 850; line-height: 1.45; color: #183963; overflow-wrap: anywhere; }
-  .music-card__book { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 8px; white-space: normal; overflow: visible; line-height: 1.5; color: #516781; font-size: 12px; overflow-wrap: anywhere; }
   .music-card__page { display: inline; font-size: 12px; color: #2455b8; }
   .music-card__current, .music-card__unavailable { display: inline-block; margin-top: 5px; color: #2455b8; font-weight: 800; font-size: 12px; }
   .music-card__unavailable { color: #77561c; }
@@ -50,54 +43,27 @@
   .music-card__check { display: flex; width: auto; height: auto; padding: 4px 8px; border-radius: 8px; gap: 4px; box-shadow: none; font-size: 14px; }
   .music-card__check span { display: inline; font-size: 11px; }
 
-  .listening-learning-panel { grid-column: 2; grid-row: 1; position: sticky; top: 100px; padding: 20px; border: 1px solid #d2e0f5; border-top: 3px solid #ffd45d; border-radius: 14px; background: #fff; color: #183963; }
-  .listening-learning-panel__top { display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
-  .listening-learning-panel__top > span { display: grid; place-items: center; width: 44px; height: 44px; flex-shrink: 0; border-radius: 14px; background: #edf4ff; color: #2455b8; font-size: 23px; }
-  .listening-learning-panel h2 { font-size: 18px; margin: 0; line-height: 1.5; font-weight: 850; }
-  .listening-learning-panel h3 { font-size: 19px; line-height: 1.5; margin: 10px 0 6px; overflow-wrap: anywhere; font-weight: 850; }
-  .listening-learning-panel p { font-size: 14px; line-height: 1.7; color: #516781; }
-  .listening-learning-panel__status { display: inline-flex; padding: 4px 9px; border-radius: 8px; background: #edf1f7; font-size: 12px; font-weight: 850; }
-  .listening-learning-panel__status.is-playing { color: #174597; background: #fff0bd; }
-  .listening-learning-panel__hint { display: flex; gap: 8px; margin: 16px 0; padding: 0; background: transparent; }
-  .listening-learning-panel__hint svg { flex-shrink: 0; margin-top: 4px; color: #2455b8; }
-  .listening-learning-panel__help summary { display: flex; min-height: 44px; align-items: center; justify-content: space-between; padding: 10px 12px; border: 0; border-top: 1px solid #dce5ee; border-radius: 0; background: transparent; font-size: 14px; font-weight: 800; cursor: pointer; list-style: none; }
-  .listening-learning-panel__help summary::-webkit-details-marker { display: none; }
-  .listening-learning-panel__help summary::after { content: "＋"; }
-  .listening-learning-panel__help[open] summary::after { content: "−"; }
-  .listening-learning-panel__help ol { padding-left: 24px; margin: 14px 0; font-size: 14px; line-height: 1.9; }
-  .listening-learning-panel__help p { font-size: 12px; }
   .playlist-progress-error, .playlist-listening-confirmed { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 18px; padding: 16px; border-radius: 16px; background: #fff5d4; border: 1px solid #e8cd7e; color: #644b18; font-size: 14px; }
   .playlist-listening-confirmed { border-color: #aed4bf; background: #edfaf3; color: #226144; }
   .playlist-listening-confirmed > div[role="status"] { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1 1 260px; }
   .playlist-listening-confirmed svg { flex-shrink: 0; }
   .playlist-listening-confirmed p { margin: 4px 0 0; font-size: 13px; overflow-wrap: anywhere; }
   .playlist-listening-confirmed__actions { display: flex; flex-wrap: wrap; gap: 8px; }
-  .listening-learning-panel a, .playlist-progress-error button, .playlist-listening-confirmed a, .playlist-listening-confirmed button { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 8px 12px; border: 1px solid #b6cced; border-radius: 12px; color: #174597; background: #edf4ff; font-size: 13px; font-weight: 800; text-decoration: none; line-height: 1.5; }
+  .playlist-progress-error button, .playlist-listening-confirmed a, .playlist-listening-confirmed button { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 8px 12px; border: 1px solid #b6cced; border-radius: 12px; color: #174597; background: #edf4ff; font-size: 13px; font-weight: 800; text-decoration: none; line-height: 1.5; }
   .playlist-listening-confirmed a { background: #ffd45d; border-color: #e8b937; color: #183963; }
   a:focus-visible, button:focus-visible, summary:focus-visible { outline: 3px solid #183963; outline-offset: 3px; }
   @media (max-width: 1000px) {
     .playlist-learning-layout { grid-template-columns: minmax(0, 1fr) 260px; gap: 16px; }
-    .listening-learning-panel { padding: 16px; }
     .music-card { gap: 10px; }
   }
   @media (max-width: 800px) {
     .playlist-header__main { display: flex; flex-wrap: wrap; min-height: 0; padding: 20px; }
-    .playlist-header__stats { margin-top: 0; }
     .playlist-learning-layout { display: flex; flex-direction: column; gap: 16px; }
-    .listening-learning-panel { position: static; width: 100%; }
-    .listening-learning-panel__top { margin-bottom: 10px; }
-    .listening-learning-panel__track { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
-    .listening-learning-panel h3 { width: 100%; font-size: 17px; margin: 2px 0; }
-    .listening-learning-panel__track > p { margin: 0; }
-    .listening-learning-panel__hint { display: none; }
-    .listening-learning-panel__help { margin-top: 12px; }
-    .listening-learning-panel__intro { margin-bottom: 10px; }
   }
   @media (max-width: 480px) {
     .playlist-header h1 { font-size: 23px; }
     .playlist-header__main { padding: 18px; gap: 12px; }
     .playlist-header__copy > p { font-size: 13px; }
-    .playlist-header__stats strong { font-size: 15px; }
     .music-card { grid-template-columns: 62px minmax(0, 1fr); gap: 8px 12px; padding: 12px; }
     .music-card--active { padding: 11px; }
     .music-card__play { grid-row: 1 / 3; width: 62px; height: 64px; align-self: center; }
@@ -128,5 +94,6 @@ body:has(.playlist-page) .app-player {
   @media (max-width: 360px) { .player-track-art { display: none; } }
 }
 
-.playlist-page .playlist-header__stats strong { color: #17365d; }
 .playlist-page .music-card__plays { border: 0; background: transparent; }
+.playlist-page .playlist-learning-layout { display: block; }
+.playlist-last-heard { margin: 0 0 12px; font-size: 16px; font-weight: 700; color: #17365d; a { display: inline-flex; align-items: center; min-height: 44px; color: #245fc5; text-decoration: underline; text-underline-offset: 4px; } }

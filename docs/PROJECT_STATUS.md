@@ -1,5 +1,17 @@
 # Alan English 專案狀態
 
+### 學生三按鈕導覽、我的進度、精簡聽力頁（2026-10-11，尚未部署／同 PR #521）
+
+- 負責：Claude Code。同分支 `claude/homepage-redesign-simplify-1b3133`，接續下方「首頁精簡」。純前端，無後端、資料、權限變更。
+- 導覽：`StudentNavbar` 改為「我的進度（/student/settings）／教材（/student/dashboard）／冒險」；桌面移除「我的學習」下拉，其連結由我的進度頁與手機選單承接。下方條目的「首頁」已改名「教材」。
+- 我的進度：`StudentSettings` 標題改名並在最上方掛 `StudentProgressOverview`（各教材上次聽到的音檔、口說大挑戰各教材完成關數、作業／週報／排行榜入口）。`studentLearningResume` 另存每本教材一筆的本機書籤（`ae-learning-history-v1:`，12 本、30 天，登出清除），連結仍須通過 catalog 授權比對。
+- 聽力頁：`playlist-header__main` 只留教材名稱；移除 `ListeningLearningPanel`、`music-card__eyebrow`、`music-card__book`；新增「上次聽到」定位提示。record-play、覆蓋率、noInteraction 未動。
+- 好友：移除 `StudentFriends` 頁、入口、`sendSocialHeartbeat` 心跳；`/student/friends` 轉址到我的進度；social 通知不再有目的地。`student-social` Edge Function 與資料表未動（暱稱仍使用）。
+- 生日：只移除教材頁的 `BirthdayRewardNotice`。後端仍會發生日禮與 XP×2；成長詳情提示、設定頁生日欄位、管理員生日設定都還在。
+- 驗證：10 個相關測試檔 126 項通過；變更檔 ESLint、三個 SCSS 編譯、`git diff --check` 通過。未跑全套與本機 production build（16.1）。
+- 未驗：新版畫面沒有做瀏覽器目視檢查（聽力頁標題區、我的進度卡片、桌面導覽）；真實登入、iPhone Safari。
+- 待擁有者決定後另批處理（皆屬第 13 節重大改動或缺資料）：熟練門檻 10→30（DB migration `require_ten_listens_for_track_completion` 與獎勵規則）、家長學習報告 Email（後端排程與寄信）、音檔 YouTube 跳轉（目前沒有每個音檔的影片網址／時間點資料）、生日禮與好友後端停用。
+
 ### 學生首頁精簡：今日＋教材合併為「首頁」（2026-10-11，尚未部署／PR 待擁有者說「幫我合併」）
 
 - 負責：Claude Code。分支 `claude/homepage-redesign-simplify-1b3133`（app 建立的 worktree），基準 main `25ecb12e`。純前端，無後端、資料、權限變更。

@@ -34,7 +34,6 @@ import AccountSecurity from "../components/Pages/AccountSecurity";
 import StudentSettings from "../components/Pages/StudentSettings";
 import StudentOnboarding from "../components/Pages/StudentOnboarding";
 import StudentNotifications from "../components/Pages/StudentNotifications";
-import StudentFriends from "../components/Pages/StudentFriends";
 import StoreSalesPaused from "../components/Pages/StoreSalesPaused";
 import { PUBLIC_MATERIAL_SALES_ENABLED } from "../constants/commerceAvailability";
 import StoreAuthPage from "../components/Pages/StoreAuthPage";
@@ -178,7 +177,7 @@ const App = () => {
                         <Route path="/student/membership" element={<ProtectedRoute allowedRoles={["student"]}><MembershipCenter /></ProtectedRoute>} />
                         <Route path="/student/settings" element={<ProtectedRoute allowedRoles={["student"]}><StudentSettings /></ProtectedRoute>} />
                         <Route path="/student/notifications" element={<ProtectedRoute allowedRoles={["student"]}><StudentNotifications /></ProtectedRoute>} />
-                        <Route path="/student/friends" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><StudentFriends /></ProtectedRoute>} />
+                        <Route path="/student/friends" element={<Navigate to="/student/settings" replace />} />
                         <Route path="/student/level" element={<Navigate to="/student/leaderboard" replace />} />
                         <Route path="/student/leaderboard" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><LearningLeaderboard /></ProtectedRoute>} />
                         <Route path="/student/rewards" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><Rewards /></ProtectedRoute>} />

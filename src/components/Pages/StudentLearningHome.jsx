@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { FiArrowRight, FiCheckCircle, FiCompass, FiStar } from "react-icons/fi";
 import { useAuth } from "../../auth/AuthContext";
@@ -10,7 +10,6 @@ import { getStudentAssignments, getStudentAssignmentsV2 } from "../../services/a
 import { getStudentAvatarDisplayUrl } from "../../constants/defaultStudentAvatars";
 import { useCachedStudentAvatarUrl } from "../../hooks/useCachedStudentAvatarUrl";
 import StudentAvatarImage from "../fragment/StudentAvatarImage";
-import BirthdayRewardNotice from "../fragment/BirthdayRewardNotice";
 import useStudentLearningResume from "../../hooks/useStudentLearningResume";
 import { findResumeBook, learningResumePath } from "../../services/studentLearningResume";
 import { assignmentStateLabel, getCurrentClassMaterials, getLearningTasks, getStudentMaterialCategories } from "../../utils/studentLearning";
@@ -36,7 +35,6 @@ function StudentLearningHome() {
     const summaryQuery = useStudentPageQuery("summary", () => getGamificationSummary(firebaseUser), { enabled: active });
     const assignmentsQuery = useStudentPageQuery("assignments:v1", () => getStudentAssignments(firebaseUser), { enabled: assignmentAccess });
     const assignmentsV2Query = useStudentPageQuery("assignments:v2", () => getStudentAssignmentsV2(firebaseUser), { enabled: assignmentAccess });
-    const pageHeading = useRef(null);
     const [categoryId, setCategoryId] = useState("all");
     const [taskFilter, setTaskFilter] = useState("pending");
 
@@ -78,11 +76,11 @@ function StudentLearningHome() {
         : !heroBook && !loading ? "目前班級教材無法開啟，請老師確認。" : null;
     const refresh = () => [catalogQuery, summaryQuery, assignmentsQuery, assignmentsV2Query, classQuery].forEach(query => query.refresh());
 
-    if (!active) return <main className="learning-home"><h1>首頁</h1><p>先確認目前可使用的教材與功能。</p><Link className="learning-home__secondary" to="/student/membership">查看會員與功能</Link></main>;
+    if (!active) return <main className="learning-home"><h1>教材</h1><p>先確認目前可使用的教材與功能。</p><Link className="learning-home__secondary" to="/student/membership">查看會員與功能</Link></main>;
 
     return <main className="learning-home">
         <div className="learning-home__shell">
-            <h1 className="learning-home__title" ref={pageHeading} tabIndex={-1}>首頁</h1>
+            <h1 className="learning-home__title">教材</h1>
             {[catalogQuery, summaryQuery, assignmentsQuery, assignmentsV2Query].some(query => query.error && query.data) && <p role="status">目前顯示上次資料，最新進度暫時無法同步，請稍後再試。</p>}
 
             {assignmentAccess && nextTask && <section className="learning-home__assignment-reminder" aria-label="待完成作業提醒">
@@ -91,8 +89,6 @@ function StudentLearningHome() {
                     {nextTask.state === "overdue" && <small>請向老師確認是否可以補做。</small>}
                 </div><Link to={taskPath(nextTask)}>{pendingTasks.length ? "查看待完成作業" : "查看待補作業"}<FiArrowRight aria-hidden="true" /></Link>
             </section>}
-
-            <BirthdayRewardNotice birthday={summaryQuery.error ? null : data?.summary?.birthday} ownerUid={firebaseUser?.uid} onDismiss={() => pageHeading.current?.focus()} />
 
             <div className="learning-home__overview">
                 <section className="learning-home__mission" aria-labelledby="today-goal">

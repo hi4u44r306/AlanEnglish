@@ -1,8 +1,11 @@
 const PREFIX = "ae-learning-resume-v1:";
 const KEEP_MS = 30 * 24 * 60 * 60 * 1000;
 const MAX_ENTRIES = 8;
+const HISTORY_PREFIX = "ae-learning-history-v1:";
+const MAX_BOOKS = 12;
 const memory = new Map();
 const listeners = new Set();
+const historyKeyFor = scope => `${HISTORY_PREFIX}${encodeURIComponent(scope)}`;
 const keyFor = scope => `${PREFIX}${encodeURIComponent(scope)}`;
 const notify = () => listeners.forEach(listener => listener());
 const keysOnDisk = () => {
@@ -36,22 +39,38 @@ export const readStudentLearningResume = scope => {
     return result;
 };
 
+// One bookmark per book, newest first, so each material remembers where the student stopped.
+export const readStudentLearningHistory = scope => {
+    if (!scope || !scope.includes("|student|")) return [];
+    let value = memory.get(historyKeyFor(scope));
+    if (!value) {
+        try { value = JSON.parse(localStorage.getItem(historyKeyFor(scope))); } catch { /* Ignore malformed storage. */ }
+    }
+    return (Array.isArray(value) ? value : []).map(normalize).filter(Boolean).slice(0, MAX_BOOKS);
+};
+
 export const saveStudentLearningResume = (scope, book, track) => {
     if (!scope || !scope.includes("|student|")) return;
     const value = normalize({ bookId: book?.id, bookCode: book?.code, trackId: track?.id,
         trackTitle: track?.title || track?.music_name || track?.musicName, page: track?.page, savedAt: Date.now() });
     if (!value) return;
     const key = keyFor(scope);
-    const keys = [...new Set([...keysOnDisk(), ...memory.keys()])].filter(item => item !== key);
+    const keys = [...new Set([...keysOnDisk(), ...memory.keys()])].filter(item => item !== key && item.startsWith(PREFIX));
     while (keys.length >= MAX_ENTRIES) remove(keys.shift());
     memory.set(key, value);
     try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* Retain the in-memory bookmark. */ }
+    const history = [value, ...readStudentLearningHistory(scope).filter(item => item.bookId !== value.bookId)].slice(0, MAX_BOOKS);
+    memory.set(historyKeyFor(scope), history);
+    try { localStorage.setItem(historyKeyFor(scope), JSON.stringify(history)); } catch { /* Retain the in-memory history. */ }
     notify();
 };
 
 export const clearStudentLearningResume = uid => {
     const prefix = uid ? `${PREFIX}${encodeURIComponent(`${uid}|`)}` : PREFIX;
-    new Set([...keysOnDisk(), ...memory.keys()]).forEach(key => { if (key.startsWith(prefix)) remove(key); });
+    const historyPrefix = uid ? `${HISTORY_PREFIX}${encodeURIComponent(`${uid}|`)}` : HISTORY_PREFIX;
+    let stored = [];
+    try { stored = Object.keys(localStorage); } catch { /* Storage is optional. */ }
+    new Set([...stored, ...memory.keys()]).forEach(key => { if (key.startsWith(prefix) || key.startsWith(historyPrefix)) remove(key); });
     notify();
 };
 
@@ -68,6 +87,6 @@ export const learningResumePath = (book, bookmark) => `/student/books/${encodeUR
 
 if (typeof window !== "undefined") {
     window.addEventListener("storage", event => {
-        if (event.key === null || event.key.startsWith(PREFIX)) { memory.clear(); notify(); }
+        if (event.key === null || event.key.startsWith(PREFIX) || event.key.startsWith(HISTORY_PREFIX)) { memory.clear(); notify(); }
     });
 }

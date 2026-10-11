@@ -1,9 +1,10 @@
 import { getStudentNotificationDestination } from "./studentNotificationRoutes";
 
 describe("student notification routes", () => {
-    it("routes existing social and membership notifications to their related pages", () => {
+    it("routes membership notifications to their page and leaves retired social notifications unlinked", () => {
         expect(getStudentNotificationDestination({ notification_type: "social", metadata: { friendship_id: 8 } }))
-            .toBe("/student/friends");
+            .toBeNull();
+        expect(getStudentNotificationDestination({ metadata: { target_path: "/student/friends" } })).toBeNull();
         expect(getStudentNotificationDestination({ notification_type: "membership" }))
             .toBe("/student/membership");
     });

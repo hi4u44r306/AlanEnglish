@@ -18,6 +18,7 @@ import { clearStudentPageCache, invalidateStudentPageCache } from "../../service
 const render = element => renderView(<MemoryRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>{element}</MemoryRouter>);
 
 jest.mock("../../auth/AuthContext", () => ({ useAuth: jest.fn() }));
+jest.mock("./StudentProgressOverview", () => () => null);
 jest.mock("../../services/gamificationService", () => ({
     getGamificationSummary: jest.fn(),
     createSquareAvatarImage: jest.fn(),
@@ -120,7 +121,7 @@ describe("StudentSettings", () => {
     it("shows student profile, protected learning honors, and locks an existing birthday", async () => {
         render(<StudentSettings />);
 
-        expect(await screen.findByRole("heading", { name: "我的設定" })).toBeInTheDocument();
+        expect(await screen.findByRole("heading", { name: "我的進度" })).toBeInTheDocument();
         expect(screen.getByText("Ming Wang")).toBeInTheDocument();
         expect(await screen.findByText("Lv.3")).toBeInTheDocument();
         expect(screen.getByText("390 XP")).toBeInTheDocument();
@@ -394,7 +395,7 @@ describe("StudentSettings", () => {
 
     it("requires final confirmation before applying one of twenty-five preset avatars", async () => {
         render(<StudentSettings />);
-        await screen.findByRole("heading", { name: "我的設定" });
+        await screen.findByRole("heading", { name: "我的進度" });
         fireEvent.click(screen.getByText("選擇預設頭像"));
         const presets = screen.getByText("選擇預設頭像").closest("details");
         presets.open = true;
@@ -433,7 +434,7 @@ describe("StudentSettings", () => {
 
     it("opens a square avatar adjustment window before uploading", async () => {
         const { container } = render(<StudentSettings />);
-        await screen.findByRole("heading", { name: "我的設定" });
+        await screen.findByRole("heading", { name: "我的進度" });
 
         const file = new File(["avatar"], "avatar.png", { type: "image/png" });
         fireEvent.change(container.querySelector('input[type="file"]'), { target: { files: [file] } });
