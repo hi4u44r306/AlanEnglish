@@ -1,5 +1,15 @@
 # Alan English 專案狀態
 
+### 看圖挖空句：大字、空格中文、移除圖片（2026-10-11，PR 待擁有者說「幫我合併」）
+
+- 擁有者以 iPhone 截圖回報 #525／#527 沒有套到看圖挖空句畫面：該畫面由 `WorkbookOnePictureChallenge` 渲染，句子在 `.speaking-gap-sentence`（非 h2），且 `hideHelp` 在 easy 模式一律為 true，所以沒有放大、也沒有提示按鈕。
+- 發布紀錄補記：PR #528（`4e0a03a1`）、#529（`97f82874`）已合併；`guardian-email` 已由 main 部署（OPTIONS 200、未登入 401、假排程憑證 403）；Workers Builds 成功。`guardian_email_settings.enabled` 仍為 false。
+- 分支 `feature/speaking-gap-chinese`，基準 main `97f82874`。純前端。
+- `WorkbookOnePictureChallenge`：gap 模式不再渲染 `SpeakingVisualAid`；以 `pictureCueZh(visual_aid.alt_zh)` 取中文（取第一個名稱並去量詞），單一空格放進空格、多空格則顯示 `.speaking-gap-cue`；easy 模式且 `hint_voids_pass` 時顯示提示按鈕。正式庫 92 題皆有中文 alt（唯讀核對），其中 10 題為多空格。
+- `SpeakingMinimalLevel.scss`：`.speaking-gap-sentence` 28～42px、隱藏 `.speaking-foundation-count`。
+- 驗證：WorkbookOnePictureChallenge 16 項（含 `pictureCueZh` 6 例）、SpeakingPracticeSteps、TextbookSpeakingChallenge 通過；編譯全部口說樣式後於 390px 量測句子 30.4px、空格中文 24.9px 黃底。模擬頁因缺少全站 box-sizing 重設而有卡片溢出，非本次變更造成，未能以此確認實機寬度。
+- 未驗：真實學生帳號的關卡、92 題中文是否都恰當、iPhone Safari。
+
 ### 家長每週學習報告 Email：只寄已驗證信箱、加入口說與作業（2026-10-11，PR 待擁有者說「幫我合併」／後端尚未部署）
 
 - 分支 `feature/guardian-weekly-email`，基準 main `ea9da6ad`。只改 `supabase/functions/guardian-email/index.ts`，無 migration、無前端變更。

@@ -267,15 +267,16 @@ describe("WorkbookOnePictureChallenge", () => {
         />);
 
         fireEvent.click(screen.getByRole("button", { name: "開始挑戰" }));
-        expect(screen.getByRole("img", { name: "樹上的蘋果" })).toHaveAttribute("src", privateVisual.image_url);
-        screen.getAllByLabelText("請依圖片補上的答案").forEach(blank => {
+        expect(screen.queryByRole("img")).not.toBeInTheDocument();
+        expect(screen.getByText("（樹上的蘋果）")).toHaveClass("speaking-gap-cue");
+        screen.getAllByLabelText("要補上的答案").forEach(blank => {
             expect(blank).toHaveTextContent("____");
         });
         expect(screen.queryByRole("button", { name: /apple/i })).not.toBeInTheDocument();
         expect(screen.queryByRole("button", { name: /播放 The 的發音/ })).not.toBeInTheDocument();
         expect(screen.getByText("The")).toBeInTheDocument();
         expect(screen.getByText("the")).toBeInTheDocument();
-        expect(screen.getAllByLabelText("請依圖片補上的答案")).toHaveLength(2);
+        expect(screen.getAllByLabelText("要補上的答案")).toHaveLength(2);
 
         fireEvent.click(screen.getByRole("button", { name: "播放整句發音；每個挖空處停留 2 秒" }));
         expect(global.Audio).toHaveBeenLastCalledWith("https://r2.example/sentence.wav");
@@ -322,6 +323,9 @@ describe("WorkbookOnePictureChallenge", () => {
         />);
 
         fireEvent.click(screen.getByRole("button", { name: "開始挑戰" }));
+        expect(screen.queryByRole("img")).not.toBeInTheDocument();
+        expect(screen.getByLabelText("要補上的答案：樹上的蘋果")).toHaveTextContent("樹上的蘋果");
+        expect(screen.queryByText("（樹上的蘋果）")).not.toBeInTheDocument();
         const sentenceButton = screen.getByRole("button", { name: "播放整句發音；每個挖空處停留 2 秒" });
         fireEvent.click(sentenceButton);
         expect(await screen.findByRole("alert")).toHaveTextContent("瀏覽器阻擋了播放，請再按一次聽整句。");
@@ -374,5 +378,19 @@ describe("WorkbookOnePictureChallenge", () => {
         expect(retryAudio.play).toHaveBeenCalledTimes(1);
         act(() => retryAudio.onended());
         expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    });
+});
+
+describe("pictureCueZh", () => {
+    const { pictureCueZh } = require("./WorkbookOnePictureChallenge");
+    it.each([
+        ["一把鑰匙", "鑰匙"],
+        ["一顆蘋果和一棵蘋果樹", "蘋果"],
+        ["一隻黃色小鴨和池塘", "黃色小鴨"],
+        ["外婆", "外婆"],
+        ["", ""],
+        [null, ""]
+    ])("turns %s into the cue %s", (alt, cue) => {
+        expect(pictureCueZh(alt)).toBe(cue);
     });
 });
