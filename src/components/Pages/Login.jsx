@@ -5,6 +5,7 @@ import { loginWithIdentifier } from "../../auth/authService";
 import { useAuth } from "../../auth/AuthContext";
 import HeadPhone from "../assets/img/Login2.png";
 import Brand from "../fragment/Brand";
+import InstallEntry from "../fragment/InstallEntry";
 import "react-toastify/dist/ReactToastify.css";
 import "./css/Login.scss";
 
@@ -277,6 +278,8 @@ function Login() {
                                 <Link to="/support">聯絡客服</Link>
                             </nav>
                         </details>
+
+                        <InstallEntry />
 
                         <div className="login-tip">
                             <span>🎧</span>
