@@ -792,3 +792,10 @@
   .ae-student-bottom-nav * { scroll-behavior: auto; transition: none !important; }
   .ae-student-materials-panel { animation: none !important; }
 }
+
+.ae-student-material-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.ae-student-material-grid > a { display: flex; align-items: center; min-height: 96px; padding: 16px; border: 1px solid #d5e3f0; border-radius: 16px; background: #fff; color: #17365d; font-size: 20px; font-weight: 800; line-height: 1.35; text-decoration: none; overflow-wrap: anywhere; }
+.ae-student-material-grid > a:hover { border-color: #91add2; background: #f5f8fc; color: #17365d; }
+.ae-student-material-grid > a.active { border-color: #d8b747; background: #fff5ce; }
+.ae-student-material-grid > a:focus-visible { outline: 3px solid #17365d; outline-offset: 3px; }
+.ae-student-navbar #student-materials + .dropdown-menu { width: min(560px, calc(100vw - 32px)); max-height: min(70vh, 640px); overflow-y: auto; }
