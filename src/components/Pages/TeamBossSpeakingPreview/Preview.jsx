@@ -72,6 +72,10 @@ export default function Preview() {
   // The battle is a full-screen page: site chrome (header, bottom nav, floating shortcut) is hidden while it is open.
   useEffect(() => {document.body.classList.add('sr-immersive'); return () => document.body.classList.remove('sr-immersive');}, []);
   const [tools, setTools] = useState(false);
+  // The battle switches its own animation off whenever the tab goes to the background and never turns it back on.
+  // Remounting it when the tab is visible again restores the default (on, unless the device asks for reduced motion).
+  const [wake, setWake] = useState(0);
+  useEffect(() => {const awake = () => {if (!document.hidden) setWake(count => count + 1);}; document.addEventListener('visibilitychange', awake); return () => document.removeEventListener('visibilitychange', awake);}, []);
   // If a site header is still visible, the pinned battle starts below it.
   const shell = useRef(null);
   useEffect(() => {
@@ -168,7 +172,7 @@ export default function Preview() {
       <div className="sr-stage">
       <div className="team-boss-page sr-battle-wrap">
         <div className="sr-hud" role="status"><div className="sr-side sr-side-me"><span className="sr-hearts" key={learner + hearts} role="img" aria-label={'我的愛心 ' + hearts + ' / ' + RULES.hearts}><b>我</b>{Array.from({length: RULES.hearts}, (_, i) => <svg key={i} viewBox="0 0 24 24" data-full={i < hearts} aria-hidden="true"><path d={HEART}/></svg>)}</span>{counter && <b key={counter.id} className="sr-pop sr-pop-me" aria-label="反擊，愛心減 1"><em>−1</em><svg viewBox="0 0 24 24" aria-hidden="true"><path d={HEART}/></svg></b>}</div><div className="sr-side sr-side-boss"><div className="sr-bossline"><strong>{EXPANSION_PROFILES.find(b => b.id === round.config.boss)?.name}</strong><span>{round.hp} / {round.maxHp}</span></div><div className="sr-hpbar-track" role="progressbar" aria-label="Boss 生命" aria-valuemin={0} aria-valuemax={round.maxHp} aria-valuenow={round.hp}><i style={{width: round.hp / round.maxHp * 100 + '%'}}/></div>{hit && Math.floor(hit.id / 1000) === activity && <b key={hit.id} className="sr-pop sr-pop-boss"><em>−{hit.damage}</em>{hit.combo ? ' 合體技！' : hit.skill === 'star-cast' ? ' 星光術！' : hit.skill === 'moon-slash' ? ' 月光斬！' : ''}</b>}</div></div>
-        <NativeBattle key={activity + ':' + learner} profiles={profiles} state={{snapshot, history: round.events, arrivals, busy: false, error: null, refresh: () => setMessage('概念版戰況保留在本頁；正式即時同步尚待串接。')}} onWardrobe={() => setMessage('這版專注朗讀流程；原裝備室與商店保留，尚未接入這個獨立概念。')}/>
+        <NativeBattle key={activity + ':' + learner + ':' + wake} profiles={profiles} state={{snapshot, history: round.events, arrivals, busy: false, error: null, refresh: () => setMessage('概念版戰況保留在本頁；正式即時同步尚待串接。')}} onWardrobe={() => setMessage('這版專注朗讀流程；原裝備室與商店保留，尚未接入這個獨立概念。')}/>
       </div>
       </div>
       {card && <TeamBossClassProfileCard onClose={() => setCard(null)} card={{busy: false, error: null, data: {available: true, is_me: card === learner, nickname: names[card], alias: names[card], real_name: null, class_code: round.config.classCode, stats: null, damage: round.progress[card].damage, sources: round.progress[card].done.length}}}/>}
