@@ -3,6 +3,7 @@
 ### 「加到手機桌面」教學頁 `/install`（2026-10-12，已發布）
 
 - 發布紀錄：PR #533 合併為 main `e3605a7b`，Workers Builds 成功。正式站 `alanenglish.com.tw/install` 回應 200，桌面寬度實看標題、QR Code、Safari／Chrome 切換、三步驟與示範手機圖示皆正常、無水平溢出。未驗：iPhone／Android／LINE 實機。
+- 修正（同日，尚未部署）：擁有者回報用手機開啟仍看到 QR Code。原本只看 User-Agent，手機開「電腦版網站」或 UA 被判成電腦時會誤顯示；改為還要同時符合「非觸控主要指標」且寬度 ≥ 760px 才顯示（`isHandheldScreen`）。被誤判的手機若 UA 含 Linux 預設顯示 Android 步驟。`InstallGuide.test.jsx` 11 項通過。擁有者實際使用的手機與瀏覽器未確認。
 
 - 分支 `claude/web-app-home-screen-guide-e55323`，基準 main `fe2235a0`。純前端、公開頁，不涉及登入、權限、資料庫或 Edge Function。
 - 新增 `Pages/InstallGuide.jsx`、`css/InstallGuide.scss`、`fragment/InstallEntry.jsx`、`utils/installGuide.js`；`App.jsx` 新增公開路由 `/install`（未列入 `publicSeo.json`，維持 noindex）；`Showcase.jsx`（主視覺卡片、FAQ、頁尾連結）與 `Login.jsx` 加入口。

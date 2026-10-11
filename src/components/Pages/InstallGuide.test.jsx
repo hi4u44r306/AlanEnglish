@@ -89,6 +89,16 @@ describe("InstallGuide", () => {
         expect(screen.getByRole("heading", { name: "請用手機相機掃這個 QR Code" })).toBeInTheDocument();
     });
 
+    it("never shows the QR code on a phone that reports a desktop browser", () => {
+        const originalWidth = window.innerWidth;
+        window.innerWidth = 390;
+        renderGuide();
+        window.innerWidth = originalWidth;
+
+        expect(screen.queryByRole("heading", { name: "請用手機相機掃這個 QR Code" })).not.toBeInTheDocument();
+        expect(screen.getByRole("button", { name: /點下方的「分享」/ })).toBeInTheDocument();
+    });
+
     it("highlights the step a parent taps", () => {
         useUserAgent(IPHONE_SAFARI);
         renderGuide();
