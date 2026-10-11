@@ -3,7 +3,7 @@
 ### 獅頭 Favicon、學生頂端列移除 Logo、成長列改版（2026-10-11，PR 待擁有者說「幫我合併」）
 
 - 分支 `feature/lion-favicon-growth-header`，基準 main `2aa78382`。純前端與靜態資產。
-- Favicon：來源為擁有者提供的「Alan English 獅頭剪裁圖.png」（1360×1156，透明底），裁到可見範圍後置中縮成 16／32／48px；覆寫 `public/favicon-16x16.png`、`favicon-32x32.png`、`favicon.ico`（內含三種尺寸），`index.html` 與 `App.jsx` 的連結加上 `?v=lion1` 以避開瀏覽器快取。`apple-touch-icon`、`android-chrome`、`og-image` 未更動；推播通知的小徽章沿用 favicon-32，會一併變成獅頭。
+- Favicon：來源為擁有者提供的「Alan English 獅頭剪裁圖.png」（1360×1156，透明底），裁到可見範圍後置中縮成 16／32／48px；覆寫 `public/favicon-16x16.png`、`favicon-32x32.png`、`favicon.ico`（內含三種尺寸），`index.html` 與 `App.jsx` 的連結加上 `?v=lion1` 以避開瀏覽器快取。另新增 `apple-touch-icon-v3.png`、`android-chrome-192x192-v3.png`、`android-chrome-512x512-v3.png`（深藍 #073763 底，獅頭占 62～72% 以符合 maskable 安全區）與 `og-image-v2.png`（1200×630），並更新 `index.html`、`App.jsx`、`manifest.json`、`web-push-sw.js`、`SeoHead.jsx` 的引用；舊檔保留。推播通知的小徽章沿用 favicon-32，會一併變成獅頭。
 - `StudentNavbar` 移除 `Navbar.Brand`（老師／管理員的 `MainNavbar` 品牌保留）。
 - `StudentGrowthHeader.scss`：成長列改為兩個獨立圓角格（等級白底、點數淡黃底），等級與點數 18px（手機 16px）、進度條 6px、觸控高度 48px；格內的小字說明以 CSS 隱藏，JSX 與詳情視窗未改。
 - 驗證：MainNavbar、StudentGrowthHeader 共 39 項通過；ESLint、SCSS 編譯通過。以編譯後樣式的模擬頂端列在 390px 量測：成長列 266px、與通知／選單按鈕同列、無水平溢位；截圖工具多次逾時，只目視到等級格。

@@ -3,7 +3,7 @@ import { Helmet } from "react-helmet";
 import publicSeo from "../../config/publicSeo.json";
 
 const SITE_URL = "https://alanenglish.com.tw";
-const DEFAULT_IMAGE = `${SITE_URL}/og-image.png`;
+const DEFAULT_IMAGE = `${SITE_URL}/og-image-v2.png`;
 
 const canonicalFor = path => path === "/" ? `${SITE_URL}/` : `${SITE_URL}${path}`;
 
