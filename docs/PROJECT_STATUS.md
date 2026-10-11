@@ -1,5 +1,25 @@
 # Alan English 專案狀態
 
+### 熟練 30 次、生日停用、好友後端停用：後端已套用（2026-10-11）
+
+- 擁有者於本對話指示「把後端三項套用」。程式內容與 main `520871f0` 的 `supabase/` 完全相同（`git diff origin/main -- supabase/functions` 為空）。
+- Migration 已套用到正式庫：`20261011124017_listening_mastery_thirty_listens`、`20261011124042_disable_birthday_rewards`；本機檔名已改成遠端版本號。
+- Edge Function 以 Supabase CLI 2.120.0（`--use-api`）部署：`get-playback-progress`、`record-play`、`student-social`，皆維持 `verify_jwt = false`（函式內驗證 Firebase ID Token）。
+- 套用後核對：`student_track_mastery` check 為 0～30；`complete_listening_reward_session_v3` 三處門檻為 30、權限仍只有 postgres 與 service_role；`birthday_reward_settings.enabled = false`；三支函式 OPTIONS 200、未帶登入的 POST 401。
+- 未驗：沒有用真實學生帳號跑完整聆聽計次、第 30 次熟練獎勵，或實際送出好友請求確認 410。
+- 回復：migration 註解內有反向做法；生日可由管理員在獎品管理重新啟用；三支函式可由前一個 commit 重新部署。
+
+### 我的進度成為學生首頁、教材改回選單、設定列表（2026-10-11，本機完成／PR 待擁有者說「幫我合併」）
+
+- 負責：Claude Code。分支 `feature/progress-home`，基準 main `520871f0`（PR #522 已於 2026-10-11 合併並由 Workers Builds 成功發布，正式 `main.730e07fc.js` 含影片對照表）。純前端。
+- 路由：刪除 `StudentLearningHome`（含測試與 SCSS）；`/student/dashboard` 保留 `requiresActiveMembership` 後轉址 `/student/settings`，所以 `getRoleHome` 與各頁「回到首頁」連結不需改動。
+- 導覽：`StudentNavbar` 的「教材」改回開啟 `MaterialsNavigator`（手機抽屜、桌面下拉），教材頁時標示為目前位置；Logo 連到我的進度。
+- `StudentProgressOverview` 新增作業區塊（下一份未完成作業＋其餘數量，僅 `features.assignments`）；空的聽力紀錄改以 `ae:open-student-menu` 開教材選單。
+- `StudentSettings`：移除成長卡、捷徑面板、個人資料與紀錄（基本資料、生日、暱稱紀錄）及其生日儲存程式；「教材與方案」以 `SHOW_PLAN_DETAILS = false` 隱藏；通知與帳號改為列表，推播為 `role="switch"` 開關，家長 Email 為可展開列。
+- 驗證：MainNavbar、StudentSettings、StudentProgressOverview、ProtectedRoute、RoleHomeRedirect、Playlist、MusicCard 共 93 項通過；變更檔 ESLint、SCSS 編譯通過。編譯後樣式的靜態預覽在 412px 量測：無水平溢位、開關 56×44px、開啟時藍色軌道與滑塊位移正確；進度區塊有截圖目視，設定列表截圖工具逾時，僅以量測確認。
+- 未驗：真實登入後整頁、桌面下拉、iPhone Safari。
+- 仍待處理：家長每週學習報告 Email 未動工。
+
 ### 習作本音檔 YouTube 跳轉（2026-10-11，本機完成／PR 待擁有者說「幫我合併」）
 
 - 負責：Claude Code。分支 `feature/track-video-jump`，基準 main `31edaed7`。純前端。
@@ -13,7 +33,7 @@
 - 正式站核對：`/`、`/student/dashboard`、`/student/settings`、`/student/friends` 皆 HTTP 200；主程式 `main.07a349d7.js` 含「我的進度／上次聽到這裡／另外還有」，且不再含「今日學習／我的好友／生日月快樂／目前學習區」。未做登入後實測。
 - 後端尚未套用：合併前已在正式庫以「執行後還原」方式試跑兩個 migration 並確認結果正確（門檻 30、函式權限不變、生日開關關閉），但正式套用與三個 Edge Function 部署被本工作階段的權限分類器擋下（Production Deploy），未繞過。
 - 目前線上不一致：前端顯示「N / 30」，但後端仍在第 10 次發熟練獎勵、生日活動仍啟用、`student-social` 仍接受好友請求。正式庫目前只有 1 個學生帳號。
-- 待辦：套用 `listening_mastery_thirty_listens`、`disable_birthday_rewards`；部署 `record-play`、`get-playback-progress`、`student-social`；套用後把本機 migration 檔名改成遠端紀錄的版本號。
+- 以上後端項目已於同日稍後套用，見上方「後端已套用」一節。
 
 ### 教材頁再精簡、熟練 30 次、生日／好友後端停用（2026-10-11，本機完成／尚未合併、尚未套用任何遠端變更）
 

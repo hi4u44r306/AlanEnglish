@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { FiBell, FiCamera, FiClock, FiCreditCard, FiGift, FiImage, FiLock, FiMove, FiUser, FiX, FiZap, FiZoomIn } from "react-icons/fi";
+import { FiBell, FiCamera, FiChevronRight, FiCreditCard, FiGift, FiHelpCircle, FiImage, FiLock, FiMail, FiMove, FiX, FiZap, FiZoomIn } from "react-icons/fi";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useAuth } from "../../auth/AuthContext";
@@ -11,18 +11,15 @@ import { invalidateStudentPageCache } from "../../services/studentPageCache";
 import { createSquareAvatarImage, getGamificationSummary, prepareAvatarImage, selectStudentAvatarPreset, uploadGamificationImage } from "../../services/gamificationService";
 import {
     confirmGuardianEmailVerification,
-    requestGuardianEmailVerification,
-    updateStudentProfile
+    requestGuardianEmailVerification
 } from "../../services/membershipService";
 import { loadStudentCommerceDisplay, STUDENT_COMMERCE_DISPLAY_KEY } from "../../services/studentCommerceDisplay";
 import { getNicknameSettings, updateNickname } from "../../services/studentSocialService";
 import { disableWebPush, enableWebPush, getCurrentWebPushStatus, getWebPushAvailability, getWebPushConfig } from "../../services/webPushService";
 import { hasAiPremiumAccess } from "../../constants/membershipPlans";
 import { validatePublicNickname } from "../../utils/nicknameValidation";
-import BirthdaySelect from "../fragment/BirthdaySelect";
 import StudentProgressOverview from "./StudentProgressOverview";
 import StudentAvatarImage from "../fragment/StudentAvatarImage";
-import StudentGrowthCard from "../fragment/StudentGrowthCard";
 import StudentSettingsGroup from "../fragment/StudentSettingsGroup";
 import "./css/StudentSettings.scss";
 
@@ -90,6 +87,9 @@ const getCropPosition = (draft, offsetX, offsetY, zoom = draft?.zoom || 1) => {
     };
 };
 
+// 教材與方案 details are hidden for now; flip to bring the section back.
+const SHOW_PLAN_DETAILS = false;
+
 function StudentSettings() {
     const { firebaseUser, studentProfile, setStudentProfile, refreshStudentProfile } = useAuth();
     const fileInputRef = useRef(null);
@@ -116,8 +116,6 @@ function StudentSettings() {
     const [savingNickname, setSavingNickname] = useState(false);
     const [nicknameClock, setNicknameClock] = useState(() => Date.now());
     const [uploading, setUploading] = useState(false);
-    const [savingBirthday, setSavingBirthday] = useState(false);
-    const [dateOfBirth, setDateOfBirth] = useState(studentProfile?.date_of_birth || "");
     const [guardianEmail, setGuardianEmail] = useState("");
     const [savingGuardian, setSavingGuardian] = useState(false);
     const [guardianVerification, setGuardianVerification] = useState({ requestId: null, maskedEmail: "", code: "" });
@@ -182,7 +180,6 @@ function StudentSettings() {
             setPushBusy(false);
         }
     };
-    useEffect(() => { setDateOfBirth(studentProfile?.date_of_birth || ""); }, [studentProfile?.date_of_birth]);
     useEffect(() => { setGuardianEmail(commerce?.guardian?.email || studentProfile?.guardian?.email || ""); }, [commerce?.guardian?.email, studentProfile?.guardian?.email]);
     useEffect(() => {
         if (!nicknameCooldownActive) return undefined;
@@ -367,24 +364,6 @@ function StudentSettings() {
     const stopAvatarTouchDrag = event => {
         const touch = getTrackedTouch(event.changedTouches);
         if (touch) endAvatarDrag(`touch-${touch.identifier}`);
-    };
-
-    const saveBirthday = async event => {
-        event.preventDefault();
-        if (!firebaseUser || !dateOfBirth) return;
-        setSavingBirthday(true);
-        try {
-            const result = await updateStudentProfile(firebaseUser, { date_of_birth: dateOfBirth });
-            const savedDate = result?.profile?.date_of_birth || dateOfBirth;
-            setDateOfBirth(savedDate);
-            setStudentProfile(current => current ? { ...current, date_of_birth: savedDate } : current);
-            if (refreshStudentProfile) await refreshStudentProfile();
-            toast.success("出生年月日已保存，之後不可自行修改");
-        } catch (error) {
-            toast.error(error.message || "無法更新出生年月日");
-        } finally {
-            setSavingBirthday(false);
-        }
     };
 
     const requestNicknameSave = event => {
@@ -700,28 +679,7 @@ function StudentSettings() {
                 )
             }
 
-            <StudentSettingsGroup title="成長與獎品" description="等級、學習經驗與 AE Points">
-                <StudentGrowthCard balance={summary?.balance} loading={summaryQuery.loading} error={Boolean(summaryQuery.error || (!summaryQuery.loading && !summary?.balance))} pointsAccess={profile.learner_type === "academy_student" && isActiveAcademyStudent} onRetry={load}>
-                    <Link to="/student/dashboard">回到首頁</Link>
-                    <Link to="/student/weekly-report">看看本週進步</Link>
-                    {profile.learner_type === "academy_student" && isActiveAcademyStudent && <Link to="/student/rewards">挑選獎品目標</Link>}
-                </StudentGrowthCard>
-            </StudentSettingsGroup>
-
-            <section className="student-settings-shortcuts">
-                <article className="student-settings-panel">
-                    <header><FiUser /><div><h2>學習與成長</h2></div></header>
-                    <div className="student-settings-learning-links">
-                        <Link to="/student/leaderboard">查看學習排行榜</Link>
-                        <Link to="/account/security">帳號與密碼</Link>
-                        <Link to="/support">聯絡客服</Link>
-                        <Link to="/student/membership">查看會員與功能</Link>
-                    </div>
-                    <p>XP 記錄你的學習成長；有效在校生可累積 AE Points，兌換獎品。</p>
-                </article>
-            </section>
-
-            <StudentSettingsGroup title="教材與方案" description="目前教材與使用期限；方案資料可請家長一起確認">
+            {SHOW_PLAN_DETAILS && <StudentSettingsGroup title="教材與方案" description="目前教材與使用期限；方案資料可請家長一起確認">
             <section className="student-settings-grid">
                 <article className="student-settings-panel">
                     <header><FiCreditCard /><div><span>MEMBERSHIP</span><h2>我的帳號與使用狀態</h2></div></header>
@@ -753,80 +711,23 @@ function StudentSettings() {
                     </dl>
                 </article>
             </section>
-            </StudentSettingsGroup>
+            </StudentSettingsGroup>}
 
-            <StudentSettingsGroup title="個人資料與紀錄" description="姓名與登入帳號、生日、暱稱更改紀錄">
-            <section className="student-settings-grid">
-                <article className="student-settings-panel student-settings-nickname-panel">
-                    <header><FiClock /><div><span>NICKNAME HISTORY</span><h2>暱稱更改紀錄</h2></div></header>
-                    <p>每次實際變更都會留下紀錄；只有本人與管理員能查看。</p>
-                    <div className="student-settings-nickname-history">
-                        {nicknameSettings.nickname_history?.length ? (
-                            <ol>
-                                {nicknameSettings.nickname_history.map(item => (
-                                    <li key={item.id}>
-                                        <div>
-                                            <strong>{item.previous_nickname || "首次設定"}</strong>
-                                            <span aria-hidden="true">→</span>
-                                            <strong>{item.new_nickname}</strong>
-                                        </div>
-                                        <time dateTime={item.changed_at}>{new Date(item.changed_at).toLocaleString("zh-TW")}</time>
-                                    </li>
-                                ))}
-                            </ol>
-                        ) : <p className="student-settings-nickname-empty">尚無暱稱更改紀錄。</p>}
-                    </div>
-                </article>
-
-                <article className="student-settings-panel">
-                    <header><FiUser /><div><span>PROFILE</span><h2>基本資料</h2></div></header>
-                    <dl className="student-settings-data-list">
-                        <div><dt>中文姓名</dt><dd>{profile.chinese_name || profile.name || "—"}</dd></div>
-                        <div><dt>英文姓名</dt><dd>{profile.english_name || "尚未設定"}</dd></div>
-                        <div><dt>班級</dt><dd>{profile.class ? `${profile.class} 班` : "尚未分班"}</dd></div>
-                        <div><dt>登入帳號</dt><dd>{profile.login_username || firebaseUser?.email || "—"}</dd></div>
-                    </dl>
-                    <p className="student-settings-readonly"><FiLock /> 中文姓名、英文姓名、班級與登入帳號由英文班／帳號管理維護；公開暱稱可在上方自行修改。</p>
-                </article>
-                <article className="student-settings-panel">
-                    <header><FiGift /><div><span>BIRTHDAY</span><h2>出生年月日</h2></div></header>
-                    <p>生日會影響生日獎勵，不會顯示在排行榜。為避免獎勵紀錄錯誤，設定後學生不能自行修改。</p>
-                    {profile.date_of_birth ? (
-                        <dl className="student-settings-data-list">
-                            <div><dt>出生年月日</dt><dd>{profile.date_of_birth}</dd></div>
-                            <div><dt>狀態</dt><dd>已鎖定</dd></div>
-                        </dl>
-                    ) : (
-                        <form className="student-settings-birthday-form" onSubmit={saveBirthday}>
-                            <div className="student-settings-birthday-field"><span>出生年月日</span><BirthdaySelect value={dateOfBirth} onChange={setDateOfBirth} disabled={savingBirthday} required idPrefix="student-settings-birthday" /></div>
-                            <button type="submit" disabled={savingBirthday}>{savingBirthday ? "儲存中…" : "確認並保存生日"}</button>
-                        </form>
-                    )}
-                </article>
-
-            </section>
-            </StudentSettingsGroup>
-
-            <StudentSettingsGroup title="通知與家長聯絡" description="裝置通知；更換家長信箱時請家長一起協助">
-                <section className="student-settings-push-panel" aria-labelledby="student-settings-push-heading">
-                    <div>
-                        <h2 id="student-settings-push-heading"><FiBell /> 手機推播通知</h2>
-                        <p>登入時選擇「稍後再說」也能在這裡開啟。新班級作業與教材期限提醒會送到此裝置；晚上 9 點至早上 8 點不發送，每裝置每日最多三則。</p>
-                        <small aria-live="polite">{pushStatus?.reason || (pushConfig?.enabled === false ? "推播服務暫時未開放；網站內通知仍可使用。" : pushStatus?.active ? "此裝置已開啟推播" : "此裝置尚未開啟推播")}</small>
-                    </div>
-                    <button type="button" onClick={togglePush} disabled={pushBusy || !pushConfig?.enabled || (!pushStatus?.active && !pushStatus?.supported)}>
-                        {pushBusy ? "設定中…" : pushStatus?.active ? "關閉此裝置推播" : "開啟此裝置推播"}
-                    </button>
-                </section>
-                <article className="student-settings-panel">
-                    <header><FiCreditCard /><div><span>GUARDIAN</span><h2>家長 Email</h2></div></header>
-                    <p>請家長協助填寫可收信的 Email。付款與重要通知只會寄到已驗證的家長 Email。更換時，驗證成功前仍保留原本的信箱。</p>
-                    {currentGuardian?.email && (
-                        <dl className="student-settings-data-list">
-                            <div><dt>目前家長 Email</dt><dd>{currentGuardian.email}</dd></div>
-                            <div><dt>驗證狀態</dt><dd>{guardianVerified ? "已驗證" : "尚未驗證"}</dd></div>
-                        </dl>
-                    )}
+            <section className="student-settings-list" aria-labelledby="student-settings-notify-heading">
+                <h2 id="student-settings-notify-heading">通知</h2>
+                <div className="student-settings-row">
+                    <FiBell aria-hidden="true" />
+                    <div><strong id="student-settings-push-label">手機推播通知</strong><small aria-live="polite">{pushStatus?.reason || (pushConfig?.enabled === false ? "推播服務暫時未開放；網站內通知仍可使用。" : pushStatus?.active ? "此裝置已開啟：新作業與教材期限提醒" : "此裝置尚未開啟")}</small></div>
+                    <button type="button" role="switch" className="student-settings-switch" aria-checked={Boolean(pushStatus?.active)} aria-labelledby="student-settings-push-label" aria-busy={pushBusy} onClick={togglePush} disabled={pushBusy || !pushConfig?.enabled || (!pushStatus?.active && !pushStatus?.supported)}><span aria-hidden="true" /></button>
+                </div>
+                <details className="student-settings-row-details">
+                    <summary className="student-settings-row">
+                        <FiMail aria-hidden="true" />
+                        <div><strong>家長 Email</strong><small>{currentGuardian?.email ? `${currentGuardian.email} · ${guardianVerified ? "已驗證" : "尚未驗證"}` : "尚未設定"}</small></div>
+                        <FiChevronRight aria-hidden="true" />
+                    </summary>
+                    <div className="student-settings-row-body">
+                    <p>請家長協助填寫可收信的 Email。付款與重要通知只會寄到已驗證的家長 Email；更換時，驗證成功前仍保留原本的信箱。</p>
                     {guardianVerification.requestId ? (
                         <form className="student-settings-birthday-form" onSubmit={confirmGuardianVerification}>
                             <p>驗證碼已寄到 {guardianVerification.maskedEmail}。</p>
@@ -840,8 +741,16 @@ function StudentSettings() {
                             <button type="submit" disabled={savingGuardian}>{savingGuardian ? "寄送中…" : "寄送驗證碼"}</button>
                         </form>
                     )}
-                </article>
-            </StudentSettingsGroup>
+                    </div>
+                </details>
+            </section>
+
+            <section className="student-settings-list" aria-labelledby="student-settings-account-heading">
+                <h2 id="student-settings-account-heading">帳號</h2>
+                <Link className="student-settings-row" to="/account/security"><FiLock aria-hidden="true" /><div><strong>帳號與密碼</strong></div><FiChevronRight aria-hidden="true" /></Link>
+                <Link className="student-settings-row" to="/student/membership"><FiCreditCard aria-hidden="true" /><div><strong>會員與功能</strong></div><FiChevronRight aria-hidden="true" /></Link>
+                <Link className="student-settings-row" to="/support"><FiHelpCircle aria-hidden="true" /><div><strong>聯絡客服</strong></div><FiChevronRight aria-hidden="true" /></Link>
+            </section>
         </main >
     );
 }

@@ -298,3 +298,35 @@
     a:hover { border-color: #245fc5; }
 }
 @media (max-width: 600px) { .student-progress__list { grid-template-columns: 1fr; } }
+
+// Settings list: one row per setting, a switch for on/off and a chevron for rows that open something.
+.student-settings-list { margin: 0 0 24px; border-radius: 16px; background: #fff; border: 1px solid #d5e3f0; overflow: hidden; color: #17365d; }
+.student-settings-list > h2 { margin: 0; padding: 14px 20px 6px; font-size: 14px; font-weight: 700; color: #526780; }
+.student-settings-row { display: flex; align-items: center; gap: 14px; min-height: 60px; padding: 10px 20px; color: inherit; text-decoration: none; cursor: default;
+    > svg { flex-shrink: 0; width: 22px; height: 22px; color: #39526e; }
+    > div { flex: 1; min-width: 0; display: grid; gap: 2px; }
+    strong { font-size: 17px; font-weight: 700; overflow-wrap: anywhere; }
+    small { font-size: 13px; color: #526780; overflow-wrap: anywhere; }
+}
+a.student-settings-row, summary.student-settings-row { cursor: pointer; }
+a.student-settings-row:hover, summary.student-settings-row:hover { background: #f5f8fc; color: inherit; }
+a.student-settings-row:focus-visible, summary.student-settings-row:focus-visible { outline: 3px solid #245fc5; outline-offset: -3px; }
+.student-settings-list > * + .student-settings-row, .student-settings-list > * + .student-settings-row-details { border-top: 1px solid #e6edf5; }
+.student-settings-list > h2 + * { border-top: 0 !important; }
+.student-settings-row-details > summary { list-style: none; }
+.student-settings-row-details > summary::-webkit-details-marker { display: none; }
+.student-settings-row-details[open] > summary > svg:last-child { transform: rotate(90deg); }
+.student-settings-row-body { padding: 0 20px 20px 56px; }
+.student-settings-row-body > p { margin: 0; font-size: 14px; color: #49617d; }
+.student-settings-switch { position: relative; flex-shrink: 0; width: 56px; height: 44px; padding: 0; border: 0; background: transparent; cursor: pointer;
+    &::before { content: ""; position: absolute; left: 2px; right: 2px; top: 7px; height: 30px; border-radius: 15px; background: #b6c2d1; transition: background .16s ease; }
+    > span { position: absolute; top: 10px; left: 5px; width: 24px; height: 24px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(23,54,93,.3); transition: transform .16s ease; }
+    &[aria-checked="true"]::before { background: #245fc5; }
+    &[aria-checked="true"] > span { transform: translateX(22px); }
+    &:disabled { cursor: not-allowed; opacity: .55; }
+    &:focus-visible { outline: 3px solid #17365d; outline-offset: 2px; border-radius: 12px; }
+}
+.student-progress__item.is-task { border-color: #d6b140; background: #fffaf0; }
+.student-progress__block > p button { display: inline-flex; align-items: center; min-height: 44px; margin-left: 8px; padding: 0 4px; border: 0; background: transparent; color: #245fc5; font: inherit; font-weight: 700; text-decoration: underline; cursor: pointer; }
+@media (max-width: 600px) { .student-settings-row { padding-inline: 16px; } .student-settings-row-body { padding: 0 16px 16px; } }
+@media (prefers-reduced-motion: reduce) { .student-settings-switch::before, .student-settings-switch > span { transition: none; } }
