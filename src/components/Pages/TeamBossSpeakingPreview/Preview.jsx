@@ -32,8 +32,9 @@ const SOUNDS = ['slash', 'cast', 'hit', 'hit-heavy', 'hurt', 'heart-break', 'ski
 function useBattleSound() {
   const store = useRef({context: null, buffers: {}, muted: false}), [muted, setMuted] = useState(false);
   useEffect(() => {
+    const held = store.current;
     const unlock = () => {
-      const held = store.current, Context = window.AudioContext || window.webkitAudioContext;
+      const Context = window.AudioContext || window.webkitAudioContext;
       if (held.context) {held.context.resume?.(); return;}
       if (!Context) return;
       held.context = new Context();
@@ -42,7 +43,7 @@ function useBattleSound() {
         .then(buffer => {held.buffers[name] = buffer;}).catch(() => { /* a missing clip only means silence */ }));
     };
     window.addEventListener('pointerdown', unlock);
-    return () => {window.removeEventListener('pointerdown', unlock); store.current.context?.close?.();};
+    return () => {window.removeEventListener('pointerdown', unlock); held.context?.close?.();};
   }, []);
   function play(name, delay = 0, volume = 0.7) {
     const held = store.current;
