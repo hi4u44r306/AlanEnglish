@@ -136,4 +136,17 @@ describe("MusicCard", () => {
         expect(view.container.querySelector(".music-card--completed")).not.toBeNull();
     });
 
+    it("links a workbook track to its page in the YouTube lesson video without touching playback", () => {
+        const dispatch = jest.fn();
+        useDispatch.mockReturnValue(dispatch);
+        useSelector.mockImplementation(selector => selector({ musicReducer: { playing: null, playingStatus: false } }));
+        const view = render(<MusicCard music={{ ...music, type: "Workbook_1" }} />);
+        const link = screen.getByRole("link", { name: "在 YouTube 看 P22 的教學影片" });
+        expect(link).toHaveAttribute("href", "https://www.youtube.com/watch?v=IgMCnPvCHyI&t=233s");
+        expect(link).toHaveAttribute("target", "_blank");
+        expect(link).toHaveAttribute("rel", "noopener noreferrer");
+        expect(dispatch).not.toHaveBeenCalled();
+        view.rerender(<MusicCard music={{ ...music, type: "Workbook_1", page: "P23" }} />);
+        expect(screen.queryByRole("link")).not.toBeInTheDocument();
+    });
 });
