@@ -2,7 +2,7 @@
 // (read-only copy, 2026-10-11). Scoring is simulated; nothing here is a receipt, database action or coin grant.
 export const CLASSES = ['E1', 'E3', 'E5', 'E7'];
 export const LEARNERS = ['star', 'moon', 'leaf'];
-export const RULES = Object.freeze({damage: 100, hpRatio: 0.7, skillEvery: 3, knightSkill: 2, mageSkill: 1.5, energyPerLearner: 2, comboRatio: 0.05, baseGold: 30, baseGoldPerSentence: 3, bonusGoldPerLearner: 20, hearts: 5, restMs: 10000});
+export const RULES = Object.freeze({damage: 100, hpRatio: 2, skillEvery: 3, knightSkill: 2, mageSkill: 1.5, energyPerLearner: 2, comboRatio: 0.05, baseGold: 30, baseGoldPerSentence: 3, bonusGoldPerLearner: 20, hearts: 5, restMs: 10000});
 // Prices, tiers and bonuses per docs/TEAM_BOSS_SPEC_V2.md (owner approved 2026-10-11).
 export const GEAR_TIERS = Object.freeze({starter: {label: '初始', price: 0, gold: 0, damage: 0}, common: {label: '普通', price: 60, gold: 0.01, damage: 0.02}, rare: {label: '稀有', price: 150, gold: 0.02, damage: 0.04}, epic: {label: '史詩', price: 300, gold: 0.03, damage: 0.06}});
 export const GEAR_CAPS = Object.freeze({gold: 0.10, damage: 0.30});
@@ -56,14 +56,21 @@ export function selectedQuestions(draft) {
   const allowed = eligible(draft), ids = draft.selected ?? allowed.map(q => q.id);
   return [...new Set(ids)].map(id => allowed.find(q => q.id === id)).filter(Boolean);
 }
-// Roster is locked at publish: HP = learners x sentences x 100 x 0.7.
+// Nobody is in the roster at publish. Each classmate adds sentences x 100 x 2 HP the first time they enter,
+// so absent classmates never make the Boss unbeatable.
 export function publish(draft, revision) {
   const questions = selectedQuestions(draft);
   if (!Number.isInteger(revision) || revision < 1 || !questions.length) throw new Error('請先選取有精確頁碼、已核准的朗讀句子。');
-  const maxHp = Math.round(LEARNERS.length * questions.length * RULES.damage * RULES.hpRatio);
-  return {revision, config: {...draft, selected: questions.map(q => q.id)}, questions: questions.map(q => ({...q})), hp: maxHp, maxHp, events: [],
-    energy: 0, energyThreshold: LEARNERS.length * RULES.energyPerLearner, combos: 0,
+  return {revision, config: {...draft, selected: questions.map(q => q.id)}, questions: questions.map(q => ({...q})), hp: 0, maxHp: 0, won: false, joined: [], events: [],
+    energy: 0, energyThreshold: RULES.energyPerLearner, combos: 0,
     progress: Object.fromEntries(LEARNERS.map(key => [key, {cursor: 0, done: [], skipped: [], damage: 0, casts: 0, hearts: RULES.hearts, restUntil: 0}]))};
+}
+export const hpShare = questionCount => Math.round(questionCount * RULES.damage * RULES.hpRatio);
+// Entering after the Boss has fallen still counts as taking part, but adds no HP.
+export function join(round, learner) {
+  if (!round.progress[learner] || round.joined.includes(learner)) return round;
+  const joined = [...round.joined, learner], share = round.won ? 0 : hpShare(round.questions.length);
+  return {...round, joined, hp: round.hp + share, maxHp: round.maxHp + share, energyThreshold: joined.length * RULES.energyPerLearner};
 }
 export function currentQuestion(round, learner, reviewId = null) {
   const p = round?.progress[learner];
@@ -73,26 +80,30 @@ export function currentQuestion(round, learner, reviewId = null) {
 // Hearts are personal: a skip costs one, a correct sentence restores one, zero means a 10 second rest then full hearts.
 export function heartsOf(p, now = Date.now()) { return p.restUntil && p.restUntil <= now ? RULES.hearts : p.hearts; }
 // A pass is one sentence at 70+; the score itself never changes damage. Mage characters cast, others slash.
+// Once the Boss has fallen, sentences can still be read for base gold: no damage, no counterattack.
 export function simulate(round, learner, questionId, outcome, characterId = 'boy-knight', now = Date.now(), damageBonus = 0) {
   const p = round.progress[learner], q = round.questions.find(q => q.id === questionId);
-  if (!p || !q || p.done.includes(questionId) || round.hp === 0 || !['pass', 'skip', 'retry', 'technical'].includes(outcome)) return {round, message: '本題沒有再次結算。'};
+  if (!p || !q || p.done.includes(questionId) || !['pass', 'skip', 'retry', 'technical'].includes(outcome)) return {round, message: '本題沒有再次結算。'};
   if (q.id !== round.questions[p.cursor]?.id && !p.skipped.includes(q.id)) return {round, message: '請依本人的題目順序進行。'};
   if (p.restUntil > now) return {round, message: '角色正在休息，等愛心回滿再繼續。'};
   if (outcome === 'technical') return {round, message: '技術問題：原題保留，可以重試，不算跳過，也不扣愛心。'};
   if (outcome === 'retry') return {round, message: '還沒到 70 分，再聽一次、再試一次。'};
   if (outcome === 'skip' && p.skipped.includes(questionId)) return {round, message: '這句已在待補練清單。'};
-  const next = {...round, progress: {...round.progress}, events: [...round.events]}, mine = {...p, done: [...p.done], skipped: [...p.skipped]};
+  const base = join(round, learner), next = {...base, progress: {...base.progress}, events: [...base.events]}, mine = {...p, done: [...p.done], skipped: [...p.skipped]};
   next.progress[learner] = mine;
   if (mine.restUntil) {mine.hearts = RULES.hearts; mine.restUntil = 0;}
   if (q.id === round.questions[p.cursor]?.id) mine.cursor += 1;
   if (outcome === 'skip') {
-    mine.skipped.push(questionId); mine.hearts -= 1;
+    mine.skipped.push(questionId);
+    if (next.won) return {round: next, message: '這句先放進待補練，之後再回來念。'};
+    mine.hearts -= 1;
     if (mine.hearts === 0) mine.restUntil = now + RULES.restMs;
     return {round: next, counter: true, message: mine.hearts ? 'Boss 反擊，少了 1 顆愛心。這句放進待補練，念對一句就能補回 1 顆。' : '愛心用完了，角色休息 10 秒後愛心全滿。這句放進待補練。'};
   }
   mine.done.push(questionId); mine.skipped = mine.skipped.filter(id => id !== questionId); mine.hearts = Math.min(RULES.hearts, mine.hearts + 1);
+  if (next.won) return {round: next, message: '念對了！Boss 已經倒下，這句照樣算進你的保底金幣。'};
   const skill = mine.done.length % RULES.skillEvery === 0 ? (characterId.endsWith('mage') ? 'star-cast' : 'moon-slash') : null;
-  const own = Math.min(round.hp, Math.round(RULES.damage * (skill === 'moon-slash' ? RULES.knightSkill : skill === 'star-cast' ? RULES.mageSkill : 1) * (1 + Math.min(GEAR_CAPS.damage, Math.max(0, damageBonus)))));
+  const own = Math.min(next.hp, Math.round(RULES.damage * (skill === 'moon-slash' ? RULES.knightSkill : skill === 'star-cast' ? RULES.mageSkill : 1) * (1 + Math.min(GEAR_CAPS.damage, Math.max(0, damageBonus)))));
   if (skill) mine.casts += 1;
   mine.damage += own; next.hp -= own; next.energy += 1 + (skill === 'star-cast' ? 1 : 0);
   let combo = 0;
@@ -100,7 +111,8 @@ export function simulate(round, learner, questionId, outcome, characterId = 'boy
     combo = Math.min(next.hp, Math.round(next.maxHp * RULES.comboRatio));
     next.energy -= next.energyThreshold; next.combos += 1; next.hp -= combo;
   }
-  const event = {id: round.revision * 1000 + next.events.length + 1, member_key: learner, kind: 'speaking_question', damage: own + combo, hp_after: next.hp, won: next.hp === 0, settled_at: new Date().toISOString()};
+  next.won = next.hp === 0;
+  const event = {id: round.revision * 1000 + next.events.length + 1, member_key: learner, kind: 'speaking_question', damage: own + combo, hp_after: next.hp, won: next.won, settled_at: new Date().toISOString()};
   if (skill) event.skills = {triggered: true, key: skill, character_id: characterId, bonus_damage: Math.max(0, own - RULES.damage)};
   if (combo) event.teamwork = {triggered: true, bonus_damage: combo, participant_keys: LEARNERS.filter(key => next.progress[key].done.length)};
   next.events.push(event);
@@ -108,13 +120,14 @@ export function simulate(round, learner, questionId, outcome, characterId = 'boy
   if (combo) parts.push('全班合體技再扣 ' + combo);
   return {round: next, message: parts.join('，') + '。'};
 }
-// Base is 3 per correct sentence capped at 30, so one sentence cannot farm the full base; the bonus pool is shared by personal damage only when the Boss falls.
+// Base is 3 per correct sentence capped at 30, so one sentence cannot farm the full base; it is earned before or after the Boss falls.
+// The bonus pool (20 per classmate who entered) is shared by personal damage, only when the Boss falls.
 // gear: {learnerKey: loadout}. The outfit's gold bonus applies to Boss gold only (base + bonus), rounded down.
 export function rewards(round, gear = {}) {
-  const won = round.hp === 0, total = LEARNERS.reduce((sum, key) => sum + round.progress[key].damage, 0), pool = won ? LEARNERS.length * RULES.bonusGoldPerLearner : 0;
+  const total = LEARNERS.reduce((sum, key) => sum + round.progress[key].damage, 0), pool = round.won ? round.joined.length * RULES.bonusGoldPerLearner : 0;
   return LEARNERS.map(key => {
-    const p = round.progress[key], joined = p.done.length > 0, base = Math.min(RULES.baseGold, p.done.length * RULES.baseGoldPerSentence);
-    const bonus = joined && total ? Math.floor(pool * p.damage / total) : 0;
+    const p = round.progress[key], base = Math.min(RULES.baseGold, p.done.length * RULES.baseGoldPerSentence);
+    const bonus = p.done.length > 0 && total ? Math.floor(pool * p.damage / total) : 0;
     const equip = Math.floor((base + bonus) * gearBonus(gear[key]).gold);
     return {key, correct: p.done.length, damage: p.damage, base, bonus, equip, gold: base + bonus + equip};
   });
