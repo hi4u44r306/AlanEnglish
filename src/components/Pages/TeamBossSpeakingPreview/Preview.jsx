@@ -2,7 +2,7 @@ import React, {useEffect, useRef, useState} from 'react';
 import {NativeBattle} from '../../fragment/TeamBossNativeBattle';
 import {EXPANSION_PROFILES} from '../../../game/teamBossRpg/native/bosses/expansion-profiles.mjs';
 import {NATIVE_CHARACTERS, NATIVE_ITEMS, NATIVE_SLOTS} from '../../../game/teamBossRpg/native/native-rig.mjs';
-import {CLASSES, LEARNERS, defaultDraft, candidates, selectedQuestions, publish, currentQuestion, simulate, rewards, heartsOf, gearBonus, GEAR_TIERS, ITEM_TIERS, RULES} from './model.mjs';
+import {CLASSES, LEARNERS, defaultDraft, candidates, selectedQuestions, publish, join, hpShare, listeningTracks, currentQuestion, simulate, rewards, heartsOf, gearBonus, GEAR_TIERS, ITEM_TIERS, RULES} from './model.mjs';
 import TeamBossClassProfileCard from '../../fragment/TeamBossClassProfileCard';
 import TeamBossNativeArt from '../../fragment/TeamBossNativeArt';
 import useLocalRecording from './useLocalRecording';
@@ -11,6 +11,8 @@ import {retainLocalSpeakingRecognizer} from '../../../services/localSpeakingReco
 import {convertAudioBlobToWav} from '../../../utils/audioWav';
 import {useAuth} from '../../../auth/AuthContext';
 import {getSpeakingChallengeSet} from '../../../services/speakingChallengeService';
+import {getAccessibleBook} from '../../../services/contentAccessService';
+import {speakingListeningPath, speakingListeningSource} from '../../../utils/speakingListening';
 import './preview.scss';
 
 // Registered at runtime so the bundler does not try to resolve the url(); the file is served from public/fonts.
@@ -30,7 +32,7 @@ const mapLevels = ['P13', 'P15', 'P17', 'P24', 'P26', 'P28'], avatars = ['🦊',
 export default function Preview() {
   const [view, setView] = useState('student'), [code, setCode] = useState('E1');
   const [drafts, setDrafts] = useState(() => Object.fromEntries(CLASSES.map(c => [c, defaultDraft(c)])));
-  const [rounds, setRounds] = useState(() => CLASSES.map((c, i) => publish(defaultDraft(c), i + 1)));
+  const [rounds, setRounds] = useState(() => CLASSES.map((c, i) => join(publish(defaultDraft(c), i + 1), 'star')));
   const [activity, setActivity] = useState(1), [learner, setLearner] = useState('star'), [character, setCharacter] = useState('girl-mage');
   const [review, setReview] = useState(null), [message, setMessage] = useState('先聽示範，再照著答句念出來。');
   const [confirm, setConfirm] = useState(false), [counter, setCounter] = useState(null);
@@ -59,7 +61,7 @@ export default function Preview() {
   // Preview shortcut: classmates take turns until the Boss falls, so the victory screen can be reviewed quickly.
   function finish() {
     let next = round; const at = Date.now();
-    for (let turn = 0; next.hp > 0 && turn < 200; turn += 1) {
+    for (let turn = 0; !next.won && turn < 200; turn += 1) {
       const key = LEARNERS[turn % LEARNERS.length], question = currentQuestion(next, key);
       if (question) next = simulate(next, key, question.id, 'pass', characterOf(key), at, gearBonus(gearBy[key]).damage).round;
     }
@@ -78,26 +80,28 @@ export default function Preview() {
     const watch = new ResizeObserver(apply); apply(); watch.observe(header); window.addEventListener('resize', apply);
     return () => {watch.disconnect(); window.removeEventListener('resize', apply);};
   }, []);
-  // "聽示範" plays the speaking challenge's own recorded model answer. Loading a question set is read-only for staff;
-  // the signed links are short-lived, so each set is refreshed after a few minutes. Without a login it falls back to the browser voice.
+  // Whoever opens the battle joins it; the Boss gains that classmate's share of HP the first time.
+  useEffect(() => {setRounds(old => old.map(r => r.revision === activity ? join(r, learner) : r));}, [activity, learner]);
+  // "聽本頁教材" opens the textbook's own recording for the sentence's page, through the same listening page the speaking
+  // challenge links to: the Answer recording when there is one, otherwise the main one, with every part of a split page.
+  // Both calls are read-only; without a login or a recording the button stays disabled.
   const {firebaseUser} = useAuth();
-  const demo = useRef({sets: new Map(), audio: null}), [demoVoice, setDemoVoice] = useState('');
-  async function playDemo(target) {
-    const store = demo.current; store.audio?.pause(); window.speechSynthesis?.cancel();
-    if (firebaseUser) {
+  const [listening, setListening] = useState({}), setId = q?.setId, pageKey = q ? q.setId + ':' + q.page : '', listen = listening[pageKey] || null;
+  useEffect(() => {
+    if (!firebaseUser || !pageKey || pageKey in listening) return undefined;
+    let alive = true; const page = q.page;
+    (async () => {
+      let found = {path: null, count: 0};
       try {
-        let entry = store.sets.get(target.setId);
-        if (!entry || Date.now() - entry.at > 240000) {
-          const response = await getSpeakingChallengeSet(firebaseUser, target.setId, 'easy');
-          entry = {at: Date.now(), questions: response?.challenge?.speaking_questions || []}; store.sets.set(target.setId, entry);
-        }
-        const match = entry.questions.find(item => item.model_answer === target.text) || entry.questions[Number(target.id.split('-').pop())];
-        if (match?.model_audio_url) {const audio = new Audio(match.model_audio_url); store.audio = audio; await audio.play(); setDemoVoice('challenge'); return;}
-      } catch { /* fall through to the browser voice */ }
-    }
-    setDemoVoice('browser'); recording.listen(target.text);
-  }
-  useEffect(() => () => {demo.current.audio?.pause();}, [q?.id]);
+        const challenge = (await getSpeakingChallengeSet(firebaseUser, setId, 'easy'))?.challenge, source = speakingListeningSource(challenge);
+        const book = source ? await getAccessibleBook(firebaseUser, source.bookCode) : null;
+        const tracks = listeningTracks((book?.tracks || []).filter(track => Number(track.book_id) === source.bookId), page);
+        if (tracks.length) found = {path: speakingListeningPath(source, challenge.id, 'easy', tracks), count: tracks.length};
+      } catch { /* optional: the battle works without it */ }
+      if (alive) setListening(old => ({...old, [pageKey]: found}));
+    })();
+    return () => {alive = false;};
+  }, [firebaseUser, pageKey]); // eslint-disable-line react-hooks/exhaustive-deps
   const engine = useRef(null), live = useRef('');
   const [judge, setJudge] = useState({working: false, note: '', result: null}), [engineNote, setEngineNote] = useState(''), [card, setCard] = useState(null);
   const [mapLevel, setMapLevel] = useState(2), [inLevel, setInLevel] = useState(false), [avatar, setAvatar] = useState(avatars[0]);
@@ -131,7 +135,7 @@ export default function Preview() {
     }
   }
   const profiles = {label: m => names[m.member_key], canView: () => false};
-  const snapshot = {mode: 'class_raid', team_name: round.config.classCode + ' 的森林冒險', team_version: activity, status: round.hp ? 'active' : 'won', max_hp: round.maxHp, hp: round.hp,
+  const snapshot = {mode: 'class_raid', team_name: round.config.classCode + ' 的森林冒險', team_version: activity, status: round.won ? 'won' : 'active', max_hp: round.maxHp, hp: round.hp,
     encounter: {boss_id: round.config.boss, presentation_version: 1, mechanics_profile: 'book-dragon-phases-v1', source: 'teacher_selected'},
     members: [learner].map(key => ({member_key: key, is_me: key === learner, currently_active: true, alias: names[key], character_id: characterOf(key), loadout: Object.entries(gearBy[key]).map(([slot, asset_key]) => ({slot, asset_key})), sources: round.progress[key].done.length, damage: round.progress[key].damage}))};
   return <main className="sr-preview" ref={shell}>
@@ -149,7 +153,7 @@ export default function Preview() {
       <h3>本場句子與順序 <span>已選 {chosen.length} / {candidates(draft).length} 句</span></h3><p className="sr-list-hint">全班都照這個順序念。用 ↑ ↓ 調整順序，不想放的句子按「移除」。</p>
       <ol className="sr-order">{chosen.map((item, i) => {const ids = chosen.map(x => x.id), move = to => {const next = [...ids]; [next[i], next[to]] = [next[to], next[i]]; changeDraft({selected: next});}; return <li key={item.id}><span><b>P{item.page}</b> {item.text}<small>Boss 問：{item.prompt}（{item.hint}）</small></span><button aria-label={'將第 ' + (i + 1) + ' 句上移'} disabled={!i} onClick={() => move(i - 1)}>↑</button><button aria-label={'將第 ' + (i + 1) + ' 句下移'} disabled={i === chosen.length - 1} onClick={() => move(i + 1)}>↓</button><button aria-label={'移除第 ' + (i + 1) + ' 句'} onClick={() => changeDraft({selected: ids.filter(id => id !== item.id)})}>移除</button></li>;})}</ol>
       {rest.length > 0 && <><h3>沒有放進本場 <span>{rest.length} 句</span></h3><ul className="sr-source-list">{rest.map(item => <li key={item.id}><span><b>P{item.page}</b> {item.text}<small>Boss 問：{item.prompt}（{item.hint}）</small></span><button aria-label={'加入 ' + item.text} onClick={() => changeDraft({selected: [...chosen.map(x => x.id), item.id]})}>加入</button></li>)}</ul></>}
-      {!confirm ? <div className="sr-publish-bar"><span>已選 {chosen.length} 句 · Boss 血量 {Math.round(LEARNERS.length * chosen.length * RULES.damage * RULES.hpRatio)} · 開放 {draft.days} 天</span><button className="sr-primary" disabled={!chosen.length} onClick={() => setConfirm(true)}>預覽發布內容</button></div> : <div className="sr-confirm" role="region" aria-label="示範發布確認"><h3>確認新場次</h3><p>{code} · {draft.book} · 學生版 P{draft.start}–{draft.end}，共 {chosen.length} 句，Boss 為{EXPANSION_PROFILES.find(b => b.id === draft.boss).name}，血量 {Math.round(LEARNERS.length * chosen.length * RULES.damage * RULES.hpRatio)}（{LEARNERS.length} 人 × {chosen.length} 句 × {RULES.damage} × 0.7），開放 {draft.days} 天。原場次與進度會保留。</p><button className="sr-primary" onClick={() => {const next = publish(draft, Math.max(...rounds.map(r => r.revision)) + 1); setRounds(old => [...old, next]); setActivity(next.revision); setView('student'); setConfirm(false); setReview(null); setCounter(null); setMessage('新的示範場已準備好，所有同學使用同一份固定順序。');}}>建立新的示範場</button><button onClick={() => setConfirm(false)}>返回修改</button></div>}
+      {!confirm ? <div className="sr-publish-bar"><span>已選 {chosen.length} 句 · Boss 血量 {'每位進場同學 +' + hpShare(chosen.length)} · 開放 {draft.days} 天</span><button className="sr-primary" disabled={!chosen.length} onClick={() => setConfirm(true)}>預覽發布內容</button></div> : <div className="sr-confirm" role="region" aria-label="示範發布確認"><h3>確認新場次</h3><p>{code} · {draft.book} · 學生版 P{draft.start}–{draft.end}，共 {chosen.length} 句，Boss 為{EXPANSION_PROFILES.find(b => b.id === draft.boss).name}，血量 {'每位進場同學 +' + hpShare(chosen.length)}（{chosen.length} 句 × {RULES.damage} × {RULES.hpRatio}；有同學第一次進場才加上他那一份），開放 {draft.days} 天。原場次與進度會保留。</p><button className="sr-primary" onClick={() => {const next = join(publish(draft, Math.max(...rounds.map(r => r.revision)) + 1), learner); setRounds(old => [...old, next]); setActivity(next.revision); setView('student'); setConfirm(false); setReview(null); setCounter(null); setMessage('新的示範場已準備好，所有同學使用同一份固定順序。');}}>建立新的示範場</button><button onClick={() => setConfirm(false)}>返回修改</button></div>}
     </section> : view === 'map' ? <section className="sr-map" aria-label="口說大挑戰地圖示意">
       <h2>口說大挑戰地圖（示意）</h2><p>你的角色會站在下一個要破的關卡旁邊，穿著目前的裝備；進入關卡後不顯示角色。這頁只是示意，真正的地圖畫面不變。</p>
       {inLevel ? <div className="sr-map-level"><h3>Workbook 4 · {mapLevels[mapLevel]} 口說練習</h3><p>關卡裡維持原本念句子的畫面，這裡不會出現角色。</p><button className="sr-primary" onClick={() => {setInLevel(false); setMapLevel(level => Math.min(mapLevels.length - 1, level + 1));}}>模擬：破關並回到地圖</button><button onClick={() => setInLevel(false)}>先返回地圖</button></div>
@@ -168,17 +172,17 @@ export default function Preview() {
       </div>
       </div>
       {card && <TeamBossClassProfileCard onClose={() => setCard(null)} card={{busy: false, error: null, data: {available: true, is_me: card === learner, nickname: names[card], alias: names[card], real_name: null, class_code: round.config.classCode, stats: null, damage: round.progress[card].damage, sources: round.progress[card].done.length}}}/>}
-      {round.hp === 0 && <section className="sr-victory" aria-label="勝利結算"><p className="sr-victory-title">勝利！</p><p>全班一起打倒了{EXPANSION_PROFILES.find(b => b.id === round.config.boss)?.name}</p><div className="sr-victory-gold"><span>我拿到</span><strong>{mine.gold}</strong><span>金幣</span></div><dl><div><dt>念對 {mine.correct} 句的保底</dt><dd>{mine.base}</dd></div><div><dt>打倒 Boss 加碼（我的傷害 {mine.damage}）</dt><dd>{mine.bonus}</dd></div><div><dt>裝備加成 +{percent(gear.gold)}%</dt><dd>{mine.equip}</dd></div></dl><ol>{[...pay].sort((a, b) => b.damage - a.damage).map((r, i) => <li key={r.key} data-me={r.key === learner}><i aria-hidden="true">{i + 1}</i><b>{r.key === learner ? '我' : names[r.key]}</b><span>念對 {r.correct} 句 · 傷害 {r.damage}</span><strong>{r.gold} 金幣</strong></li>)}</ol>{p.skipped.length > 0 && <p className="sr-victory-note">你還有 {p.skipped.length} 句待補練，之後可以到口說大挑戰繼續練。</p>}{mine.correct === 0 && <p className="sr-victory-note">這一場你還沒念對句子，所以沒有金幣；下一場一起加油。</p>}</section>}
-      <section className="sr-reading" data-over={round.hp === 0} aria-label="Boss朗讀句子"><div className="sr-reading-head"><span>{review ? '補練時間' : '輪到你朗讀'}</span><strong>{q ? '第 ' + (round.questions.findIndex(x => x.id === q.id) + 1) + ' / ' + round.questions.length + ' 句' : '本輪句子已看完'} · 已完成 {p.done.length} 句</strong></div>
-        <h2>{round.hp === 0 ? '全班一起打倒 Boss 了！' : q ? 'Boss 問你：' : p.skipped.length ? '還有句子等你回來補練' : '你完成了本場所有句子'}</h2>
-        {q && round.hp > 0 && <><p className="sr-prompt" lang="en" data-testid="prompt">{q.prompt}<span lang="zh-Hant">（{q.hint}）</span></p>{resting && <p className="sr-rest" role="status">愛心用完了，角色休息中… {Math.ceil((p.restUntil - now) / 1000)} 秒後愛心全滿，就能繼續。</p>}<p className="sr-answer-label">請念出這句回答：</p><p className="sr-sentence" lang="en" data-testid="sentence">{q.text}</p><p className="sr-source">{round.config.book} · 學生版 P{q.page} · 再念對 {RULES.skillEvery - p.done.length % RULES.skillEvery} 句發動{character.endsWith('mage') ? '星光術' : '月光斬'}</p><div className="sr-read-actions"><button disabled={['permission', 'recording', 'stopping'].includes(recording.phase)} onClick={() => playDemo(q)}>聽示範</button>{recording.phase === 'recording' ? <button className="sr-record" onClick={recording.stop}>停止錄音</button> : recording.phase === 'permission' ? <button onClick={() => recording.cancel()}>取消麥克風請求</button> : <button className="sr-record" disabled={resting || recording.phase === 'stopping'} onClick={recording.start}>開始錄音</button>}{recording.blob && <button className="sr-primary" disabled={judge.working || resting} onClick={assess}>{judge.working ? '評分中…' : '送出評分'}</button>}<button disabled={resting || judge.working} onClick={() => run('skip')}>先跳過，稍後補練</button></div>{recording.url && <audio controls src={recording.url} aria-label="回聽我的錄音"/>}<p role="status">{recording.message}</p><small>{engineNote} 錄音只在這台裝置上辨識，不會上傳。{demoVoice === 'challenge' ? '聽示範播放的是口說大挑戰的示範語音。' : !firebaseUser ? '這個預覽沒有登入，聽示範改用瀏覽器內建語音。' : demoVoice === 'browser' ? '這一句暫時拿不到示範語音，先用瀏覽器內建語音。' : '聽示範會播放口說大挑戰的示範語音。'}</small></>}
+      {round.won && <section className="sr-victory" aria-label="勝利結算"><p className="sr-victory-title">勝利！</p><p>全班一起打倒了{EXPANSION_PROFILES.find(b => b.id === round.config.boss)?.name}</p><div className="sr-victory-gold"><span>我拿到</span><strong>{mine.gold}</strong><span>金幣</span></div><dl><div><dt>念對 {mine.correct} 句的保底</dt><dd>{mine.base}</dd></div><div><dt>打倒 Boss 加碼（我的傷害 {mine.damage}）</dt><dd>{mine.bonus}</dd></div><div><dt>裝備加成 +{percent(gear.gold)}%</dt><dd>{mine.equip}</dd></div></dl><ol>{[...pay].sort((a, b) => b.damage - a.damage).map((r, i) => <li key={r.key} data-me={r.key === learner}><i aria-hidden="true">{i + 1}</i><b>{r.key === learner ? '我' : names[r.key]}</b><span>念對 {r.correct} 句 · 傷害 {r.damage}</span><strong>{r.gold} 金幣</strong></li>)}</ol>{p.skipped.length > 0 && <p className="sr-victory-note">你還有 {p.skipped.length} 句待補練，之後可以到口說大挑戰繼續練。</p>}{mine.correct === 0 && <p className="sr-victory-note">這一場你還沒念對句子，所以沒有金幣；下一場一起加油。</p>}</section>}
+      <section className="sr-reading" data-over={round.won && !q} aria-label="Boss朗讀句子"><div className="sr-reading-head"><span>{review ? '補練時間' : '輪到你朗讀'}</span><strong>{q ? '第 ' + (round.questions.findIndex(x => x.id === q.id) + 1) + ' / ' + round.questions.length + ' 句' : '本輪句子已看完'} · 已完成 {p.done.length} 句</strong></div>
+        <h2>{round.won ? (q ? 'Boss 倒下了！把剩下的句子念完，一樣算保底金幣：' : '全班一起打倒 Boss 了！') : q ? 'Boss 問你：' : p.skipped.length ? '還有句子等你回來補練' : '你完成了本場所有句子'}</h2>
+        {q && <><p className="sr-prompt" lang="en" data-testid="prompt">{q.prompt}<span lang="zh-Hant">（{q.hint}）</span></p>{resting && <p className="sr-rest" role="status">愛心用完了，角色休息中… {Math.ceil((p.restUntil - now) / 1000)} 秒後愛心全滿，就能繼續。</p>}<p className="sr-answer-label">請念出這句回答：</p><p className="sr-sentence" lang="en" data-testid="sentence">{q.text}</p><p className="sr-source">{round.config.book} · 學生版 P{q.page} · 再念對 {RULES.skillEvery - p.done.length % RULES.skillEvery} 句發動{character.endsWith('mage') ? '星光術' : '月光斬'}</p><div className="sr-read-actions"><button disabled={['permission', 'recording', 'stopping'].includes(recording.phase)} onClick={() => recording.listen(q.text)}>🔈 聽這句示範</button>{recording.phase === 'recording' ? <button className="sr-record" onClick={recording.stop}>停止錄音</button> : recording.phase === 'permission' ? <button onClick={() => recording.cancel()}>取消麥克風請求</button> : <button className="sr-record" disabled={resting || recording.phase === 'stopping'} onClick={recording.start}>開始錄音</button>}{recording.blob && <button className="sr-primary" disabled={judge.working || resting} onClick={assess}>{judge.working ? '評分中…' : '送出評分'}</button>}{listen?.path ? <a className="sr-listen" href={listen.path}>🎧 聽本頁教材{listen.count > 1 ? '（' + listen.count + ' 段）' : ''}</a> : <button disabled>🎧 聽本頁教材</button>}<button disabled={resting || judge.working} onClick={() => run('skip')}>先跳過</button></div>{recording.url && <audio controls src={recording.url} aria-label="回聽我的錄音"/>}<p role="status">{recording.message}</p><small>{engineNote} 錄音只在這台裝置上辨識，不會上傳。「聽這句示範」用的是這台裝置內建的語音，免費，聲音比較機械。{listen?.path ? '「聽本頁教材」會離開戰場，去聽這一頁的教材錄音（有 Answer 錄音就聽 Answer）。' : !firebaseUser ? '這個預覽沒有登入，無法連到教材聽力。' : listen ? '這一頁找不到可以聽的教材錄音。' : '正在找這一頁的教材錄音…'}</small></>}
         {judge.working && <p className="sr-heard" role="status">{judge.note}</p>}{judge.result && <p className="sr-heard" role="status" data-pass={judge.result.pass}><b>{judge.result.pass ? '過關！' : '還差一點'} 朗讀完整度 {judge.result.score} 分</b><span lang="en">{judge.result.words.map((word, i) => <i key={i} data-hit={word.hit}>{word.text}</i>)}</span><small>系統聽到：「{judge.result.heard}」。這是有沒有把句子念完整，不是發音準確度。</small></p>}
-        <details className="sr-lab" open={round.hp > 0}><summary>不開口也能測：手動模擬評分（預覽專用）</summary><p>不方便用麥克風時，用這三個按鈕代替評分結果。</p><div><button disabled={!q || round.hp === 0 || resting} onClick={() => run('pass')}>模擬：念對了（70 分以上）</button><button disabled={!q || round.hp === 0 || resting} onClick={() => run('retry')}>模擬：未達 70 分</button><button disabled={!q || round.hp === 0 || resting} onClick={() => run('technical')}>模擬：網路或評分失敗</button></div><div><button disabled={round.hp === 0} onClick={finish}>模擬：全班一起念到打倒 Boss</button></div><details className="sr-rules"><summary>查看規則</summary><p>規則：每念對一句 100 點傷害，同一句只算一次；每念對 3 句發動技能（劍士月光斬 ×2、法師星光術 ×1.5 並多 1 格全班能量）；全班能量集滿「人數 × 2」自動發動合體技，扣 Boss 最大血量 5%。跳過扣 1 顆愛心（固定 1 顆），念對一句回 1 顆；愛心歸零休息 10 秒後全滿，不扣金幣、不影響同學。</p></details></details>
+        <details className="sr-lab" open={!round.won}><summary>不開口也能測：手動模擬評分（預覽專用）</summary><p>不方便用麥克風時，用這三個按鈕代替評分結果。</p><div><button disabled={!q || resting} onClick={() => run('pass')}>模擬：念對了（70 分以上）</button><button disabled={!q || resting} onClick={() => run('retry')}>模擬：未達 70 分</button><button disabled={!q || resting} onClick={() => run('technical')}>模擬：網路或評分失敗</button></div><div><button disabled={round.won} onClick={finish}>模擬：全班一起念到打倒 Boss</button></div><details className="sr-rules"><summary>查看規則</summary><p>規則：每念對一句 100 點傷害，同一句只算一次；每念對 3 句發動技能（劍士月光斬 ×2、法師星光術 ×1.5 並多 1 格全班能量）；全班能量集滿「人數 × 2」自動發動合體技，扣 Boss 最大血量 5%。Boss 血量＝每位進場同學 × 句數 × 100 × 2；Boss 倒下後還能繼續念完，照樣算保底金幣。跳過扣 1 顆愛心（固定 1 顆），念對一句回 1 顆；愛心歸零休息 10 秒後全滿，不扣金幣、不影響同學。</p></details></details>
         <p className="sr-feedback" role="status">{message}</p>
-        <details className="sr-review-list" open={p.skipped.length > 0}><summary>待補練 {p.skipped.length} 句</summary>{p.skipped.length ? <ul>{round.questions.filter(x => p.skipped.includes(x.id)).map(item => <li key={item.id}><span lang="en">{item.text}</span><button disabled={round.hp === 0} onClick={() => {setReview(item.id); setMessage('補練念對一樣會攻擊 Boss；先聽示範，再試一次。');}}>補練這句</button></li>)}</ul> : <p>跳過的句子會放在這裡，不影響其他人的進度。</p>}{review && <button onClick={() => setReview(null)}>返回目前題號</button>}</details>
-        <details className="sr-rewards" open={round.hp === 0} aria-label="金幣結算試算"><summary>{round.hp === 0 ? '打倒 Boss！金幣結算' : '我目前可拿 ' + mine.gold + ' 金幣 · 看全班試算'}</summary><ul>{pay.map(r => <li key={r.key}><b>{names[r.key]}</b><span>念對 {r.correct} 句 · 傷害 {r.damage}</span><strong>{r.gold} 金幣</strong><small>{r.correct ? '保底 ' + r.base + (round.hp === 0 ? ' ＋ 加碼 ' + r.bonus : '') + (r.equip ? ' ＋ 裝備 ' + r.equip : '') : '還沒念對任何一句，沒有金幣'}</small></li>)}</ul><small>保底＝每念對 1 句 3 金幣，最多 30（念對 10 句拿滿）。加碼總額＝參加人數 × 20，依個人傷害占比分配；裝備的金幣加成只套用在 Boss 金幣。</small></details>
+        <details className="sr-review-list" open={p.skipped.length > 0}><summary>待補練 {p.skipped.length} 句</summary>{p.skipped.length ? <ul>{round.questions.filter(x => p.skipped.includes(x.id)).map(item => <li key={item.id}><span lang="en">{item.text}</span><button onClick={() => {setReview(item.id); setMessage('補練念對一樣會攻擊 Boss；先聽示範，再試一次。');}}>補練這句</button></li>)}</ul> : <p>跳過的句子會放在這裡，不影響其他人的進度。</p>}{review && <button onClick={() => setReview(null)}>返回目前題號</button>}</details>
+        <details className="sr-rewards" open={round.won} aria-label="金幣結算試算"><summary>{round.won ? '打倒 Boss！金幣結算' : '我目前可拿 ' + mine.gold + ' 金幣 · 看全班試算'}</summary><ul>{pay.map(r => <li key={r.key}><b>{names[r.key]}</b><span>念對 {r.correct} 句 · 傷害 {r.damage}</span><strong>{r.gold} 金幣</strong><small>{r.correct ? '保底 ' + r.base + (round.won ? ' ＋ 加碼 ' + r.bonus : '') + (r.equip ? ' ＋ 裝備 ' + r.equip : '') : '還沒念對任何一句，沒有金幣'}</small></li>)}</ul><small>保底＝每念對 1 句 3 金幣，最多 30（念對 10 句拿滿）。加碼總額＝參加人數 × 20，依個人傷害占比分配；裝備的金幣加成只套用在 Boss 金幣。</small></details>
       </section>
-      <section className="sr-class" aria-label="全班同學"><div className="sr-energy"><span>全班能量 {round.energy} / {round.energyThreshold} · 合體技 {round.combos} 次 · 開放 {round.config.days} 天</span><progress value={round.energy} max={round.energyThreshold} aria-label="全班能量"/></div><ul>{LEARNERS.map(key => <li key={key} data-me={key === learner} data-acting={round.events.at(-1)?.member_key === key}><button type="button" aria-label={'查看 ' + names[key] + ' 的資料'} onClick={() => setCard(key)}><i aria-hidden="true">{names[key][0]}</i><b>{key === learner ? '我' : names[key]}</b><small>念對 {round.progress[key].done.length} 句{round.events.at(-1)?.member_key === key ? ' · 剛出手' : ''}</small></button></li>)}</ul></section>
+      <section className="sr-class" aria-label="全班同學"><div className="sr-energy"><span>全班能量 {round.energy} / {round.energyThreshold} · 合體技 {round.combos} 次 · 開放 {round.config.days} 天</span><progress value={round.energy} max={round.energyThreshold} aria-label="全班能量"/></div><ul>{LEARNERS.map(key => <li key={key} data-me={key === learner} data-acting={round.events.at(-1)?.member_key === key}><button type="button" aria-label={'查看 ' + names[key] + ' 的資料'} onClick={() => setCard(key)}><i aria-hidden="true">{names[key][0]}</i><b>{key === learner ? '我' : names[key]}</b><small>{round.joined.includes(key) ? '念對 ' + round.progress[key].done.length + ' 句' + (round.events.at(-1)?.member_key === key ? ' · 剛出手' : '') : '還沒進場'}</small></button></li>)}</ul></section>
       <details className="sr-gear"><summary>我的裝備 · 傷害 +{percent(gear.damage)}% · Boss 金幣 +{percent(gear.gold)}%</summary><div className="sr-gear-grid">{NATIVE_SLOTS.map(slot => <label key={slot}>{slotNames[slot]}<select aria-label={'裝備：' + slotNames[slot]} value={gearBy[learner][slot] || ''} onChange={e => setGearBy(old => {const outfit = {...old[learner]}; if (e.target.value) outfit[slot] = e.target.value; else delete outfit[slot]; return {...old, [learner]: outfit};})}><option value="">沒有裝備</option>{NATIVE_ITEMS.filter(item => item.slot === slot).map(item => {const tier = GEAR_TIERS[ITEM_TIERS[item.id]]; return <option key={item.id} value={item.id}>{item.name}（{tier.label}{tier.price ? ' ' + tier.price + ' 金幣' : ' 免費'}）</option>;})}</select></label>)}</div><small>預覽可以直接試穿，不扣金幣；這套裝備在商店總價 {gear.cost} 金幣。全身加成上限：傷害 +30%、Boss 金幣 +10%。每件傷害加成：普通 +2%、稀有 +4%、史詩 +6%。</small></details>
     </>}
     <footer>Alan English · 學英文是冒險的力量。概念角色／班級均為示範。</footer>
