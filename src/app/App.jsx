@@ -11,6 +11,7 @@ import "../components/assets/scss/BrowserCompatibility.scss";
 import Login from "../components/Pages/Login";
 import Signup from "../components/Pages/Signup";
 import Showcase from "../components/Pages/Showcase";
+import InstallGuide from "../components/Pages/InstallGuide";
 import Links from "../components/Pages/Links";
 import BasicReading from "../components/Pages/BasicReading";
 import LinkAdmin from "../components/Pages/LinkAdmin";
@@ -141,6 +142,7 @@ const App = () => {
 
                 <Routes>
                     <Route path="/" element={<Showcase />} />
+                    <Route path="/install" element={<InstallGuide />} />
                     <Route path="/links" element={<Links />} />
                     <Route path="/basic-reading" element={<BasicReading />} />
                     <Route path="/basic-reading/:level" element={<BasicReading />} />
