@@ -128,7 +128,7 @@ function StudentOnboarding() {
 
     const skipNotifications = () => {
         setPushDecisionMade(true);
-        setMessage({ type: "success", text: "已略過裝置通知。之後可隨時到「我的設定」開啟。" });
+        setMessage({ type: "success", text: "已略過裝置通知。之後可隨時到「我的進度」開啟。" });
     };
 
     const changePassword = async event => {
@@ -327,7 +327,7 @@ function StudentOnboarding() {
                                 </button>
                             </div>
                         )}
-                        {pushDecisionMade && !pushStatus?.active && <p className="student-onboarding-push-skipped">已略過；之後可在「我的設定」開啟。</p>}
+                        {pushDecisionMade && !pushStatus?.active && <p className="student-onboarding-push-skipped">已略過；之後可在「我的進度」開啟。</p>}
                     </article>
                 )}
 

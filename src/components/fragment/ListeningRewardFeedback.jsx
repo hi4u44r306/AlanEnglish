@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { createPortal } from "react-dom";
 import { listeningRewardText } from "../../utils/listeningRewardText";
+import { LISTENING_MASTERY_REQUIRED_PLAYS } from "../../constants/listeningProgress";
 
 const number = value => Number(value || 0).toLocaleString("zh-TW");
 
@@ -49,9 +50,9 @@ function ListeningRewardFeedback({ reward, onDismiss }) {
                 </div>
                 <section className="listening-mastery-card">
                     <span className="listening-mastery-medal" aria-hidden="true">★</span>
-                    <small>10 / 10 次</small>
+                    <small>{LISTENING_MASTERY_REQUIRED_PLAYS} / {LISTENING_MASTERY_REQUIRED_PLAYS} 次</small>
                     <h2>音檔熟練通過！</h2>
-                    <p>你完成了 10 次有效聆聽</p>
+                    <p>你完成了 {LISTENING_MASTERY_REQUIRED_PLAYS} 次有效聆聽</p>
                     <div>
                         <strong>+{number(reward.listening_xp_added)} XP</strong>
                         {Number(reward.listening_points_added || 0) > 0 && <strong>+{number(reward.listening_points_added)} AE Point</strong>}

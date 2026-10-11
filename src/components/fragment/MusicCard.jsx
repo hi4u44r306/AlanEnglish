@@ -24,7 +24,6 @@ function MusicCard({
     const dispatch = useDispatch();
 
     const {
-        bookname,
         page,
         audioURL
     } = music || {};
@@ -151,15 +150,10 @@ function MusicCard({
             </button>
 
             <div className="music-card__info">
-                <span className="music-card__eyebrow">音檔 {index + 1}</span>
                 <div className="music-card__title">
                     {title}
                 </div>
 
-                <div className="music-card__book">
-                    {page && page !== title && <span className="music-card__page">{page}</span>}
-                    <span>{bookname || "Alan English"}</span>
-                </div>
                 {isCurrentTrack && <span className="music-card__current">{isPlaying ? "正在聆聽" : "已暫停，可繼續聽"}</span>}
                 {!audioURL && <span className="music-card__unavailable">音檔暫時無法播放</span>}
             </div>

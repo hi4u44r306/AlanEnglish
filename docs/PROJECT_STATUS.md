@@ -1,5 +1,38 @@
 # Alan English 專案狀態
 
+### 教材頁再精簡、熟練 30 次、生日／好友後端停用（2026-10-11，本機完成／尚未合併、尚未套用任何遠端變更）
+
+- 負責：Claude Code。同分支、同 PR #521。擁有者於本對話指示執行這四項；合併仍待「幫我合併」。
+- 教材頁：`StudentLearningHome` 移除成長卡、作業提醒與「老師的任務」清單，作業只留主任務卡；不再呼叫 gamification summary。
+- 熟練 30 次：`LISTENING_MASTERY_REQUIRED_PLAYS = 30`、`record-play` 與 `get-playback-progress` 的 completed 門檻、migration `20261011090000_listening_mastery_thirty_listens.sql`（放寬 `student_track_mastery` check 至 30，並只替換正式 `complete_listening_reward_session_v3` 的三處門檻，定義不符即中止）。獎勵金額、每日 3 檔上限、作業次數上限 10 未動。
+- 生日停用：migration `20261011091000_disable_birthday_rewards.sql` 把既有 `birthday_reward_settings.enabled` 設為 false（同時停止生日禮與 XP×2）。生日欄位、管理員設定卡保留。
+- 好友停用：`student-social` 對暱稱以外的 action 一律回 410；前端 service 只留暱稱兩個函式。好友資料表未刪除。
+- 遠端唯讀核對（2026-10-11）：正式庫 1 個學生帳號、3 筆 `student_track_progress`、無任何 ≥10 次紀錄，門檻調整不影響既有完成狀態。
+- 驗證：相關前端測試通過（教材頁 22 項、聽力相關 48 項、導覽／設定／social service 57 項）。SQL 與 Edge Function 改動沒有在任何資料庫或 Deno 環境執行過。
+- 待發布步驟（須在合併到 main 之後、由 main 執行）：套用兩個 migration → 部署 `record-play`、`get-playback-progress`、`student-social` → Cloudflare 正式建置 → 正式站驗收。回復：migration 註解內有反向做法；生日可由管理員重新啟用；三個 Function 可重新部署前一版。
+- 未做：家長每週學習報告 Email（需新排程與寄信）；音檔 YouTube 跳轉（/links 目前是一本教材一支影片，沒有每個音檔的時間點資料）。
+
+### 學生三按鈕導覽、我的進度、精簡聽力頁（2026-10-11，尚未部署／同 PR #521）
+
+- 負責：Claude Code。同分支 `claude/homepage-redesign-simplify-1b3133`，接續下方「首頁精簡」。純前端，無後端、資料、權限變更。
+- 導覽：`StudentNavbar` 改為「我的進度（/student/settings）／教材（/student/dashboard）／冒險」；桌面移除「我的學習」下拉，其連結由我的進度頁與手機選單承接。下方條目的「首頁」已改名「教材」。
+- 我的進度：`StudentSettings` 標題改名並在最上方掛 `StudentProgressOverview`（各教材上次聽到的音檔、口說大挑戰各教材完成關數、作業／週報／排行榜入口）。`studentLearningResume` 另存每本教材一筆的本機書籤（`ae-learning-history-v1:`，12 本、30 天，登出清除），連結仍須通過 catalog 授權比對。
+- 聽力頁：`playlist-header__main` 只留教材名稱；移除 `ListeningLearningPanel`、`music-card__eyebrow`、`music-card__book`；新增「上次聽到」定位提示。record-play、覆蓋率、noInteraction 未動。
+- 好友：移除 `StudentFriends` 頁、入口、`sendSocialHeartbeat` 心跳；`/student/friends` 轉址到我的進度；social 通知不再有目的地。`student-social` Edge Function 與資料表未動（暱稱仍使用）。
+- 生日：只移除教材頁的 `BirthdayRewardNotice`。後端仍會發生日禮與 XP×2；成長詳情提示、設定頁生日欄位、管理員生日設定都還在。
+- 驗證：10 個相關測試檔 126 項通過；變更檔 ESLint、三個 SCSS 編譯、`git diff --check` 通過。未跑全套與本機 production build（16.1）。
+- 未驗：新版畫面沒有做瀏覽器目視檢查（聽力頁標題區、我的進度卡片、桌面導覽）；真實登入、iPhone Safari。
+- 待擁有者決定後另批處理（皆屬第 13 節重大改動或缺資料）：熟練門檻 10→30（DB migration `require_ten_listens_for_track_completion` 與獎勵規則）、家長學習報告 Email（後端排程與寄信）、音檔 YouTube 跳轉（目前沒有每個音檔的影片網址／時間點資料）、生日禮與好友後端停用。
+
+### 學生首頁精簡：今日＋教材合併為「首頁」（2026-10-11，尚未部署／PR 待擁有者說「幫我合併」）
+
+- 負責：Claude Code。分支 `claude/homepage-redesign-simplify-1b3133`（app 建立的 worktree），基準 main `25ecb12e`。純前端，無後端、資料、權限變更。
+- 內容：`StudentNavbar` 移除手機「教材」與桌面「我的教材」入口，「今日／今日學習」改名「首頁」，教材頁時首頁維持選取。`StudentLearningHome` 移除問候區（含「更新進度」按鈕）、`learning-home__paths`、書架搜尋、教材數、`learning-home__book-art` 與結尾標語；教材卡改為各寬度皆兩欄、只顯示教材名稱的整張連結。其他頁面的「今日學習」連結文字改為「首頁」。
+- 保留：作業提醒、主任務卡、成長卡、老師的任務、生日祝福、分類切換。教材抽屜（`ae:open-student-menu` 的 materials）程式仍在，但目前沒有畫面入口。
+- 驗證：首頁 24 項、MainNavbar 35 項測試通過；兩個 JSX ESLint、`git diff --check` 通過；以編譯後 SCSS 的靜態預覽在 412px 確認兩欄、卡片 184×104px、字 20px、無水平溢位。依 16.1 未跑全套與本機 production build。worktree 位於 `.claude` 下，jest 需加 `--testMatch "**/.claude/**/<檔名>"` 才找得到測試。
+- 未驗：真實學生登入後的整頁、iPhone Safari、桌面寬螢幕實機。
+- 已知取捨：首頁不再有手動「更新進度」按鈕，班級教材讀取失敗時只能重新整理頁面。
+
 ### Boss 挑戰管理員預覽頁（2026-10-11，已發布；小螢幕修正發布中）
 
 - 負責：Claude Code。分支 `feature/boss-preview-admin`，基準 main `256a6fa0`。

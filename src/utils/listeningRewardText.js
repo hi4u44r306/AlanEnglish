@@ -1,3 +1,5 @@
+import { LISTENING_MASTERY_REQUIRED_PLAYS } from "../constants/listeningProgress";
+
 export function listeningRewardText(status) {
     if (!status || status.policy_version !== 3) return null;
     if (status.source === "assignment") {
@@ -12,9 +14,9 @@ export function listeningRewardText(status) {
         return { title: "本音檔熟練獎勵已領取", detail: "仍可繼續練習，總聆聽次數照常累計" };
     }
     return {
-        title: `自主熟練度 ${status.mastery_count}/10 次`,
-        detail: status.limit_reached && status.mastery_count >= 10
+        title: `自主熟練度 ${status.mastery_count}/${LISTENING_MASTERY_REQUIRED_PLAYS} 次`,
+        detail: status.limit_reached && status.mastery_count >= LISTENING_MASTERY_REQUIRED_PLAYS
             ? "今日已領滿 3 檔，保留進度；隔天再有效聽一次即可領取"
-            : "累計 10 次可得 10 XP、1 AE Point（每檔限領一次）"
+            : `累計 ${LISTENING_MASTERY_REQUIRED_PLAYS} 次可得 10 XP、1 AE Point（每檔限領一次）`
     };
 }

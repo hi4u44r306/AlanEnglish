@@ -103,9 +103,7 @@
 .music-card__equalizer span:nth-child(4) { animation-delay: -.55s; }
 
 .music-card__info { position: relative; z-index: 1; flex: 1; min-width: 0; }
-.music-card__eyebrow { display: block; margin-bottom: 3px; color: var(--quest-color); font-size: 9px; font-weight: 950; letter-spacing: .09em; }
 .music-card__page { color: #162a4d; font-size: 21px; font-weight: 950; line-height: 1.25; }
-.music-card__book { margin-top: 4px; overflow: hidden; color: #71809a; font-size: 13px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
 
 .music-card__status { position: relative; z-index: 1; flex: 0 0 auto; display: flex; align-items: center; gap: 10px; }
 .music-card__plays { display: flex; align-items: center; gap: 7px; min-width: 84px; padding: 8px 12px; border: 1px solid rgba(255, 255, 255, .9); border-radius: 15px; background: rgba(255, 255, 255, .78); color: #52627b; box-shadow: 0 5px 12px rgba(35, 55, 93, .06); }
@@ -123,9 +121,7 @@
   .music-card__play { width: 50px; height: 50px; border-radius: 16px; font-size: 37px; }
   .music-card__play-ring { inset: 6px; border-radius: 11px; }
   .music-card__equalizer { width: 26px; height: 24px; gap: 2px; }
-  .music-card__eyebrow { font-size: 8px; }
   .music-card__page { font-size: 17px; }
-  .music-card__book { font-size: 11px; }
   .music-card__plays { min-width: 0; padding: 7px 9px; }
   .music-card__plays small { display: none; }
   .music-card__plays strong { font-size: 12px; white-space: nowrap; }

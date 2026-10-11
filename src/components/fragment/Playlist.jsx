@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import { ArrowLeft, Check, Headphones } from "lucide-react";
 import MusicCard from "./MusicCard";
-import ListeningLearningPanel from "./ListeningLearningPanel";
 import "../assets/scss/Playlist.scss";
 import "../Pages/css/SpeakingAdventureSession.scss";
 import "../assets/scss/ListeningLearning.scss";
@@ -14,11 +13,11 @@ import { getAssignmentState } from "../../utils/studentLearning";
 import { getBookPlaybackProgress } from "../../services/listeningService";
 import { getAccessibleBook } from "../../services/contentAccessService";
 import { hasReachedListeningMastery } from "../../constants/listeningProgress";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { setPlayPauseStatus } from "../../actions/actions";
 import { speakingListeningContext } from "../../utils/speakingListening";
 import { studentPageScope } from "../../services/studentPageCache";
-import { saveStudentLearningResume } from "../../services/studentLearningResume";
+import { readStudentLearningHistory, saveStudentLearningResume } from "../../services/studentLearningResume";
 
 function Playlist() {
     const { playlistId } = useParams();
@@ -57,7 +56,6 @@ function Playlist() {
 
 
     const [confirmedListen, setConfirmedListen] = useState(null);
-    const { playing, playingStatus } = useSelector(state => state.musicReducer);
 
     const homeworkContext = useMemo(() => {
         const params = new URLSearchParams(location.search);
@@ -138,6 +136,13 @@ function Playlist() {
         target.focus({ preventScroll: true });
         resumeLocated.current = targetKey;
     }, [resumeTrackId, progressOwner, location.search, homeworkContext.active, speakingContext, visibleTracks]);
+    // Read once per book so the note keeps pointing at where the student stopped last time.
+    const lastHeard = useMemo(() => role !== "student" || !book?.id ? null
+        : readStudentLearningHistory(studentPageScope(firebaseUser, role, studentProfile)).find(item => item.bookId === String(book.id)) || null,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [book?.id, firebaseUser?.uid, role]);
+    const lastHeardTrack = lastHeard && !resumeTrackId && !homeworkContext.active && !speakingContext
+        ? visibleTracks.find(track => String(track.id) === lastHeard.trackId) : null;
     const rememberTrack = track => {
         if (role === "student") saveStudentLearningResume(studentPageScope(firebaseUser, role, studentProfile),
             { id: book?.id, code: book?.code || playlistId }, track);
@@ -146,7 +151,6 @@ function Playlist() {
     const homeworkCompletedCount = homeworkProgressTracks.filter(track => track.completed).length;
     const homeworkCompletionRate = homeworkProgressTracks.length ? Math.round((homeworkCompletedCount / homeworkProgressTracks.length) * 100) : 0;
     const homeworkComplete = homeworkProgressTracks.length > 0 && homeworkCompletedCount === homeworkProgressTracks.length;
-    const currentTrack = visibleTracks.find(track => String(track.id) === String(playing?.id));
     const confirmedTrack = role === "student" ? visibleTracks.find(track => String(track.id) === confirmedListen?.trackId) : null;
     const confirmedIndex = confirmedTrack ? visibleTracks.indexOf(confirmedTrack) : -1;
     const nextTrack = homeworkContext.active ? visibleTracks.find(track => !isHomeworkTrackCompleted(track)) : confirmedIndex >= 0 ? visibleTracks[confirmedIndex + 1] : null;
@@ -161,6 +165,7 @@ function Playlist() {
             <div className="playlist-content">
                 {bookQuery.error && bookQuery.data && <p role="status">目前顯示上次教材清單，播放網址暫時無法更新。<button type="button" onClick={() => bookQuery.refresh()}>重新讀取教材</button></p>}
                 {resumeTrackId && !homeworkContext.active && !speakingContext && <p role="status">{visibleTracks.some(track => String(track.id) === resumeTrackId) ? "已找到上次學習的音檔，按「播放」即可開始。" : "上次音檔目前不在教材清單中，請選擇其他音檔。"}</p>}
+                {lastHeardTrack && <p className="playlist-last-heard" role="status">上次聽到：<a href={`#listening-track-${lastHeardTrack.id}`}>{lastHeardTrack.title || lastHeardTrack.music_name || lastHeardTrack.page || "教材音檔"}</a></p>}
                 {speakingContext && <section className="playlist-speaking-preparation" aria-label="本關聽力準備">
                     <div><span><Headphones aria-hidden="true" size={18} />本關聽力準備</span><p>先把教材聽熟，再回到口說關卡試著自己回答。已完成的題目會保留，回去後重新載入本關。</p></div>
                     {speakingReturn}
@@ -174,17 +179,8 @@ function Playlist() {
                                     返回這份作業
                                 </Link>
                             )}
-                            <span className="playlist-header__eyebrow"><Headphones aria-hidden="true" size={15} /> 聽力冒險</span>
                             <h1>{book?.name || playlistId}</h1>
-                            <p>選一個音檔，專心聽，再跟著開口練習。</p>
                         </div>
-                        {role === "student" && !homeworkContext.active && (
-                            <div className="playlist-header__stats">
-                                <span><small>教材熟練音檔</small><strong>{progressStatus !== "ready" ? progressStatus === "loading" ? "讀取中" : "尚未載入" : `${stats.completed} / ${stats.total}`}</strong></span>
-                                <span><small>教材累計有效聆聽</small><strong>{progressStatus === "ready" ? `${stats.totalPlayCount} 次` : "—"}</strong></span>
-                            </div>
-                        )}
-                        <div className="playlist-header__art" aria-hidden="true"><span>ABC</span><i>★</i><i>♪</i><i>✦</i></div>
                     </div>
                 </header>
 
@@ -238,7 +234,6 @@ function Playlist() {
                 </section>}
 
                 <div className="playlist-learning-layout">
-                <ListeningLearningPanel currentTrack={currentTrack} playingStatus={playingStatus} speakingPreparation={Boolean(speakingContext)} />
                 <section className="playlist-list-section" aria-labelledby="listening-track-list-title">
                     {homeworkContext.active && <div className="playlist-homework-rules"><p>每次以原速或較慢速度實際聽滿 80%，播放結束並經系統確認後才計一次；拖到結尾或倍速播放不計次數。</p><p>長期熟練累積與本次作業完成條件分開呈現。{progressStatus === "ready" ? `整本教材累計有效聆聽 ${stats.totalPlayCount} 次，包含作業以外的聆聽。` : "整本教材累計紀錄尚未載入。"}</p></div>}
                     <div className="playlist-list-heading"><h2 id="listening-track-list-title">{homeworkContext.active ? "指定音檔" : speakingContext ? "本關練習音檔" : "聽力任務列表"}</h2><span>{visibleTracks.length} 個音檔</span></div>

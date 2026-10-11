@@ -4,9 +4,9 @@ import "@testing-library/jest-dom";
 import ListeningRewardFeedback from "./ListeningRewardFeedback";
 
 test.each([
-    [{ source: "self_practice", mastery_count: 9 }, "自主熟練度 9/10 次", "累計 10 次可得 10 XP"],
-    [{ source: "self_practice", mastery_count: 10, mastery_rewarded: true }, "本音檔熟練獎勵已領取", "仍可繼續練習"],
-    [{ source: "self_practice", mastery_count: 10, limit_reached: true }, "自主熟練度 10/10 次", "隔天再有效聽一次"],
+    [{ source: "self_practice", mastery_count: 29 }, "自主熟練度 29/30 次", "累計 30 次可得 10 XP"],
+    [{ source: "self_practice", mastery_count: 30, mastery_rewarded: true }, "本音檔熟練獎勵已領取", "仍可繼續練習"],
+    [{ source: "self_practice", mastery_count: 30, limit_reached: true }, "自主熟練度 30/30 次", "隔天再有效聽一次"],
     [{ source: "assignment", valid_listen_count: 2, required_listens: 3 }, "老師指定 2/3 次", "不另計自主獎勵"],
     [{ source: "assignment", valid_listen_count: 3, required_listens: 3, completion_reward_granted: true }, "老師指定 3/3 次", "整份作業完成：+30 XP、+5 AE Points"]
 ])("新版獎勵狀態呈現：%s", (status, title, detail) => {
@@ -19,7 +19,7 @@ test.each([
     expect(screen.queryByText("這首今天已領過獎勵")).not.toBeInTheDocument();
 });
 
-test("第10次自主熟練顯示10XP與1點", () => {
+test("第30次自主熟練顯示10XP與1點", () => {
     render(<ListeningRewardFeedback reward={{
         eligible: true, listening_xp_added: 10, listening_points_added: 1,
         reward_status: { policy_version: 3, source: "self_practice", mastery_count: 10, mastery_rewarded: true },

@@ -1,6 +1,5 @@
 const STUDENT_NOTIFICATION_DESTINATIONS = new Set([
     "/student/assignments",
-    "/student/friends",
     "/student/leaderboard",
     "/student/membership",
     "/student/review",
@@ -14,8 +13,7 @@ const DESTINATION_BY_TYPE = {
     membership: "/student/membership",
     review: "/student/review",
     reward: "/student/rewards",
-    rewards: "/student/rewards",
-    social: "/student/friends"
+    rewards: "/student/rewards"
 };
 
 export const getStudentNotificationDestination = notification => {

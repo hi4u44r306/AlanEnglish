@@ -94,8 +94,8 @@ Deno.serve(async (req: Request) => {
       if (progressError) return json(500, { error: "無法讀取播放進度" });
       progress = (progressData || []).map(item => ({
         ...item,
-        completed: Number(item.play_count || 0) >= 10,
-        completed_at: Number(item.play_count || 0) >= 10 ? item.completed_at : null
+        completed: Number(item.play_count || 0) >= 30,
+        completed_at: Number(item.play_count || 0) >= 30 ? item.completed_at : null
       }));
     }
 

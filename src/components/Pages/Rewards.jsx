@@ -108,7 +108,7 @@ function Rewards() {
             </section>
 
             <StudentGrowthCard balance={data?.balance} loading={loading} error={loadError} pointsAccess onRetry={load}>
-                <Link to="/student/dashboard">繼續今日學習</Link>
+                <Link to="/student/dashboard">回到首頁</Link>
                 <Link to="/student/settings">我的角色</Link>
                 <a href="#my-redemptions">查看兌換進度</a>
             </StudentGrowthCard>

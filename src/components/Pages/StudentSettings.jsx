@@ -20,6 +20,7 @@ import { disableWebPush, enableWebPush, getCurrentWebPushStatus, getWebPushAvail
 import { hasAiPremiumAccess } from "../../constants/membershipPlans";
 import { validatePublicNickname } from "../../utils/nicknameValidation";
 import BirthdaySelect from "../fragment/BirthdaySelect";
+import StudentProgressOverview from "./StudentProgressOverview";
 import StudentAvatarImage from "../fragment/StudentAvatarImage";
 import StudentGrowthCard from "../fragment/StudentGrowthCard";
 import StudentSettingsGroup from "../fragment/StudentSettingsGroup";
@@ -540,9 +541,10 @@ function StudentSettings() {
     return (
         <main className="student-settings-page">
             <section className="student-settings-hero">
-                <h1>我的設定</h1>
-                <p>選一個陪你學習的角色，調整需要的設定。</p>
+                <h1>我的進度</h1>
             </section>
+
+            <StudentProgressOverview />
 
             {(commerceQuery.error || nicknameQuery.error) && <p role="status">部分設定暫時無法更新，已有資料會保留。<button type="button" onClick={load}>重新讀取設定</button></p>}
             <section className="student-settings-profile-card">
@@ -700,7 +702,7 @@ function StudentSettings() {
 
             <StudentSettingsGroup title="成長與獎品" description="等級、學習經驗與 AE Points">
                 <StudentGrowthCard balance={summary?.balance} loading={summaryQuery.loading} error={Boolean(summaryQuery.error || (!summaryQuery.loading && !summary?.balance))} pointsAccess={profile.learner_type === "academy_student" && isActiveAcademyStudent} onRetry={load}>
-                    <Link to="/student/dashboard">繼續今日學習</Link>
+                    <Link to="/student/dashboard">回到首頁</Link>
                     <Link to="/student/weekly-report">看看本週進步</Link>
                     {profile.learner_type === "academy_student" && isActiveAcademyStudent && <Link to="/student/rewards">挑選獎品目標</Link>}
                 </StudentGrowthCard>
@@ -711,7 +713,8 @@ function StudentSettings() {
                     <header><FiUser /><div><h2>學習與成長</h2></div></header>
                     <div className="student-settings-learning-links">
                         <Link to="/student/leaderboard">查看學習排行榜</Link>
-                        <Link to="/student/friends">我的好友</Link>
+                        <Link to="/account/security">帳號與密碼</Link>
+                        <Link to="/support">聯絡客服</Link>
                         <Link to="/student/membership">查看會員與功能</Link>
                     </div>
                     <p>XP 記錄你的學習成長；有效在校生可累積 AE Points，兌換獎品。</p>

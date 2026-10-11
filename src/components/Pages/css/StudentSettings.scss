@@ -281,3 +281,20 @@
     .student-settings-profile-card { grid-template-columns: 1fr; }
     .student-settings-avatar-wrap { margin-inline: 0; }
 }
+
+.student-progress { display: grid; gap: 24px; margin: 0 0 32px; color: #17365d; }
+.student-progress__block > h2 { margin: 0 0 12px; font-size: 22px; font-weight: 800; }
+.student-progress__block > p { margin: 0; color: #49617d; a { display: inline-flex; align-items: center; min-height: 44px; margin-left: 8px; color: #245fc5; text-decoration: underline; } }
+.student-progress__list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.student-progress__item { display: grid; gap: 6px; align-content: center; min-height: 96px; padding: 16px 20px; border: 1px solid #d5e3f0; border-radius: 16px; background: #fff; color: inherit; text-decoration: none; overflow-wrap: anywhere;
+    strong { font-size: 20px; line-height: 1.35; }
+    span { font-size: 15px; color: #49617d; }
+    progress { width: 100%; height: 10px; accent-color: #247a56; }
+    &:hover { border-color: #91add2; }
+    &:focus-visible { outline: 3px solid #245fc5; outline-offset: 3px; }
+}
+.student-progress__links { display: flex; flex-wrap: wrap; gap: 8px;
+    a { display: inline-flex; align-items: center; min-height: 44px; padding: 8px 16px; border: 1px solid #adc5e3; border-radius: 12px; background: #eef5fc; color: #245fc5; font-weight: 800; text-decoration: none; }
+    a:hover { border-color: #245fc5; }
+}
+@media (max-width: 600px) { .student-progress__list { grid-template-columns: 1fr; } }
