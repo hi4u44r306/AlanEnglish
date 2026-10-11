@@ -368,3 +368,11 @@ a.student-settings-row:focus-visible, summary.student-settings-row:focus-visible
 .student-settings-page .student-settings-nickname-form small { display: block; font-size: 13px; text-align: left; }
 .student-settings-page .student-settings-avatar-presets { padding-top: 0; border-top: 0; }
 .student-settings-page .student-settings-avatar-presets > summary { text-align: center; }
+
+// The top card reads left to right like the 接著聽 card: words on the left, one round button on the right.
+.student-progress__next.student-progress__next { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "label action" "title action" "meta action"; align-items: center; justify-items: start; column-gap: 16px; row-gap: 4px; min-height: 0; padding: 16px 20px; }
+.student-progress__next > .student-progress__next-label { grid-area: label; }
+.student-progress__next > strong { grid-area: title; max-width: none; font-size: clamp(22px, 6vw, 28px); }
+.student-progress__next > .student-progress__next-meta { grid-area: meta; max-width: none; }
+.student-progress__next > .student-progress__next-action { grid-area: action; justify-content: center; width: 64px; height: 64px; min-height: 0; margin: 0; padding: 0; border-radius: 50%; > b { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; } > svg { width: 28px; height: 28px; } }
+.student-progress__next::after { background: linear-gradient(90deg, #f5faf1 0%, #f5faf1 44%, rgba(245, 250, 241, .9) 62%, rgba(245, 250, 241, .35) 100%); }

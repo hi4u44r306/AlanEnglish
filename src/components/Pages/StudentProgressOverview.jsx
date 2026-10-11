@@ -71,16 +71,16 @@ function StudentProgressOverview() {
     return <section className="student-progress" aria-label="學習進度">
         {nextTask ? <Link className={`student-progress__next${nextTask.state === "overdue" ? " is-overdue" : ""}`} to={taskPath(nextTask)}>
             <img className="student-progress__scene" src={forestScene} alt="" />
-            <span className="student-progress__next-label">{nextTask.state === "overdue" ? "作業已逾期" : "接下來：作業"}</span>
+            <span className="student-progress__next-label">{nextTask.state === "overdue" ? "作業遲交" : "接下來：作業"}</span>
             <strong>{nextTask.title}</strong>
             <span className="student-progress__next-meta">{nextTask.state === "overdue" ? "請向老師確認補做方式" : Number.isFinite(Date.parse(nextTask.due_at)) ? `${formatDay(nextTask.due_at)} 截止` : "老師的作業"} · {assignmentProgressLabel(nextTask)}</span>
-            <span className="student-progress__next-action">打開作業<FiArrowRight aria-hidden="true" /></span>
+            <span className="student-progress__next-action"><b>打開作業</b><FiArrowRight aria-hidden="true" /></span>
         </Link> : resume ? null : <button type="button" className="student-progress__next" onClick={openMaterials}>
             <img className="student-progress__scene" src={forestScene} alt="" />
             <span className="student-progress__next-label">接下來</span>
             <strong>選一本教材開始</strong>
             <span className="student-progress__next-meta">{catalogQuery.loading ? "正在讀取教材…" : "點這裡打開教材"}</span>
-            <span className="student-progress__next-action">打開教材<FiArrowRight aria-hidden="true" /></span>
+            <span className="student-progress__next-action"><b>打開教材</b><FiArrowRight aria-hidden="true" /></span>
         </button>}
         {resume && <Link className="student-progress__listen" to={learningResumePath(resume.book, resume.bookmark)} aria-label={`接著聽 ${resume.book.name} ${where(resume)}`}>
             <span className="student-progress__listen-label">接著聽</span>

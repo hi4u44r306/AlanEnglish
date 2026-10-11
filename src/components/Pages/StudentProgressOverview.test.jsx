@@ -73,7 +73,7 @@ test("marks an overdue-only assignment clearly", async () => {
     renderOverview();
     const next = await screen.findByRole("link", { name: /過往任務/ });
     expect(next).toHaveClass("is-overdue");
-    expect(next).toHaveTextContent("作業已逾期");
+    expect(next).toHaveTextContent("作業遲交");
     expect(next).toHaveTextContent("請向老師確認補做方式");
 });
 

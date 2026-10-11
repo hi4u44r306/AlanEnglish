@@ -5,6 +5,7 @@
 - 同分支 `fix/page-length`。純前端：`StudentProgressOverview.jsx`、`css/StudentSettings.scss`、對應測試。
 - 最近一本的書籤改為獨立卡片 `student-progress__listen`（頁碼為主、教材名為輔）；有作業時排在作業卡下，無作業時取代原「繼續聽」森林卡。其他教材的書籤列移除。
 - 清單列圖示改為彩色方塊 `student-progress__tile--*`；「作業」列僅在未完成數不等於 1 時顯示（還有 N 份／都完成了）。
+- 作業卡改橫向（文字左、圓形按鈕右），標籤「作業已逾期」改「作業遲交」；作業頁與聽力頁的「已逾期」用語未動。
 - 驗證：StudentProgressOverview、StudentSettings 共 23 項通過；本機測試學生實看 375 與 1440 寬。未驗：iPhone Safari。
 
 ### 作業標示教材名稱、教材聽力頁標題旁完成數（2026-10-12，併入 PR #531，待擁有者說「幫我合併」）
