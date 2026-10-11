@@ -77,3 +77,8 @@
 }
 @media (max-width: 359px) { .ae-growth-header { &__mark, &__coin { display: none; } &__level { padding-inline: 10px; } &__points { padding-inline: 10px; } } }
 @media (prefers-reduced-motion: reduce) { .ae-growth-header button { transition: none; } }
+
+// On phones and tablets the level chip leads with the student's own picture. The desktop bar
+// already shows that picture beside the name, so there the chip is the level alone.
+.ae-growth-header__mark.has-avatar { overflow: hidden; border-radius: 50%; background: #e6edf5; > .ae-student-avatar-image { display: block; width: 100%; height: 100%; } img { display: block; width: 100%; height: 100%; object-fit: cover; } }
+@media (min-width: 1280px) { .ae-growth-header__mark { display: none; } .ae-growth-header__level { padding-inline: 14px; } }
