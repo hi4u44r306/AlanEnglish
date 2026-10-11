@@ -8,7 +8,9 @@
 - 驗證：規則測試 14 項通過；`CI=true react-scripts build` 編譯成功，預覽為獨立 chunk、main bundle 不含該頁；本機獨立預覽於 380px 寬實測通過。未驗：管理員登入後在網站版面內的顯示（Navbar 與固定血條是否重疊）、桌面寬度、iPhone Safari、實際麥克風錄音到出分的完整流程。
 - 發布結果：PR #516 squash 合併為 main `c337c747`，Workers Builds 成功（2026-10-11 15:14 台灣時間）；正式站 main bundle 含 `/admin/boss-preview`、字型與 OFL 可下載，未登入開啟該網址會被導向 `/login`。
 - 擁有者實測（iPhone SE 375×667）回報看不到 Boss：固定血條被 `.app-header` 蓋住，戰場被捲出畫面。修正（分支 `fix/boss-preview-pinned-battle`）：血條與戰場合為一個固定區塊並以 `.app-header` 底部為起點，句子卡片緊接其後，同學列與裝備移到卡片之後，小螢幕縮小戰場。本機以 375×667 加模擬 72px header 實測：固定區、問句、答句與三顆按鈕同屏（按鈕底 658px）。未驗：正式站管理員登入後的實際畫面、iPhone 實機、右下「發布作業」浮動按鈕是否遮到跳過按鈕。
-- 下一步：修正合併並部署後，請擁有者以管理員帳號重新實測。Boss 後端設計另批處理。
+- 小螢幕修正已由擁有者合併（PR #517，main `56d8d240`）。
+- 示範語音（分支 `feature/boss-preview-demo-audio`，發布中）：「聽示範」改為呼叫既有 `speaking-challenge` 的 `question_set`（mode `easy`）取得該題 `model_audio_url` 播放；已核對該 action 對 admin 為 demoMode、只有 select，不寫入進度、不佔每日次數。這是此頁唯一的後端呼叫（唯讀）；簽名網址短效，每個題庫 4 分鐘後重新取得；失敗時退回瀏覽器語音。`CI=true` 建置通過；實際播放需擁有者以管理員帳號驗證。
+- 下一步：擁有者說「幫我合併」後才合併；部署後請以管理員帳號重新實測。Boss 後端設計另批處理。
 
 ### 學生作業與錄音流程改善（2026-10-10，已發布／正式帳號實機待驗）
 
