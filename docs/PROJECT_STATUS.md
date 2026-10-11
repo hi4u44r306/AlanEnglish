@@ -1,12 +1,14 @@
 # Alan English 專案狀態
 
-### Boss 挑戰管理員預覽頁（2026-10-11，發布中）
+### Boss 挑戰管理員預覽頁（2026-10-11，已發布；小螢幕修正發布中）
 
 - 負責：Claude Code。分支 `feature/boss-preview-admin`，基準 main `256a6fa0`。
 - 內容：新增 `/admin/boss-preview`（`allowedRoles=["admin"]`，lazy chunk），掛上 `src/components/Pages/TeamBossSpeakingPreview/`。只從 `codex/team-boss-2d-preview` 帶入該頁實際相依的 96 個新檔（戰場元件、角色／裝備／Boss 素材約 44MB）與饅頭黑體字型（OFL-1.1）；既有檔案只改 `src/app/App.jsx` 兩行，未帶入 Boss 分支對口說核心 6 個檔案的修改。
 - 性質：純前端單機展示，無後端呼叫、無 migration、無 Edge Function、不寫入正式資料。規則依 Boss 分支 `docs/TEAM_BOSS_SPEC_V2.md`（V2.4）。
 - 驗證：規則測試 14 項通過；`CI=true react-scripts build` 編譯成功，預覽為獨立 chunk、main bundle 不含該頁；本機獨立預覽於 380px 寬實測通過。未驗：管理員登入後在網站版面內的顯示（Navbar 與固定血條是否重疊）、桌面寬度、iPhone Safari、實際麥克風錄音到出分的完整流程。
-- 下一步：合併後等 Cloudflare production build，確認正式網址未登入時被導向登入；請擁有者以管理員帳號在手機實測。Boss 後端設計另批處理。
+- 發布結果：PR #516 squash 合併為 main `c337c747`，Workers Builds 成功（2026-10-11 15:14 台灣時間）；正式站 main bundle 含 `/admin/boss-preview`、字型與 OFL 可下載，未登入開啟該網址會被導向 `/login`。
+- 擁有者實測（iPhone SE 375×667）回報看不到 Boss：固定血條被 `.app-header` 蓋住，戰場被捲出畫面。修正（分支 `fix/boss-preview-pinned-battle`）：血條與戰場合為一個固定區塊並以 `.app-header` 底部為起點，句子卡片緊接其後，同學列與裝備移到卡片之後，小螢幕縮小戰場。本機以 375×667 加模擬 72px header 實測：固定區、問句、答句與三顆按鈕同屏（按鈕底 658px）。未驗：正式站管理員登入後的實際畫面、iPhone 實機、右下「發布作業」浮動按鈕是否遮到跳過按鈕。
+- 下一步：修正合併並部署後，請擁有者以管理員帳號重新實測。Boss 後端設計另批處理。
 
 ### 學生作業與錄音流程改善（2026-10-10，已發布／正式帳號實機待驗）
 
