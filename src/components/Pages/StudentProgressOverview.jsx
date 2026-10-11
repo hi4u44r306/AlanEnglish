@@ -10,7 +10,7 @@ import { getStudentAssignments, getStudentAssignmentsV2 } from "../../services/a
 import { getSpeakingChallengeCatalog } from "../../services/speakingChallengeService";
 import { findResumeBook, learningResumePath } from "../../services/studentLearningResume";
 import { getLearningTasks, getStudentMaterialCategories } from "../../utils/studentLearning";
-import { assignmentProgressLabel } from "../../utils/assignmentListening";
+import { assignmentDisplayTitle, assignmentProgressLabel } from "../../utils/assignmentListening";
 import forestScene from "../assets/speaking-map/unified-forest-a-v1.webp";
 
 const formatDay = value => new Intl.DateTimeFormat("zh-TW", { timeZone: "Asia/Taipei", month: "numeric", day: "numeric" }).format(new Date(value));
@@ -72,7 +72,7 @@ function StudentProgressOverview() {
         {nextTask ? <Link className={`student-progress__next${nextTask.state === "overdue" ? " is-overdue" : ""}`} to={taskPath(nextTask)}>
             <img className="student-progress__scene" src={forestScene} alt="" />
             <span className="student-progress__next-label">{nextTask.state === "overdue" ? "作業遲交" : "接下來：作業"}</span>
-            <strong>{nextTask.title}</strong>
+            <strong>{assignmentDisplayTitle(nextTask.title)}</strong>
             <span className="student-progress__next-meta">{nextTask.state === "overdue" ? "請向老師確認補做方式" : Number.isFinite(Date.parse(nextTask.due_at)) ? `${formatDay(nextTask.due_at)} 截止` : "老師的作業"} · {assignmentProgressLabel(nextTask)}</span>
             <span className="student-progress__next-action"><b>打開作業</b><FiArrowRight aria-hidden="true" /></span>
         </Link> : resume ? null : <button type="button" className="student-progress__next" onClick={openMaterials}>

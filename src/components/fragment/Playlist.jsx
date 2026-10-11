@@ -9,7 +9,7 @@ import "../Pages/css/StudentAssignmentsMinimal.scss";
 import useStudentPageQuery from "../../hooks/useStudentPageQuery";
 import { useAuth } from "../../auth/AuthContext";
 import { getStudentAssignments } from "../../services/assignmentService";
-import { normalizeListeningTracks } from "../../utils/assignmentListening";
+import { assignmentDisplayTitle, normalizeListeningTracks } from "../../utils/assignmentListening";
 import { getAssignmentState } from "../../utils/studentLearning";
 import { getBookPlaybackProgress } from "../../services/listeningService";
 import { getAccessibleBook } from "../../services/contentAccessService";
@@ -199,7 +199,7 @@ function Playlist() {
                         </div>
                         <div className="playlist-homework-banner__copy">
                             <span>老師的聽力任務</span>
-                            <h2>{homeworkAssignment?.title || "本次聽力作業"}</h2>
+                            <h2>{assignmentDisplayTitle(homeworkAssignment?.title) || "本次聽力作業"}</h2>
                             <p className="playlist-homework-summary" role="status">{homeworkStatus === "ready" ? `本次作業：已完成 ${homeworkCompletedCount} 個，共 ${homeworkProgressTracks.length} 個指定音檔` : homeworkStatus === "loading" ? "正在讀取本次作業進度…" : "目前無法確認這份作業，請返回作業頁重新開啟。"}</p>
                             <p>每首需要的次數都在下方清單，以老師指定次數為準。</p>
                             {homeworkComplete && !confirmedTrack && !assignmentQuery.error && !assignmentQuery.refreshing && <p role="status">{homeworkAssignment?.source_type === "music_track" ? "本次作業已完成" : "本次指定聽力已完成"}。<Link to={homeworkReturnPath}>返回作業頁</Link></p>}

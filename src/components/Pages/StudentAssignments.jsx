@@ -23,7 +23,7 @@ import {
 } from "../../services/assignmentService";
 import ListeningTTSPlayer from "./ListeningTTSPlayer";
 import { assignmentStateLabel, getAssignmentState } from "../../utils/studentLearning";
-import { normalizeListeningTracks } from "../../utils/assignmentListening";
+import { assignmentDisplayTitle, normalizeListeningTracks } from "../../utils/assignmentListening";
 import "./css/Assignments.scss";
 import "./css/StudentAssignments.scss";
 import "./css/StudentAssignmentsJourney.scss";
@@ -453,7 +453,7 @@ const StudentAssignments = () => {
                                         </div>
 
                                         <div className="student-homework-task__title">
-                                            <h3>{item.title}</h3>
+                                            <h3>{assignmentDisplayTitle(item.title)}</h3>
                                             {item.description && <p>{item.description}</p>}
                                         </div>
 
@@ -664,7 +664,7 @@ const StudentAssignments = () => {
                             <div className="student-homework-task__body">
                                 <div className="student-homework-task__top"><div className="student-homework-task__type"><span><Layers3 size={20} /></span><div><strong>老師的任務</strong></div></div><span className={`student-homework-status ${assignment.progress?.completed ? "completed" : "pending"}`}>{assignment.progress?.completed ? <Check size={15} /> : <Clock3 size={15} />}{assignmentStateLabel[getAssignmentState(assignment)]}</span></div>
                                 {assignment.due_at && <p>{formatDateTime(assignment.due_at)} 截止</p>}
-                                <div className="student-homework-task__title"><h3>{assignment.title}</h3>{assignment.description && <p>{assignment.description}</p>}</div>
+                                <div className="student-homework-task__title"><h3>{assignmentDisplayTitle(assignment.title)}</h3>{assignment.description && <p>{assignment.description}</p>}</div>
                                 <div className="student-homework-pack-progress"><div><span>整份作業進度</span><strong>{assignment.progress?.task_completed_count || 0} / {assignment.progress?.total_tasks || 0} 個步驟</strong></div><div aria-hidden="true"><span style={{ width: `${assignment.progress?.total_tasks ? Math.round((assignment.progress?.task_completed_count || 0) / assignment.progress.total_tasks * 100) : 0}%` }} /></div></div>
                                 <div className="student-homework-pack-steps">
                                     {(assignment.activities || []).map((activity, activityIndex) => <section className={`student-homework-pack-step ${activity.item_type}-step${activity.progress?.status === "completed" ? " completed" : ""}`} key={activity.id}>

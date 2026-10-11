@@ -376,3 +376,6 @@ a.student-settings-row:focus-visible, summary.student-settings-row:focus-visible
 .student-progress__next > .student-progress__next-meta { grid-area: meta; max-width: none; }
 .student-progress__next > .student-progress__next-action { grid-area: action; justify-content: center; width: 64px; height: 64px; min-height: 0; margin: 0; padding: 0; border-radius: 50%; > b { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; } > svg { width: 28px; height: 28px; } }
 .student-progress__next::after { background: linear-gradient(90deg, #f5faf1 0%, #f5faf1 44%, rgba(245, 250, 241, .9) 62%, rgba(245, 250, 241, .35) 100%); }
+// Flat round buttons on both cards.
+.student-progress__next > .student-progress__next-action, .student-progress__listen-play { box-shadow: none !important; }
+.student-progress__next:active .student-progress__next-action, .student-progress__listen:active .student-progress__listen-play { transform: scale(.94); }
