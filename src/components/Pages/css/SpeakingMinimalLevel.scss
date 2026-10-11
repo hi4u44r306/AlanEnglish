@@ -78,3 +78,32 @@ body.speaking-challenge-active {
     }
     .speaking-gap-cue { margin: 10px 0 0; font-size: clamp(22px, 5.6vw, 30px); font-weight: 800; line-height: 1.4; color: #79591d; }
 }
+
+// Book list: one line — the title, and today's remaining rounds as a counter that opens the notes.
+.speaking-challenge-catalog:not(.is-book-open) .speaking-challenge-hero:has(.speaking-catalog-help) { position: relative; display: block; min-height: 0 !important; padding: 16px 20px !important; border: 1px solid #d5e3f0; border-radius: 20px !important; box-shadow: none !important; }
+.speaking-challenge-hero:has(.speaking-catalog-help) .speaking-challenge-hero__copy > span,
+.speaking-challenge-hero:has(.speaking-catalog-help) .speaking-challenge-hero__copy > p { display: none !important; }
+.speaking-challenge-hero:has(.speaking-catalog-help) .speaking-challenge-hero__copy { display: block; min-height: 44px; padding-right: 0; pointer-events: none; }
+.speaking-challenge-hero:has(.speaking-catalog-help) .speaking-challenge-hero__copy h1 { margin: 0 !important; font-size: clamp(22px, 6.4vw, 28px) !important; line-height: 44px !important; }
+.speaking-challenge-hero .speaking-catalog-help { margin: 0 !important; padding: 0 !important; border: 0 !important; border-radius: 0 !important; background: none !important; }
+.speaking-challenge-hero .speaking-catalog-help > summary { position: absolute; z-index: 3; top: 16px; right: 16px; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 12px !important; border: 1px solid #c5d6e8; border-radius: 22px !important; background: #edf5ff !important; box-shadow: none !important; color: #17365d !important; list-style: none; cursor: pointer; > svg { width: 20px; height: 20px; color: #245fc5; } > b { font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; } }
+.speaking-challenge-hero .speaking-catalog-help > summary::-webkit-details-marker { display: none; }
+.speaking-challenge-hero .speaking-catalog-help[open] > summary { border-color: #17365d; background: #17365d !important; color: #fff !important; > svg { color: #ffd84d; } }
+.speaking-challenge-hero .speaking-catalog-help[open] { padding-top: 12px !important; }
+// Opened, the notes skip the how-to-play strip: the counter and the parent notes are enough.
+.speaking-challenge-hero .speaking-catalog-help .speaking-challenge-rules { margin: 0 !important; padding: 0 !important; border: 0 !important; background: none !important; box-shadow: none !important; }
+.speaking-challenge-hero .speaking-catalog-help .speaking-challenge-rules__intro,
+.speaking-challenge-hero .speaking-catalog-help .speaking-play-flow { display: none !important; }
+.speaking-challenge-hero .speaking-catalog-help .speaking-usage-card > p,
+.speaking-challenge-hero .speaking-catalog-help .speaking-usage-card > strong { display: none !important; }
+// The counter says what it is: rounds left, then the word 規則 and an arrow that turns when open.
+.speaking-challenge-hero .speaking-catalog-help > summary > span { margin-left: 4px; padding-left: 10px; border-left: 1px solid currentColor; font-size: 16px; font-weight: 800; white-space: nowrap; }
+.speaking-challenge-hero .speaking-catalog-help > summary > .speaking-catalog-help__chevron { width: 18px; height: 18px; color: inherit; transition: transform .15s; }
+.speaking-challenge-hero .speaking-catalog-help[open] > summary > .speaking-catalog-help__chevron { color: #fff; transform: rotate(180deg); }
+@media (prefers-reduced-motion: reduce) { .speaking-challenge-hero .speaking-catalog-help > summary > .speaking-catalog-help__chevron { transition: none; } }
+@media (max-width: 380px) { .speaking-challenge-hero .speaking-catalog-help > summary > svg:first-child { display: none; } }
+@media (max-width: 340px) { .speaking-challenge-hero:has(.speaking-catalog-help) .speaking-challenge-hero__copy h1 { font-size: 20px !important; } }
+@media (max-width: 420px) {
+  .speaking-challenge-hero .speaking-catalog-help > summary > b { font-size: 16px; }
+  .speaking-challenge-hero .speaking-catalog-help > summary > span { font-size: 14px; }
+}

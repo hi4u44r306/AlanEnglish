@@ -38,6 +38,9 @@ function MusicCard({
 
     const completed = progressStatus === "ready" && hasReachedListeningMastery(progress);
     const videoUrl = getTrackVideoUrl(music?.type, page);
+    // The page already names the book, so the card shows just the track ("P22").
+    const bookName = String(music?.bookname || "").trim();
+    const shortTitle = raw => bookName && String(raw).startsWith(bookName) ? String(raw).slice(bookName.length).trim() || raw : raw;
     const title = music?.title || music?.music_name || music?.musicName || page || "教材音檔";
 
     const currentPlaying =
@@ -153,7 +156,7 @@ function MusicCard({
 
             <div className="music-card__info">
                 <div className="music-card__title">
-                    {title}
+                    {shortTitle(title)}
                 </div>
 
                 {isCurrentTrack && <span className="music-card__current">{isPlaying ? "正在聆聽" : "已暫停，可繼續聽"}</span>}
@@ -161,7 +164,7 @@ function MusicCard({
             </div>
 
             <div className={`music-card__status${assignmentProgress ? " has-assignment" : ""}`}>
-                {assignmentProgress && <div className="music-card__assignment"><strong>{assignmentProgress.completed ? "本次作業已完成" : "本次作業"}</strong><span>{assignmentProgressStatus !== "ready" ? "作業進度尚未確認" : `已聽 ${assignmentProgress.playCount} 次，還需 ${Math.max(0, assignmentProgress.requiredListens - assignmentProgress.playCount)} 次`}</span><small>老師指定：{assignmentProgress.requiredListens} 次</small></div>}
+                {assignmentProgress && <div className="music-card__assignment"><strong>{assignmentProgress.completed ? "本次作業已完成" : "本次作業"}</strong><span>{assignmentProgressStatus !== "ready" ? "作業進度尚未確認" : `已聽 ${assignmentProgress.playCount} 次，還需 ${Math.max(0, assignmentProgress.requiredListens - assignmentProgress.playCount)} 次`}</span><b className="music-card__count" aria-hidden="true">{assignmentProgressStatus === "ready" ? `${Math.min(assignmentProgress.playCount, assignmentProgress.requiredListens)} / ${assignmentProgress.requiredListens} 次` : "—"}</b><small>老師指定：{assignmentProgress.requiredListens} 次</small></div>}
                 {videoUrl && <a className="music-card__video" href={videoUrl} target="_blank" rel="noopener noreferrer" aria-label={`在 YouTube 看 ${title} 的教學影片`}><FiYoutube aria-hidden="true" /><span>看影片</span></a>}
                 <div className="music-card__plays">
                     <FiHeadphones aria-hidden="true" />

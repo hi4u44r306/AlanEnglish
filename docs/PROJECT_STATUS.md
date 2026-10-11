@@ -1,5 +1,55 @@
 # Alan English 專案狀態
 
+### 口說大挑戰首頁精簡、作業用語「遲交」（2026-10-12，併入 PR #531，待擁有者說「幫我合併」）
+
+- 同分支 `fix/page-length`。純前端顯示，額度與作業狀態判斷未動。
+- `TextbookSpeakingChallenge.jsx`：`speaking-catalog-help` 移入首頁標題卡，summary 改為「麥克風＋剩餘／上限」計數；樣式在 `SpeakingMinimalLevel.scss`（隱藏小標、說明句、三步驟與重複數字）。老師預覽維持原標題文字、不顯示計數。
+- `SpeakingChallengeRules.jsx` 學生與家長可見文字改為白話（移除「Azure」「本機」），僅文案、規則數值未動；`SpeakingChallengeRules.test.jsx` 原有 2 項過期斷言已更新並新增「不得出現 Azure／本機」檢查，`TextbookSpeakingChallenge.test.jsx` 同步；兩組共 57 項通過。窄畫面計數字級縮小。
+- 修正：計數標示原本被 `speaking-challenge-hero__copy`（z-index 2）蓋住而點不到；改為 summary `z-index: 3`、標題層 `pointer-events: none`，並加上「規則」文字與箭頭。
+- `studentLearning.js` 的 `assignmentStateLabel.overdue` 改為「遲交」，`StudentAssignments.jsx`、`Playlist.jsx` 提醒文字同步；老師與管理端用語未動。
+- 驗證：TextbookSpeakingChallenge、StudentAssignments、Playlist、StudentProgressOverview 等 5 組共 87 項通過；本機測試學生實看口說首頁 375 寬的收合與展開。未驗：桌面寬度、iPhone Safari。
+
+### 我的進度：「接著聽」大卡與彩色圖示（2026-10-12，併入 PR #531，待擁有者說「幫我合併」）
+
+- 同分支 `fix/page-length`。純前端：`StudentProgressOverview.jsx`、`css/StudentSettings.scss`、對應測試。
+- 最近一本的書籤改為獨立卡片 `student-progress__listen`（頁碼為主、教材名為輔）；有作業時排在作業卡下，無作業時取代原「繼續聽」森林卡。其他教材的書籤列移除。
+- 清單列圖示改為彩色方塊 `student-progress__tile--*`；「作業」列僅在未完成數不等於 1 時顯示（還有 N 份／都完成了）。
+- 作業卡改橫向（文字左、圓形按鈕右），標籤「作業已逾期」改「作業遲交」；作業頁與聽力頁的「已逾期」用語未動。
+- `assignmentListening.js` 新增 `assignmentDisplayTitle`（僅顯示層：標題開頭的 YYYYMMDD 轉為 YYYY/MM/DD，資料不變），用於我的進度、`StudentAssignments.jsx`、`Playlist.jsx`；老師端不變。圓形按鈕移除陰影。新增 `assignmentListening.test.js`；四組測試共 32 項通過。
+- 驗證：StudentProgressOverview、StudentSettings 共 23 項通過；本機測試學生實看 375 與 1440 寬。未驗：iPhone Safari。
+
+### 作業標示教材名稱、教材聽力頁標題旁完成數（2026-10-12，併入 PR #531，待擁有者說「幫我合併」）
+
+- 同分支 `fix/page-length`。純前端顯示，計次與作業邏輯未動。
+- `StudentAssignments.jsx`：作業卡片聽力區標題改顯示教材名稱（無教材資料時維持「指定音檔」）。
+- `Playlist.jsx`：作業模式的列表標題改為教材名稱＋「指定音檔 N 個」，頁首重複的教材名稱只留給輔助科技；一般教材模式移除「聽力任務列表」標題，改在頁首教材名稱右側顯示 `已完成 / 全部`（沿用既有 `stats`，完成＝熟練 30 次），列表區塊改用 `aria-label`。樣式在 `StudentAssignmentsMinimal.scss`。
+- 上次聽到標示：`Playlist.jsx` 在一般教材模式為上次聽到（或 `?resume=`）的音檔外層加 `playlist-track--last-heard` 與「上次聽到這裡」標籤；黃框常駐，`:target` 時閃爍（reduced-motion 關閉）。
+- 驗證：Playlist、StudentAssignments、MusicCard 共 31 項通過；本機 `localhost:3000` 以測試學生實看 375 與 1440 寬。未驗：iPhone Safari、口說關卡練習音檔模式（標題維持原樣）。
+
+### 作業頁重新設計、Boss 挑戰入口元件（2026-10-11，併入 PR #531，待擁有者說「幫我合併」）
+
+- 同分支 `fix/page-length`。純前端。
+- 作業：新增 `css/StudentAssignmentsMinimal.scss`（由 `StudentAssignments.jsx` 與 `Playlist.jsx` 最後載入），以覆寫方式隱藏說明性區塊並統一為單欄卡片；頁面標題文字改為「作業」。JSX 結構、資料與作業計次邏輯未動，被隱藏的元素仍在 DOM。
+- Boss：新增 `BossChallengeEntry.jsx`／`BossChallengeEntry.scss`（火焰卡片，含 reduced-motion），`StudentNavbar` 新增 `bossEvent` 參數（預設 null）並在冒險選單與底部導覽顯示。目前沒有任何資料來源傳入 `bossEvent`，學生端不會出現；正式 Boss 場次、通知與後端仍不存在（main 上只有管理員單機預覽 `/admin/boss-preview`）。
+- 驗證：StudentAssignments、Playlist、MusicCard、MainNavbar 共 66 項通過；本機 `localhost:3000` 以測試學生實看作業列表與作業聽力頁（390 與 1440 寬，1440 寬初版卡片被舊 grid 擠窄，已修）；Boss 按鈕以暫時強制開啟方式實看後已還原為 null。
+- 後續：擁有者指出作業聽力頁的音檔卡片分成上下兩層。`MusicCard` 標題去掉重複的教材名稱前綴、作業模式新增精簡次數 `music-card__count`（原文字保留給輔助科技）；`MusicCard.scss` 把聽力頁音檔卡片在所有寬度改為單列（播放、名稱、右側次數與影片圖示），影片按鈕在卡片上只顯示圖示。本機 390 寬實看作業聽力頁與一般聽力頁，卡片高 90px、無水平溢出；MusicCard、Playlist、StudentAssignments 共 31 項通過。
+- 未驗：混合任務包（mission pack）與 AI 測驗型作業的卡片（測試帳號只有聽力作業）；iPhone Safari。
+
+### 我的進度版面整理（2026-10-11，併入 PR #531，待擁有者說「幫我合併」）
+
+- 同分支 `fix/page-length`。`StudentSettings`：標題改為僅供輔助科技讀取；個人卡移除「我的學習角色」、AI Premium 徽章、頭貼格式說明與暱稱長說明，暱稱表單改為卡片的直接子元素並跨兩欄。`StudentProgressOverview`：「接下來」卡加回 `unified-forest-a-v1.webp` 底圖、標籤與卡內按鈕樣式。
+- 驗證：StudentSettings、StudentProgressOverview 共 22 項通過；ESLint、SCSS 編譯通過。於本機 `localhost:3000`（已登入測試學生）在 390、768、1440 寬實看與量測：無水平溢出，頭貼與名稱不重疊（初版在 1440 寬重疊，已改欄寬）。
+- 未驗：iPhone Safari 實機。
+
+### 學生頁面底部多餘空白（2026-10-11，PR 待擁有者說「幫我合併」）
+
+- 擁有者以 iPhone 截圖回報我的進度頁尾有大片空白並要求檢查所有頁面長度。發布紀錄補記：PR #530 已合併為 main `b927838f`，Workers Builds 成功，線上口說 chunk 含 `speaking-gap-cue`。
+- 原因：`.app-content` 已為底部導覽列保留 `94px + offset`（播放時更多），但多數頁面根元素仍各自加 58～190px 的 `padding-bottom`，且 Playlist、WeeklyReport、ReviewCenter、AIMaterialGenerator 等在殼層內又設 `min-height: 100vh`，兩者疊加。另發現播放時 `Containerfull` 以 inline `paddingBottom`（預設 110px／`curr_margin`）蓋掉學生版 `has-player` 規則。
+- 修正（只加在 `StudentNavbar.scss`，範圍 `max-width:1279px` 且有底部導覽、排除 `speaking-challenge-active` 與 `sr-immersive`）：`.app-content` 改為直向 flex，頁面根元素 `flex:1 0 auto; min-height:0; padding-bottom:16px`（皆 `!important`）；`has-player` 的 padding 以 `!important` 還原為 `176px + offset`；`html` 背景設為 `#f7f9fc`。各頁 SCSS 未逐一修改。
+- 量測（以實際編譯的殼層與八個學生頁面樣式組成的模擬頁，390×800）：短內容時 playlist、weekly-report、review-center、ai-studio 的多餘捲動由 183px 變 0；長內容時頁尾留白由 156～214px 統一為 130px，內容底端高於導覽列 42px；播放中的 padding 為 196px。
+- 後續（同日）：依擁有者要求以 `npm start` 在本機 `localhost:3000` 啟動本分支並以已登入的測試學生實測（連正式後端，僅瀏覽、未送出任何資料）。12 個學生頁面於 390×844、768×1024、1440×900 量測：手機／平板頁尾留白 130～173px（含導覽列 88px）；桌面原本未套用規則，短頁面（review、speaking-challenges、account/security）被撐出 19～147px 的多餘捲動、頁尾 136～306px，因此把頁面填滿規則改為所有寬度的學生頁面（`body:has(.ae-student-navbar)`），重量後短頁面多餘捲動為 0、頁尾 94～137px。三種寬度皆無水平溢出。`localhost:3100` 無法登入（後端允許來源只有 3000）。
+- 未驗：iPhone Safari 實機；老師／管理員頁面未套用也未檢查。截圖中導覽列下方半個螢幕的白色區域無法在此重現，推測是 iOS 捲過頭的回彈區，僅以 html 背景色處理，未確認。
+
 ### 看圖挖空句：大字、空格中文、移除圖片（2026-10-11，PR 待擁有者說「幫我合併」）
 
 - 擁有者以 iPhone 截圖回報 #525／#527 沒有套到看圖挖空句畫面：該畫面由 `WorkbookOnePictureChallenge` 渲染，句子在 `.speaking-gap-sentence`（非 h2），且 `hideHelp` 在 easy 模式一律為 true，所以沒有放大、也沒有提示按鈕。

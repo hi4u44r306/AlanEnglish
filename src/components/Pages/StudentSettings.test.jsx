@@ -123,7 +123,8 @@ describe("StudentSettings", () => {
 
         expect(await screen.findByRole("heading", { name: "我的進度" })).toBeInTheDocument();
         expect(screen.getByText(/Ming Wang/)).toBeInTheDocument();
-        expect(screen.getByText("AI Premium")).toBeInTheDocument();
+        expect(screen.queryByText(/AI Premium/)).not.toBeInTheDocument();
+        expect(screen.queryByText(/支援 JPG/)).not.toBeInTheDocument();
         expect(screen.getByRole("switch", { name: "手機推播通知" })).toBeInTheDocument();
         expect(screen.getByRole("link", { name: "帳號與密碼" })).toHaveAttribute("href", "/account/security");
         expect(screen.getByRole("link", { name: "會員與功能" })).toHaveAttribute("href", "/student/membership");
@@ -170,7 +171,7 @@ describe("StudentSettings", () => {
         const nicknameInput = await screen.findByLabelText("公開暱稱");
         await waitFor(() => expect(nicknameInput).toHaveValue("Sunny Fox"));
         expect(nicknameInput.closest(".student-settings-profile-card")).not.toBeNull();
-        expect(screen.getByText(/7 天.*只能修改一次/)).toBeInTheDocument();
+        expect(screen.getByText("每 7 天可以改一次")).toBeInTheDocument();
         fireEvent.change(nicknameInput, { target: { value: "Brave Owl" } });
         fireEvent.click(screen.getByRole("button", { name: "儲存暱稱" }));
         expect(updateNickname).not.toHaveBeenCalled();
@@ -247,30 +248,6 @@ describe("StudentSettings", () => {
             "123456"
         ));
         expect(refreshStudentProfile).toHaveBeenCalled();
-    });
-
-    it("recognizes the general-member AI materials and pronunciation plan", async () => {
-        useAuth.mockReturnValue({
-            firebaseUser: { uid: "student-2" },
-            setStudentProfile,
-            refreshStudentProfile,
-            studentProfile: {
-                name: "林小美",
-                learner_type: "textbook_customer",
-                membership: {
-                    effective_access: {
-                        plan_codes: ["basic_membership_monthly", "ai_materials_general_monthly"],
-                        features: { ai_materials: true }
-                    }
-                }
-            }
-        });
-
-        render(<StudentSettings />);
-
-        expect(await screen.findByText("AI Premium")).toBeInTheDocument();
-        expect(screen.getByLabelText("AI Premium 已啟用"))
-            .toHaveAttribute("title", "AI 教材與發音練習可使用");
     });
 
     it("requires final confirmation before applying one of twenty-five preset avatars", async () => {

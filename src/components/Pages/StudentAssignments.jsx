@@ -23,10 +23,11 @@ import {
 } from "../../services/assignmentService";
 import ListeningTTSPlayer from "./ListeningTTSPlayer";
 import { assignmentStateLabel, getAssignmentState } from "../../utils/studentLearning";
-import { normalizeListeningTracks } from "../../utils/assignmentListening";
+import { assignmentDisplayTitle, normalizeListeningTracks } from "../../utils/assignmentListening";
 import "./css/Assignments.scss";
 import "./css/StudentAssignments.scss";
 import "./css/StudentAssignmentsJourney.scss";
+import "./css/StudentAssignmentsMinimal.scss";
 
 const EMPTY_LIST = [];
 
@@ -276,7 +277,7 @@ const StudentAssignments = () => {
                             {formatToday(today)}
                         </span>
                         <h1>
-                            {loading ? "正在整理我的作業" : message ? "作業暫時無法讀取" : "我的學習任務"}
+                            {loading ? "正在整理我的作業" : message ? "作業暫時無法讀取" : "作業"}
                         </h1>
                         <p>
                             選一份任務開始，完成老師指定的練習。過往任務與截止時間也能在這裡查看。
@@ -452,7 +453,7 @@ const StudentAssignments = () => {
                                         </div>
 
                                         <div className="student-homework-task__title">
-                                            <h3>{item.title}</h3>
+                                            <h3>{assignmentDisplayTitle(item.title)}</h3>
                                             {item.description && <p>{item.description}</p>}
                                         </div>
 
@@ -467,7 +468,7 @@ const StudentAssignments = () => {
                                             </span>
                                         </div>
 
-                                        {getAssignmentState(item) === "overdue" && <p className="student-homework-overdue" role="note">這份作業已逾期，請向老師確認是否可以補做。{item.listening_progress_mode === "assignment_window" ? "目前繼續聆聽不會增加這份作業的次數。" : ""}</p>}
+                                        {getAssignmentState(item) === "overdue" && <p className="student-homework-overdue" role="note">這份作業遲交了，請向老師確認是否可以補做。{item.listening_progress_mode === "assignment_window" ? "目前繼續聆聽不會增加這份作業的次數。" : ""}</p>}
                                         {!isMissionPack && includesListening && listening.url && <Link className="student-homework-quick-start" to={listening.url}><Headphones size={18} />{isCompleted ? "再次聆聽" : getAssignmentState(item) === "overdue" ? "查看指定音檔" : "繼續完成作業"}<ArrowRight size={18} /></Link>}
 
                                         {isMissionPack ? (
@@ -605,7 +606,7 @@ const StudentAssignments = () => {
                                             <div className="student-homework-listening">
                                                 <div className="student-homework-listening__heading">
                                                     <div>
-                                                        <strong>指定音檔</strong>
+                                                        <strong>{listening.tracks?.[0]?.book?.name || "指定音檔"}</strong>
                                                         <span>
                                                             {listening.completedTracks}
                                                             {" / "}
@@ -663,7 +664,7 @@ const StudentAssignments = () => {
                             <div className="student-homework-task__body">
                                 <div className="student-homework-task__top"><div className="student-homework-task__type"><span><Layers3 size={20} /></span><div><strong>老師的任務</strong></div></div><span className={`student-homework-status ${assignment.progress?.completed ? "completed" : "pending"}`}>{assignment.progress?.completed ? <Check size={15} /> : <Clock3 size={15} />}{assignmentStateLabel[getAssignmentState(assignment)]}</span></div>
                                 {assignment.due_at && <p>{formatDateTime(assignment.due_at)} 截止</p>}
-                                <div className="student-homework-task__title"><h3>{assignment.title}</h3>{assignment.description && <p>{assignment.description}</p>}</div>
+                                <div className="student-homework-task__title"><h3>{assignmentDisplayTitle(assignment.title)}</h3>{assignment.description && <p>{assignment.description}</p>}</div>
                                 <div className="student-homework-pack-progress"><div><span>整份作業進度</span><strong>{assignment.progress?.task_completed_count || 0} / {assignment.progress?.total_tasks || 0} 個步驟</strong></div><div aria-hidden="true"><span style={{ width: `${assignment.progress?.total_tasks ? Math.round((assignment.progress?.task_completed_count || 0) / assignment.progress.total_tasks * 100) : 0}%` }} /></div></div>
                                 <div className="student-homework-pack-steps">
                                     {(assignment.activities || []).map((activity, activityIndex) => <section className={`student-homework-pack-step ${activity.item_type}-step${activity.progress?.status === "completed" ? " completed" : ""}`} key={activity.id}>

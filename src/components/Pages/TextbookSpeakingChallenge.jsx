@@ -1,6 +1,6 @@
 import { speakingReadFailure } from "../../utils/speakingReadFailure";
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { FiAward, FiBookOpen, FiCheck, FiChevronLeft, FiChevronRight, FiMic, FiVolume2 } from "react-icons/fi";
+import { FiAward, FiBookOpen, FiCheck, FiChevronDown, FiChevronLeft, FiChevronRight, FiMic, FiVolume2 } from "react-icons/fi";
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import useStudentPageQuery from "../../hooks/useStudentPageQuery";
 import { useAuth } from "../../auth/AuthContext";
@@ -424,6 +424,8 @@ export default function TextbookSpeakingChallenge() {
         const mapRoute = selectedBook ? buildCartoonSpeakingRoute(selectedBook.id, mapLessons.map(({ item }) => item)) : null;
         const returnedLevelIndex = mapLessons.findIndex(lesson => Number(lesson.item.id) === Number(location.state?.speakingReturn?.questionSetId));
         const initialLevelIndex = returnedLevelIndex >= 0 ? returnedLevelIndex : Math.max(0, mapLessons.indexOf(nextTarget));
+        // Today's remaining rounds, shown as one small counter beside the title.
+        const quotaReady = !catalogLoading && Number.isInteger(challengePolicy?.daily_remaining) && Number.isInteger(challengePolicy?.daily_limit) && challengePolicy.daily_limit > 0;
         return renderScene(<main className={`speaking-challenge-page speaking-challenge-catalog${selectedBook ? " is-book-open is-segmented-world" : ""}`}>
             {selectedBook ? <header className="speaking-book-toolbar">
                 <button type="button" className="speaking-back" aria-label="返回全部教材" onClick={() => requestReturn("/student/speaking-challenges")}><FiChevronLeft /><span>全部教材</span></button>
@@ -439,8 +441,11 @@ export default function TextbookSpeakingChallenge() {
                     <h1>口說大挑戰</h1>
                     <p>{staffPreview ? "選擇 Workbook 預覽已發布關卡。" : "把課本裡的英文說出來，練習發音與完整回答。"}</p>
                 </span>
+                {!staffPreview && <details className="speaking-catalog-help">
+                    <summary aria-label={quotaReady ? `今天還能練 ${challengePolicy.daily_remaining} 輪，共 ${challengePolicy.daily_limit} 輪。點一下看規則` : "今日額度與規則"}><FiMic aria-hidden="true" /><b>{quotaReady ? `${challengePolicy.daily_remaining} / ${challengePolicy.daily_limit}` : "…"}</b><span>規則</span><FiChevronDown className="speaking-catalog-help__chevron" aria-hidden="true" /></summary>
+                    <SpeakingChallengeRules policy={challengePolicy} loading={catalogLoading} />
+                </details>}
             </header>}
-            {!staffPreview && !selectedBook && <details className="speaking-catalog-help"><summary>查看今日額度與練習說明</summary><SpeakingChallengeRules policy={challengePolicy} loading={catalogLoading} /></details>}
             {catalogQuery.error && <p role="status">{catalogQuery.data ? "目前顯示上次口說目錄，最新進度暫時無法同步。" : "口說目錄暫時無法讀取。"}<button type="button" onClick={() => catalogQuery.refresh()}>重新讀取</button></p>}
             <section className="speaking-challenge-grid" aria-busy={catalogLoading}>
                 {catalogLoading && <div className="speaking-challenge-loading-status" role="status">正在準備口說大挑戰…</div>}

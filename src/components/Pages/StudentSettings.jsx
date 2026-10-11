@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { FiBell, FiCamera, FiChevronRight, FiCreditCard, FiGift, FiHelpCircle, FiImage, FiLock, FiMail, FiMove, FiX, FiZap, FiZoomIn } from "react-icons/fi";
+import { FiBell, FiCamera, FiChevronRight, FiCreditCard, FiGift, FiHelpCircle, FiLock, FiMail, FiMove, FiX, FiZoomIn } from "react-icons/fi";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useAuth } from "../../auth/AuthContext";
@@ -535,20 +535,10 @@ function StudentSettings() {
                     <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" hidden onChange={handleAvatarChange} />
                 </div>
                 <div className="student-settings-profile-copy">
-                    <span>我的學習角色</span>
-                    <div className="student-settings-profile-heading">
-                        <h2>{publicDisplayName}</h2>
-                        <span
-                            className={`student-settings-premium ${hasAiPremium ? "active" : ""}`}
-                            aria-label={hasAiPremium ? "AI Premium 已啟用" : "AI Premium 未啟用"}
-                            title={hasAiMaterials ? "AI 教材與發音練習可使用" : "目前沒有 AI 教材與發音練習權限"}
-                        >
-                            <FiZap />
-                            <strong>{hasAiPremium ? "AI Premium" : "AI Premium 未啟用"}</strong>
-                        </span>
-                    </div>
-                    <p>{profile.english_name || "尚未設定英文姓名"}　·　{profile.class ? `${profile.class} 班` : "尚未分班"}</p>
-                    <small><FiImage /> {uploading ? "正在處理頭像…" : "支援 JPG、PNG、WebP；超過 5MB 的照片會先在裝置上壓縮。"}</small>
+                    <h2>{publicDisplayName}</h2>
+                    <p>{[profile.english_name, profile.class ? `${profile.class} 班` : ""].filter(Boolean).join("　·　")}</p>
+                    {uploading && <small role="status">正在處理頭像…</small>}
+                </div>
                     <form className={`student-settings-nickname-form student-settings-profile-nickname-form ${nicknameCooldownActive ? "is-locked" : ""}`} onSubmit={requestNicknameSave}>
                         <label htmlFor="student-settings-nickname">公開暱稱</label>
                         <div>
@@ -571,17 +561,11 @@ function StudentSettings() {
                                     <FiLock />距離下次修改還有 <strong>{nicknameCountdown}</strong><br />
                                     可於台灣時間 {formatNicknameAvailableAt(nicknameAvailableAt)} 後再次修改。
                                 </span>
-                            ) : (
-                                <>
-                                    2～20 字；會顯示在排行榜、好友與學生首頁。每
-                                    <strong>『 7 天 』只能修改一次</strong>。
-                                </>
-                            ))}
+                            ) : "每 7 天可以改一次")}
                         </small>
                     </form>
-                </div>
                 <details className="student-settings-avatar-presets" onToggle={event => setShowAvatarPresets(event.currentTarget.open)}>
-                    <summary>選擇預設頭像<span>換個角色陪我學習</span></summary>
+                    <summary>選擇預設頭像</summary>
                     <div className="student-settings-avatar-preset-grid">
                         {showAvatarPresets && DEFAULT_STUDENT_AVATARS.map(avatar => (
                             <button key={avatar.id} type="button" onClick={() => reviewPresetAvatar(avatar)} disabled={uploading} aria-pressed={avatarUrl === avatar.path} aria-label={`使用${avatar.name}頭像`}>
