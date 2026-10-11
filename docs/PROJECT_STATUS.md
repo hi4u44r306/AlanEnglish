@@ -1,5 +1,17 @@
 # Alan English 專案狀態
 
+### 教材頁再精簡、熟練 30 次、生日／好友後端停用（2026-10-11，本機完成／尚未合併、尚未套用任何遠端變更）
+
+- 負責：Claude Code。同分支、同 PR #521。擁有者於本對話指示執行這四項；合併仍待「幫我合併」。
+- 教材頁：`StudentLearningHome` 移除成長卡、作業提醒與「老師的任務」清單，作業只留主任務卡；不再呼叫 gamification summary。
+- 熟練 30 次：`LISTENING_MASTERY_REQUIRED_PLAYS = 30`、`record-play` 與 `get-playback-progress` 的 completed 門檻、migration `20261011090000_listening_mastery_thirty_listens.sql`（放寬 `student_track_mastery` check 至 30，並只替換正式 `complete_listening_reward_session_v3` 的三處門檻，定義不符即中止）。獎勵金額、每日 3 檔上限、作業次數上限 10 未動。
+- 生日停用：migration `20261011091000_disable_birthday_rewards.sql` 把既有 `birthday_reward_settings.enabled` 設為 false（同時停止生日禮與 XP×2）。生日欄位、管理員設定卡保留。
+- 好友停用：`student-social` 對暱稱以外的 action 一律回 410；前端 service 只留暱稱兩個函式。好友資料表未刪除。
+- 遠端唯讀核對（2026-10-11）：正式庫 1 個學生帳號、3 筆 `student_track_progress`、無任何 ≥10 次紀錄，門檻調整不影響既有完成狀態。
+- 驗證：相關前端測試通過（教材頁 22 項、聽力相關 48 項、導覽／設定／social service 57 項）。SQL 與 Edge Function 改動沒有在任何資料庫或 Deno 環境執行過。
+- 待發布步驟（須在合併到 main 之後、由 main 執行）：套用兩個 migration → 部署 `record-play`、`get-playback-progress`、`student-social` → Cloudflare 正式建置 → 正式站驗收。回復：migration 註解內有反向做法；生日可由管理員重新啟用；三個 Function 可重新部署前一版。
+- 未做：家長每週學習報告 Email（需新排程與寄信）；音檔 YouTube 跳轉（/links 目前是一本教材一支影片，沒有每個音檔的時間點資料）。
+
 ### 學生三按鈕導覽、我的進度、精簡聽力頁（2026-10-11，尚未部署／同 PR #521）
 
 - 負責：Claude Code。同分支 `claude/homepage-redesign-simplify-1b3133`，接續下方「首頁精簡」。純前端，無後端、資料、權限變更。

@@ -246,10 +246,9 @@ Deno.serve(async (req: Request) => {
         if (caller.role !== "student") return json(req, 403, { success: false, error: "好友功能只提供學生帳號使用" });
         const body = await req.json().catch(() => ({}));
         const action = cleanText(body.action, 40) || "overview";
+        // The friends system is retired; only nickname settings remain reachable.
         if (!["nickname_settings", "update_nickname"].includes(action)) {
-            const { data: access, error: accessError } = await admin.rpc("get_student_effective_access", { p_student_id: caller.id, p_as_of: new Date().toISOString() });
-            if (accessError) throw accessError;
-            if (access?.is_active !== true) return json(req, 403, { success: false, error: "學習方案目前未啟用，暫時無法使用好友功能" });
+            return json(req, 410, { success: false, error: "好友功能已停止服務" });
         }
         await admin.from("student_social_profiles").update({ last_active_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq("student_id", caller.id);
 

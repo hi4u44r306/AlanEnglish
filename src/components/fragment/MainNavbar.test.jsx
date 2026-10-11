@@ -11,7 +11,6 @@ import { getAccessibleCatalog } from "../../services/contentAccessService";
 import { getGamificationSummary } from "../../services/gamificationService";
 import { getStudentNotifications, markStudentNotificationRead } from "../../services/membershipService";
 import { prefetchReviewDashboard } from "../../services/reviewService";
-import { sendSocialHeartbeat } from "../../services/studentSocialService";
 
 jest.mock("../../auth/AuthContext", () => ({ useAuth: jest.fn() }));
 jest.mock("../../services/contentAccessService", () => ({ getAccessibleCatalog: jest.fn() }));
@@ -19,7 +18,6 @@ jest.mock("../../services/gamificationService", () => ({ getGamificationSummary:
 jest.mock("../../services/membershipService", () => ({ getStudentNotifications: jest.fn(), markStudentNotificationRead: jest.fn() }));
 jest.mock("../../services/reviewService", () => ({ prefetchReviewDashboard: jest.fn() }));
 const mockOffcanvasRender = jest.fn();
-jest.mock("../../services/studentSocialService", () => ({ sendSocialHeartbeat: jest.fn() }));
 jest.mock("react-bootstrap/Offcanvas", () => {
     const ReactModule = require("react");
     const Offcanvas = ({ show, children, className, id, placement }) => {
@@ -77,7 +75,6 @@ describe("MainNavbar student navigation", () => {
         });
         getStudentNotifications.mockResolvedValue({ notifications: [] });
         markStudentNotificationRead.mockResolvedValue({ success: true });
-        sendSocialHeartbeat.mockResolvedValue({ success: true });
     });
 
     it("shares the summary with the header and refreshes XP and points after a reward event", async () => {
