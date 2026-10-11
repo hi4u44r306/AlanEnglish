@@ -220,7 +220,6 @@ const StudentNavbar = ({
         <>
             <Navbar className={`ae-navbar ae-student-navbar ${scrolled ? "scrolled" : ""}`}>
                 <Container fluid className="ae-navbar-container">
-                    <Navbar.Brand as={Link} to="/student/settings" className="ae-brand" aria-label="Alan English 我的進度"><img src="/ae-icon.jpeg" alt="" width="40" height="40" /></Navbar.Brand>
                     <StudentGrowthHeader key={firebaseUser?.uid} summary={growthSummary} loading={growthLoading} error={growthError} pointsAccess={hasRewardsAccess} onRetry={onGrowthRetry} avatarUrl={avatarUrl} />
                     <Nav as="nav" className="ae-student-desktop-nav" aria-label="學生桌面導覽" onSelect={closeDrawer}>
                         <Nav.Link as={Link} to="/student/settings" aria-current={isPathActive("/student/settings") ? "page" : undefined} className={profileActive ? "active" : ""} aria-label="我的進度"><span><NavigationIcon tone="profile">{profileAvatar}</NavigationIcon>我的進度</span></Nav.Link>
