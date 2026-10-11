@@ -154,6 +154,8 @@ function Playlist() {
     const homeworkCompletedCount = homeworkProgressTracks.filter(track => track.completed).length;
     const homeworkCompletionRate = homeworkProgressTracks.length ? Math.round((homeworkCompletedCount / homeworkProgressTracks.length) * 100) : 0;
     const homeworkComplete = homeworkProgressTracks.length > 0 && homeworkCompletedCount === homeworkProgressTracks.length;
+    // The card the student stopped at keeps a visible frame, so the jump link lands on something obvious.
+    const lastHeardMarkId = !plainList || role !== "student" ? "" : String(resumeTrackId || lastHeard?.trackId || "");
     const confirmedTrack = role === "student" ? visibleTracks.find(track => String(track.id) === confirmedListen?.trackId) : null;
     const confirmedIndex = confirmedTrack ? visibleTracks.indexOf(confirmedTrack) : -1;
     const nextTrack = homeworkContext.active ? visibleTracks.find(track => !isHomeworkTrackCompleted(track)) : confirmedIndex >= 0 ? visibleTracks[confirmedIndex + 1] : null;
@@ -245,7 +247,8 @@ function Playlist() {
                     {!plainList && <div className="playlist-list-heading"><h2 id="listening-track-list-title">{homeworkContext.active ? book?.name || "指定音檔" : "本關練習音檔"}</h2><span>{homeworkContext.active ? "指定音檔 " : ""}{visibleTracks.length} 個{homeworkContext.active ? "" : "音檔"}</span></div>}
                     <div className="playlist-list" id="listening-track-list" tabIndex={-1}>
                         {visibleTracks.length > 0 ? visibleTracks.map((track, index) => (
-                            <div className={homeworkTrackSet.has(String(track.id)) ? "playlist-homework-track" : ""} id={`listening-track-${track.id}`} tabIndex={-1} key={track.id}>
+                            <div className={[homeworkTrackSet.has(String(track.id)) ? "playlist-homework-track" : "", String(track.id) === lastHeardMarkId ? "playlist-track--last-heard" : ""].filter(Boolean).join(" ")} id={`listening-track-${track.id}`} tabIndex={-1} key={track.id}>
+                                {String(track.id) === lastHeardMarkId && <span className="playlist-track__last-heard">上次聽到這裡</span>}
                                 <MusicCard
                                     music={track}
                                     playbackQueue={visibleTracks}
