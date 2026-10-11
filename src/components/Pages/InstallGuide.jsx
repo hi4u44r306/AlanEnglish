@@ -19,9 +19,37 @@ const STEP_SECONDS = 3;
 const DEVICES = { ios: "iPhone／iPad", android: "Android 手機" };
 
 // iPhone／iPad 上 Safari 與 Google Chrome 都能加入主畫面，分享按鈕的位置不同。
+const CHROME_SECTOR = "M24 12H44.78A24 24 0 0 0 3.22 12L13.61 30A12 12 0 0 1 24 12Z";
+
+const SafariLogo = () => (
+    <svg className="install-guide__browserIcon" viewBox="0 0 48 48" aria-hidden="true">
+        <defs>
+            <linearGradient id="ig-safari-sky" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stopColor="#19d7ff" />
+                <stop offset="1" stopColor="#1e64f0" />
+            </linearGradient>
+        </defs>
+        <circle cx="24" cy="24" r="23" fill="#fff" stroke="#d0d5dd" />
+        <circle cx="24" cy="24" r="20.5" fill="url(#ig-safari-sky)" />
+        <circle cx="24" cy="24" r="17.5" fill="none" stroke="#fff" strokeWidth="3" strokeDasharray="0.7 2.354" />
+        <polygon points="35,13 26.1,26.1 21.9,21.9" fill="#ff3b30" />
+        <polygon points="13,35 26.1,26.1 21.9,21.9" fill="#fff" />
+    </svg>
+);
+
+const ChromeLogo = () => (
+    <svg className="install-guide__browserIcon" viewBox="0 0 48 48" aria-hidden="true">
+        <path d={CHROME_SECTOR} fill="#ea4335" />
+        <path d={CHROME_SECTOR} fill="#fbbc04" transform="rotate(120 24 24)" />
+        <path d={CHROME_SECTOR} fill="#34a853" transform="rotate(240 24 24)" />
+        <circle cx="24" cy="24" r="12" fill="#fff" />
+        <circle cx="24" cy="24" r="9.5" fill="#4285f4" />
+    </svg>
+);
+
 const IOS_BROWSERS = {
-    safari: { name: "Safari", look: "藍色指南針" },
-    chrome: { name: "Google Chrome", look: "紅黃綠藍圓球" }
+    safari: { name: "Safari", look: "藍色指南針", Logo: SafariLogo },
+    chrome: { name: "Google Chrome", look: "紅黃綠藍圓球", Logo: ChromeLogo }
 };
 
 const GUIDES = {
@@ -284,7 +312,7 @@ function InstallGuide() {
                         <p id="install-browser-heading">你平常用哪一個上網？兩個都可以。</p>
                         {Object.entries(IOS_BROWSERS).map(([key, item]) => (
                             <button key={key} type="button" aria-pressed={iosBrowser === key} onClick={() => chooseIosBrowser(key)}>
-                                <span className={"install-guide__browserIcon install-guide__browserIcon--" + key} aria-hidden="true" />
+                                <item.Logo />
                                 <span><strong>{item.name}</strong><small>{item.look}</small></span>
                             </button>
                         ))}
