@@ -19,7 +19,7 @@ export const detectInstallEnvironment = (nav = typeof navigator === "undefined" 
 
     let browser = "other";
     if (inApp) browser = inApp[0];
-    else if (isIOS) browser = /CriOS|FxiOS|EdgiOS|OPiOS/.test(ua) ? "ios-other" : "safari";
+    else if (isIOS) browser = /CriOS/.test(ua) ? "ios-chrome" : /FxiOS|EdgiOS|OPiOS/.test(ua) ? "ios-other" : "safari";
     else if (/SamsungBrowser/i.test(ua)) browser = "samsung";
     else if (/Chrome\//.test(ua)) browser = "chrome";
 

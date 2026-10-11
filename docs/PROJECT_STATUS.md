@@ -5,6 +5,7 @@
 - 分支 `claude/web-app-home-screen-guide-e55323`，基準 main `fe2235a0`。純前端、公開頁，不涉及登入、權限、資料庫或 Edge Function。
 - 新增 `Pages/InstallGuide.jsx`、`css/InstallGuide.scss`、`fragment/InstallEntry.jsx`、`utils/installGuide.js`；`App.jsx` 新增公開路由 `/install`（未列入 `publicSeo.json`，維持 noindex）；`Showcase.jsx`（主視覺卡片、FAQ、頁尾連結）與 `Login.jsx` 加入口。
 - 行為：依 User-Agent 判斷 iOS／Android／桌面與 LINE、Facebook、Instagram 內建瀏覽器；LINE 用 `openExternalBrowser=1` 轉到外部瀏覽器；Android Chrome 若觸發 `beforeinstallprompt` 顯示一鍵安裝；桌面顯示 QR Code；已是 standalone 時隱藏入口。示範為 CSS 繪製的手機動畫（尊重 reduced-motion），沒有真實截圖或影片檔。
+- 後續（同日）：依擁有者要求，iPhone／iPad 同時教 Safari 與 Google Chrome 兩種做法（`GUIDES` 拆成 `ios-safari`／`ios-chrome`，新增瀏覽器選擇鈕；UA 含 `CriOS` 時預設 Chrome）。`InstallGuide.test.jsx` 10 項通過，本機 390 寬實看 Chrome 步驟。iPhone 上 Chrome 的實際選單位置未以實機確認。
 - 驗證：`InstallGuide.test.jsx` 與 `Login.test.jsx` 共 12 項通過；本機 `localhost:3210` 實看 `/install`（375／390 寬與桌面 1024 寬）、首頁與登入頁入口，無水平溢出。未跑完整測試與 production build（低風險 UI，依 16.1）。
 - 未驗：iPhone Safari、Android Chrome、LINE 內建瀏覽器實機（含一鍵安裝與 LINE 轉外部瀏覽器是否生效）；iOS 各版本「分享」按鈕位置不同，文案以「沒看到就先點⋯」涵蓋。
 - 已知：`Showcase.test.jsx` 的 2 項斷言在本次修改前就已過期（找不到「AI 口說大挑戰」等標題），本次未處理。此 worktree 路徑含 `.claude`，`react-scripts test` 的 testMatch 找不到測試，需以相對 glob 的 jest 設定執行。

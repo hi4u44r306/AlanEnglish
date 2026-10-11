@@ -16,13 +16,29 @@ import "./css/InstallGuide.scss";
 const APP_ICON = "/apple-touch-icon-v3.png";
 const STEP_SECONDS = 3;
 
+const DEVICES = { ios: "iPhone／iPad", android: "Android 手機" };
+
+// iPhone／iPad 上 Safari 與 Google Chrome 都能加入主畫面，分享按鈕的位置不同。
+const IOS_BROWSERS = {
+    safari: { name: "Safari", look: "藍色指南針" },
+    chrome: { name: "Google Chrome", look: "紅黃綠藍圓球" }
+};
+
 const GUIDES = {
-    ios: {
-        label: "iPhone／iPad",
+    "ios-safari": {
+        label: "iPhone／iPad（Safari）",
         steps: [
             { scene: "ios-share", title: "點「分享」按鈕", hint: "在畫面最下方，方框加一個向上箭頭。沒看到就先點「⋯」。" },
             { scene: "ios-sheet", title: "往下滑，點「加入主畫面」", hint: "選單比較長，要用手指往上推才看得到。" },
             { scene: "ios-confirm", title: "點右上角的「加入」", hint: "名稱不用改，直接點就好。" }
+        ]
+    },
+    "ios-chrome": {
+        label: "iPhone／iPad（Google Chrome）",
+        steps: [
+            { scene: "ioschrome-share", title: "點右上角的「分享」按鈕", hint: "在最上方網址的右邊，方框加一個向上箭頭。" },
+            { scene: "ioschrome-sheet", title: "往下滑，點「加入主畫面」", hint: "選單比較長，要用手指往上推才看得到。" },
+            { scene: "ioschrome-confirm", title: "點右上角的「加入」", hint: "名稱不用改，直接點就好。" }
         ]
     },
     android: {
@@ -60,18 +76,22 @@ const FakePage = () => (
     </div>
 );
 
-const IosScreen = ({ scene }) => (
+const IosScreen = ({ scene }) => {
+    const isChrome = scene.startsWith("ioschrome");
+    const shareButton = <b className={scene.endsWith("-share") ? "ig-target" : ""}><ShareIcon /></b>;
+
+    return (
     <>
-        <div className="ig-bar ig-bar--address"><span>alanenglish.com.tw</span></div>
+        <div className="ig-bar ig-bar--address"><span>alanenglish.com.tw</span>{isChrome && shareButton}</div>
         <FakePage />
         <div className="ig-bar ig-bar--ios">
             <i>‹</i>
             <i>›</i>
-            <b className={scene === "ios-share" ? "ig-target" : ""}><ShareIcon /></b>
+            {isChrome ? <i>＋</i> : shareButton}
             <i>▢</i>
             <i>⋯</i>
         </div>
-        {scene === "ios-sheet" && (
+        {scene.endsWith("-sheet") && (
             <div className="ig-sheet">
                 <span className="ig-sheet__grip" />
                 <div className="ig-row">拷貝</div>
@@ -80,7 +100,7 @@ const IosScreen = ({ scene }) => (
                 <div className="ig-row">在網頁中尋找</div>
             </div>
         )}
-        {scene === "ios-confirm" && (
+        {scene.endsWith("-confirm") && (
             <div className="ig-sheet ig-sheet--tall">
                 <div className="ig-sheet__head">
                     <span>取消</span>
@@ -91,7 +111,8 @@ const IosScreen = ({ scene }) => (
             </div>
         )}
     </>
-);
+    );
+};
 
 const AndroidScreen = ({ scene }) => (
     <>
@@ -143,20 +164,15 @@ function InstallGuide() {
     const environment = useMemo(() => detectInstallEnvironment(), []);
     const [installed, setInstalled] = useState(isRunningAsInstalledApp);
     const [device, setDevice] = useState(environment.platform === "android" ? "android" : "ios");
+    const [iosBrowser, setIosBrowser] = useState(environment.browser === "ios-chrome" ? "chrome" : "safari");
     const [activeIndex, setActiveIndex] = useState(0);
     const [playing, setPlaying] = useState(() => !prefersReducedMotion());
     const [installPrompt, setInstallPrompt] = useState(getInstallPrompt);
     const [qrImage, setQrImage] = useState("");
     const [copied, setCopied] = useState(false);
 
-    const guide = GUIDES[device];
-    const steps = useMemo(() => {
-        const list = guide.steps.map(step => ({ ...step }));
-        if (device === "ios" && environment.browser === "ios-other") {
-            list[0].hint = "在網址列的右邊，方框加一個向上箭頭。找不到的話，改用 Safari 打開這個網站。";
-        }
-        return [...list, DONE_STEP];
-    }, [guide, device, environment.browser]);
+    const guide = GUIDES[device === "ios" ? `ios-${iosBrowser}` : device];
+    const steps = useMemo(() => [...guide.steps, DONE_STEP], [guide]);
     const pageUrl = `${window.location.origin}${INSTALL_GUIDE_PATH}`;
     const isDesktop = environment.platform === "desktop";
     const inApp = environment.inAppName;
@@ -180,6 +196,10 @@ function InstallGuide() {
 
     const chooseDevice = next => {
         setDevice(next);
+        setActiveIndex(0);
+    };
+    const chooseIosBrowser = next => {
+        setIosBrowser(next);
         setActiveIndex(0);
     };
     const chooseStep = index => {
@@ -254,10 +274,22 @@ function InstallGuide() {
                 )}
 
                 <div className="install-guide__tabs" role="group" aria-label="選擇手機種類">
-                    {Object.entries(GUIDES).map(([key, item]) => (
-                        <button key={key} type="button" aria-pressed={device === key} onClick={() => chooseDevice(key)}>{item.label}</button>
+                    {Object.entries(DEVICES).map(([key, label]) => (
+                        <button key={key} type="button" aria-pressed={device === key} onClick={() => chooseDevice(key)}>{label}</button>
                     ))}
                 </div>
+
+                {device === "ios" && (
+                    <div className="install-guide__browsers" role="group" aria-labelledby="install-browser-heading">
+                        <p id="install-browser-heading">你平常用哪一個上網？兩個都可以。</p>
+                        {Object.entries(IOS_BROWSERS).map(([key, item]) => (
+                            <button key={key} type="button" aria-pressed={iosBrowser === key} onClick={() => chooseIosBrowser(key)}>
+                                <span className={"install-guide__browserIcon install-guide__browserIcon--" + key} aria-hidden="true" />
+                                <span><strong>{item.name}</strong><small>{item.look}</small></span>
+                            </button>
+                        ))}
+                    </div>
+                )}
 
                 <section className="install-guide__card install-guide__demo" aria-labelledby="install-steps-heading">
                     <h2 id="install-steps-heading" className="install-guide__sr">{guide.label}的操作步驟</h2>
@@ -296,7 +328,7 @@ function InstallGuide() {
                 <section className="install-guide__help" aria-label="遇到問題">
                     <details>
                         <summary>找不到「加入主畫面」？</summary>
-                        <p>iPhone／iPad 請改用 Safari（藍色指南針圖示）打開 alanenglish.com.tw。Android 請改用 Chrome。從 LINE、Facebook 點進來的連結要先用瀏覽器打開。</p>
+                        <p>iPhone／iPad 用 Safari 或 Google Chrome 都可以，其中一個找不到就換另一個打開 alanenglish.com.tw。Android 請用 Chrome。從 LINE、Facebook 點進來的連結要先用瀏覽器打開。</p>
                     </details>
                     <details>
                         <summary>我用的是三星手機的瀏覽器</summary>

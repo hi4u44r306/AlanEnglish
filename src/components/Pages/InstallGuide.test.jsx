@@ -8,6 +8,7 @@ import { detectInstallEnvironment, externalBrowserUrl } from "../../utils/instal
 
 const IPHONE_SAFARI = "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1";
 const ANDROID_CHROME = "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Mobile Safari/537.36";
+const IPHONE_CHROME = "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/126.0.6478.54 Mobile/15E148 Safari/604.1";
 const IPHONE_LINE = `${IPHONE_SAFARI} Line/14.9.0`;
 
 const useUserAgent = userAgent => {
@@ -19,6 +20,7 @@ const renderGuide = () => render(<MemoryRouter><InstallGuide /></MemoryRouter>);
 describe("detectInstallEnvironment", () => {
     it("recognises phones, in-app browsers, and iPad desktop mode", () => {
         expect(detectInstallEnvironment({ userAgent: IPHONE_SAFARI })).toMatchObject({ platform: "ios", browser: "safari" });
+        expect(detectInstallEnvironment({ userAgent: IPHONE_CHROME })).toMatchObject({ platform: "ios", browser: "ios-chrome" });
         expect(detectInstallEnvironment({ userAgent: ANDROID_CHROME })).toMatchObject({ platform: "android", browser: "chrome" });
         expect(detectInstallEnvironment({ userAgent: IPHONE_LINE })).toMatchObject({ platform: "ios", browser: "line", inAppName: "LINE" });
         expect(detectInstallEnvironment({ userAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Safari/605.1.15", maxTouchPoints: 5 }).platform).toBe("ios");
@@ -44,6 +46,24 @@ describe("InstallGuide", () => {
         expect(screen.getByText("往下滑，點「加入主畫面」")).toBeInTheDocument();
         expect(screen.getByText("點右上角的「加入」")).toBeInTheDocument();
         expect(screen.queryByText("先用手機打開這一頁")).not.toBeInTheDocument();
+    });
+
+    it("teaches both Safari and Google Chrome on iPhone and iPad", () => {
+        useUserAgent(IPHONE_SAFARI);
+        renderGuide();
+
+        expect(screen.getByRole("button", { name: /Safari/ })).toHaveAttribute("aria-pressed", "true");
+        fireEvent.click(screen.getByRole("button", { name: /Google Chrome/ }));
+        expect(screen.getByRole("button", { name: /點右上角的「分享」按鈕/ })).toBeInTheDocument();
+        expect(screen.getByText("往下滑，點「加入主畫面」")).toBeInTheDocument();
+    });
+
+    it("opens on the Google Chrome steps when the parent is already in Chrome on iPhone", () => {
+        useUserAgent(IPHONE_CHROME);
+        renderGuide();
+
+        expect(screen.getByRole("button", { name: /Google Chrome/ })).toHaveAttribute("aria-pressed", "true");
+        expect(screen.getByRole("button", { name: /點右上角的「分享」按鈕/ })).toBeInTheDocument();
     });
 
     it("shows Android steps on Android and lets the parent switch device", () => {
