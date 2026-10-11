@@ -7,6 +7,9 @@ import TextbookSpeakingChallenge from "./TextbookSpeakingChallenge";
 import SpeakingVisualAid from "./SpeakingVisualAid";
 import { completeSpeakingChallengeQuestion, getSpeakingChallengeCatalog, getSpeakingChallengeSet, startSpeakingFoundationRound } from "../../services/speakingChallengeService";
 
+// These cases describe the prize shop switched on; the shipped default (off) is covered in rewardShopOff.test.jsx.
+jest.mock("../../constants/rewardShop", () => ({ REWARD_SHOP_ENABLED: true }));
+
 const mockFirebaseUser = { uid: "student", getIdToken: jest.fn() };
 let mockRole = "student";
 jest.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ firebaseUser: mockFirebaseUser, role: mockRole }) }));

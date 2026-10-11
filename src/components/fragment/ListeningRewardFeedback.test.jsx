@@ -3,10 +3,13 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import ListeningRewardFeedback from "./ListeningRewardFeedback";
 
+// These cases describe the prize shop switched on; the shipped default (off) is covered in rewardShopOff.test.jsx.
+jest.mock("../../constants/rewardShop", () => ({ REWARD_SHOP_ENABLED: true }));
+
 test.each([
-    [{ source: "self_practice", mastery_count: 29 }, "自主熟練度 29/30 次", "累計 30 次可得 10 XP"],
+    [{ source: "self_practice", mastery_count: 29 }, "已聽 29 / 30 次", "累計 30 次可得 10 XP"],
     [{ source: "self_practice", mastery_count: 30, mastery_rewarded: true }, "本音檔熟練獎勵已領取", "仍可繼續練習"],
-    [{ source: "self_practice", mastery_count: 30, limit_reached: true }, "自主熟練度 30/30 次", "隔天再有效聽一次"],
+    [{ source: "self_practice", mastery_count: 30, limit_reached: true }, "已聽 30 / 30 次", "隔天再有效聽一次"],
     [{ source: "assignment", valid_listen_count: 2, required_listens: 3 }, "老師指定 2/3 次", "不另計自主獎勵"],
     [{ source: "assignment", valid_listen_count: 3, required_listens: 3, completion_reward_granted: true }, "老師指定 3/3 次", "整份作業完成：+30 XP、+5 AE Points"]
 ])("新版獎勵狀態呈現：%s", (status, title, detail) => {

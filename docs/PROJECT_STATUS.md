@@ -1,5 +1,23 @@
 # Alan English 專案狀態
 
+### 獎品商城與 AE Points 前端收起、暫停提示改版（2026-10-12，同分支 `feature/player-simplify`／PR #532，待擁有者說「幫我合併」）
+
+- 擁有者決定：收起獎品商城，聽力只給經驗值（目前無正式學生帳號）。
+- 新增 `src/constants/rewardShop.js` 的 `REWARD_SHOP_ENABLED = false`；`/student/rewards` 導回 `/student/settings`，`MainNavbar`／`LearningLeaderboard` 的 `hasRewardsAccess`、`StudentGrowthHeader` 點數按鈕、`ListeningRewardFeedback`、`listeningRewardText`、`SpeakingBookCard`、`SpeakingChallengeAnimation`、`WeeklyReport`、`AcademyInviteSignup` 的 AE Points 顯示皆依旗標隱藏。既有「商城開啟」測試以 `jest.mock` 明示旗標為 true 保留；新增 `rewardShopOff.test.jsx` 驗證出貨預設。
+- `PlaybackPausedDialog` 與「還在學習嗎？」改文案與樣式（`FooterPlayerMinimal.scss`），焦點鎖定、倒數與恢復邏輯未動。
+- **尚未做（高風險，需擁有者該批明確授權）**：後端 `record-play`／`gamification`／`speaking-challenge` 仍會寫入 AE Points ledger，`gamification` 兌換端點仍可被有效在校生直接呼叫。建議下一步：後端停止新增 AE Points 並讓兌換端點回 410，採 additive migration／函式更新，於 `main` 部署。
+- 驗證：11 組共 151 項通過；本機測試學生實看頂端列無金幣、`/student/rewards` 導回、排行榜無金幣、「播放已暫停」新樣式（以模擬分頁隱藏觸發，未恢復播放）。未驗：「還在學習嗎？」實際畫面、升等與熟練慶祝畫面、iPhone Safari。
+
+### 聽力播放器精簡（2026-10-12，分支 `feature/player-simplify`，待擁有者說「幫我合併」）
+
+- 純顯示層。`MusicPlayer.jsx` 新增 `CoverageRing`（以既有 `coveragePercent`／`sessionIneligible` 繪製，80% 為滿），取代迷你列、桌面列的音符圖示；全螢幕播放器的圖示區改為頁碼＋教材名，並新增圈圈說明列。新增 `FooterPlayerMinimal.scss`（於 `FooterPlayer.scss` 之後載入）覆寫外觀：淺色全螢幕、隱藏喜歡／不喜歡、熟練說明句、桌面浮動狀態列（保留給輔助科技），全螢幕底部預留學生底部導覽高度，設定選單置中。
+- 未動：覆蓋率計算、`record-play`、seek／倍速判定、noInteraction、續播與音檔載入；`toggleTrackReaction` 邏輯仍在，只是按鈕不顯示。
+- 驗證：MusicPlayer.visibility、ListeningRewardFeedback、Playlist 共 38 項通過；本機 `localhost:3000` 測試學生播放約 3 秒即暫停（不灌次數），實看 375 寬迷你列、全螢幕與設定選單。未驗：聽滿 80% 的打勾狀態與加速狀態（需實際聽完）、桌面列僅以計算樣式確認、iPhone Safari。
+
+### PR #531 已發布（2026-10-12）
+
+- `fix/page-length` 合併至 `main`（merge `fe2235a0`），Workers Builds 成功；正式站 `alanenglish.com.tw` 的 JS／CSS 已含「接著聽」「作業遲交」「今天還能練幾輪」「上次聽到這裡」等字串與 `student-progress__listen`、`playlist-track--last-heard`。未做：正式站登入後逐頁實看、iPhone Safari。
+
 ### 口說大挑戰首頁精簡、作業用語「遲交」（2026-10-12，併入 PR #531，待擁有者說「幫我合併」）
 
 - 同分支 `fix/page-length`。純前端顯示，額度與作業狀態判斷未動。

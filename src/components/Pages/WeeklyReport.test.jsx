@@ -9,6 +9,9 @@ import WeeklyReportOverview from "./WeeklyReportOverview";
 import { useAuth } from "../../auth/AuthContext";
 import { getWeeklyReport } from "../../services/weeklyReportService";
 
+// These cases describe the prize shop switched on; the shipped default (off) is covered in rewardShopOff.test.jsx.
+jest.mock("../../constants/rewardShop", () => ({ REWARD_SHOP_ENABLED: true }));
+
 jest.mock("../../auth/AuthContext", () => ({ useAuth: jest.fn() }));
 jest.mock("../../services/weeklyReportService", () => ({
     getWeeklyReport: jest.fn(),

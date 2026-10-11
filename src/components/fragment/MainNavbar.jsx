@@ -1,4 +1,5 @@
 import { cancelUnsavedLeaveApproval, confirmUnsavedChanges } from "../../hooks/useUnsavedChanges";
+import { REWARD_SHOP_ENABLED } from "../../constants/rewardShop";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Container from 'react-bootstrap/Container';
@@ -104,7 +105,7 @@ function MainNavbar() {
             || effectiveAccess?.features?.pronunciation_practice === true
             || hasActiveAcademyAccess
         ));
-    const hasRewardsAccess = isStudent
+    const hasRewardsAccess = REWARD_SHOP_ENABLED && isStudent
         && hasActiveStudentMembership
         && studentProfile?.learner_type === "academy_student"
         && effectiveAccess?.plan_codes?.includes("academy_internal") === true;
