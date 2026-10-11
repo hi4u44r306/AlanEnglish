@@ -700,7 +700,7 @@ function StudentSettings() {
 
             <StudentSettingsGroup title="成長與獎品" description="等級、學習經驗與 AE Points">
                 <StudentGrowthCard balance={summary?.balance} loading={summaryQuery.loading} error={Boolean(summaryQuery.error || (!summaryQuery.loading && !summary?.balance))} pointsAccess={profile.learner_type === "academy_student" && isActiveAcademyStudent} onRetry={load}>
-                    <Link to="/student/dashboard">繼續今日學習</Link>
+                    <Link to="/student/dashboard">回到首頁</Link>
                     <Link to="/student/weekly-report">看看本週進步</Link>
                     {profile.learner_type === "academy_student" && isActiveAcademyStudent && <Link to="/student/rewards">挑選獎品目標</Link>}
                 </StudentGrowthCard>

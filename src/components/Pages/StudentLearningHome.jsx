@@ -1,6 +1,6 @@
 import React, { useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { FiArrowRight, FiBookOpen, FiCheckCircle, FiCompass, FiRefreshCw, FiSearch, FiStar, FiTrendingUp } from "react-icons/fi";
+import { FiArrowRight, FiCheckCircle, FiCompass, FiStar } from "react-icons/fi";
 import { useAuth } from "../../auth/AuthContext";
 import useStudentPageQuery from "../../hooks/useStudentPageQuery";
 import { getAccessibleCatalog } from "../../services/contentAccessService";
@@ -29,7 +29,6 @@ function StudentLearningHome() {
     const membership = studentProfile?.membership;
     const active = role === "student" && membership?.is_active === true;
     const assignmentAccess = active && membership?.effective_access?.features?.assignments === true;
-    const speakingAccess = active && membership?.effective_access?.features?.pronunciation === true;
     const academyStudent = active && studentProfile?.learner_type === "academy_student";
     const learningResume = useStudentLearningResume();
     const classQuery = useStudentPageQuery(STUDENT_COMMERCE_DISPLAY_KEY, () => loadStudentCommerceDisplay(firebaseUser), { enabled: academyStudent });
@@ -37,9 +36,8 @@ function StudentLearningHome() {
     const summaryQuery = useStudentPageQuery("summary", () => getGamificationSummary(firebaseUser), { enabled: active });
     const assignmentsQuery = useStudentPageQuery("assignments:v1", () => getStudentAssignments(firebaseUser), { enabled: assignmentAccess });
     const assignmentsV2Query = useStudentPageQuery("assignments:v2", () => getStudentAssignmentsV2(firebaseUser), { enabled: assignmentAccess });
-    const greetingHeading = useRef(null);
+    const pageHeading = useRef(null);
     const [categoryId, setCategoryId] = useState("all");
-    const [search, setSearch] = useState("");
     const [taskFilter, setTaskFilter] = useState("pending");
 
     const data = {
@@ -51,13 +49,11 @@ function StudentLearningHome() {
     };
     const loading = catalogQuery.loading;
     const tasksLoading = assignmentsQuery.loading || assignmentsV2Query.loading;
-    const refreshing = [catalogQuery, summaryQuery, assignmentsQuery, assignmentsV2Query, classQuery].some(query => query.refreshing);
     const categories = useMemo(() => getStudentMaterialCategories(catalogQuery.data?.categories), [catalogQuery.data]);
     const currentClassBooks = getCurrentClassMaterials(classQuery.data, catalogQuery.data?.categories);
     const books = categories.flatMap(category => category.books.map(book => ({ ...book, categoryId: String(category.id), categoryName: category.name })));
     const selectedCategory = categories.some(category => String(category.id) === categoryId) ? categoryId : "all";
-    const visibleBooks = books.filter(book => (selectedCategory === "all" || book.categoryId === selectedCategory)
-        && `${book.name} ${book.code}`.toLowerCase().includes(search.trim().toLowerCase()));
+    const visibleBooks = books.filter(book => selectedCategory === "all" || book.categoryId === selectedCategory);
     const tasks = data?.tasks || [];
     const pendingTasks = tasks.filter(task => task.state === "pending");
     const overdueTasks = tasks.filter(task => task.state === "overdue");
@@ -65,7 +61,6 @@ function StudentLearningHome() {
     const filteredTasks = tasks.filter(task => task.state === taskFilter);
     const balance = data?.summary?.balance;
     const progress = Math.min(100, Math.max(0, Number(balance?.progress_percent) || 0));
-    const name = studentProfile?.nickname || studentProfile?.name || "小小探險家";
     const cachedAvatar = useCachedStudentAvatarUrl(data?.summary?.profile?.avatar_url || studentProfile?.avatar_url, {
         ownerUid: firebaseUser?.uid,
         sourceKey: studentProfile?.user_image || studentProfile?.userimage
@@ -76,22 +71,19 @@ function StudentLearningHome() {
     const heroTitle = nextTask ? nextTask.title : resumeBook ? `繼續學習 ${resumeBook.name}` : heroBook && academyStudent ? `一起學習 ${heroBook.name}` : "今天，從一本教材開始";
     const heroPath = nextTask ? taskPath(nextTask) : resumeBook ? learningResumePath(resumeBook, learningResume) : heroBook ? bookPath(heroBook) : null;
     const classNotice = !academyStudent ? null : classQuery.error
-        ? classQuery.data ? "目前顯示上次班級教材，暫時無法更新，請按「更新進度」重試。" : "班級教材暫時無法讀取，請按「更新進度」重試。"
+        ? classQuery.data ? "目前顯示上次班級教材，暫時無法更新，請稍後再試。" : "班級教材暫時無法讀取，請稍後再試。"
         : nextTask ? null : classQuery.loading ? "正在讀取目前班級教材…"
         : !currentClassBooks.length ? classQuery.data?.current_enrollment?.status === "active"
             ? "班級目前尚未設定學習教材，請老師確認。" : "目前沒有有效在校班級；已取得的教材仍可從下方書架開啟。"
-        : !heroBook && !loading ? "目前班級教材無法開啟，請按「更新進度」重試或請老師確認。" : null;
+        : !heroBook && !loading ? "目前班級教材無法開啟，請老師確認。" : null;
     const refresh = () => [catalogQuery, summaryQuery, assignmentsQuery, assignmentsV2Query, classQuery].forEach(query => query.refresh());
 
-    if (!active) return <main className="learning-home"><h1>今日學習</h1><p>先確認目前可使用的教材與功能。</p><Link className="learning-home__secondary" to="/student/membership">查看會員與功能</Link></main>;
+    if (!active) return <main className="learning-home"><h1>首頁</h1><p>先確認目前可使用的教材與功能。</p><Link className="learning-home__secondary" to="/student/membership">查看會員與功能</Link></main>;
 
     return <main className="learning-home">
         <div className="learning-home__shell">
-            <header className="learning-home__greeting">
-                <div><span>歡迎回來，{name}</span><h1 ref={greetingHeading} tabIndex={-1}>今天，一起探索英文！</h1></div>
-                <button className="learning-home__refresh" type="button" onClick={refresh} disabled={refreshing} aria-label="重新整理學習進度"><FiRefreshCw aria-hidden="true" /><span>{refreshing ? "更新中" : "更新進度"}</span></button>
-            </header>
-            {[catalogQuery, summaryQuery, assignmentsQuery, assignmentsV2Query].some(query => query.error && query.data) && <p role="status">目前顯示上次資料，最新進度暫時無法同步，請稍後按「更新進度」。</p>}
+            <h1 className="learning-home__title" ref={pageHeading} tabIndex={-1}>首頁</h1>
+            {[catalogQuery, summaryQuery, assignmentsQuery, assignmentsV2Query].some(query => query.error && query.data) && <p role="status">目前顯示上次資料，最新進度暫時無法同步，請稍後再試。</p>}
 
             {assignmentAccess && nextTask && <section className="learning-home__assignment-reminder" aria-label="待完成作業提醒">
                 <div><strong>{pendingTasks.length ? `你有 ${pendingTasks.length} 份作業待完成${overdueTasks.length ? `，另有 ${overdueTasks.length} 份逾期作業` : ""}` : `${tasksLoading || data?.taskError ? "目前已讀取的作業中，" : "目前沒有新的作業，"}你還有 ${overdueTasks.length} 份逾期作業尚未完成`}</strong>
@@ -100,7 +92,7 @@ function StudentLearningHome() {
                 </div><Link to={taskPath(nextTask)}>{pendingTasks.length ? "查看待完成作業" : "查看待補作業"}<FiArrowRight aria-hidden="true" /></Link>
             </section>}
 
-            <BirthdayRewardNotice birthday={summaryQuery.error ? null : data?.summary?.birthday} ownerUid={firebaseUser?.uid} onDismiss={() => greetingHeading.current?.focus()} />
+            <BirthdayRewardNotice birthday={summaryQuery.error ? null : data?.summary?.birthday} ownerUid={firebaseUser?.uid} onDismiss={() => pageHeading.current?.focus()} />
 
             <div className="learning-home__overview">
                 <section className="learning-home__mission" aria-labelledby="today-goal">
@@ -114,7 +106,7 @@ function StudentLearningHome() {
                         {!loading && !heroPath && <a className="learning-home__primary" href="#learning-books">{data?.catalogError ? "查看教材讀取狀態" : "查看我的教材"}<FiArrowRight aria-hidden="true" /></a>}
                         {classNotice && <small role="status">{classNotice}</small>}
                         {nextTask?.due_at && <small>{formatDeadline(nextTask.due_at)} 截止；詳細時間請看作業</small>}
-                        {data?.taskError && <small role="status">部分作業未能讀取，請更新進度再確認。</small>}
+                        {data?.taskError && <small role="status">部分作業未能讀取，請稍後再確認。</small>}
                     </div>
                 </section>
 
@@ -124,11 +116,6 @@ function StudentLearningHome() {
                         : <p role="status">{data?.summaryError ? "成長資料暫時無法讀取，你仍可以開始學習。" : "正在讀取成長資料…"}</p>}
                 </aside>
             </div>
-
-            <nav className="learning-home__paths" aria-label="選擇學習方式">
-                {speakingAccess && <Link to="/student/speaking-challenges"><span className="learning-home__path-icon is-yellow"><FiCompass /></span><span><strong>口說冒險</strong><small>前往教材世界，查看關卡</small></span><FiArrowRight aria-hidden="true" /></Link>}
-                <Link to="/student/weekly-report"><span className="learning-home__path-icon is-green"><FiTrendingUp /></span><span><strong>看看我的進步</strong><small>回顧這週學過的內容</small></span><FiArrowRight aria-hidden="true" /></Link>
-            </nav>
 
             {assignmentAccess && <section className="learning-home__tasks" aria-labelledby="home-tasks-heading">
                 <div className="learning-home__section-heading"><div><h2 id="home-tasks-heading">老師的任務</h2><p>依自己的步調，完成每個練習。</p></div><Link to="/student/assignments">全部作業<FiArrowRight aria-hidden="true" /></Link></div>
@@ -141,15 +128,13 @@ function StudentLearningHome() {
             </section>}
 
             <section className="learning-home__books" id="learning-books" aria-labelledby="home-books-heading">
-                <div className="learning-home__section-heading"><div><h2 id="home-books-heading">我的教材小書架</h2><p>選擇教材，打開今天的聽力練習。</p></div><label className="learning-home__search"><FiSearch aria-hidden="true" /><input type="search" aria-label="搜尋我的教材" placeholder="找教材" value={search} onChange={event => setSearch(event.target.value)} /></label></div>
+                <h2 id="home-books-heading">我的教材小書架</h2>
                 {loading ? <p role="status">正在讀取可使用的教材…</p> : data?.catalogError ? <div className="learning-home__notice" role="status">教材暫時無法讀取，請再試一次。<button type="button" onClick={refresh}>重新讀取教材</button></div> : <>
                     {categories.length > 1 && <div className="learning-home__filters" role="group" aria-label="教材分類"><button type="button" aria-pressed={selectedCategory === "all"} onClick={() => setCategoryId("all")}>全部教材</button>{categories.map(category => <button type="button" key={category.id} aria-pressed={selectedCategory === String(category.id)} onClick={() => setCategoryId(String(category.id))}>{category.name}</button>)}</div>}
-                    <p className="learning-home__book-count" role="status">{visibleBooks.length} 本教材</p>
-                    <div className="learning-home__book-grid">{visibleBooks.map((book, index) => <Link className={`learning-home__book tone-${index % 3}`} to={bookPath(book)} key={`${book.categoryId}-${book.id || book.code}`}><span className="learning-home__book-art" aria-hidden="true"><FiBookOpen /><span>聽力練習</span></span><span className="learning-home__book-copy"><small>{book.categoryName}</small><strong>{book.name}</strong><span>打開教材 <FiArrowRight aria-hidden="true" /></span></span></Link>)}</div>
-                    {!visibleBooks.length && <div className="learning-home__empty">{books.length ? <><p>沒有找到這本教材，換個名字試試看。</p><button type="button" onClick={() => { setSearch(""); setCategoryId("all"); }}>顯示全部教材</button></> : <><p>目前沒有可顯示的教材。</p><Link to="/student/membership">查看教材與功能權限</Link></>}</div>}
+                    <div className="learning-home__book-grid">{visibleBooks.map(book => <Link className="learning-home__book" to={bookPath(book)} key={`${book.categoryId}-${book.id || book.code}`}>{book.name}</Link>)}</div>
+                    {!books.length && <div className="learning-home__empty"><p>目前沒有可顯示的教材。</p><Link to="/student/membership">查看教材與功能權限</Link></div>}
                 </>}
             </section>
-            <p className="learning-home__closing">每一次練習，都是成長的一小步。</p>
         </div>
     </main>;
 }

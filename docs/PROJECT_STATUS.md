@@ -1,5 +1,14 @@
 # Alan English 專案狀態
 
+### 學生首頁精簡：今日＋教材合併為「首頁」（2026-10-11，尚未部署／PR 待擁有者說「幫我合併」）
+
+- 負責：Claude Code。分支 `claude/homepage-redesign-simplify-1b3133`（app 建立的 worktree），基準 main `25ecb12e`。純前端，無後端、資料、權限變更。
+- 內容：`StudentNavbar` 移除手機「教材」與桌面「我的教材」入口，「今日／今日學習」改名「首頁」，教材頁時首頁維持選取。`StudentLearningHome` 移除問候區（含「更新進度」按鈕）、`learning-home__paths`、書架搜尋、教材數、`learning-home__book-art` 與結尾標語；教材卡改為各寬度皆兩欄、只顯示教材名稱的整張連結。其他頁面的「今日學習」連結文字改為「首頁」。
+- 保留：作業提醒、主任務卡、成長卡、老師的任務、生日祝福、分類切換。教材抽屜（`ae:open-student-menu` 的 materials）程式仍在，但目前沒有畫面入口。
+- 驗證：首頁 24 項、MainNavbar 35 項測試通過；兩個 JSX ESLint、`git diff --check` 通過；以編譯後 SCSS 的靜態預覽在 412px 確認兩欄、卡片 184×104px、字 20px、無水平溢位。依 16.1 未跑全套與本機 production build。worktree 位於 `.claude` 下，jest 需加 `--testMatch "**/.claude/**/<檔名>"` 才找得到測試。
+- 未驗：真實學生登入後的整頁、iPhone Safari、桌面寬螢幕實機。
+- 已知取捨：首頁不再有手動「更新進度」按鈕，班級教材讀取失敗時只能重新整理頁面。
+
 ### Boss 挑戰管理員預覽頁（2026-10-11，已發布；小螢幕修正發布中）
 
 - 負責：Claude Code。分支 `feature/boss-preview-admin`，基準 main `256a6fa0`。

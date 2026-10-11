@@ -19,12 +19,7 @@
     button:disabled { cursor: wait; opacity: .65; }
 }
 .learning-home__shell { max-width: 1180px; margin: auto; }
-.learning-home__greeting { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 24px;
-    > div { min-width: 0; }
-    span { color: #49617d; }
-    h1 { margin-top: 4px; font-size: clamp(24px, 3vw, 32px); font-weight: 850; overflow-wrap: anywhere; }
-}
-.learning-home__refresh { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; flex-shrink: 0; border: 1px solid #c5d6e8; border-radius: 14px; background: #fff; padding: 8px 14px; color: var(--learning-ink); }
+.learning-home__title { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .learning-home__overview { display: grid; grid-template-columns: minmax(0, 1fr) 240px; gap: 24px; }
 .learning-home__mission { position: relative; min-height: 248px; border: 1px solid #d8e5da; border-radius: 20px; overflow: hidden; background: #e4f2e8; box-shadow: none; isolation: isolate; }
 .learning-home__scene { position: absolute; right: 0; top: 0; width: 64%; height: 100%; object-fit: cover; object-position: center 64%; z-index: -2; }
@@ -63,13 +58,6 @@
     svg { flex-shrink: 0; }
 }
 .learning-home a.learning-home__secondary { margin-top: 16px; }
-.learning-home__paths { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin: 20px 0 28px;
-    > a { display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 10px; background: transparent; border: 0; }
-    > a > span:nth-child(2) { flex: 1; min-width: 0; }
-    strong, small { display: block; } strong { font-size: 18px; } small { color: #526780; font-size: 14px; }
-    > a > svg { flex-shrink: 0; }
-}
-.learning-home__path-icon { display: grid; place-items: center; width: 40px; height: 40px; flex-shrink: 0; border-radius: 12px; background: #e4efff; color: #245fc5; font-size: 23px; &.is-yellow { background: #fff0bd; color: #79591d; } &.is-green { background: #e4f3ea; color: #247a56; } }
 .learning-home__tasks, .learning-home__books { margin-top: 32px; scroll-margin-top: 100px; }
 .learning-home__section-heading { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 18px;
     p { color: #526780; margin-top: 4px; }
@@ -84,21 +72,11 @@
     > svg { flex-shrink: 0; }
 }
 .learning-home__task-icon { display: grid; place-items: center; width: 42px; height: 42px; flex-shrink: 0; background: #e4efff; border-radius: 50%; font-size: 22px; &.is-completed { background: #e4f3ea; color: #247a56; } &.is-overdue { background: #fff0dd; color: #905219; } }
-.learning-home__search { display: flex; align-items: center; gap: 8px; border: 1px solid #c5d6e8; background: white; border-radius: 13px; padding: 0 12px; max-width: 240px;
-    input { min-width: 0; width: 100%; min-height: 44px; border: 0; background: transparent; color: #17365d; }
-}
-.learning-home__book-count { color: #526780; font-size: 14px; margin-bottom: 12px !important; }
-.learning-home__book-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
-.learning-home__book { display: flex; align-items: stretch; border: 1px solid #d5e3f0; border-radius: 14px; background: #fff; overflow: hidden; min-height: 124px; transition: transform .16s ease, box-shadow .16s ease;
+.learning-home__books > h2 { margin-bottom: 18px; }
+.learning-home__book-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+.learning-home__book { display: flex; align-items: center; min-height: 112px; padding: 20px 24px; border: 1px solid #d5e3f0; border-radius: 16px; background: #fff; font-size: clamp(22px, 2.4vw, 28px); font-weight: 800; line-height: 1.35; overflow-wrap: anywhere; transition: border-color .16s ease, box-shadow .16s ease;
     &:hover { border-color: #91add2; box-shadow: 0 3px 10px rgba(23,54,93,.06); }
-    &.tone-1 .learning-home__book-art { background: #ffdf78; color: #634a15; }
-    &.tone-2 .learning-home__book-art { background: #d8ecdf; color: #266044; }
-}
-.learning-home__book-art { display: flex; flex-direction: column; justify-content: center; align-items: center; width: 76px; flex-shrink: 0; background: #dceafd; color: #245fc5; border-left: 7px solid rgba(23,54,93,.13); gap: 12px;
-    > svg { width: 34px; height: 34px; } > span { font-size: 12px; font-weight: 700; }
-}
-.learning-home__book-copy { display: flex; flex-direction: column; justify-content: center; gap: 7px; padding: 16px; min-width: 0;
-    small { color: #526780; } strong { font-size: 18px; line-height: 1.4; overflow-wrap: anywhere; } > span { font-size: 14px; color: var(--learning-blue); margin-top: 5px; }
+    &:active { background: #eef5fc; }
 }
 .learning-home__notice, .learning-home__empty { padding: 22px; background: #fff; border: 1px dashed #adbed1; border-radius: 16px; color: #49617d;
     button { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; max-width: 100%; padding: 8px 14px; background: #e4efff; border: 1px solid #adc5e3; border-radius: 12px; color: #17365d; margin: 8px 0; font-weight: 800; box-shadow: none; }
@@ -106,16 +84,12 @@
     button:active { box-shadow: none; }
     a { display: inline-flex; min-height: 44px; align-items: center; text-decoration: underline; }
 }
-.learning-home__closing { text-align: center; margin: 40px 0 0 !important; color: #526780; }
 @media (max-width: 1000px) {
     .learning-home__overview { grid-template-columns: minmax(0, 1fr) 240px; gap: 16px; }
     .learning-home__mission-copy { padding: 24px; max-width: 82%; }
-    .learning-home__book-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 700px) {
     .learning-home { padding: 20px 16px calc(30px + env(safe-area-inset-bottom)); }
-    .learning-home__greeting { margin-bottom: 18px; gap: 8px; align-items: flex-start; h1 { font-size: 25px; } > div > span { font-size: 14px; } }
-    .learning-home__refresh { padding: 10px; span { display: none; } }
     .learning-home__overview { grid-template-columns: 1fr; gap: 20px; }
     .learning-home__mission { min-height: 232px; border-radius: 18px; }
     .learning-home__mission-copy { padding: 22px; max-width: 100%; h2 { font-size: 27px; max-width: 90%; } p { max-width: 78%; margin-bottom: 18px; } }
@@ -127,13 +101,9 @@
     .learning-home__identity strong { font-size: 20px; }
     .learning-home__avatar { width: 44px; height: 44px; border-radius: 15px; }
     .learning-home__xp { margin: 0; flex-direction: column; gap: 0; strong { font-size: 23px; } }
-    .learning-home__paths { grid-template-columns: 1fr; gap: 2px; margin: 16px 0 24px; > a { padding: 12px 0; } }
     .learning-home__section-heading { flex-wrap: wrap; gap: 12px; h2 { font-size: 22px; } p { font-size: 14px; } }
-    .learning-home__search { max-width: none; width: 100%; }
-    .learning-home__book-grid { grid-template-columns: 1fr; gap: 12px; }
-    .learning-home__book { min-height: 120px; }
-    .learning-home__book-art { width: 84px; }
-    .learning-home__book-copy { padding: 14px 18px; }
+    .learning-home__book-grid { gap: 12px; }
+    .learning-home__book { min-height: 104px; padding: 16px; font-size: 20px; }
     .learning-home__filters button { padding: 8px 14px; }
 }
 @media (prefers-reduced-motion: reduce) { .learning-home a { transition: none; transform: none !important; } }
@@ -161,7 +131,6 @@
 // Secondary destinations stay easy to tap without competing with today's task.
 .learning-home .learning-home__section-heading > a { padding: 8px 0; border: 0; border-radius: 6px; background: transparent; box-shadow: none; font-weight: 700; }
 .learning-home .learning-home__section-heading > a:hover { background: transparent; text-decoration: underline; text-underline-offset: 4px; }
-.learning-home__paths > a:hover { background: #eaf1f8; }
 .learning-home__filters button { border: 0; border-bottom: 3px solid transparent; border-radius: 0; background: transparent; padding-inline: 12px; }
 .learning-home__filters button[aria-pressed="true"] { border-color: #245fc5; color: #245fc5; background: transparent; }
 

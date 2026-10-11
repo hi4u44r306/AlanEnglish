@@ -46,7 +46,7 @@ function BirthdayNotice({ birthday, ownerUid, onDismiss }) {
         {ownerUid && optionsOpen && <div id="birthday-notice-options" className="birthday-notice__options" role="group" aria-label="生日月祝福顯示選項">
             <p>關閉祝福不影響生日月獎勵。</p>
             <div className="birthday-notice__choices">
-                <button type="button" onClick={() => dismiss(false)}><strong>暫時關閉</strong><span>下次開啟今日學習時再顯示</span></button>
+                <button type="button" onClick={() => dismiss(false)}><strong>暫時關閉</strong><span>下次開啟首頁時再顯示</span></button>
                 <button type="button" onClick={() => dismiss(true)}><strong>不再顯示</strong><span>在這個瀏覽器記住此帳號的選擇</span></button>
             </div>
             {saveError && <p className="birthday-notice__error" role="alert">{saveError}</p>}
