@@ -1,5 +1,6 @@
 import AudioPlayer, { RHAP_UI } from "react-h5-audio-player";
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import { LISTENING_MASTERY_REQUIRED_PLAYS } from "../../constants/listeningProgress";
 import { createPortal } from "react-dom";
 import {
     MdCheck,
@@ -188,7 +189,7 @@ function MusicPlayer({
     const compactRewardProgress = rewardStatus
         ? rewardStatus.source === "assignment"
             ? ` · 作業 ${rewardStatus.valid_listen_count}/${rewardStatus.required_listens}`
-            : rewardStatus.mastery_rewarded ? " · 已熟練" : ` · 自主 ${rewardStatus.mastery_count}/10`
+            : rewardStatus.mastery_rewarded ? " · 已熟練" : ` · 自主 ${rewardStatus.mastery_count}/${LISTENING_MASTERY_REQUIRED_PLAYS}`
         : "";
     const cycleTranscript = () => setTranscriptMode(current => {
         if (current === "none") return transcript_en ? "en" : "zh";

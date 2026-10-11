@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
 import { Link } from "react-router-dom";
+import { FiArrowRight, FiBarChart2, FiCheckSquare, FiChevronRight, FiHeadphones, FiMic, FiTrendingUp } from "react-icons/fi";
 import { useAuth } from "../../auth/AuthContext";
 import useStudentPageQuery from "../../hooks/useStudentPageQuery";
 import { useStudentLearningHistory } from "../../hooks/useStudentLearningResume";
@@ -11,7 +12,11 @@ import { getLearningTasks, getStudentMaterialCategories } from "../../utils/stud
 import { assignmentProgressLabel } from "../../utils/assignmentListening";
 
 const formatDay = value => new Intl.DateTimeFormat("zh-TW", { timeZone: "Asia/Taipei", month: "numeric", day: "numeric" }).format(new Date(value));
+const taskPath = task => `/student/assignments?task=${encodeURIComponent(task.taskKey)}`;
+const MAX_ROWS = 3;
 
+// The page answers one question first: "what do I do next?" — a single action on top,
+// then a short list of where the student stands.
 function StudentProgressOverview() {
     const { firebaseUser, role, studentProfile } = useAuth();
     const membership = studentProfile?.membership;
@@ -53,44 +58,55 @@ function StudentProgressOverview() {
 
     if (!active) return null;
 
+    const resume = listening[0];
+    const where = item => item.bookmark.page || item.bookmark.trackTitle || "教材音檔";
+    // Books in progress come first; untouched books would only add noise.
+    const speakingStarted = speaking.filter(group => group.completed > 0 && group.completed < group.total);
+    const moreListening = listening.slice(nextTask ? 0 : 1, nextTask ? MAX_ROWS : MAX_ROWS + 1);
+
     return <section className="student-progress" aria-label="學習進度">
-        {assignmentAccess && <article className="student-progress__block" aria-labelledby="progress-assignments">
-            <h2 id="progress-assignments">作業</h2>
-            {nextTask ? <div className="student-progress__list">
-                <Link className="student-progress__item is-task" to={`/student/assignments?task=${encodeURIComponent(nextTask.taskKey)}`}>
-                    <strong>{nextTask.title}</strong>
-                    <span>{nextTask.state === "overdue" ? "已逾期，請向老師確認補做方式" : Number.isFinite(Date.parse(nextTask.due_at)) ? `${formatDay(nextTask.due_at)} 截止` : "老師的作業"} · {assignmentProgressLabel(nextTask)}</span>
-                </Link>
-                {tasks.length > 1 && <Link className="student-progress__item" to="/student/assignments"><strong>還有 {tasks.length - 1} 份作業</strong><span>查看全部作業</span></Link>}
-            </div> : <p role="status">{tasksLoading ? "正在讀取作業…" : taskError ? "作業暫時無法讀取。" : <>目前沒有待完成的作業。<Link to="/student/assignments">查看作業紀錄</Link></>}</p>}
-            {taskError && <p role="status">部分作業未能讀取，這裡可能不完整。<button type="button" onClick={refreshTasks}>重新讀取</button></p>}
-        </article>}
+        {nextTask ? <Link className={`student-progress__next${nextTask.state === "overdue" ? " is-overdue" : ""}`} to={taskPath(nextTask)}>
+            <span className="student-progress__next-label">{nextTask.state === "overdue" ? "作業已逾期" : "接下來：作業"}</span>
+            <strong>{nextTask.title}</strong>
+            <span className="student-progress__next-meta">{nextTask.state === "overdue" ? "請向老師確認補做方式" : Number.isFinite(Date.parse(nextTask.due_at)) ? `${formatDay(nextTask.due_at)} 截止` : "老師的作業"} · {assignmentProgressLabel(nextTask)}</span>
+            <FiArrowRight aria-hidden="true" />
+        </Link> : resume ? <Link className="student-progress__next" to={learningResumePath(resume.book, resume.bookmark)}>
+            <span className="student-progress__next-label">接下來：繼續聽</span>
+            <strong>{resume.book.name}</strong>
+            <span className="student-progress__next-meta">上次聽到 {where(resume)}</span>
+            <FiArrowRight aria-hidden="true" />
+        </Link> : <button type="button" className="student-progress__next" onClick={openMaterials}>
+            <span className="student-progress__next-label">接下來</span>
+            <strong>選一本教材開始</strong>
+            <span className="student-progress__next-meta">{catalogQuery.loading ? "正在讀取教材…" : "點這裡打開教材"}</span>
+            <FiArrowRight aria-hidden="true" />
+        </button>}
+        {taskError && <p className="student-progress__notice" role="status">部分作業未能讀取，這裡可能不完整。<button type="button" onClick={refreshTasks}>重新讀取</button></p>}
 
-        <article className="student-progress__block" aria-labelledby="progress-listening">
-            <h2 id="progress-listening">聽力：上次聽到這裡</h2>
-            {listening.length ? <div className="student-progress__list">
-                {listening.map(({ bookmark, book }) => <Link className="student-progress__item" to={learningResumePath(book, bookmark)} key={bookmark.bookId}>
-                    <strong>{book.name}</strong>
-                    <span>{bookmark.trackTitle || bookmark.page || "教材音檔"} · {formatDay(bookmark.savedAt)}</span>
-                </Link>)}
-            </div> : <p>{catalogQuery.loading ? "正在讀取教材…" : <>這台裝置還沒有聽力紀錄。<button type="button" onClick={openMaterials}>去選一本教材</button></>}</p>}
-        </article>
-
-        {speakingAccess && <article className="student-progress__block" aria-labelledby="progress-speaking">
-            <h2 id="progress-speaking">口說大挑戰</h2>
-            {speaking.length ? <div className="student-progress__list">
-                {speaking.map(group => <Link className="student-progress__item" to="/student/speaking-challenges" key={group.key}>
-                    <strong>{group.name}</strong>
-                    <span>已完成 {group.completed} / {group.total} 關</span>
-                    <progress max={group.total} value={group.completed} aria-label={`${group.name} 口說進度`} />
-                </Link>)}
-            </div> : <p role="status">{speakingQuery.loading ? "正在讀取口說進度…" : speakingQuery.error ? "口說進度暫時無法讀取。" : "還沒有可挑戰的關卡。"}</p>}
-        </article>}
-
-        <nav className="student-progress__links" aria-label="學習紀錄">
-            <Link to="/student/weekly-report">每週報告</Link>
-            <Link to="/student/leaderboard">排行榜</Link>
-        </nav>
+        <div className="student-settings-list student-progress__list">
+            {assignmentAccess && <Link className="student-settings-row" to="/student/assignments">
+                <FiCheckSquare aria-hidden="true" /><div><strong>作業</strong></div>
+                <span className="student-progress__value">{tasksLoading && !tasks.length ? "讀取中" : taskError && !tasks.length ? "無法讀取" : tasks.length ? `${tasks.length} 份待完成` : "都完成了"}</span>
+                <FiChevronRight aria-hidden="true" />
+            </Link>}
+            {moreListening.map(item => <Link className="student-settings-row" to={learningResumePath(item.book, item.bookmark)} key={item.bookmark.bookId}>
+                <FiHeadphones aria-hidden="true" /><div><strong>{item.book.name}</strong></div>
+                <span className="student-progress__value">聽到 {where(item)}</span>
+                <FiChevronRight aria-hidden="true" />
+            </Link>)}
+            {speakingAccess && (speakingStarted.length ? speakingStarted.slice(0, MAX_ROWS).map(group => <Link className="student-settings-row" to="/student/speaking-challenges" key={group.key}>
+                <FiMic aria-hidden="true" />
+                <div><strong>{group.name}</strong><progress max={group.total} value={group.completed} aria-label={`${group.name} 口說進度`} /></div>
+                <span className="student-progress__value">{group.completed} / {group.total} 關</span>
+                <FiChevronRight aria-hidden="true" />
+            </Link>) : <Link className="student-settings-row" to="/student/speaking-challenges">
+                <FiMic aria-hidden="true" /><div><strong>口說大挑戰</strong></div>
+                <span className="student-progress__value">{speakingQuery.loading ? "讀取中" : speakingQuery.error ? "無法讀取" : speaking.some(group => group.completed > 0) ? "全部完成" : "還沒開始"}</span>
+                <FiChevronRight aria-hidden="true" />
+            </Link>)}
+            <Link className="student-settings-row" to="/student/weekly-report"><FiBarChart2 aria-hidden="true" /><div><strong>每週報告</strong></div><FiChevronRight aria-hidden="true" /></Link>
+            <Link className="student-settings-row" to="/student/leaderboard"><FiTrendingUp aria-hidden="true" /><div><strong>排行榜</strong></div><FiChevronRight aria-hidden="true" /></Link>
+        </div>
     </section>;
 }
 
