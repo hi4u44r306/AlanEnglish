@@ -1,5 +1,18 @@
 # Alan English 專案狀態
 
+### 後端停止發放 AE Points、關閉兌換（2026-10-12，分支 `feature/disable-ae-points`，**尚未套用**；待擁有者確認合併並套用）
+
+- 擁有者已同意改後端（2026-10-12）。高風險：migration＋Edge Function。
+- `supabase/migrations/20261012090000_disable_ae_points_earning.sql`：只重新定義 `private.ae_student_can_earn_points(bigint)` 為 `select false`。所有發獎路徑（`ae_gamification_grant_v2`、口說通關、生日）皆以此判斷是否給點並將正點數歸零，因此 XP／等級／ledger／既有餘額不變，不刪改任何資料列。還原方式寫在 migration 註解（恢復原函式本體）。
+- `supabase/functions/gamification/index.ts`：新增 `REWARD_SHOP_OPEN = false`，`rewards` 與 `redeem` 回 410 `reward_shop_closed`；admin 動作不變。還原：改回 true 重新部署。
+- 套用前唯讀確認（正式庫）：線上函式本體與 repo 相同、無多載；有點數餘額的學生 1 位（測試帳號）；兌換紀錄 0 筆；啟用中的獎品 1 項；最後 migration `20261011124042`。
+- 套用步驟（合併至 `main` 後）：`apply_migration` → 部署 `gamification` → 唯讀驗證函式本體與以測試學生呼叫 `rewards` 得 410。
+- 未驗：無法在本機執行 Deno 測試；發獎回傳值為 0 點需於套用後以實際完成一次有效聆聽確認（會動到測試帳號資料，待擁有者同意）。
+
+### PR #532 已發布（2026-10-12）
+
+- `feature/player-simplify` 合併至 `main`（merge `756175e3`）：播放器精簡、獎品商城與 AE Points 前端收起、暫停提示改版。Workers Builds 結果與正式站字串檢查見對話回報。
+
 ### 獎品商城與 AE Points 前端收起、暫停提示改版（2026-10-12，同分支 `feature/player-simplify`／PR #532，待擁有者說「幫我合併」）
 
 - 擁有者決定：收起獎品商城，聽力只給經驗值（目前無正式學生帳號）。
