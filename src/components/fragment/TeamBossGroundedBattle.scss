@@ -1,0 +1,48 @@
+// Reuse the approved forest clearing; each actor has a planted foot shadow.
+.team-boss-page .tb-native-battle {
+ .tb-native-arena {grid-template-columns:43% 57%;padding:28px 16px;min-height:690px;background:#263c43 url('../../game/assets/moonlit-ground-45-v1.png') center 45% / cover no-repeat;}
+ .tb-native-arena::before {inset:0;border:0;border-radius:0;transform:none;background:linear-gradient(0deg,#14283920,transparent 42%);}
+ .tb-encounter-fx {position:absolute;inset:0;width:100%;height:100%;z-index:3;pointer-events:none;}
+ .tb-native-arena[data-fx-ready=true] .tb-native-strike {display:none;}
+ .tb-native-party {gap:24px;justify-content:center;position:relative;z-index:2;}
+ .tb-native-fighter {max-width:240px;padding:0;}
+ .tb-native-fighter[data-is-me=true] {max-width:300px;}
+ .tb-native-fighter .tb-native-art {height:190px;filter:none;}
+ .tb-native-fighter[data-is-me=true] .tb-native-art {height:250px;}
+ .tb-native-fighter::before {content:'';position:absolute;left:45%;top:174px;width:30%;height:10px;background:radial-gradient(ellipse,#071b2bd9 0,#14272ca0 42%,transparent 74%);border-radius:50%;filter:blur(1.5px);pointer-events:none;}
+ .tb-native-fighter[data-is-me=true]::before {top:230px;}
+ .tb-native-fighter-name {position:absolute;top:25px;left:0;right:0;margin:0;flex-direction:column;}
+ .tb-native-fighter-name strong {font-size:14px;max-width:calc(100% - 6px);padding:4px 7px;}
+ .tb-native-fighter[data-is-me=true] .tb-native-fighter-name {top:38px;}
+ .tb-native-fighter-name span {display:none;}
+ .tb-native-fighter .tb-class-skill {position:relative;z-index:2;color:#eaf7fa!important;background:#102b3cd9;border-radius:8px;padding:5px!important;}
+ .tb-exact-charge small {color:#ccdae5;}
+ .tb-native-enemy {justify-content:center;z-index:1;}
+ .tb-native-enemy-label {background:#102338e6;color:#fff5cf;border:1px solid #9fb7c566;border-radius:12px;padding:10px 4px;}
+ .tb-native-enemy-label h3 {font-size:20px;}
+ .tb-native-enemy-label p {color:#deedf7;}
+ .tb-native-dragon-art {max-width:440px;}
+ .tb-encounter-art {position:relative;width:100%;aspect-ratio:1;isolation:isolate;}
+ .tb-encounter-art::before {content:'';position:absolute;left:51%;top:96%;width:54%;height:9%;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(ellipse,#071725dd 0,#152b2ac0 40%,transparent 73%);filter:blur(2px);z-index:0;}
+ .tb-encounter-art canvas {position:absolute;inset:0;display:block;z-index:1;width:100%;height:100%;filter:brightness(calc(1 + var(--boss-flash,0))) drop-shadow(0 0 calc(var(--boss-glow,0)*18px) #b9a0ff);}
+ .tb-encounter-art .tb-encounter-fallback {position:absolute;inset:0;width:100%;height:100%;object-fit:contain;filter:none;animation:none;z-index:1;}
+ .tb-encounter-art[data-boss-renderer=webgl] .tb-encounter-fallback {visibility:hidden;}
+ .tb-encounter-art[data-boss-renderer=static] canvas {visibility:hidden;}
+ .tb-encounter-rune {position:absolute;z-index:0;left:22%;right:22%;bottom:0;height:9%;border:2px solid #b7b5ef;border-radius:50%;opacity:var(--boss-rune,0);box-shadow:inset 0 0 26px #ab96ef,0 0 25px #c6b0ed;}
+ .tb-native-damage {z-index:3;color:#ffe498;text-shadow:0 2px #102338;}
+ .tb-native-event-caption,.tb-boss-counter-label {color:#eefaff;background:#102338e6;border-radius:9px;max-width:100%;overflow-wrap:anywhere;}
+ @media(max-width:600px) {
+  .tb-native-arena {padding:14px 6px;grid-template-columns:48% 52%;min-height:580px;}
+  .tb-native-fighter .tb-native-art {height:142px;}
+  .tb-native-fighter[data-is-me=true] .tb-native-art {height:184px;}
+  .tb-native-fighter::before {top:130px;}
+  .tb-native-fighter[data-is-me=true]::before {top:169px;}
+  .tb-native-party {gap:22px;}
+  .tb-native-fighter-name {top:13px;}
+  .tb-native-fighter[data-is-me=true] .tb-native-fighter-name {top:22px;}
+  .tb-native-fighter-name strong {font-size:12px;padding:4px 6px;}
+  .tb-native-enemy-label h3 {font-size:16px;}
+  .tb-native-enemy-label p {font-size:11px;overflow-wrap:anywhere;}
+ }
+ @media(prefers-reduced-motion:reduce) {.tb-encounter-rune {transition:none;}}
+}

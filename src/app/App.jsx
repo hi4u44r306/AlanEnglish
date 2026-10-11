@@ -71,6 +71,7 @@ const ReviewCenter = lazy(() => import("../components/Pages/ReviewCenter"));
 const WeeklyReport = lazy(() => import("../components/Pages/WeeklyReport"));
 const MembershipCenter = lazy(() => import("../components/Pages/MembershipCenter"));
 const Rewards = lazy(() => import("../components/Pages/Rewards"));
+const TeamBossSpeakingPreview = lazy(() => import("../components/Pages/TeamBossSpeakingPreview/Preview"));
 
 const LegacyPlaylistRedirect = () => {
     const { playlistId } = useParams();
@@ -208,6 +209,7 @@ const App = () => {
                         <Route path="/admin/accounts/import" element={<ProtectedRoute allowedRoles={["admin"]}><AcademyStudentCsvImport /></ProtectedRoute>} />
                         <Route path="/admin/leaderboard" element={<ProtectedRoute allowedRoles={["admin"]}><LearningLeaderboard /></ProtectedRoute>} />
                         <Route path="/admin/rewards" element={<ProtectedRoute allowedRoles={["admin"]}><RewardsAdmin /></ProtectedRoute>} />
+                        <Route path="/admin/boss-preview" element={<ProtectedRoute allowedRoles={["admin"]}><TeamBossSpeakingPreview /></ProtectedRoute>} />
                         <Route path="/admin/navbar" element={<Navigate to="/admin/catalog" replace />} />
                         <Route path="/admin/links" element={<ProtectedRoute allowedRoles={["admin"]}><LinkAdmin /></ProtectedRoute>} />
                         <Route path="/admin/membership" element={<ProtectedRoute allowedRoles={["admin"]}><MembershipAdmin /></ProtectedRoute>} />
