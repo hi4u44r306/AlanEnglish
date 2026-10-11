@@ -108,27 +108,27 @@ describe("MusicCard", () => {
         fireEvent.click(button);
         expect(dispatch).not.toHaveBeenCalled();
         expect(screen.getByText("紀錄未載入")).toBeInTheDocument();
-        expect(screen.queryByText("0 / 10")).not.toBeInTheDocument();
+        expect(screen.queryByText("0 / 30")).not.toBeInTheDocument();
     });
 
-    it("第9次仍未通過，第10次才顯示通過", () => {
+    it("第29次仍未通過，第30次才顯示通過", () => {
         useSelector.mockImplementation(selector => selector({ musicReducer: { playing: null, playingStatus: false } }));
 
-        const { rerender } = render(<MusicCard music={music} progress={{ play_count: 9, completed: true }} />);
-        expect(screen.getByText("9 / 10")).toBeInTheDocument();
+        const { rerender } = render(<MusicCard music={music} progress={{ play_count: 29, completed: true }} />);
+        expect(screen.getByText("29 / 30")).toBeInTheDocument();
         expect(screen.queryByText("通過")).not.toBeInTheDocument();
 
-        rerender(<MusicCard music={music} progress={{ play_count: 10, completed: false }} />);
-        expect(screen.getByText("10 / 10")).toBeInTheDocument();
+        rerender(<MusicCard music={music} progress={{ play_count: 30, completed: false }} />);
+        expect(screen.getByText("30 / 30")).toBeInTheDocument();
         expect(screen.getByText("通過")).toBeInTheDocument();
     });
     it("shows assignment listens separately and does not mark unfinished homework complete from lifetime mastery", () => {
         useSelector.mockImplementation(selector => selector({ musicReducer: { playing: null, playingStatus: false } }));
-        const view = render(<MusicCard music={music} progress={{ playCount: 10 }} assignmentProgress={{ playCount: 1, requiredListens: 3, completed: false }} />);
+        const view = render(<MusicCard music={music} progress={{ playCount: 30 }} assignmentProgress={{ playCount: 1, requiredListens: 3, completed: false }} />);
         expect(screen.getByText("已聽 1 次，還需 2 次")).toBeInTheDocument();
         expect(screen.getByText("老師指定：3 次")).toBeInTheDocument();
         expect(screen.getByText("長期熟練累積")).toBeInTheDocument();
-        expect(screen.getByText("10 / 10")).toBeInTheDocument();
+        expect(screen.getByText("30 / 30")).toBeInTheDocument();
         expect(view.container.querySelector(".music-card--completed")).toBeNull();
         view.rerender(<MusicCard music={music} progress={{ playCount: 2 }} assignmentProgress={{ playCount: 3, requiredListens: 3, completed: true }} />);
         expect(screen.getByText("本次作業已完成")).toBeInTheDocument();

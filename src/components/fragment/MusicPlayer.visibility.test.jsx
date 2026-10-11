@@ -58,7 +58,7 @@ const begin = async () => {
 test("切換分頁立即暫停，回來不自動播，確認後從原位置繼續", async () => {
     const { audio } = await begin();
     audio.currentTime = 42;
-    expect(screen.getByText("自主熟練度 6/10 次")).toBeInTheDocument();
+    expect(screen.getByText("自主熟練度 6/30 次")).toBeInTheDocument();
     visibility("hidden");
     expect(audio.paused).toBe(true);
     visibility("visible");
