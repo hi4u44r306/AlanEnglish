@@ -1,5 +1,5 @@
 import React from "react";
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { MemoryRouter } from "react-router-dom";
 import StudentProgressOverview from "./StudentProgressOverview";
@@ -40,64 +40,88 @@ beforeEach(() => {
     ] });
 });
 
-test("lists where the student stopped in each authorized book, newest first", async () => {
-    const student = auth({ assignments: true, pronunciation: true });
+const save = (student, book, track) => saveStudentLearningResume(scopeOf(student), book, track);
+
+test("puts the next unfinished assignment on top as the one thing to do", async () => {
+    const student = auth({ assignments: true, pronunciation: false });
     useAuth.mockReturnValue(student);
-    saveStudentLearningResume(scopeOf(student), { id: 10, code: "Workbook_1" }, { id: 22, title: "Unit 2", page: "P.22" });
-    saveStudentLearningResume(scopeOf(student), { id: 11, code: "Workbook_2" }, { id: 30, title: "鎖定教材音檔" });
-    saveStudentLearningResume(scopeOf(student), { id: 12, code: "Phonics_1" }, { id: 5, title: "Phonics Unit 1" });
-    saveStudentLearningResume(scopeOf(student), { id: 10, code: "Workbook_1" }, { id: 23, title: "Unit 3", page: "P.23" });
+    save(student, { id: 10, code: "Workbook_1" }, { id: 22, title: "Unit 2", page: "P22" });
     renderOverview();
-    const listening = within(await screen.findByRole("article", { name: "聽力：上次聽到這裡" }));
-    const links = await listening.findAllByRole("link");
-    expect(links.map(link => link.getAttribute("href"))).toEqual(["/student/books/Workbook_1?resume=23", "/student/books/Phonics_1?resume=5"]);
-    expect(links[0]).toHaveTextContent("Workbook 1");
-    expect(links[0]).toHaveTextContent("Unit 3");
+    const next = await screen.findByRole("link", { name: /這週的聽力/ });
+    expect(next).toHaveClass("student-progress__next");
+    expect(next).toHaveAttribute("href", "/student/assignments?task=v1-2");
+    expect(next).toHaveTextContent("接下來：作業");
+    expect(screen.getByRole("link", { name: /作業.*2 份待完成/ })).toHaveAttribute("href", "/student/assignments");
+    expect(screen.queryByText("已完成的作業")).not.toBeInTheDocument();
+    // The listening bookmark stays reachable in the list while an assignment leads.
+    expect(screen.getByRole("link", { name: /Workbook 1.*聽到 P22/ })).toHaveAttribute("href", "/student/books/Workbook_1?resume=22");
+});
+
+test("marks an overdue-only assignment clearly", async () => {
+    useAuth.mockReturnValue(auth({ assignments: true, pronunciation: false }));
+    getStudentAssignments.mockResolvedValue({ assignments: [{ id: 1, title: "過往任務", due_at: "2020-01-01T00:00:00Z", progress: {} }] });
+    renderOverview();
+    const next = await screen.findByRole("link", { name: /過往任務/ });
+    expect(next).toHaveClass("is-overdue");
+    expect(next).toHaveTextContent("作業已逾期");
+    expect(next).toHaveTextContent("請向老師確認補做方式");
+});
+
+test("without assignments the next action continues the latest authorized book", async () => {
+    const student = auth({ assignments: false, pronunciation: false }, "customer");
+    useAuth.mockReturnValue(student);
+    save(student, { id: 10, code: "Workbook_1" }, { id: 22, title: "Unit 2", page: "P22" });
+    save(student, { id: 11, code: "Workbook_2" }, { id: 30, title: "鎖定教材音檔" });
+    save(student, { id: 12, code: "Phonics_1" }, { id: 5, title: "Phonics Unit 1" });
+    renderOverview();
+    const next = await screen.findByRole("link", { name: /接下來：繼續聽/ });
+    expect(next).toHaveAttribute("href", "/student/books/Phonics_1?resume=5");
+    expect(next).toHaveTextContent("上次聽到 Phonics Unit 1");
+    expect(screen.getByRole("link", { name: /Workbook 1.*聽到 P22/ })).toHaveAttribute("href", "/student/books/Workbook_1?resume=22");
     expect(screen.queryByText(/鎖定教材音檔/)).not.toBeInTheDocument();
+    expect(getStudentAssignments).not.toHaveBeenCalled();
+    expect(getSpeakingChallengeCatalog).not.toHaveBeenCalled();
+    expect(screen.queryByRole("link", { name: /^作業/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /口說大挑戰/ })).not.toBeInTheDocument();
 });
 
-test("shows speaking challenge progress per book", async () => {
-    useAuth.mockReturnValue(auth({ assignments: true, pronunciation: true }));
-    renderOverview();
-    const speaking = within(await screen.findByRole("article", { name: "口說大挑戰" }));
-    expect(await speaking.findByRole("link", { name: /Workbook 1/ })).toHaveTextContent("已完成 1 / 2 關");
-    expect(speaking.getByRole("link", { name: /Phonics 1/ })).toHaveTextContent("已完成 0 / 1 關");
-});
-
-test("does not load speaking progress or show assignments without those entitlements", async () => {
+test("with nothing started the next action opens the materials chooser", async () => {
     useAuth.mockReturnValue(auth({ assignments: false, pronunciation: false }, "customer"));
     renderOverview();
-    expect(await screen.findByText(/這台裝置還沒有聽力紀錄/)).toBeInTheDocument();
-    expect(getSpeakingChallengeCatalog).not.toHaveBeenCalled();
-    expect(screen.queryByRole("article", { name: "口說大挑戰" })).not.toBeInTheDocument();
-    expect(getStudentAssignments).not.toHaveBeenCalled();
-    expect(getStudentAssignmentsV2).not.toHaveBeenCalled();
-    expect(screen.queryByRole("article", { name: "作業" })).not.toBeInTheDocument();
     const opened = jest.fn();
     window.addEventListener("ae:open-student-menu", opened);
-    fireEvent.click(screen.getByRole("button", { name: "去選一本教材" }));
+    fireEvent.click(await screen.findByRole("button", { name: /選一本教材開始/ }));
     window.removeEventListener("ae:open-student-menu", opened);
     expect(opened.mock.calls[0][0].detail).toBe("materials");
 });
 
-test("shows the next unfinished assignment first and links to the rest", async () => {
-    useAuth.mockReturnValue(auth({ assignments: true, pronunciation: false }));
+test("shows only speaking books in progress, with their level count", async () => {
+    useAuth.mockReturnValue(auth({ assignments: false, pronunciation: true }));
     renderOverview();
-    const assignments = within(await screen.findByRole("article", { name: "作業" }));
-    expect(await assignments.findByRole("link", { name: /這週的聽力/ })).toHaveAttribute("href", "/student/assignments?task=v1-2");
-    expect(assignments.getByRole("link", { name: /還有 1 份作業/ })).toHaveAttribute("href", "/student/assignments");
-    expect(assignments.queryByText("已完成的作業")).not.toBeInTheDocument();
+    const row = await screen.findByRole("link", { name: /Workbook 1.*1 \/ 2 關/ });
+    expect(row).toHaveAttribute("href", "/student/speaking-challenges");
+    expect(within(row).getByRole("progressbar", { name: "Workbook 1 口說進度" })).toHaveAttribute("value", "1");
+    expect(screen.queryByText("Phonics 1")).not.toBeInTheDocument();
 });
 
-test("says so when there is no unfinished assignment and does not hide a failed load", async () => {
+test("offers one speaking entry when no book has been started", async () => {
+    useAuth.mockReturnValue(auth({ assignments: false, pronunciation: true }));
+    getSpeakingChallengeCatalog.mockResolvedValue({ challenges: [{ id: 3, book: { id: 12, name: "Phonics 1" }, is_completed: false }] });
+    renderOverview();
+    expect(await screen.findByRole("link", { name: /口說大挑戰.*還沒開始/ })).toHaveAttribute("href", "/student/speaking-challenges");
+});
+
+test("says assignments are done, and does not hide a failed load", async () => {
     useAuth.mockReturnValue(auth({ assignments: true, pronunciation: false }));
     getStudentAssignments.mockResolvedValue({ assignments: [] });
     const first = renderOverview();
-    expect(await screen.findByText(/目前沒有待完成的作業/)).toBeInTheDocument();
+    expect(await screen.findByRole("link", { name: /作業.*都完成了/ })).toBeInTheDocument();
     first.unmount();
     clearStudentPageCache();
     getStudentAssignmentsV2.mockRejectedValue(new Error("unavailable"));
     renderOverview();
     expect(await screen.findByText(/部分作業未能讀取/)).toBeInTheDocument();
-    expect(screen.queryByText(/目前沒有待完成的作業/)).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /作業.*都完成了/ })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "重新讀取" }));
+    await waitFor(() => expect(getStudentAssignmentsV2).toHaveBeenCalledTimes(3));
 });
