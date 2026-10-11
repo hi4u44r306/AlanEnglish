@@ -340,14 +340,9 @@ Deno.serve(async (req: Request) => {
                     }))
                 };
             }
-            // Easy mode reads a blanked sentence; the full answer is only available through
-            // reveal_hint, which voids that question for the current run.
+            // In easy mode a picture gap sentence is read from the blanked sentence; the full
+            // answer is only available through reveal_hint, which voids that question for the run.
             const easyGapMode = challengeMode === "easy" && !demoMode && !practiceOnly;
-            const { data: easyGaps, error: easyGapError } = easyGapMode && ids.length
-                ? await admin.from("speaking_question_easy_gaps").select("question_id,gap_pattern").eq("status", "approved").in("question_id", ids)
-                : { data: [], error: null };
-            if (easyGapError) throw easyGapError;
-            const easyGapByQuestion = new Map((easyGaps || []).map((row: any) => [Number(row.question_id), String(row.gap_pattern)]));
             const questions = [];
             for (const question of (questionSet.speaking_questions || []).sort((a: any, b: any) => a.sort_order - b.sort_order)) {
                 const modelAsset: any = assetByQuestionPurpose.get(`${Number(question.id)}:model_answer`);
@@ -376,15 +371,13 @@ Deno.serve(async (req: Request) => {
                         createR2PresignedUrl(privateObjectKey, "GET", 15 * 60)
                     )
                 });
-                const easyGapPattern = easyGapMode && publicQuestion.interaction_type === "text_qa"
-                    ? easyGapByQuestion.get(Number(question.id)) : undefined;
-                const easyGapQuestion = easyGapMode && (publicQuestion.interaction_type === "picture_gap_sentence" || Boolean(easyGapPattern));
+                const easyGapQuestion = easyGapMode && publicQuestion.interaction_type === "picture_gap_sentence";
                 questions.push(easyGapQuestion ? {
                     ...publicQuestion,
                     hint_zh: "",
                     keywords: [],
                     simple_answer: "",
-                    model_answer: easyGapPattern || "",
+                    model_answer: "",
                     pronunciation_notes_zh: "",
                     hint_voids_pass: true
                 } : challengeMode === "challenge" && !demoMode && !practiceOnly ? {
@@ -421,13 +414,10 @@ Deno.serve(async (req: Request) => {
                 return json(400, { error: "題目或挑戰回合無效，請重新進入關卡" });
             }
             if (challengeMode !== "challenge") {
-                const [{ data: gapRow, error: gapError }, { data: interactionRow, error: interactionError }] = await Promise.all([
-                    admin.from("speaking_question_easy_gaps").select("question_id").eq("question_id", questionId).eq("status", "approved").maybeSingle(),
-                    admin.from("speaking_question_interactions").select("interaction_type").eq("question_id", questionId).maybeSingle()
-                ]);
-                if (gapError) throw gapError;
+                const { data: interactionRow, error: interactionError } = await admin.from("speaking_question_interactions")
+                    .select("interaction_type").eq("question_id", questionId).maybeSingle();
                 if (interactionError) throw interactionError;
-                if (!gapRow && interactionRow?.interaction_type !== "picture_gap_sentence") {
+                if (interactionRow?.interaction_type !== "picture_gap_sentence") {
                     return json(400, { error: "這一題不使用提示" });
                 }
             }

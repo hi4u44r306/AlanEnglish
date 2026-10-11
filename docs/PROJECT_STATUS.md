@@ -1,5 +1,14 @@
 # Alan English 專案狀態
 
+### 口說簡單版：看圖挖空句隱藏答案、提示取消該題通過（2026-10-11，PR 待擁有者說「幫我合併」／後端尚未部署）
+
+- 分支 `feature/speaking-easy-gap`，疊在 `feature/speaking-level-minimal`（PR #525）之上。擁有者決定：圖片挖空句用圖片當線索（不補中文）、中文線索問答保留原樣、不做 Azure 拼字題；因此不需要新資料表，先前草擬的 `speaking_question_easy_gaps` migration 已移除，從未套用到遠端。
+- `speaking-challenge`：easy 模式且題型為 `picture_gap_sentence` 時不回傳答案並標記 `hint_voids_pass`；`reveal_hint` 在 easy 模式只允許這類題目；`complete_question` 的提示檢查改為兩種模式都執行。解鎖與獎勵規則未動（仍以挑戰模式為準）。
+- 前端：`revealSpeakingChallengeHint` 帶入目前模式；`SpeakingPracticeSteps` 以 `hintVoidsPass` 統一挑戰模式與 easy 挖空題的提示行為。
+- 驗證：SpeakingPracticeSteps、TextbookSpeakingChallenge、speakingChallengeService 相關測試通過。Edge Function 沒有在 Deno 環境執行或型別檢查（本機無 Deno）。
+- 待發布：合併後由 main 部署 `speaking-challenge`；部署前後端不一致期間，easy 挖空題仍會顯示完整答案（舊後端），不會壞。
+- 未驗：真實學生帳號的 easy 挖空題流程、提示後 409 的畫面呈現。
+
 ### 口說關卡畫面精簡（2026-10-11，PR 待擁有者說「幫我合併」）
 
 - 分支 `feature/speaking-level-minimal`，基準 main `2aa78382`（PR #524 已合併並由 Workers Builds 成功發布，正式 `main.77029cef.js`／`main.95262401.css` 含雙欄教材卡片）。純前端顯示，未動錄音、評分、進度或獎勵邏輯。
