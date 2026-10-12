@@ -107,3 +107,14 @@ body.speaking-challenge-active {
   .speaking-challenge-hero .speaking-catalog-help > summary > b { font-size: 16px; }
   .speaking-challenge-hero .speaking-catalog-help > summary > span { font-size: 14px; }
 }
+
+// Book cards: the picture, the book's name, how many levels are done. The whole card is the button.
+.speaking-challenge-page:not(.is-book-open) .speaking-challenge-grid > .speaking-book-card.speaking-book-card { grid-template-columns: 64px minmax(0, 1fr) auto !important; align-items: center; gap: 14px !important; min-height: 0 !important; padding: 14px 18px !important; border-radius: 20px !important; box-shadow: none !important; }
+.speaking-challenge-page:not(.is-book-open) .speaking-book-card__eyebrow,
+.speaking-challenge-page:not(.is-book-open) .speaking-book-card__count,
+.speaking-challenge-page:not(.is-book-open) .speaking-book-card__chapter,
+.speaking-challenge-page:not(.is-book-open) .speaking-book-card__action { display: none !important; }
+.speaking-challenge-page:not(.is-book-open) .speaking-book-card__scene { width: 64px !important; height: 64px !important; grid-row: auto !important; }
+.speaking-challenge-page:not(.is-book-open) .speaking-book-card__content { display: grid !important; gap: 8px; min-width: 0; }
+.speaking-challenge-page:not(.is-book-open) .speaking-book-card__content > strong { font-size: 24px !important; font-weight: 800 !important; line-height: 1.2 !important; color: #17365d !important; overflow-wrap: anywhere; }
+.speaking-challenge-page:not(.is-book-open) .speaking-book-card__tally { font-size: 20px; font-weight: 800; color: #17365d; font-variant-numeric: tabular-nums; white-space: nowrap; }
