@@ -1,6 +1,8 @@
 # Alan English 專案狀態
 
-### 學習平台移除 AdSense 廣告程式（2026-10-12，分支 `fix/remove-adsense-script-from-app`，擁有者已指示現在就改）
+### 學習平台移除 AdSense 廣告程式（2026-10-12，已發布）
+
+- 發布紀錄：PR #550 合併為 main `95589036`，Cloudflare 部署完成。正式站實測 `/`、`/login`、`/links`、`/student/dashboard` 都不再載入 `adsbygoogle.js`，且都有 `google-adsense-account` meta 標記；`/zh-tw/` 與 `/zh-tw/math/bmi-calculator/` 仍載入廣告程式；`/ads.txt` 與 `/api/basic-reading/catalog` 正常。未驗：AdSense 複查是否受影響（待審核結果）。
 
 - 背景：`public/index.html` 載入了 `adsbygoogle.js`，所有 SPA 頁面（含登入、學生、老師、商店、付款）共用這個檔案。AdSense 審核通過並開啟自動廣告後，廣告會出現在國小學生的學習頁面。
 - 修改：把 `<script src="…adsbygoogle.js">` 換成 `<meta name="google-adsense-account">`，只保留網站擁有權驗證。工具箱頁面（Worker 轉送的 `/zh-tw/` 等）由工具箱自己載入廣告程式，不受影響；`public/ads.txt` 不變。
