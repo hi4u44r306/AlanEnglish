@@ -72,6 +72,7 @@ const WeeklyReport = lazy(() => import("../components/Pages/WeeklyReport"));
 const MembershipCenter = lazy(() => import("../components/Pages/MembershipCenter"));
 const Rewards = lazy(() => import("../components/Pages/Rewards"));
 const TrialLesson = lazy(() => import("../components/Pages/TrialLesson"));
+const StudentMaterials = lazy(() => import("../components/Pages/StudentMaterials"));
 const ParentGuide = lazy(() => import("../components/Pages/ParentGuide"));
 const TeamBossSpeakingPreview = lazy(() => import("../components/Pages/TeamBossSpeakingPreview/Preview"));
 
@@ -195,6 +196,7 @@ const App = () => {
                         <Route path="/student/speaking-challenges/book/:bookKey" element={<ProtectedRoute allowedRoles={["student", "teacher", "admin"]} requiresActiveMembership><TextbookSpeakingChallenge /></ProtectedRoute>} />
                         <Route path="/student/speaking-challenges/:questionSetId" element={<ProtectedRoute allowedRoles={["student", "teacher", "admin"]} requiresActiveMembership><TextbookSpeakingChallenge /></ProtectedRoute>} />
                         <Route path="/student/ai-generator" element={<ProtectedRoute allowedRoles={["student", "teacher", "admin"]} requiresActiveMembership><AIMaterialGenerator /></ProtectedRoute>} />
+                        <Route path="/student/books" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><StudentMaterials /></ProtectedRoute>} />
                         <Route path="/student/books/:playlistId" element={<ProtectedRoute allowedRoles={["student", "teacher", "admin"]} requiresActiveMembership><Playlist /></ProtectedRoute>} />
                         <Route path="/billing/success" element={<ProtectedRoute allowedRoles={["student"]}><BillingResult /></ProtectedRoute>} />
                         <Route path="/billing/cancel" element={<ProtectedRoute allowedRoles={["student"]}><BillingResult cancelled /></ProtectedRoute>} />
