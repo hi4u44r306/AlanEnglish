@@ -1,11 +1,13 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Helmet } from "react-helmet";
 import { Link } from "react-router-dom";
-import { FiArrowRight, FiCheck, FiHeadphones, FiMic, FiPlayCircle, FiVolume2 } from "react-icons/fi";
+import { FiArrowRight, FiCheck, FiHeadphones, FiMic, FiPlayCircle, FiSquare, FiVolume2 } from "react-icons/fi";
+import useTrialSpeaking from "../../hooks/useTrialSpeaking";
 import "./css/TrialLesson.scss";
 
 // One free lesson, open to anyone: Workbook 1, page 28, colours. Everything on this page is
-// self-contained — no account, no paid speech scoring, nothing sent to the server.
+// self-contained — no account and no paid speech scoring. Speaking is recognised on the device,
+// so the recording never leaves the browser.
 const VIDEO_ID = "IgMCnPvCHyI";
 const VIDEO_START = 886;
 export const SAMPLE_AUDIO = "/samples/workbook-1-p28.mp3";
@@ -42,16 +44,24 @@ export default function TrialLesson() {
     const [videoOpen, setVideoOpen] = useState(false);
     const canSpeak = typeof window !== "undefined" && Boolean(window.speechSynthesis);
     const cardRef = useRef(null);
+    const speaking = useTrialSpeaking();
     const item = COLOUR_QUESTIONS[index];
     const finished = done.size === COLOUR_QUESTIONS.length;
 
     useEffect(() => () => { window.speechSynthesis?.cancel(); }, []);
 
+    const { status, reset: resetSpeaking } = speaking;
+    const answered = revealed || status === "correct";
+    useEffect(() => {
+        if (status === "correct") setDone(current => new Set(current).add(item.id));
+    }, [status, item.id]);
     const reveal = () => {
+        resetSpeaking();
         setRevealed(true);
         setDone(current => new Set(current).add(item.id));
     };
     const next = () => {
+        resetSpeaking();
         setRevealed(false);
         setIndex(current => (current + 1) % COLOUR_QUESTIONS.length);
         cardRef.current?.focus({ preventScroll: true });
@@ -106,14 +116,21 @@ export default function TrialLesson() {
                     <span className="trial-lesson__swatch" style={{ background: item.swatch }} aria-hidden="true" />
                     <p className="trial-lesson__question">{questionText(item)}</p>
                     <p className="trial-lesson__answer">
-                        It&apos;s <b className={revealed ? "is-shown" : ""}>{revealed ? item.answer : item.zh.replace(/./g, "＿")}</b>.
+                        It&apos;s <b className={answered ? "is-shown" : ""}>{answered ? item.answer : item.zh.replace(/./g, "＿")}</b>.
                     </p>
-                    <p className="trial-lesson__hint">{item.zh}是什麼顏色？先自己大聲說一次。</p>
+                    {status === "correct" && <p className="trial-lesson__result is-correct" role="status"><FiCheck aria-hidden="true" />說對了！</p>}
+                    {status === "retry" && <p className="trial-lesson__result" role="status">我聽到：「{speaking.heard}」，再說一次看看。</p>}
+                    {(status === "preparing" || status === "error") && <p className="trial-lesson__result" role="status">{speaking.message}</p>}
+                    {status === "checking" && <p className="trial-lesson__result" role="status">正在聽你說的…</p>}
+                    {status === "idle" && !revealed && <p className="trial-lesson__hint">{item.zh}是什麼顏色？按麥克風，大聲說出整句。</p>}
                     <div className="trial-lesson__actions">
-                        {canSpeak && <button type="button" className="is-quiet" onClick={() => speak(revealed ? `${questionText(item)} ${answerText(item)}` : questionText(item))}><FiVolume2 aria-hidden="true" />聽一次</button>}
-                        {revealed
+                        {answered
                             ? <button type="button" className="is-primary" onClick={next}>下一題<FiArrowRight aria-hidden="true" /></button>
-                            : <button type="button" className="is-primary" onClick={reveal}><FiCheck aria-hidden="true" />我說完了，看答案</button>}
+                            : status === "recording"
+                                ? <button type="button" className="is-primary is-recording" onClick={speaking.stop}><FiSquare aria-hidden="true" />說完了</button>
+                                : <button type="button" className="is-primary" onClick={() => speaking.start(item.answer)} disabled={status === "preparing" || status === "checking"}><FiMic aria-hidden="true" />{status === "retry" || status === "error" ? "再說一次" : "按一下，開口說"}</button>}
+                        {canSpeak && <button type="button" className="is-quiet" onClick={() => speak(answered ? `${questionText(item)} ${answerText(item)}` : questionText(item))}><FiVolume2 aria-hidden="true" />聽一次</button>}
+                        {!answered && status !== "recording" && <button type="button" className="is-quiet" onClick={reveal}>看答案</button>}
                     </div>
                 </div>
                 {finished && <p className="trial-lesson__notice is-done" role="status">8 題都說過了，很棒！</p>}
@@ -121,9 +138,9 @@ export default function TrialLesson() {
 
             <footer className="trial-lesson__next">
                 <h2>課本、聽力、口說、影片是一套的</h2>
-                <p>每一頁都像這樣學。登入後，口說還可以錄音、看分數。</p>
+                <p>每一頁都像這樣學：看老師教、聽課本、自己開口說。</p>
                 <div>
-                    <Link className="is-primary" to="/support">想了解教材</Link>
+                    <Link className="is-primary" to="/parents">想了解教材</Link>
                     <Link to="/login">已經有帳號，登入</Link>
                 </div>
             </footer>

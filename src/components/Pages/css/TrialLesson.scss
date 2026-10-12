@@ -71,3 +71,12 @@
 }
 
 @media (prefers-reduced-motion: reduce) { .trial-lesson__actions button:active { transform: none; } }
+
+.trial-lesson__result { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 8px 14px; border-radius: 12px; background: #fff6e3; color: #5c3d06; font-size: 17px; font-weight: 700; line-height: 1.5; overflow-wrap: anywhere;
+    &.is-correct { background: #eef8f1; color: #17694a; font-size: 20px; font-weight: 900; }
+    svg { width: 22px; height: 22px; flex-shrink: 0; }
+}
+.trial-lesson__actions button:disabled { opacity: .6; cursor: wait; }
+.trial-lesson__actions button.is-recording { border-color: #d84315; background: #d84315; color: #fff; animation: trial-lesson-pulse 1.2s ease-in-out infinite; }
+@keyframes trial-lesson-pulse { 50% { box-shadow: 0 0 0 10px rgba(216, 67, 21, .18); } }
+@media (prefers-reduced-motion: reduce) { .trial-lesson__actions button.is-recording { animation: none; } }
