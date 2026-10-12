@@ -1,5 +1,13 @@
 # Alan English 專案狀態
 
+### 學習平台移除 AdSense 廣告程式（2026-10-12，分支 `fix/remove-adsense-script-from-app`，擁有者已指示現在就改）
+
+- 背景：`public/index.html` 載入了 `adsbygoogle.js`，所有 SPA 頁面（含登入、學生、老師、商店、付款）共用這個檔案。AdSense 審核通過並開啟自動廣告後，廣告會出現在國小學生的學習頁面。
+- 修改：把 `<script src="…adsbygoogle.js">` 換成 `<meta name="google-adsense-account">`，只保留網站擁有權驗證。工具箱頁面（Worker 轉送的 `/zh-tw/` 等）由工具箱自己載入廣告程式，不受影響；`public/ads.txt` 不變。
+- 風險：低，只少載入一支第三方 script。未知：AdSense 複查進行中（2026-10-12 送出），驗證方式由程式碼改為 meta 標記是否影響審核無法事先確認；兩者都是 Google 列出的驗證方式。還原方式：revert 本次 commit。
+- 驗證：`git diff --check` 通過；未執行 Production build（僅改 `<head>` 內一個標籤，`generate-static-seo-pages.mjs` 取代的標籤不含這一個）。
+- 未驗：正式站部署後須確認 `/`、`/login` 不再載入 `adsbygoogle.js` 且有 meta 標記，`/zh-tw/` 仍載入廣告程式。
+
 ### 學生導覽列新增「作業」（2026-10-12，分支 `feature/student-nav-assignments`，待擁有者說「幫我合併」）
 
 - PR #548 已於 2026-10-12 發布：Workers Builds 成功；正式站含 `weekly-student__tiles`、`/student/notification-settings`、`account-security__title` 與新版導覽。學生畫面仍待擁有者實機確認。
