@@ -2,3 +2,4 @@ User-agent: *
 Allow: /
 
 Sitemap: https://alanenglish.com.tw/sitemap.xml
+Sitemap: https://alanenglish.com.tw/sitemap-index.xml
