@@ -9,6 +9,16 @@
 - 驗證：`node --test worker/index.test.mjs` 13 項通過（含 3 項新增）；`git diff --check` 通過。未在本機執行 Production build，由 Cloudflare 建置。
 - 未驗：正式站部署後須實測 `/links`、`/login`、`/student/dashboard` 的 robots 標記與登入流程是否正常，以及首頁頁尾在手機寬度的排版。
 
+### 免費試聽一課 `/try`、家長介紹頁 `/parents` 草稿（2026-10-12，分支 `feature/free-trial-lesson`，草稿、未合併）
+
+- PR #540（後台選單）已合併至 `main`（merge `16526f16`），先與 #539 的文件衝突合併解決。
+- 背景：擁有者想對外開放、吸引非英文班家長；討論後先以「單一免費試聽單元」驗證需求，暫不改收費與權限模型。擁有者同意以 Workbook 1 P28「顏色」為試聽內容。
+- 純前端、無後端：`Pages/TrialLesson.jsx`、`css/TrialLesson.scss`、測試；`App.jsx` 新增公開路由 `/try`（lazy）。影片用 `youtube-nocookie` 嵌入、點擊後才載入；口說為自我練習（不錄音、不評分），題目文字取自已發布題組並內嵌於頁面。尚無任何入口連結。
+- 擁有者回覆（2026-10-12）：音檔「直接從我的電腦中找」→ 採用 `D:彬的檔案AlanEnglish 檔案Workbook 1-5 最新MP3 (2026-09-28)Workbook 1-p28.mp3`（與「單頁MP3草稿」資料夾的 `Workbook_1_P28.mp3` 內容相同，3,998,210 bytes），複製為 `public/samples/workbook-1-p28.mp3`。注意：正式站 R2 的同名音檔為 4,404,096 bytes、etag 不同，**不是同一個版本**，待擁有者確認內容。口說改為「可錄音評分、用本機辨識」；新增家長介紹頁。
+- 資料修正（已套用正式庫，擁有者同意）：`speaking_questions.id = 231`（Workbook 1「P28 顏色」第 7 題）的 `simple_answer`／`model_answer` 由 `pruple` 改為 `purple`；修正後全庫已無 `pruple`，既有 TTS 資產文字不含該錯字。第 6 題「African berry … blue」語意仍待擁有者確認。
+- 口說錄音：新增 `hooks/useTrialSpeaking.js`，沿用 `localSpeakingRecognizer`（whisper-tiny.en，於裝置上執行）與 `convertAudioBlobToWav`；最多錄 6 秒，辨識文字含目標單字即通過，不呼叫後端。新增 `Pages/ParentGuide.jsx`、`css/ParentGuide.scss`、路由 `/parents`。
+- 驗證：`TrialLesson.test.jsx`、`ParentGuide.test.jsx` 共 9 項通過；本機 375 寬實看兩頁首屏、試聽音檔可載入（約 167 秒）。**未驗**：實際錄音與辨識（需麥克風）、影片播放、桌面寬度、iPhone Safari。家長頁提到「每週一封 Email」——目前自動寄送仍為關閉，上線前需開啟或改文案。
+
 ### 後台選單整理（2026-10-12，分支 `feature/admin-nav-tidy`，待擁有者說「幫我合併」）
 
 - PR #538 已於 2026-10-12 發布：Workers Builds 成功，正式站 JS／CSS 含 `gamification-page--student`、`weekly-report-page--student`、`speaking-book-card__tally` 與排行榜快取鍵。
@@ -27,7 +37,6 @@
 - 驗證：`node --test worker/index.test.mjs` 10 項通過（含 4 項新增）；`git diff --check` 通過。`scripts/seo-foundation.test.mjs` 有 2 項因本機沒有 `build/` 而失敗，與本次修改無關，未執行 Production build。
 - 未驗：Worker 實際對同一 Cloudflare zone 的子網域發出 subrequest 是否正常，須於正式站部署後以 `alanenglish.com.tw/zh-tw/` 實測。
 - 後續（工具箱 repo）：正式站驗收後，把工具箱的 canonical、sitemap 網址改為主網域。
-
 
 ### 三頁精簡、口說流程測試修復（2026-10-12，分支 `feature/daily-goal-and-tidy`，待擁有者說「幫我合併」）
 
@@ -168,7 +177,6 @@
 - 驗證：StudentProgressOverview 7 項、StudentSettings、MusicPlayer.visibility 通過；ESLint、SCSS 編譯通過；編譯後樣式的靜態預覽於 400px 截圖目視，無水平溢位。
 - 未驗：真實登入、桌面寬度、iPhone Safari。已知：`SpeakingChallengeFlow.test.jsx` 仍有既有的 9 項失敗未查。
 
-
 ### 口說簡單版：看圖挖空句隱藏答案、提示取消該題通過（2026-10-11，PR 待擁有者說「幫我合併」／後端尚未部署）
 
 - 分支 `feature/speaking-easy-gap`，疊在 `feature/speaking-level-minimal`（PR #525）之上。擁有者決定：圖片挖空句用圖片當線索（不補中文）、中文線索問答保留原樣、不做 Azure 拼字題；因此不需要新資料表，先前草擬的 `speaking_question_easy_gaps` migration 已移除，從未套用到遠端。
@@ -187,7 +195,6 @@
 - 驗證：MainNavbar、StudentGrowthHeader 共 39 項通過；ESLint、SCSS 編譯通過。以編譯後樣式的模擬頂端列在 390px 量測：成長列 266px、與通知／選單按鈕同列、無水平溢位；截圖工具多次逾時，只目視到等級格。
 - 未驗：真實登入後的頂端列、桌面寬度、iPhone Safari、分頁圖示實際顯示。
 
-
 ### 口說關卡畫面精簡（2026-10-11，PR 待擁有者說「幫我合併」）
 
 - 分支 `feature/speaking-level-minimal`，基準 main `2aa78382`（PR #524 已合併並由 Workers Builds 成功發布，正式 `main.77029cef.js`／`main.95262401.css` 含雙欄教材卡片）。純前端顯示，未動錄音、評分、進度或獎勵邏輯。
@@ -196,7 +203,6 @@
 - 驗證：SpeakingPracticeSteps、SpeakingPronunciationRecorder、TextbookSpeakingChallenge 共 113 項通過；ESLint、SCSS 編譯通過。把全部口說樣式編譯後套在模擬的關卡 HTML 上，於 390px 實測：題目與參考句 33.5px、挖空中文 27.5px、12 類說明元素皆不可見、無水平溢位，並有截圖目視。
 - 已知：`SpeakingChallengeFlow.test.jsx` 在改動前的 main 就有 9 項失敗（以 main 版本的兩個檔案重跑確認），與本次無關，原因未查。
 - 未驗：真實登入的關卡、圖片題與字母題版面、評分結果畫面、iPhone Safari。
-
 
 ### 教材選單改為雙欄名稱卡片（2026-10-11，PR 待擁有者說「幫我合併」）
 
@@ -323,7 +329,6 @@ PR #512 已合併 main `101bc93a4ee89374a16d2ba8d9d2f7ccc3198a4e`；Cloudflare b
 - 單一口說題組可重試；網路、登入、資格、鎖定與不存在／未發布教材分流。既有 API、權限、價格、計分與資料模型不變，無套件／migration／正式資料操作。
 - 166 項相關 React 測試及局部 lint 通過；隔離 Edge 44 項檢查、18 組 1440／412／320px 無溢位／pageerror／外部請求；650ms 模擬 API 情境首次帳號 1286ms、回訪 69ms，保留第二頁與 600px 位置。合成麥克風拒絕、重試、錄音／回聽／重新錄音通過，不能替代正式帳號或 iPhone Safari。最終正式格式前端建置、靜態 SEO 與 Cloudflare 本機資產產生通過，使用者已授權本批正式部署並已發布。
 
-
 - PR #510 已合併 main `a85939e6c04f59398fb542c0d095238ff04635ee`，Cloudflare build `f96825ad-24e8-4dca-ba2e-a5ab5d3506d2` 於 2026-10-10 17:08:53 台灣時間成功。正式 13 個頁面入口及 27 個 JS／CSS 均 HTTP 200，13 個新版／保留標記及 manifest 更新通過；主程式 `/static/js/main.083dbe1b.js`、主樣式 `/static/css/main.cf6afa96.css`。正式 Edge 瀏覽於 1440／412／320px 共 24 組通過，無水平溢位或 pageerror；未登入教師／管理／口說頁導向登入，公開首頁與復原分流通過，未送出資料。證據 `output/workflow-production-release/`。真實教師／管理員／學生登入、修改儲存、切頁快取與 iPhone Safari 錄音仍待驗，公開／未登入與資產驗收不能替代上述情境。
 
 ### 全站 UIUX 目標（2026-10-10，四批已發布／登入實機待驗）
@@ -366,7 +371,6 @@ PR #512 已合併 main `101bc93a4ee89374a16d2ba8d9d2f7ccc3198a4e`；Cloudflare b
 - 人工核對紀錄採既有前端估算相同的UID／月份localStorage範圍，註明來源、帳期、適用日期與核對時間；最多七天有效，免費條件仍須固定費0且沒有正數帳務。免費紀錄不消除帳務缺口，未新增DB／Function／Secret／權限變更。PROJECT_LOGIC與手冊v3.82同步；可revert此批前端回復，移除本地ae-cost-review-v1紀錄不影響帳單或通知。
 - 4套23項局部測試通過（首輪一項舊文案斷言更新後補驗）；JSX／helper ESLint通過。真實元件與SCSS在1440／412／320px的收合與展開均14列完整、無水平溢位、控制項至少44px、無pageerror。已檢視桌面／手機截圖並修正摘要說明對比；證據output/cost-overview-validation。正式管理員與Cloudflare build已依下列紀錄驗收；不重跑無關全套或本機production build。
 
-
 - PR #500合併main `9bb6fb00a2c8a0d93512dfd3b7f5db60314681a0`，Cloudflare build `31f0fc5c-0e6d-42cf-9aa2-b9c58f78f0f5`於16:37:46台灣時間success；16:38正式首頁、成本路由、manifest、main JS／CSS均200且新標記存在。正式管理員登入看見14列、1位啟用學生、5項取得帳務US$0.0356、9項缺口及不完整預估US$0.6717。驗收發現UTC直接截日期易誤讀為帳期，改用既有台灣時間格式與「資料範圍」標籤，補1項回歸測試後6項總覽測試通過；此小修需獨立Cloudflare建置。
 
 - 日期修正PR #501合併main `7775d410c06f92bdb1cd68a403a805c691b4cf02`；Cloudflare build `77f43697-5bd9-4f38-98f7-b8a21157e954`於16:43:45台灣時間success。16:45首頁／成本路由／manifest／新main JS與CSS均200，正式管理員再登入核對10/1台灣午夜顯示正確。共24項相關測試；首批與補修各一次production build，未重複本機build。
@@ -378,14 +382,12 @@ PR #512 已合併 main `101bc93a4ee89374a16d2ba8d9d2f7ccc3198a4e`；Cloudflare b
 - Low Risk：僅 JSX 裝飾與 SCSS。局部 ESLint、diff check、真實元件隔離預覽 12 種寬度、詳情／Escape／背景鎖定、大數字、缺值與短橫向均通過，無 pageerror；file 預覽尺寸切換、詳情與頭貼通過。375px 保留金幣及徽章，359px 以下保留數字而省略頂部裝飾，詳情仍顯示金幣。不執行 npm test 或本機 production build，發布由 Cloudflare main 唯一建置。正式登入與 iPhone Safari 實機待驗；可 revert 本批前端回復，沒有資料回復需求。
 - PR #498 合併 main `dfe8b11409fcf8fcffa36186ff77c6bbacffc7a1`，Cloudflare production build `a85ed6a9-d319-4539-bfda-cca8c16bfee1` 於 2026-10-09 16:23:01 台灣時間 success，Worker version `6bf2bbf3-c4b4-496b-b6f4-72d66b5e6d08`。16:24:36 正式首頁、學生首頁／設定、manifest 及全部 27 個 JS／CSS HTTP 200，金幣、星盾與搖桿的 6 個精確 SVG／樣式標記通過，Logo 與核准原檔相符。證據 output/student-game-icons-release/production-http.json；可操作預覽及實際元件圖示對照位於 output/student-game-icons-preview。手冊 v3.81 已部署；正式學生登入與 iPhone Safari 仍待實機驗收。純文件發布紀錄不觸發第二次前端建置。
 
-
 ### 學生成長資訊列與詳情視覺優化（2026-10-09，已部署／實機待驗）
 
 - 使用者要求改善頂部成長列與點開詳情的設計。基準main `d4fc9623`，分支`codex/student-growth-header-polish`，沿用目前工作目錄。範圍僅StudentGrowthHeader／SCSS、StudentNavbar傳入原有頭貼及兩套局部測試與文件。頂部統一淡灰藍圓角、細分隔、小字級；成長詳情使用本人原有頭貼／等級／本級進度，點數詳情用淡黃餘額、兌換說明與主按鈕；手機底部面板、電腦／平板置中卡片，右上44px關閉按鈕。
 - 原summary快取、發獎更新、生日日期核對、missing／error／retry、UID隔離、pointsAccess與路由操作維持；未改後端、資料或權限。大數字仍頂部簡寫、詳情完整，四位數加入千分位。手冊v3.80同步。可revert本批前端回復，不影響學習／點數資料。
 - 兩套39項相關測試與JSX ESLint通過；真實元件12種寬度、詳情／側欄、Escape／背景鎖定、大數字及568×320橫向通過，無pageerror。首次截圖發現詳情關閉按鈕未靠右與示範頭貼缺WebP縮圖；已修正關閉按鈕樣式及補齊隔離素材，12種寬度與成長／點數截圖補驗通過，頭貼載入、詳情44px關閉按鈕靠右與畫面範圍核對通過。正式登入／iPhone Safari實機待驗；本機不跑無關全套或production build，發布由Cloudflare main唯一建置。
 - PR #496合併main `a7712d92cbb9ba51bbd33b59fa91ae33a9bcd63b`；唯一Cloudflare production build `ea1fe23d-4e19-47f5-97c9-f621b96e0ba3`於2026-10-09 16:02:23台灣時間success，Worker version `3e1b1d48-0e1b-4782-babb-ebe9abdaa3f2`。16:02:47正式首頁、學生首頁／設定、manifest及全部27個JS／CSS HTTP200，五個新詳情樣式與兩個文案標記存在，Logo校驗仍與核准原檔一致。證據output/student-growth-polish-release/production-http.json。獨立file預覽頭貼因根路徑限制改為嵌入既有示範縮圖後可開啟、手機尺寸切換及詳情／頭貼核對通過；只調整忽略的預覽，不改正式頭貼邏輯。可操作預覽output/student-growth-polish-preview/index.html。手冊v3.80已部署；正式學生登入、iPhone Safari、安全區及實際學習／兌換仍待實機驗收。純文件紀錄不重複建置。
-
 
 ### 學生頂部成長資訊列發布（2026-10-09，已部署／實機待驗）
 
@@ -394,13 +396,11 @@ PR #512 已合併 main `101bc93a4ee89374a16d2ba8d9d2f7ccc3198a4e`；Cloudflare b
 - 4套49項Header／MainNavbar／共用query／獎勵失效更新測試通過，相關JSX ESLint、SCSS編譯及diff check通過。真實StudentNavbar／GrowthHeader與隔離示範資料在320～1600px共12種寬度無水平溢位、單列固定頂部、內容偏移正確、彩色AE載入、4px XP條、至少44px主要點按區；大數字／缺值、詳情與側欄Escape／背景鎖定通過、無pageerror，四張電腦／平板／手機截圖已檢視。Header實際含邊線69px（1600px為75px）；播放器位置示意與底部導航不重疊，未播放音檔。證據output/student-growth-live-preview。正式學生登入、iPhone Safari／safe area實機仍待驗。前端build由合併後唯一Cloudflare production執行，不重複本機production build或全套測試；原React Router future／act提示非測試失敗。
 - PR #494合併main `104d58b97ca6015bd054033fd6ea1e91f991ab01`。唯一Cloudflare production build `2081f469-ef6d-46c5-aa44-d7ba65927176`於2026-10-09 15:27:24台灣時間success，Worker version `6d264aa3-2526-4c51-abb8-a97f6c71c8d9`；15:28:44正式首頁、/student/dashboard、/student/settings、manifest及全部27個JS／CSS HTTP200，七個Header／詳情／文案／Logo標記存在，正式ae-icon.jpeg SHA256與核准原檔相同。證據output/student-growth-header-release/production-http.json。初次驗收腳本新增路由後manifest索引未同步，修正腳本後正常；建置尚未完成時舊資產不含Header，建置完成後重新驗收全部通過。沒有因此修改應用或重複build；純文件發布紀錄不觸發第二次Cloudflare build。正式學生登入、iPhone Safari／safe area、真實音檔與兌換操作仍未驗收，HTTP／隔離元件不代替這些實測。
 
-
 ### 學生頂部等級與點數（2026-10-09，設計提案歷程；已核准，發布結果見上節）
 
 - 基準 main `204c0353`；規劃分支 `codex/student-growth-header-plan`。依使用者修訂並確認彩色AE `public/ae-icon.jpeg`，品牌只留小圖示；電腦、手機和平板的Lv、XP條／升級距離、AE Points及有效生日月倍率全部同列放入最頂端Header。緊湊模式暫定1279px上限（現況1100px），待確認；底部學習導覽保留。
 - 只新增設計文件 `docs/STUDENT_GROWTH_HEADER_PLAN.md` 與獨立示意 `output/student-growth-header/index.html`，未修改src、後端、會員或網站。四張1440／1024／768／412圖已查看；11種320～1440寬度無頁面水平溢位，固定頂部、同列Header、彩色AE原圖載入、至少44px主要點按區、詳情／Escape／捲動鎖定／尺寸切換與無pageerror通過。示範資料不代表正式帳號；正式網站、錄音／播放器／Sidebar整合、兌換更新、大數字、iPhone Safari及safe area待實作與驗收。規劃不涉及應用執行，未跑無關全套測試或build，未部署。手機示意Header68px，相較上一版雙列省約53px；尚未改網站。下一步是確認修訂版位方向。
 - 配色修訂：核對公開首頁、管理員後台、學生導覽／首頁及既有成長卡後，Header採白／淺灰藍與深藍文字，XP沿用`#247a56`綠色，點數沿用`#fff6d7`淡黃底／細邊線；保留彩色AE小圖，移除原提案的大面積深藍成長底框。數字縮至14～15px、XP條4px；新版11種寬度、詳情互動及四張截圖核對通過。僅更新預覽與規劃，未更動網站；未跑不相關的應用測試或build。
-
 
 ### 目前人數逐項月費估算（2026-10-09，已部署／登入實機待驗）
 
@@ -418,8 +418,6 @@ PR #512 已合併 main `101bc93a4ee89374a16d2ba8d9d2f7ccc3198a4e`；Cloudflare b
 - PR #492 合併 main `f3ebbd12299a50986a28581d8b5c7ad5535ae6b2`。使用 apply_migration 套用一份已測試 SQL，再以完整 statements 相符條件登記原審核版本 `20261009050131`；未重跑其他 migration。membership-manager v63 ACTIVE，三個來源檔與 main 完全一致，維持既有 Firebase／verify_jwt=false。正式 RLS、anon/authenticated 無 DML／RPC、service_role 僅 SELECT/INSERT、兩個索引、invoker RPC、原 immutable trigger 啟用與無效管理員拒絕均核對通過，稽核紀錄為零。OPTIONS 200、未登入與偽造 Token 的生日 action 401。
 - Cloudflare唯一production build `adfb0ed3-687b-4906-9f73-a4441537b226` 正式新資產已發布，GitHub completion 回報待確認；2026-10-09 14:06:54 台灣時間，公開首頁、/admin/accounts 與全部27個JS/CSS均HTTP200，七個生日更正 API／中文文案／樣式標記存在。中文採編譯 Unicode 跳脫格式，驗收腳本改以原文或精確跳脫文字判讀後通過。正式帳號更正、跨連線併發、完整Navbar/Sidebar與iPhone尚未驗收；未更改測試帳號。瀏覽器控制兩次連線失敗，改用GitHub提供的Cloudflare check與公開HTTP／資產驗收。非個資證據：`output/admin-birth-date-release/`。
 
-
-
 ### 生日月 XP ×2 與可調整生日禮（2026-10-09，已部署／實機待驗）
 
 - 基準 main `d471e86a`；功能分支 `codex/birthday-month-rewards`，使用目前既有 worktree，沒有另建 worktree。新增四份 additive migration、gamification 生日摘要／管理員設定 action、獎品管理設定卡與學生首頁提示，預設生日禮 100 AE Points，管理員可調整 0～10,000 點；沿用有效在校生點數資格，每人每年一次，已領金額不補發或追回，生日鎖定／原有效學習、升等與領獎次數維持。
@@ -429,7 +427,6 @@ PR #512 已合併 main `101bc93a4ee89374a16d2ba8d9d2f7ccc3198a4e`；Cloudflare b
 - 初次一次準備多支核心 SQL 被自動審核拒絕；已依理由拆成生日禮、共用 XP 及分項相容修正，每一項先隔離驗證再整合，後續本機操作均通過審核，沒有正式資料異動。
 - 使用者已明確同意本批正式操作。PR #488 已合併 main `d37c85cb20f441c7ab67adc1c0a4d5782d8eff40`；六支正式原函式與已測試來源一致，生日 immutable trigger 保留。四份 migration 以單一交易套用並登記原版本，設定 enabled=true／100點／version=1；新表 RLS、瀏覽器無權限及 RPC 僅 service_role 通過。首次防覆寫檢查參數格式錯誤使交易回滾，修正檢查後成功，未部分套用或修改學生生日／回填獎勵。
 - gamification v36 ACTIVE，兩個遠端來源檔與 main 一致，維持既有 Firebase 驗證／verify_jwt=false；OPTIONS 200、未登入與偽造管理員請求 401。唯一 Cloudflare production build `67bf7cdd-f43f-4456-b412-e62a94f53157` 於 2026-10-09 07:52:58 台灣時間 success；07:54:33 首頁、/admin/rewards、/student/dashboard 與全部27個 JS／CSS HTTP 200，七個生日文案／API／樣式標記存在。證據 `output/birthday-release/`；HTTP 不代替正式登入、真實發獎、跨連線併發或裝置操作。手冊 v3.76 與發布／回復清單同步更新，下一步是正式測試帳號及 iPhone Safari 驗收；純 Markdown 紀錄不觸發第二次前端 build。
-
 
 ### 六項流程優化目標（2026-10-08）
 
