@@ -312,7 +312,7 @@ export default function SpeakingPronunciationRecorder({
             {disabledReason && <p className="speaking-pronunciation-notice">{disabledReason}</p>}
             {!recordedBlob && <button
                 type="button"
-                className="speaking-pronunciation-mic"
+                className={`speaking-pronunciation-mic${recording ? " is-recording" : ""}`}
                 onClick={recording ? () => stop(canFinishAndAssess) : start}
                 disabled={!engineReady || preparing || submitting || Boolean(disabledReason)}
                 aria-label={recording ? canFinishAndAssess ? "完成並評分" : "完成錄音" : microphoneProblem?.retry || "開始錄音"}

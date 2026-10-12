@@ -1,5 +1,12 @@
 # Alan English 專案狀態
 
+### 口說關卡內淺色風格、Workbook 1 下架兩個主題（2026-10-12，分支 `feature/speaking-level-style`，樣式待擁有者說「幫我合併」；資料變更已套用）
+
+- PR #552 已於 2026-10-12 發布：Workers Builds 成功；正式站含 `student-materials-page`。
+- **正式資料變更（已套用，擁有者要求）**：`speaking_question_sets` id 3「02 打招呼與禮貌對話」、id 5「04 數字與簡單算術」由 `published` 改為 `archived`（與 `speaking-content-manager` 的 `archive_question_set` 對已發布題組的做法相同；事前確認無新版草稿指向它們）。畫面上的「主題1／主題2」即這兩組（由 `TOPIC_TEMPLATE_KEYS` 歸類，非標題編號；id 1「01 我的名字與自我介紹」在地圖上顯示為 P.18～20，未動）。還原：把兩筆 `status` 改回 `published`。題目與學生紀錄未刪。
+- 樣式：`SpeakingMinimalLevel.scss` 於 `body.speaking-challenge-active` 覆寫關卡內外觀（背景、頂列、卡片、空格、麥克風、上一題／下一題、開場卡片）；JSX 與評分流程未動。地圖頁未改。
+- 驗證：以管理員預覽實看 375 寬的看圖補句（P.28）、文字問答（P.42）、拼字（P.14）開場與題目畫面。未驗：A–Z 關卡、錄音中／評分結果／通關畫面的新配色、學生身分、桌面寬度、iPhone Safari；未重跑口說測試（僅樣式）。
+
 ### 教材與冒險改為頁面（2026-10-12，分支 `feature/materials-adventure-pages`，待擁有者說「幫我合併」）
 
 - PR #549 已於 2026-10-12 發布：Workers Builds 成功；正式站含 `is-homework` 與作業入口。
