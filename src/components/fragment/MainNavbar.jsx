@@ -321,7 +321,7 @@ function MainNavbar() {
 
     return (
         <>
-            <Navbar className={`ae-navbar ${scrolled ? "scrolled" : ""}`}>
+            <Navbar className={`ae-navbar ${scrolled ? "scrolled" : ""}${isTeacher ? " is-staff" : ""}`}>
                 <Container fluid className="ae-navbar-container">
                     <Navbar.Brand as={Link} to={homePath} className="ae-brand" data-tour="home"><Brand /></Navbar.Brand>
                     <Nav className={`ae-desktop-nav ${isStudent ? "is-student" : ""}`} onSelect={closeNavigation}>
