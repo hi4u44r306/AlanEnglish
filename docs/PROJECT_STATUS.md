@@ -1,5 +1,11 @@
 # Alan English 專案狀態
 
+### 口說關卡內電腦版版面修正（2026-10-12，分支 `fix/speaking-level-desktop-layout`，待擁有者說「幫我合併」）
+
+- PR #554 已於 2026-10-12 發布：Workers Builds 成功；正式站 Worker 含 `whisper-base.en`、JS 含 `ae-speaking-local-model`。
+- 只改 `SpeakingMinimalLevel.scss`：返回鈕任何寬度皆為 48px 圖示鈕（`font-size: 0`，文字仍供螢幕閱讀器）；`.speaking-lesson-workspace` 改為單欄（原兩欄格線在看圖補句的整列按鈕後會把題目擠在左半）；「看提示」置中；≥768px 頂列與卡片同為 720px。
+- 驗證：管理員預覽以 340／412／768／1024／1280／1440／1920 寬逐一進入 A–Z、拼讀、文字問答、看圖問答、看圖補句、Yes/No、加減法、對話共 11 個入口，以程式量測按鈕位置、是否超出畫面／重疊／被裁切，皆無異常；417 寬實看截圖正常；擁有者 Chrome 實看 A–Z 關卡返回鈕已恢復。未驗：電腦寬度的其他關卡只有量測數值、沒有實際截圖（內建瀏覽器大尺寸截圖失真，擁有者 Chrome 的學生帳號其餘關卡未解鎖）；錄音中／結果／通關畫面；iPhone Safari。未跑測試（僅樣式）。
+
 ### 本機辨識改用 whisper-base.en；地圖回到目前關卡（2026-10-12，分支 `feature/speaking-local-model-base`，待擁有者說「幫我合併」）
 
 - PR #553 已於 2026-10-12 發布：Workers Builds 成功；正式站含 `speaking-mic-rings` 與 `is-recording`。
