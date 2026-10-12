@@ -50,9 +50,9 @@ export const ChallengePreviewDialog = ({ item, section, sectionCopy, pages, onCl
                 <span><small>挑戰通過</small><strong>{challengeCompletedCount} / {questionCount}</strong></span>
             </div>
             {locked && <p className="speaking-level-dialog__locked">先完成前一關，就能解鎖這個挑戰。</p>}
-            {practiceOnly ? <p role="status">A–Z 今日挑戰已完成，明天可再評分；現在可聽示範與錄音練習。</p> : <p role="status">{item.is_completed ? "已通關，仍可再次挑戰與評分；獎勵只領一次。" : "挑戰模式每題答案正確且達 70 分，才算正式通關。"}</p>}
+            {practiceOnly ? <p role="status">A–Z 今日挑戰已完成，明天可再評分；現在可聽示範與錄音練習。</p> : <p role="status">{item.is_completed ? "已通關，仍可再次挑戰與評分；獎勵只領一次。" : "挑戰裡每一題都通過，才算正式通關。"}</p>}
             <div className={`speaking-level-dialog__actions${singlePractice ? " is-single" : ""}`}>
-                {!practiceOnly && <button type="button" className="primary is-challenge" aria-label={locked ? "挑戰模式尚未解鎖" : `${challengeAction} · 挑戰 · 看題目回答`} onClick={() => onEnter("challenge")} disabled={locked}><span><strong>{locked ? "尚未解鎖" : challengeAction}</strong><small>{singlePractice ? "看文字或字母念 · 70 分通過" : "挑戰模式 · 看題目回答"}</small></span><FiChevronRight aria-hidden="true" /></button>}
+                {!practiceOnly && <button type="button" className="primary is-challenge" aria-label={locked ? "挑戰模式尚未解鎖" : `${challengeAction} · 挑戰 · 看題目回答`} onClick={() => onEnter("challenge")} disabled={locked}><span><strong>{locked ? "尚未解鎖" : challengeAction}</strong><small>通過才算過關</small></span><FiChevronRight aria-hidden="true" /></button>}
                 <button type="button" className="primary is-easy" aria-label={locked ? "尚未解鎖" : easyAction} onClick={() => onEnter("easy")} disabled={locked}><span><strong>{locked ? "尚未解鎖" : easyAction}</strong><small>{practiceOnly ? "不送評、不計通關" : "可評分 · 不計通關或獎勵"}</small></span><FiChevronRight aria-hidden="true" /></button>
                 <button type="button" className="speaking-level-dialog__return" onClick={onClose}>返回地圖</button>
             </div>

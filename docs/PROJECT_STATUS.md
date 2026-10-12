@@ -1,5 +1,12 @@
 # Alan English 專案狀態
 
+### A–Z 練習大小寫隨機、關卡摘要文字（2026-10-13，分支 `feature/speaking-level-dialog-practice-count`，待擁有者說「幫我合併」）
+
+- PR #559 已於 2026-10-13 發布：Workers Builds 成功；正式站 JS／CSS 含 `handwriting-paper`。PR #558（收尾）已合併，其建置結果未等待確認。
+- `WorkbookOneFoundationChallenge.jsx`：A–Z 練習／工作人員預覽的 `display_text` 由固定大寫改為前端隨機大小寫（挑戰模式仍由 `speaking-challenge` 伺服器決定）。`SpeakingMapEntry.jsx`、`TextbookSpeakingChallenge.jsx`：移除寫死的「70 分」文字。
+- 驗證：相關 5 組測試 117 項通過；管理員預覽實讀關卡摘要文字。未驗：練習模式大小寫隨機的實際畫面（內建瀏覽器截圖逾時）。
+- 待擁有者決定：在「自由練習」按鈕顯示練習次數，需修改並重新部署 `speaking-challenge`（目錄回傳多一個計數），尚未實作。
+
 ### A–Z 字母卡四線格手寫字母（2026-10-13，分支 `feature/alphabet-four-line-tiles`，待擁有者說「幫我合併」）
 
 - 2026-10-12 擁有者已於後台核准 Azure Aria 為 A–Z 正式示範聲音（內建瀏覽器不顯示確認視窗，依擁有者明確指示代為送出）；正式資料庫確認 `en-US-AriaNeural` 為 active、學生端 sequence 指向同一檔。Leda 候選狀態為 superseded，無法由後台一鍵切回。
