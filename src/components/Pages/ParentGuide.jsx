@@ -1,7 +1,7 @@
 import React from "react";
 import { Helmet } from "react-helmet";
 import { Link } from "react-router-dom";
-import { FiBookOpen, FiHeadphones, FiMail, FiMic, FiPlayCircle, FiSmartphone } from "react-icons/fi";
+import { FiBarChart2, FiBookOpen, FiHeadphones, FiMic, FiPlayCircle, FiSmartphone } from "react-icons/fi";
 import "./css/TrialLesson.scss";
 import "./css/ParentGuide.scss";
 
@@ -19,7 +19,7 @@ const INCLUDED = [
     { icon: FiHeadphones, title: "每一頁的聽力", text: "翻到第幾頁，網站上就是第幾頁的音檔。" },
     { icon: FiMic, title: "每一頁的口說練習", text: "照著課本的句子開口說，有即時回饋。" },
     { icon: FiPlayCircle, title: "老師的教學影片", text: "Workbook 1–4 的大部分頁面，都能直接跳到老師講解那一頁的地方。" },
-    { icon: FiMail, title: "給家長的每週報告", text: "每週一封 Email：這週聽了幾次、口說過了幾關。" }
+    { icon: FiBarChart2, title: "每週學習報告", text: "這週聽了幾次、口說過了幾關，網站會整理成一份報告。" }
 ];
 
 const HELPS = [
