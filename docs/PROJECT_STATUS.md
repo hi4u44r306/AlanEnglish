@@ -7,7 +7,7 @@
 - 驗證：相關 5 組測試 117 項通過；管理員預覽實讀關卡摘要文字。未驗：練習模式大小寫隨機的實際畫面（內建瀏覽器截圖逾時）。
 - 練習次數（擁有者選定「進去練習過幾回」並同意後端修改）：新增 `_shared/speaking-practice-count.ts`，以 `speaking_pronunciation_attempts` 中該學生 `challenge_mode=easy` 且有 `client_session_id` 的紀錄，按題組計算不重複場次；`speaking-challenge` 目錄每關多回傳 `practice_session_count`（示範模式為 0）。唯讀、無 migration。合併後需由 main 重新部署 `speaking-challenge`；回復＝部署前一版。
 - 驗證補充：`scripts/speaking-practice-count.test.mjs` 2/2；`SpeakingMapEntry` 等 52 項通過。正式資料唯讀確認近期練習紀錄（A–Z 與看圖補句）皆有場次編號。`textbook-speaking-generator-contract` 仍為既有的 4 項失敗。未驗：部署後學生帳號實際看到的次數。
-- 擁有者詢問「A–Z 未通過為何 P.11 可挑戰」：`speaking-challenge-progression.ts` 設計為 preparation／textbook／topic 三條獨立路線、各自第一關開放；未修改。
+- 解鎖規則（擁有者指定）：`speaking-challenge-progression.ts` 改為 preparation 全部通過後才開放 textbook 第一關，topic 仍獨立；無 preparation 的教材由 textbook 第一關開始。目錄與 `assertStudentChallengeUnlocked` 共用此函式，前後端一致。正式資料唯讀統計：Workbook 1 目前沒有任何學生有課本頁挑戰通關紀錄（0 人），也沒有人通過 A–Z，因此不會有人被鎖回。`speaking-challenge-progression`／`speaking-cost-access`／`speaking-practice-count` node 測試 10/10（`speaking-cost-access` 的假資料庫已補上練習次數查詢）。
 
 ### A–Z 字母卡四線格手寫字母（2026-10-13，分支 `feature/alphabet-four-line-tiles`，待擁有者說「幫我合併」）
 

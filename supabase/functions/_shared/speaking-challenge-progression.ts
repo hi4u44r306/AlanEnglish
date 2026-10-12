@@ -66,12 +66,14 @@ export const speakingChallengeUnlockState = <T extends ChallengeSet>(sets: T[], 
 
     return ordered.map((set) => {
         const section = speakingChallengeCatalogSection(set);
-        // Preparation, textbook, and topic practice are independent paths.
-        // The first challenge in every section is always available; after that,
-        // an unfinished challenge keeps the rest of that section locked.
+        // The starting levels (A–Z) come first: the textbook pages stay locked until every
+        // starting level is passed, then open one after another. Topic practice is a separate
+        // path whose first challenge is always available. A book with no starting level simply
+        // starts at its first textbook page.
         if (section !== activeSection) {
+            const continuesFromPreparation = activeSection === "preparation" && section === "textbook";
             activeSection = section;
-            allPreviousComplete = true;
+            if (!continuesFromPreparation) allPreviousComplete = true;
         }
         const isUnlocked = allPreviousComplete;
         allPreviousComplete = allPreviousComplete && speakingChallengeIsComplete(set, completedQuestionIds);
