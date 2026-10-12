@@ -257,3 +257,24 @@ body.speaking-challenge-active .speaking-lesson-workspace > * { grid-column: 1 /
 // The hint pill sits on the centre line with the microphone; the top bar is as wide as the card below.
 body.speaking-challenge-active .speaking-practice-flow .speaking-help-toggle { justify-self: center !important; margin-inline: auto !important; }
 @media (min-width: 768px) { body.speaking-challenge-active .speaking-lesson-header { width: min(720px, 100%) !important; max-width: 720px !important; margin-inline: auto !important; padding-inline: 0 !important; } }
+
+// A–Z tiles on four-line handwriting paper. Capital and small letter are the same size and font so
+// they sit on the lines the way they are written: capitals and tall letters reach the top line, small
+// letters reach the middle line, everything stands on the coral base line, tails hang to the bottom line.
+// The lines are placed from the text's own baseline (0.716em cap height, 0.519em x-height, 0.21em
+// descender for Arial/Helvetica/Roboto), so they stay aligned whichever of those fonts a device uses.
+body.speaking-challenge-active .speaking-alphabet-list span {
+  position: relative; overflow: hidden; flex-wrap: wrap; align-items: baseline !important; align-content: center; gap: .08em !important;
+  --ae-line: rgba(36, 89, 162, .22); --ae-base-line: rgba(226, 92, 70, .62);
+}
+body.speaking-challenge-active .speaking-alphabet-list span small { font-family: inherit; font-size: 1em !important; font-weight: inherit; line-height: 1; }
+body.speaking-challenge-active .speaking-alphabet-list span::before,
+body.speaking-challenge-active .speaking-alphabet-list span::after { content: ""; flex: none; width: 600px; margin-inline: -300px; pointer-events: none; }
+body.speaking-challenge-active .speaking-alphabet-list span::before {
+  height: .716em;
+  background:
+    linear-gradient(var(--ae-line), var(--ae-line)) 0 0 / 100% 1.5px no-repeat,
+    linear-gradient(var(--ae-line), var(--ae-line)) 0 .197em / 100% 1.5px no-repeat;
+  box-shadow: 0 2px 0 var(--ae-base-line);
+}
+body.speaking-challenge-active .speaking-alphabet-list span::after { height: 1.5px; background: var(--ae-line); transform: translateY(calc(.21em + 1.5px)); }

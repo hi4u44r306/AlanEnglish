@@ -1,5 +1,11 @@
 # Alan English 專案狀態
 
+### A–Z 字母卡四線格（2026-10-13，分支 `feature/alphabet-four-line-tiles`，待擁有者說「幫我合併」）
+
+- 2026-10-12 擁有者已於後台核准 Azure Aria 為 A–Z 正式示範聲音（內建瀏覽器不顯示確認視窗，依擁有者明確指示代為送出）；正式資料庫確認 `en-US-AriaNeural` 為 active、學生端 sequence 指向同一檔。Leda 候選狀態為 superseded，無法由後台一鍵切回。
+- 只改 `SpeakingMinimalLevel.scss`：`.speaking-alphabet-list span` 改為 baseline 對齊，`::before`／`::after` 依文字基線畫四條線（cap 0.716em、x-height 0.519em、descender 0.21em，適用 Arial／Helvetica／Roboto）；`small` 改為與大寫同字級。
+- 驗證：管理員預覽 417 寬實看截圖，26 張卡片線條與字母對齊、g／j／p／q／y 尾巴落在底線；340／768／1440 寬以程式量測文字皆在卡片內。未驗：iPhone Safari（Helvetica）與 Android（Roboto）實機的線條位置、電腦寬度實際截圖、聽過／播放中狀態的外觀。未跑測試（僅樣式）。
+
 ### A–Z 單字母 60 分過關、訊息與練習回聽頁（2026-10-12，分支 `fix/alphabet-letter-pass-score`，擁有者已指定 60 分；待「幫我合併」後套用 migration 並部署）
 
 - PR #556 已合併（main `2db92141`）；`speaking-tts-manager`、`speaking-challenge`、`speaking-content-manager` 已由 main 部署，未帶權杖呼叫皆回 401（可啟動）。Azure 候選尚未實際產生，待管理員在後台產生並試聽。
