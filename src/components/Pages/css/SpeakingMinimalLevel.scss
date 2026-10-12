@@ -172,3 +172,50 @@ body.speaking-challenge-active .speaking-foundation-intro { border: 1px solid #d
 body.speaking-challenge-active .speaking-foundation-intro > svg,
 body.speaking-challenge-active .speaking-foundation-intro > span:first-child,
 body.speaking-challenge-active .speaking-foundation-intro [class*="icon"] { background: #dbe8ff !important; background-image: none !important; box-shadow: none !important; color: #1d4fa8 !important; }
+
+// ---- A friendlier finish on top of the flat base: a soft sky behind the card, the sentence as
+// the hero, a blank that looks like a slot to fill, and a microphone with a gentle halo.
+body.speaking-challenge-active .speaking-adventure-session { background: linear-gradient(180deg, #e3efff 0%, #f1f6fd 34%, #f7f9fc 70%) !important; position: relative; }
+body.speaking-challenge-active .speaking-adventure-session::before,
+body.speaking-challenge-active .speaking-adventure-session::after { content: "" !important; display: block !important; position: absolute; z-index: 0; border-radius: 50%; pointer-events: none; }
+body.speaking-challenge-active .speaking-adventure-session::before { top: -70px; right: -60px; width: 220px; height: 220px; background: rgba(255, 216, 77, .28); }
+body.speaking-challenge-active .speaking-adventure-session::after { top: 150px; left: -90px; width: 200px; height: 200px; background: rgba(120, 170, 255, .16); }
+body.speaking-challenge-active .speaking-adventure-session > * { position: relative; z-index: 1; }
+body.speaking-challenge-active .speaking-challenge-page { background: transparent !important; }
+
+// Top bar floats without a box; progress is a fat, friendly bar.
+body.speaking-challenge-active .speaking-lesson-header { border: 0 !important; background: transparent !important; padding-inline: 4px !important; }
+body.speaking-challenge-active .speaking-lesson-header .speaking-back { width: 48px; height: 48px; border-radius: 50% !important; background: #fff !important; border: 1px solid #d5e3f0 !important; }
+body.speaking-challenge-active .speaking-lesson-page { padding: 6px 16px; border-radius: 16px; background: #17365d; color: #fff !important; font-size: 18px !important; letter-spacing: .02em; }
+body.speaking-challenge-active .speaking-lesson-progress span { color: #17365d !important; font-weight: 800 !important; }
+body.speaking-challenge-active .speaking-progress-track { height: 12px !important; border-radius: 12px !important; background: #fff !important; border: 1px solid #d5e3f0; }
+body.speaking-challenge-active .speaking-progress-track > span { border-radius: 12px !important; background: linear-gradient(90deg, #36a877, #247a56) !important; }
+
+// The card: roomy, rounded, with a thin yellow lip at the top.
+body.speaking-challenge-active .speaking-focus-card { border: 1px solid #d5e3f0 !important; border-top: 6px solid #ffd84d !important; border-radius: 28px !important; }
+body.speaking-challenge-active .speaking-gap-sentence { font-weight: 900 !important; letter-spacing: -.01em; }
+body.speaking-challenge-active .answer-blank,
+body.speaking-challenge-active .speaking-answer-slot { display: inline-block; margin-inline: 4px; padding: 0 12px !important; border: 2px dashed #e0ac1c !important; border-radius: 14px !important; background: #fff6d6 !important; color: #7a5600 !important; line-height: 1.5; }
+body.speaking-challenge-active .speaking-gap-sentence-audio { border-color: transparent !important; background: #e8f1ff !important; color: #1d4fa8 !important; }
+body.speaking-challenge-active .speaking-help-toggle { border-color: transparent !important; background: #f1f5fa !important; color: #39526e !important; font-size: 16px !important; }
+
+// Microphone: big, yellow, with a soft ring that breathes while it waits.
+body.speaking-challenge-active .speaking-pronunciation-mic { box-shadow: 0 0 0 10px rgba(255, 216, 77, .3) !important; animation: speaking-mic-breathe 2.4s ease-in-out infinite; }
+body.speaking-challenge-active .speaking-pronunciation-mic:disabled { box-shadow: none !important; animation: none; }
+@keyframes speaking-mic-breathe { 50% { box-shadow: 0 0 0 18px rgba(255, 216, 77, .12); } }
+@media (prefers-reduced-motion: reduce) { body.speaking-challenge-active .speaking-pronunciation-mic { animation: none; } }
+
+// Opening card: a round badge instead of a square icon.
+body.speaking-challenge-active .speaking-foundation-intro { border-top: 6px solid #ffd84d !important; border-radius: 28px !important; }
+body.speaking-challenge-active .speaking-foundation-intro > svg,
+body.speaking-challenge-active .speaking-foundation-intro > span:first-child,
+body.speaking-challenge-active .speaking-foundation-intro [class*="icon"] { border-radius: 50% !important; background: #ffe9a8 !important; color: #8a5a00 !important; }
+body.speaking-challenge-active .speaking-question-navigation > button.primary,
+body.speaking-challenge-active .speaking-foundation-intro .primary,
+body.speaking-challenge-active .speaking-focus-card button.primary { border-radius: 18px !important; font-size: 18px !important; }
+// One sun-coloured circle is enough decoration; the page label hugs its text.
+body.speaking-challenge-active .speaking-adventure-session::after { display: none !important; }
+body.speaking-challenge-active .speaking-adventure-session::before { border-radius: 50% !important; }
+body.speaking-challenge-active .speaking-lesson-page { flex: 0 0 auto !important; width: auto !important; justify-self: start; text-align: center; }
+// Room for the halo, so it never touches the hint above it.
+body.speaking-challenge-active .speaking-pronunciation { padding-block: 24px 20px !important; }
