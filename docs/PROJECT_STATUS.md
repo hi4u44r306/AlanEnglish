@@ -1,6 +1,8 @@
 # Alan English 專案狀態
 
-### 首頁連到工具箱、Cloudflare 補上 SEO／noindex 路由（2026-10-12，分支 `feature/public-toolbox-links`，擁有者已授權合併）
+### 首頁連到工具箱、Cloudflare 補上 SEO／noindex 路由（2026-10-12，已發布）
+
+- 發布紀錄：PR #542 合併為 main `42642426`，Cloudflare 部署完成。正式站實測：`/` 為 `index,follow`；`/links` 與 `/links/` 回傳自己的標題與 canonical `https://alanenglish.com.tw/links`；`/login`、`/student/dashboard`、`/shop/cart`、`/try` 為 `noindex,nofollow`；`/ads.txt`、`/sitemap.xml`、`/manifest.json`、`/api/basic-reading/catalog` 與工具箱路徑正常。瀏覽器實看首頁頁尾有「免費學習工具」連結、`/login` 登入表單正常顯示且主控台無錯誤。未驗：實際登入後的學生與老師流程。
 
 - 背景：`public/_redirects` 不會進 `cloudflare-build`，所以正式站的 `/links` 與所有登入後路由實際都回傳首頁 HTML（`index,follow`、canonical 指向 `/`），`seo-links.html` 與 `noindex.html` 沒有被使用。
 - 修改：`worker/index.mjs` 新增 `seoAssetPathFor`，GET／HEAD 時 `/links` 改讀 `/seo-links`，其餘非首頁、無副檔名、非 `/static/`、非 `/api/` 的路徑改讀 `/noindex`；首頁、靜態檔、API 與其他 HTTP 方法不變。未移植 `_redirects` 中 `/home`、`/shop` 等轉址，避免改變現有 SPA 行為。
