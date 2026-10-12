@@ -4,7 +4,7 @@ body.sr-immersive {background:#0f2238;}
 body.sr-immersive .app-header,body.sr-immersive .ae-student-bottom-nav,body.sr-immersive .assignment-shortcut {display:none;}
 body.sr-immersive .app-shell {padding-top:0;background:#0f2238;}
 .sr-preview {
-  --tb-navy:#102338; --tb-gold:#f0ce78; color:#eaf2fb;background:#0f2238;min-height:100vh;font-family:'Microsoft JhengHei','PingFang TC',sans-serif;max-width:760px;margin:auto;padding:8px 24px calc(24px + env(safe-area-inset-bottom));
+  --tb-navy:#102338; --tb-gold:#f0ce78; color:#eaf2fb;background:#0f2238;min-height:100vh; min-height: 100dvh;font-family:'Microsoft JhengHei','PingFang TC',sans-serif;max-width:760px;margin:auto;padding:8px 24px calc(24px + env(safe-area-inset-bottom));
   *, *::before, *::after {box-sizing:border-box;}
   button,input,select {font:inherit;max-width:100%;}
   button {cursor:pointer;min-height:44px;padding:10px 16px;border:1px solid #a8bed2;background:white;color:#102338;border-radius:10px;font-weight:700;}

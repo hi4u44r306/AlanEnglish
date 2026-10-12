@@ -6,7 +6,7 @@
   --br-ink: #172033;
   --br-muted: #667085;
   --br-line: #dfe5f0;
-  min-height: 100vh;
+  min-height: 100vh; min-height: 100dvh;
   padding-bottom: calc(156px + env(safe-area-inset-bottom));
   background:
     radial-gradient(circle at 90% 8%, rgba(49, 91, 200, 0.1), transparent 28%),

@@ -1,5 +1,13 @@
 # Alan English 專案狀態
 
+### 頂端列名字、頁面高度改用可視高度（2026-10-12，分支 `fix/header-name-and-page-height`，待擁有者說「幫我合併」）
+
+- PR #545、#546 已於 2026-10-12 發布：Workers Builds 成功；正式站 JS／CSS 含 `ae-student-menu-list`、`.ae-mobile-offcanvas.is-staff`、`/student/profile` 與 `.ae-navbar.is-staff`。
+- 擁有者以 iPhone 截圖回報：頂端列應先顯示名字、等級靠右；內容短的頁面仍可上下滑動。
+- `StudentGrowthHeader.jsx` 新增 `name`（由 `StudentNavbar` 傳入 `profileName`），樣式於 `StudentGrowthHeader.scss`；1280px 以上隱藏名字。
+- 根因：`.app-shell { min-height: 100vh }`。iOS 的 `100vh` 為最大視窗高度，瀏覽器工具列顯示時大於可視高度，短頁面因此可捲動。改為在 `100vh` 之後加上 `100dvh`（保留舊瀏覽器後備）；同樣以腳本套用到全站 `min-height: 100vh` 宣告（18 個樣式檔，僅加一行，未改其他值）。另於 `StudentNavbar.scss` 對學生外殼加 `overscroll-behavior-y: none`。
+- 驗證：所有改動的 SCSS 皆可編譯；StudentGrowthHeader、MainNavbar 共 40 項通過。**未驗**：此問題僅在實機 iOS 出現，桌面模擬無法重現（模擬環境 vh＝dvh），且預覽視窗目前為管理員登入、無法看學生頁；需擁有者以 iPhone 確認。
+
 ### 教職員筆電寬度顯示上方選單（2026-10-12，分支 `feature/staff-laptop-nav`，待擁有者說「幫我合併」）
 
 - PR #545 已合併至 `main`（merge `2ef22290`）；建置與正式站檢查結果見對話回報。
