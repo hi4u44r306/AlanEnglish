@@ -1,10 +1,16 @@
 # Alan English 專案狀態
 
+### PR #557 已發布（2026-10-12）
+
+- main `6fbe8e93`：Workers Builds 成功；正式站 JS 含 `practice_question_id`、CSS 含 `speaking-review-listen`。
+- migration 已套用至正式站，實際版本 `20261012145217`（檔名已改為一致）；套用後確認 `record_speaking_foundation_challenge_v4` 含新門檻，僅 `service_role` 可執行。`pronunciation-coach` 已由 main 部署，未帶權杖呼叫回 401。
+- 未驗：學生帳號實際錄音在 60–69 分通過；練習回聽頁真實觸發情境；Azure A–Z 候選尚待管理員產生與核准。
+
 ### A–Z 單字母 60 分過關、訊息與練習回聽頁（2026-10-12，分支 `fix/alphabet-letter-pass-score`，擁有者已指定 60 分；待「幫我合併」後套用 migration 並部署）
 
 - PR #556 已合併（main `2db92141`）；`speaking-tts-manager`、`speaking-challenge`、`speaking-content-manager` 已由 main 部署，未帶權杖呼叫皆回 401（可啟動）。Azure 候選尚未實際產生，待管理員在後台產生並試聽。
 - 後端：`_shared/speaking-azure-alphabet.ts` 單一字母門檻 60（`ALPHABET_LETTER_PASS_SCORE`），拼字維持 70，回應多 `pass_score`。由 `pronunciation-coach` 使用，需重新部署該 Function。
-- 資料庫：正式站 `record_speaking_foundation_challenge_v4` 內另有寫死的 `>=70`（已唯讀確認與 migration 檔一致），只改 Function 的話挑戰模式仍會以 70 擋下。新增 additive migration `20261012150000_speaking_alphabet_letter_pass_score.sql`：以 round 所屬題組的 `interaction_type` 決定門檻（`alphabet_round` 60，其餘 70），其餘內容與權限不變。**尚未套用。** 回復：以 `20261007155958` 的定義重新建立該函式。`complete_speaking_session_question_v2` 的 70 未動（A–Z 不走這條路徑）。
+- 資料庫：正式站 `record_speaking_foundation_challenge_v4` 內另有寫死的 `>=70`（已唯讀確認與 migration 檔一致），只改 Function 的話挑戰模式仍會以 70 擋下。新增 additive migration `20261012145217_speaking_alphabet_letter_pass_score.sql`：以 round 所屬題組的 `interaction_type` 決定門檻（`alphabet_round` 60，其餘 70），其餘內容與權限不變。**尚未套用。** 回復：以 `20261007155958` 的定義重新建立該函式。`complete_speaking_session_question_v2` 的 70 未動（A–Z 不走這條路徑）。
 - 前端：`WorkbookOneFoundationChallenge.jsx` 重試訊息區分「字母不對」與「字母對但分數不足」；`SpeakingReviewPractice.jsx`／`.scss` 重新設計練習回聽頁。
 - 驗證：`speaking-azure-alphabet`＋`speaking-local-handler` node 測試 15/15；`SpeakingReviewPractice`、`WorkbookOneFoundationChallenge` 26/26。練習回聽頁以暫時強制顯示的方式（已還原）在 340／412／417／768／1440 寬量測位置，417 寬實看截圖。未驗：實際錄音在 60–69 分時於挑戰模式通過（需套用 migration 並部署後以學生帳號實測）；練習回聽頁在真實觸發情境、電腦寬度實際截圖、iPhone Safari。
 - 練習回聽頁會停在觸發限制的那一題：`onPracticeOnly(reason, questionId)` → `challenge.practice_question_id` → `SpeakingReviewPractice` 的起始題；不知道題目時仍從第 1 題開始。已加測試。
