@@ -1,5 +1,12 @@
 # Alan English 專案狀態
 
+### 本機辨識改用 whisper-base.en；地圖回到目前關卡（2026-10-12，分支 `feature/speaking-local-model-base`，待擁有者說「幫我合併」）
+
+- PR #553 已於 2026-10-12 發布：Workers Builds 成功；正式站含 `speaking-mic-rings` 與 `is-recording`。
+- `public/speaking-local/worker.mjs`：`load` 接受 `model`（`base`／`tiny`），兩者皆固定 revision；無 SIMD 時一律 tiny。`localSpeakingRecognizer.js`：嘗試順序 base → tiny 加速 → tiny 一般；`localStorage` `ae-speaking-local-model` 記錄未完成啟動次數（3 次後改 tiny）與 `small`（記憶體／引擎錯誤，或單題推論超過 8 秒）；省流量或 `deviceMemory < 4` 直接 tiny。Worker 網址改 `?v=2`。評分規則、後端與付費評分路徑未動。
+- `TextbookSpeakingChallenge.jsx`：地圖定位在離開關卡、目錄重新讀取完成後都會再執行，並改為置中。
+- 驗證：`localSpeakingRecognizer`／`SpeakingRecognizerWarmup`／`SpeakingPronunciationRecorder`／`SpeakingChallengeFlow`／`TextbookSpeakingChallenge` 測試通過。桌機 Chrome 以 P28 示範音檔前 12 秒直接驅動 Worker：tiny 3.3 秒、base 5.6 秒，兩者皆正確載入並輸出文字；管理員預覽由 P.28 關卡返回地圖，該關位於畫面中間。未驗：實體手機的下載時間、記憶體與單題耗時（預期較舊手機會自動退回 tiny）、孩童實際錄音的準確度差異、真正完成一關後的定位（本機連正式後端，未產生作答資料）。
+
 ### 口說關卡內淺色風格、Workbook 1 下架兩個主題（2026-10-12，分支 `feature/speaking-level-style`，樣式待擁有者說「幫我合併」；資料變更已套用）
 
 - PR #552 已於 2026-10-12 發布：Workers Builds 成功；正式站含 `student-materials-page`。

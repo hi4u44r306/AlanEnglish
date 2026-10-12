@@ -281,15 +281,17 @@ export default function TextbookSpeakingChallenge() {
     }, [bookKey]);
 
     useLayoutEffect(() => {
-        if (!bookKey || !catalog.length || process.env.NODE_ENV === "test") return;
+        // Runs again whenever a level is left and once the refreshed progress has drawn the map, so the
+        // map opens on the level in play, not at the top.
+        if (!bookKey || questionSetId || catalogLoading || !catalog.length || process.env.NODE_ENV === "test") return;
         const returnedId = Number(location.state?.speakingReturn?.questionSetId);
         const node = (returnedId && document.querySelector(`[data-question-set-id="${returnedId}"]`))
             || document.querySelector(".speaking-challenge-lesson.is-next-target")
             || document.querySelector(".speaking-challenge-lesson.is-current")
             || document.querySelector(".speaking-challenge-lesson");
-        node?.scrollIntoView?.({ block: "end", behavior: "auto" });
+        node?.scrollIntoView?.({ block: "center", behavior: "auto" });
         if (returnedId) node?.focus?.({ preventScroll: true });
-    }, [bookKey, catalog, location.state]);
+    }, [bookKey, questionSetId, catalog, catalogLoading, location.state]);
 
     useEffect(() => {
         if (!selectedLesson) return undefined;

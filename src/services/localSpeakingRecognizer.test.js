@@ -1,8 +1,9 @@
-import { LocalSpeakingRecognizer, retainLocalSpeakingRecognizer } from "./localSpeakingRecognizer";
+import { LocalSpeakingRecognizer, prefersLargeSpeakingModel, retainLocalSpeakingRecognizer } from "./localSpeakingRecognizer";
 describe("本機辨識引擎", () => {
     const originalWorker = global.Worker;
     let workers;
     beforeEach(() => {
+        localStorage.clear();
         workers = [];
         global.Worker = class {
             constructor() { workers.push(this); this.terminate = jest.fn(); }
@@ -46,12 +47,15 @@ describe("本機辨識引擎", () => {
     });
     it("加速準備失敗先釋放 Worker，再退回一般相容一次", async () => {
         const engine = new LocalSpeakingRecognizer(), prepare = engine.prepare();
-        expect(workers[0].message.preferSimd).toBe(true);
+        expect(workers[0].message).toMatchObject({ model: "base", preferSimd: true });
         workers[0].reply({ type: "error", code: "MEMORY" });
-        await Promise.resolve();
+        await Promise.resolve(); await Promise.resolve();
         expect(workers[0].terminate).toHaveBeenCalled();
-        expect(workers[1].message.preferSimd).toBe(false);
-        workers[1].reply({ type: "mode", accelerated: false }); workers[1].reply({ type: "ready" });
+        expect(workers[1].message).toMatchObject({ model: "tiny", preferSimd: true });
+        workers[1].reply({ type: "error", code: "ENGINE" });
+        await Promise.resolve(); await Promise.resolve();
+        expect(workers[2].message).toMatchObject({ model: "tiny", preferSimd: false });
+        workers[2].reply({ type: "mode", accelerated: false }); workers[2].reply({ type: "ready" });
         await prepare; expect(engine.ready).toBe(true); engine.dispose();
     });
     it("離開頁面中止等待，舊回應不能使引擎變為可用", async () => {
@@ -77,5 +81,41 @@ describe("本機辨識引擎", () => {
         await expect(engine.transcribe(input, 12)).rejects.toMatchObject({ code: "local_busy" });
         workers[0].reply({ type: "result", text: "I like apples." });
         expect((await transcript).recognizedText).toBe("I like apples."); engine.dispose();
+    });
+    it("裝置撐不住大模型後，之後直接使用小模型", async () => {
+        const first = new LocalSpeakingRecognizer(), prepare = first.prepare();
+        await Promise.resolve();
+        workers[0].reply({ type: "error", code: "MEMORY" });
+        await Promise.resolve(); await Promise.resolve();
+        workers[1].reply({ type: "mode", model: "tiny", accelerated: true }); workers[1].reply({ type: "ready" });
+        await prepare; first.dispose();
+        const later = new LocalSpeakingRecognizer(), again = later.prepare();
+        await Promise.resolve();
+        expect(workers[2].message).toMatchObject({ model: "tiny", preferSimd: true });
+        workers[2].reply({ type: "ready" }); await again; later.dispose();
+    });
+    it("大模型連續三次沒有啟動完成（例如頁面被手機關掉）就改用小模型；省流量模式也用小模型", () => {
+        localStorage.setItem("ae-speaking-local-model", JSON.stringify({ starts: 3 }));
+        expect(prefersLargeSpeakingModel()).toBe(false);
+        localStorage.clear();
+        expect(prefersLargeSpeakingModel()).toBe(true);
+        Object.defineProperty(navigator, "connection", { configurable: true, value: { saveData: true } });
+        expect(prefersLargeSpeakingModel()).toBe(false);
+        delete navigator.connection;
+    });
+    it("大模型評分一段錄音太久，這台裝置立刻換成小模型", async () => {
+        const engine = new LocalSpeakingRecognizer(), prepare = engine.prepare();
+        await Promise.resolve();
+        workers[0].reply({ type: "mode", model: "base", accelerated: true }); workers[0].reply({ type: "ready", model: "base" }); await prepare;
+        expect(engine.mode).toContain("高準確模型");
+        const buffer = new ArrayBuffer(44 + 16000), view = new DataView(buffer);
+        for (let i = 44; i < buffer.byteLength; i += 2) view.setInt16(i, 10000, true);
+        const transcript = engine.transcribe({ arrayBuffer: async () => buffer }, 12); await Promise.resolve();
+        workers[0].reply({ type: "result", text: "I like apples.", inferenceMs: 9000 });
+        expect((await transcript).recognizedText).toBe("I like apples.");
+        expect(prefersLargeSpeakingModel()).toBe(false);
+        await Promise.resolve(); await Promise.resolve();
+        expect(workers[1].message).toMatchObject({ model: "tiny" });
+        engine.dispose();
     });
 });
