@@ -118,17 +118,15 @@ describe("StudentSettings", () => {
         fireEvent(target, event);
     };
 
-    it("shows the profile card and a short settings list without growth, plan or personal-data sections", async () => {
-        render(<StudentSettings />);
+    it("the profile page shows the picture, nickname and notifications; account links live in the menu", async () => {
+        render(<StudentSettings view="profile" />);
 
-        expect(await screen.findByRole("heading", { name: "我的進度" })).toBeInTheDocument();
+        expect(await screen.findByRole("heading", { name: "個人資料" })).toBeInTheDocument();
         expect(screen.getByText(/Ming Wang/)).toBeInTheDocument();
         expect(screen.queryByText(/AI Premium/)).not.toBeInTheDocument();
         expect(screen.queryByText(/支援 JPG/)).not.toBeInTheDocument();
         expect(screen.getByRole("switch", { name: "手機推播通知" })).toBeInTheDocument();
-        expect(screen.getByRole("link", { name: "帳號與密碼" })).toHaveAttribute("href", "/account/security");
-        expect(screen.getByRole("link", { name: "會員與功能" })).toHaveAttribute("href", "/student/membership");
-        expect(screen.getByRole("link", { name: "聯絡客服" })).toHaveAttribute("href", "/support");
+        ["帳號與密碼", "會員與功能", "聯絡客服"].forEach(name => expect(screen.queryByRole("link", { name })).not.toBeInTheDocument());
         for (const removed of ["成長與獎品", "教材與方案", "個人資料與紀錄", "基本資料", "出生年月日", "暱稱更改紀錄", "2015-05-12"]) {
             expect(screen.queryByText(removed)).not.toBeInTheDocument();
         }
@@ -136,7 +134,7 @@ describe("StudentSettings", () => {
 
     it("keeps profile settings usable when growth data fails", async () => {
         getGamificationSummary.mockRejectedValue(new Error("讀取失敗"));
-        render(<StudentSettings />);
+        render(<StudentSettings view="profile" />);
         await waitFor(() => expect(screen.getByLabelText("公開暱稱")).toHaveValue("Sunny Fox"));
         expect(screen.getByRole("button", { name: "更換學生頭像" })).toBeEnabled();
         expect(screen.queryByText("0 P")).not.toBeInTheDocument();
@@ -166,7 +164,7 @@ describe("StudentSettings", () => {
             getNicknameSettings.mockResolvedValue(savedSettings);
             return savedSettings;
         });
-        render(<StudentSettings />);
+        render(<StudentSettings view="profile" />);
 
         const nicknameInput = await screen.findByLabelText("公開暱稱");
         await waitFor(() => expect(nicknameInput).toHaveValue("Sunny Fox"));
@@ -201,7 +199,7 @@ describe("StudentSettings", () => {
             nickname_change_available_at: availableAt
         });
 
-        render(<StudentSettings />);
+        render(<StudentSettings view="profile" />);
 
         const nicknameInput = await screen.findByLabelText("公開暱稱");
         await waitFor(() => expect(nicknameInput).toHaveValue("Brave Owl"));
@@ -214,7 +212,7 @@ describe("StudentSettings", () => {
     it("replaces the mobile browser Load failed message with a useful nickname error", async () => {
         getNicknameSettings.mockRejectedValue(new TypeError("Load failed"));
 
-        render(<StudentSettings />);
+        render(<StudentSettings view="profile" />);
 
         expect(await screen.findByText("暱稱服務暫時無法連線，請確認網路後重新整理再試")).toBeInTheDocument();
         expect(screen.queryByText("Load failed")).not.toBeInTheDocument();
@@ -226,7 +224,7 @@ describe("StudentSettings", () => {
             masked_email: "n***@example.com"
         });
         confirmGuardianEmailVerification.mockResolvedValue({ success: true });
-        render(<StudentSettings />);
+        render(<StudentSettings view="profile" />);
 
         expect(await screen.findByText("parent@example.com · 已驗證")).toBeInTheDocument();
         fireEvent.click(screen.getByText("家長 Email"));
@@ -251,8 +249,8 @@ describe("StudentSettings", () => {
     });
 
     it("requires final confirmation before applying one of twenty-five preset avatars", async () => {
-        render(<StudentSettings />);
-        await screen.findByRole("heading", { name: "我的進度" });
+        render(<StudentSettings view="profile" />);
+        await screen.findByRole("heading", { name: "個人資料" });
         fireEvent.click(screen.getByText("選擇預設頭像"));
         const presets = screen.getByText("選擇預設頭像").closest("details");
         presets.open = true;
@@ -290,8 +288,8 @@ describe("StudentSettings", () => {
     });
 
     it("opens a square avatar adjustment window before uploading", async () => {
-        const { container } = render(<StudentSettings />);
-        await screen.findByRole("heading", { name: "我的進度" });
+        const { container } = render(<StudentSettings view="profile" />);
+        await screen.findByRole("heading", { name: "個人資料" });
 
         const file = new File(["avatar"], "avatar.png", { type: "image/png" });
         fireEvent.change(container.querySelector('input[type="file"]'), { target: { files: [file] } });
@@ -346,7 +344,7 @@ describe("StudentSettings", () => {
             .mockResolvedValueOnce({ supported: true, active: false })
             .mockResolvedValueOnce({ supported: true, active: true })
             .mockResolvedValueOnce({ supported: true, active: false });
-        render(<StudentSettings />);
+        render(<StudentSettings view="profile" />);
 
         const toggle = screen.getByRole("switch", { name: "手機推播通知" });
         await waitFor(() => expect(toggle).toBeEnabled());
@@ -362,11 +360,11 @@ describe("StudentSettings", () => {
     });
 
     it("reuses commerce and nickname data immediately when returning", async () => {
-        const first = render(<StudentSettings />);
+        const first = render(<StudentSettings view="profile" />);
         await screen.findByText("parent@example.com · 已驗證");
         await waitFor(() => expect(screen.getByLabelText("公開暱稱")).toHaveValue("Sunny Fox"));
         first.unmount();
-        render(<StudentSettings />);
+        render(<StudentSettings view="profile" />);
         expect(screen.getByText("parent@example.com · 已驗證")).toBeInTheDocument();
         expect(screen.getByLabelText("公開暱稱")).toHaveValue("Sunny Fox");
         await act(async () => {});
@@ -376,7 +374,7 @@ describe("StudentSettings", () => {
     });
 
     it("restores snapshots on reload without persisting guardian contact details", async () => {
-        const first = render(<StudentSettings />);
+        const first = render(<StudentSettings view="profile" />);
         await screen.findByText("parent@example.com · 已驗證");
         await waitFor(() => expect(getGamificationSummary).toHaveBeenCalled());
         await waitFor(() => expect(screen.getByLabelText("公開暱稱")).toHaveValue("Sunny Fox"));
@@ -390,7 +388,7 @@ describe("StudentSettings", () => {
         getGamificationSummary.mockImplementation(() => new Promise(() => {}));
         loadStudentCommerceProfile.mockImplementation(() => new Promise(() => {}));
         getNicknameSettings.mockImplementation(() => new Promise(() => {}));
-        render(<StudentSettings />);
+        render(<StudentSettings view="profile" />);
         expect(screen.getByLabelText("公開暱稱")).toHaveValue("Sunny Fox");
         expect(screen.queryByText(/parent@example.com/)).not.toBeInTheDocument();
         await act(async () => {});
@@ -398,7 +396,7 @@ describe("StudentSettings", () => {
     });
 
     it("keeps cached data after a network failure but clears a forbidden commerce response", async () => {
-        render(<StudentSettings />);
+        render(<StudentSettings view="profile" />);
         await screen.findByText("parent@example.com · 已驗證");
         loadStudentCommerceProfile.mockRejectedValue(new Error("offline"));
         act(() => invalidateStudentPageCache("student-1", ["settings:commerce"]));
@@ -412,7 +410,7 @@ describe("StudentSettings", () => {
     it("does not overwrite a nickname being edited when background data arrives", async () => {
         let finish;
         getNicknameSettings.mockImplementation(() => new Promise(resolve => { finish = resolve; }));
-        render(<StudentSettings />);
+        render(<StudentSettings view="profile" />);
         const input = screen.getByLabelText("公開暱稱");
         fireEvent.change(input, { target: { value: "My New Name" } });
         await act(async () => finish({ profile: { nickname: "Previous Name" }, nickname_history: [] }));
@@ -420,7 +418,7 @@ describe("StudentSettings", () => {
     });
 
     it("keeps the guardian email draft when its row is collapsed and reopened, without refetching", async () => {
-        render(<StudentSettings />);
+        render(<StudentSettings view="profile" />);
         await screen.findByDisplayValue("Sunny Fox");
         expect(screen.getByLabelText("公開暱稱")).toBeVisible();
         const calls = [getGamificationSummary.mock.calls.length, loadStudentCommerceProfile.mock.calls.length, getNicknameSettings.mock.calls.length, getCurrentWebPushStatus.mock.calls.length];
@@ -438,7 +436,7 @@ describe("StudentSettings", () => {
     });
 
     it("loads preset thumbnails only after expanding the picker", async () => {
-        const { container } = render(<StudentSettings />);
+        const { container } = render(<StudentSettings view="profile" />);
         expect(container.querySelectorAll(".student-settings-avatar-preset-image img")).toHaveLength(0);
         const presets = screen.getByText("選擇預設頭像").closest("details");
         presets.open = true;
@@ -450,5 +448,13 @@ describe("StudentSettings", () => {
             expect(image).toHaveAttribute("loading", "lazy");
         });
         await act(async () => {});
+    });
+
+    it("我的進度 shows learning only: no picture, nickname or notification settings", async () => {
+        render(<StudentSettings />);
+        expect(await screen.findByRole("heading", { name: "我的進度" })).toBeInTheDocument();
+        expect(screen.queryByRole("switch", { name: "手機推播通知" })).not.toBeInTheDocument();
+        expect(screen.queryByText("選擇預設頭像")).not.toBeInTheDocument();
+        expect(screen.queryByRole("heading", { name: "個人資料" })).not.toBeInTheDocument();
     });
 });

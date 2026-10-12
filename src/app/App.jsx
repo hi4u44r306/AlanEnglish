@@ -182,6 +182,7 @@ const App = () => {
                         <Route path="/student/weekly-report" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><WeeklyReport /></ProtectedRoute>} />
                         <Route path="/student/membership" element={<ProtectedRoute allowedRoles={["student"]}><MembershipCenter /></ProtectedRoute>} />
                         <Route path="/student/settings" element={<ProtectedRoute allowedRoles={["student"]}><StudentSettings /></ProtectedRoute>} />
+                        <Route path="/student/profile" element={<ProtectedRoute allowedRoles={["student"]}><StudentSettings view="profile" /></ProtectedRoute>} />
                         <Route path="/student/notifications" element={<ProtectedRoute allowedRoles={["student"]}><StudentNotifications /></ProtectedRoute>} />
                         <Route path="/student/friends" element={<Navigate to="/student/settings" replace />} />
                         <Route path="/student/level" element={<Navigate to="/student/leaderboard" replace />} />

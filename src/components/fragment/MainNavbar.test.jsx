@@ -129,7 +129,7 @@ describe("MainNavbar student navigation", () => {
         expect(screen.getByRole("button", { name: "口說冒險" })).toBeInTheDocument();
         expect(screen.queryByRole("button", { name: "我的學習" })).not.toBeInTheDocument();
         expect(screen.getByRole("button", { name: "開啟功能選單" })).toBeInTheDocument();
-        expect(screen.getByRole("link", { name: "前往帳號" })).toHaveAttribute("href", "/student/settings");
+        expect(screen.getByRole("button", { name: "開啟設定" })).toHaveAttribute("aria-controls", "student-navigation-drawer");
         screen.getAllByRole("link", { name: "我的進度" }).forEach(link => expect(link).toHaveAttribute("href", "/student/settings"));
         expect([...screen.getByRole("navigation", { name: "學生主要導覽" }).children].map(item => item.getAttribute("aria-label") || item.textContent)).toEqual(["我的進度", "教材", "冒險"]);
         const bottomNavigation = screen.getByRole("navigation", { name: "學生主要導覽" });
@@ -144,10 +144,10 @@ describe("MainNavbar student navigation", () => {
         expect(within(mobileMenu).queryByRole("link", { name: "好友" })).not.toBeInTheDocument();
         expect(within(mobileMenu).queryByRole("link", { name: "智慧複習" })).not.toBeInTheDocument();
         expect(within(mobileMenu).queryByRole("link", { name: "AI 練習教材" })).not.toBeInTheDocument();
-        expect(within(mobileMenu).getByRole("link", { name: "每週報告" })).toBeInTheDocument();
-        expect(screen.queryByRole("link", { name: "學習排行榜" })).not.toBeInTheDocument();
-        expect(within(mobileMenu).getByRole("link", { name: "獎品商城" })).toBeInTheDocument();
-        expect(within(mobileMenu).getByRole("link", { name: "我的進度" })).toBeInTheDocument();
+        expect(within(mobileMenu).getByRole("link", { name: "個人資料" })).toHaveAttribute("href", "/student/profile");
+        expect(within(mobileMenu).getByRole("link", { name: "通知設定" })).toHaveAttribute("href", "/student/profile#notifications");
+        expect(within(mobileMenu).getByRole("link", { name: "帳號與密碼" })).toHaveAttribute("href", "/account/security");
+        ["每週報告", "排行榜", "我的作業", "獎品商城", "我的進度"].forEach(name => expect(within(mobileMenu).queryByRole("link", { name })).not.toBeInTheDocument());
         expect(within(mobileMenu).queryByRole("link", { name: "實體教材商城" })).not.toBeInTheDocument();
         await waitFor(() => expect(getAccessibleCatalog).toHaveBeenCalled());
         expect(screen.queryByText("聽力本")).not.toBeInTheDocument();
@@ -217,9 +217,9 @@ describe("MainNavbar student navigation", () => {
         fireEvent.click(screen.getByRole("button", { name: "開啟功能選單" }));
         const mobileMenu = await screen.findByRole("complementary");
         expect(mobileMenu).toHaveAttribute("data-placement", "end");
-        fireEvent.click(within(mobileMenu).getByRole("link", { name: "每週報告" }));
+        fireEvent.click(within(mobileMenu).getByRole("link", { name: "會員與功能" }));
 
-        expect(screen.getByRole("status", { name: "目前路徑" })).toHaveTextContent("/student/weekly-report");
+        expect(screen.getByRole("status", { name: "目前路徑" })).toHaveTextContent("/student/membership");
         expect(screen.queryByRole("complementary")).not.toBeInTheDocument();
         expect(mockOffcanvasRender).toHaveBeenLastCalledWith({ show: false, placement: "end" });
     });
@@ -235,14 +235,14 @@ describe("MainNavbar student navigation", () => {
                 <Routes>
                     <Route element={<PersistentTestLayout />}>
                         <Route path="/student/dashboard" element={<h1>學習首頁</h1>} />
-                        <Route path="/student/weekly-report" element={<LazyReviewPage />} />
+                        <Route path="/student/membership" element={<LazyReviewPage />} />
                     </Route>
                 </Routes>
             </MemoryRouter>
         );
 
         fireEvent.click(screen.getByRole("button", { name: "開啟功能選單" }));
-        fireEvent.click(within(await screen.findByRole("complementary")).getByRole("link", { name: "每週報告" }));
+        fireEvent.click(within(await screen.findByRole("complementary")).getByRole("link", { name: "會員與功能" }));
 
         expect(screen.queryByRole("complementary")).not.toBeInTheDocument();
         expect(screen.getByRole("button", { name: "開啟功能選單" })).toBeInTheDocument();
@@ -374,7 +374,7 @@ describe("MainNavbar student navigation", () => {
         });
     });
 
-    it("shows the AI Premium title only for an active AI add-on", async () => {
+    it("keeps plan badges out of the settings menu, even with an active AI add-on", async () => {
         useAuth.mockReturnValue({
             firebaseUser: { uid: "ai-premium-student" },
             role: "student",
@@ -395,10 +395,10 @@ describe("MainNavbar student navigation", () => {
         render(<MemoryRouter initialEntries={["/student/dashboard"]}><MainNavbar /></MemoryRouter>);
 
         fireEvent.click(screen.getByRole("button", { name: "開啟功能選單" }));
-        expect(await screen.findByText("AI Premium")).toBeInTheDocument();
+        expect(await screen.findByRole("link", { name: "會員與功能" })).toBeInTheDocument();
+        expect(screen.queryByText("AI Premium")).not.toBeInTheDocument();
         expect(screen.queryByRole("link", { name: "AI 練習教材" })).not.toBeInTheDocument();
         expect(screen.queryByRole("link", { name: "智慧複習" })).not.toBeInTheDocument();
-        expect(screen.getByRole("link", { name: "每週報告" })).toBeInTheDocument();
     });
 
     it("hides the rewards shop from students who are not actively enrolled", async () => {
@@ -417,7 +417,7 @@ describe("MainNavbar student navigation", () => {
         render(<MemoryRouter initialEntries={["/student/dashboard"]}><MainNavbar /></MemoryRouter>);
         fireEvent.click(screen.getByRole("button", { name: "開啟功能選單" }));
 
-        expect(within(await screen.findByRole("complementary")).getByRole("link", { name: "我的進度" })).toHaveAttribute("href", "/student/settings");
+        expect(within(await screen.findByRole("complementary")).getByRole("link", { name: "個人資料" })).toHaveAttribute("href", "/student/profile");
         expect(screen.queryByRole("link", { name: "獎品商城" })).not.toBeInTheDocument();
         expect(screen.queryByRole("link", { name: "每週報告" })).not.toBeInTheDocument();
     });
@@ -449,7 +449,7 @@ describe("MainNavbar student navigation", () => {
         expect(screen.getByRole("link", { name: /口說大挑戰/ })).toHaveAttribute("href", "/student/speaking-challenges");
         expect(screen.queryByRole("link", { name: /口說教練/ })).not.toBeInTheDocument();
         fireEvent.click(screen.getByRole("button", { name: "開啟功能選單" }));
-        expect(await screen.findByText("AI Premium")).toBeInTheDocument();
+        expect(await screen.findByRole("link", { name: "個人資料" })).toBeInTheDocument();
     });
 
     it.each([

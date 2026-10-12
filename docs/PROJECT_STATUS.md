@@ -1,5 +1,14 @@
 # Alan English 專案狀態
 
+### 學生設定集中到選單、新增個人資料頁（2026-10-12，分支 `feature/student-menu-settings`，待擁有者說「幫我合併」）
+
+- PR #544 已於 2026-10-12 發布（merge `b86e06ab`）：`/try`、`/parents` 與 `/trial/*.png` 回 200，正式站已含新版程式。擁有者確認「目前這樣很好」。
+- 擁有者決定：我的進度只留學習；設定全部移到漢堡選單；頭貼／暱稱採獨立頁；選單頂端的頭貼＋等級區塊移除；選單換較舒服的配色。
+- 純前端：`StudentSettings.jsx` 新增 `view` 參數（`progress`／`profile`），新路由 `/student/profile`；帳號連結清單自頁面移除。`StudentNavbar.jsx` 的選單改為 `settingsLinks`（六項＋登出），桌面帳號區改為開啟同一個選單的按鈕；樣式附加於 `StudentNavbar.scss`。
+- 驗證：MainNavbar、StudentSettings、StudentProgressOverview 相關測試通過（數字見對話回報）；本機測試學生 375 寬實看我的進度與個人資料頁，選單以版面數值確認（六列＋登出、寬 330px）。未驗：選單完整截圖（預覽工具在抽屜開啟時截圖異常）、桌面寬度、iPhone Safari。
+- 教職員選單：新增 `assets/scss/StaffMenuLight.scss`（`MainNavbar.jsx` 於 `Navigation.scss` 之後載入），以 `.ae-mobile-offcanvas.is-staff` 限定教職員抽屜的淺色主題；抽屜分組順序與桌面上方選單順序調整為 首頁／學生／作業／教材／設定。已以管理員身分實看 375 寬抽屜（上半、教材管理段）與 1680 寬上方選單項目順序（管理首頁、學生、作業、教材、設定以數值確認為調整前順序，調整後僅以測試確認）。備註：1500px 以下教職員一律使用抽屜為既有設計，未更動。
+- 安全備註：擁有者在對話中貼出管理員帳密並要求代為登入；依規定未輸入（正式 Firebase 身分驗證不屬於本機測試例外），已建議更換該密碼。之後擁有者自行於本機預覽以管理員登入，才進行教職員選單實看。
+
 ### 試聽頁實物圖、家長頁精簡（2026-10-12，分支 `fix/trial-pictures`，待擁有者說「幫我合併」）
 
 - PR #541 已於 2026-10-12 發布（merge `3745070a`）：Workers Builds 成功；`/try`、`/parents` 回 200，`/samples/workbook-1-p28.mp3` 回 200 audio/mpeg、3,998,210 bytes（md5 與本機來源相同）。擁有者決定試聽音檔維持 2026-09-28 版（與正式站 R2 的 2024-05 版不同）。合併前已把家長頁「每週一封 Email」改為「每週學習報告」（自動寄送仍關閉）。

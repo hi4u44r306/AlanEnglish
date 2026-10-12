@@ -7,18 +7,17 @@ import NavDropdown from "react-bootstrap/NavDropdown";
 import Offcanvas from "react-bootstrap/Offcanvas";
 import { Link, useLocation } from "react-router-dom";
 import {
-    FiBarChart2,
     FiBell,
     FiBookOpen,
+    FiChevronRight,
     FiCreditCard,
-    FiGift,
     FiHelpCircle,
     FiLock,
     FiLogOut,
     FiMenu,
-    FiSettings,
     FiStar,
-    FiTrendingUp,    FiZap
+    FiTrendingUp,
+    FiUser
 } from "react-icons/fi";
 import { PiFireFill, PiJoystick } from "react-icons/pi";
 import StudentGrowthHeader from "./StudentGrowthHeader";
@@ -76,7 +75,6 @@ const StudentNavbar = ({
     const materialCount = accessibleCategories.reduce((total, category) => total + category.books.length, 0);
     const hasActiveLearningAccess = profile?.membership?.is_active === true;
     const features = profile?.membership?.effective_access?.features || {};
-    const hasAssignmentsAccess = hasActiveLearningAccess && features.assignments === true;
     const hasSpeakingChallengeAccess = hasActiveLearningAccess && features.pronunciation === true;
     const unreadCount = notifications.filter(item => !item.read_at).length;
     const isPathActive = path => location.pathname === path || location.pathname.startsWith(`${path}/`);
@@ -158,31 +156,17 @@ const StudentNavbar = ({
         </div>
     );
 
-    const learningLinks = hasActiveLearningAccess ? (
-        <section className="ae-student-drawer-section">
-            <span>學習紀錄</span>
-            {hasAssignmentsAccess && <InstantDrawerLink to="/student/assignments" onNavigate={closeDrawerThenNavigate} className={isPathActive("/student/assignments") ? "active" : ""}><FiBookOpen />我的作業</InstantDrawerLink>}
-            {hasActiveLearningAccess && <InstantDrawerLink to="/student/weekly-report" onNavigate={closeDrawerThenNavigate} className={isPathActive("/student/weekly-report") ? "active" : ""}><FiBarChart2 />每週報告</InstantDrawerLink>}
-        </section>
-    ) : null;
-
-    const growthLinks = (
-        <section className="ae-student-drawer-section is-growth">
-            <span>角色與獎勵</span>
-            <InstantDrawerLink to="/student/settings" onNavigate={closeDrawerThenNavigate} className={isPathActive("/student/settings") ? "active" : ""}><FiSettings />我的進度</InstantDrawerLink>
-            {hasActiveLearningAccess && <InstantDrawerLink to="/student/leaderboard" onNavigate={closeDrawerThenNavigate} className={isPathActive("/student/leaderboard") ? "active" : ""}><FiTrendingUp />排行榜</InstantDrawerLink>}
-            {hasRewardsAccess && <InstantDrawerLink to="/student/rewards" onNavigate={closeDrawerThenNavigate} className={isPathActive("/student/rewards") ? "active" : ""}><FiGift />獎品商城</InstantDrawerLink>}
-        </section>
-    );
-
-    const accountLinks = (
-        <section className="ae-student-drawer-section">
-            <span>帳號與幫助</span>
-            <InstantDrawerLink to="/student/membership" onNavigate={closeDrawerThenNavigate} className={isPathActive("/student/membership") ? "active" : ""}><FiCreditCard />會員與功能</InstantDrawerLink>
-            <InstantDrawerLink to="/account/security" onNavigate={closeDrawerThenNavigate}><FiLock />帳號與密碼</InstantDrawerLink>
-            <button type="button" onClick={() => { closeDrawer(); onOpenTour(); }}><FiHelpCircle />使用教學</button>
-            <InstantDrawerLink to="/support" onNavigate={closeDrawerThenNavigate}><FiHelpCircle />聯絡客服</InstantDrawerLink>
-        </section>
+    // The menu is the settings place: who I am, notifications, account, help. Everything about
+    // learning lives on 我的進度 and the bottom bar, so nothing is listed twice.
+    const settingsLinks = (
+        <nav className="ae-student-menu-list" aria-label="設定">
+            <InstantDrawerLink to="/student/profile" onNavigate={closeDrawerThenNavigate} className={isPathActive("/student/profile") ? "active" : ""}><span className="ae-student-menu-tile is-blue" aria-hidden="true"><FiUser /></span><strong>個人資料</strong><FiChevronRight aria-hidden="true" /></InstantDrawerLink>
+            <InstantDrawerLink to="/student/profile#notifications" onNavigate={closeDrawerThenNavigate}><span className="ae-student-menu-tile is-yellow" aria-hidden="true"><FiBell /></span><strong>通知設定</strong><FiChevronRight aria-hidden="true" /></InstantDrawerLink>
+            <InstantDrawerLink to="/account/security" onNavigate={closeDrawerThenNavigate} className={isPathActive("/account/security") ? "active" : ""}><span className="ae-student-menu-tile is-navy" aria-hidden="true"><FiLock /></span><strong>帳號與密碼</strong><FiChevronRight aria-hidden="true" /></InstantDrawerLink>
+            <InstantDrawerLink to="/student/membership" onNavigate={closeDrawerThenNavigate} className={isPathActive("/student/membership") ? "active" : ""}><span className="ae-student-menu-tile is-green" aria-hidden="true"><FiCreditCard /></span><strong>會員與功能</strong><FiChevronRight aria-hidden="true" /></InstantDrawerLink>
+            <InstantDrawerLink to="/support" onNavigate={closeDrawerThenNavigate} className={isPathActive("/support") ? "active" : ""}><span className="ae-student-menu-tile is-orange" aria-hidden="true"><FiHelpCircle /></span><strong>聯絡客服</strong><FiChevronRight aria-hidden="true" /></InstantDrawerLink>
+            <button type="button" onClick={() => { closeDrawer(); onOpenTour(); }}><span className="ae-student-menu-tile is-purple" aria-hidden="true"><FiBookOpen /></span><strong>使用教學</strong><FiChevronRight aria-hidden="true" /></button>
+        </nav>
     );
 
     const notificationMenu = (
@@ -237,9 +221,10 @@ const StudentNavbar = ({
                     </Nav>
                     <div className="ae-student-desktop-account">
                         {notificationMenu}
-                        <Link to="/student/settings" className="ae-student-account-link" aria-label="前往帳號">
+                        {/* On desktop the name opens the same settings menu the hamburger opens on phones. */}
+                        <button type="button" className="ae-student-account-link" onClick={() => openDrawer("menu")} aria-label="開啟設定" aria-expanded={drawerOpen && drawer === "menu"} aria-controls="student-navigation-drawer">
                             <span className="ae-student-account-chip"><span>{profileAvatar}</span><strong>{profileName}</strong></span>
-                        </Link>
+                        </button>
                         <button type="button" className="ae-student-desktop-logout" onClick={onLogout} disabled={loggingOut} aria-label={loggingOut ? "登出中..." : "登出"} title="登出">
                             <FiLogOut aria-hidden="true" />
                         </button>
@@ -255,20 +240,14 @@ const StudentNavbar = ({
 
             <Offcanvas id="student-navigation-drawer" show={drawerOpen} onHide={closeDrawer} onExited={handleDrawerExited} placement={drawer === "speaking" ? "bottom" : "end"} className={`ae-student-drawer ${drawer === "menu" ? "is-menu" : drawer === "materials" ? "is-materials" : "is-choice"}`} backdrop scroll={false}>
                 <Offcanvas.Header closeButton closeLabel="關閉選單">
-                    <div><strong>{drawer === "materials" ? "我的教材" : drawer === "speaking" ? "口說冒險" : "更多功能"}</strong><small>{drawer === "materials" ? "點一本教材開始" : drawer === "speaking" ? "選擇教材，開始闖關" : "學習紀錄、角色與獎勵、帳號與幫助"}</small></div>
+                    <div><strong>{drawer === "materials" ? "我的教材" : drawer === "speaking" ? "口說冒險" : "設定"}</strong><small>{drawer === "materials" ? "點一本教材開始" : drawer === "speaking" ? "選擇教材，開始闖關" : profileName}</small></div>
                 </Offcanvas.Header>
                 <Offcanvas.Body>
                     {drawer === "materials" && renderMaterials()}
                     {drawer === "speaking" && speakingLinks}
                     {drawer === "menu" && (
                         <>
-                            <div className="ae-student-drawer-profile">
-                                <span className="ae-student-drawer-avatar">{profileAvatar}</span>
-                                <div><strong>{profileName}</strong><small>Lv.{gamificationLevel} · {totalXp.toLocaleString("zh-TW")} XP</small></div>
-                                {hasAiPremium && <b><FiZap />AI Premium</b>}
-                            </div>
-                            <div className="ae-student-drawer-xp"><span style={{ width: `${xpProgressPercent}%` }} /><small>距離下一級還差 {xpToNextLevel.toLocaleString("zh-TW")} XP</small></div>
-                            <div className="ae-student-more-grid">{learningLinks}{growthLinks}{accountLinks}</div>
+                            {settingsLinks}
                             <button type="button" className="ae-student-drawer-logout" onClick={onLogout} disabled={loggingOut}><FiLogOut />{loggingOut ? "登出中..." : "登出"}</button>
                         </>
                     )}
