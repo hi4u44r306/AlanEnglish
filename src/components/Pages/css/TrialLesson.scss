@@ -47,7 +47,9 @@
 
 .trial-lesson__card { position: relative; display: grid; justify-items: center; gap: 10px; padding: 24px 20px 20px; border: 1px solid var(--trial-line); border-radius: 24px; background: #fff; text-align: center; outline: none; }
 .trial-lesson__count { justify-self: end; font-size: 15px; font-weight: 800; color: var(--trial-muted); font-variant-numeric: tabular-nums; }
-.trial-lesson__swatch { width: 112px; height: 112px; border: 3px solid var(--trial-line); border-radius: 50%; }
+.trial-lesson__picture { display: grid; place-items: center; width: 148px; height: 148px; border-radius: 32px; font-size: 96px; line-height: 1; font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif; }
+// The sky is the tile itself; the sun only says "this is the sky".
+.trial-lesson__picture.is-sky { align-items: start; justify-items: end; padding: 14px; font-size: 48px; }
 .trial-lesson__question { font-size: clamp(22px, 6vw, 28px); font-weight: 800; line-height: 1.3; overflow-wrap: anywhere; }
 .trial-lesson__answer { font-size: clamp(26px, 7.5vw, 36px); font-weight: 900; line-height: 1.3;
     b { display: inline-block; min-width: 3em; padding: 0 8px; border-bottom: 4px solid var(--trial-yellow); color: var(--trial-muted); letter-spacing: .04em; }

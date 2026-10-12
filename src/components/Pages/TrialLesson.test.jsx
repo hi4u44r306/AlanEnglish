@@ -39,11 +39,12 @@ test("says so plainly when the sample audio is not available", () => {
     expect(screen.getByRole("status")).toHaveTextContent("試聽音檔正在準備中");
 });
 
-test("every colour question has a real colour and a Chinese cue", () => {
+test("every colour question has a real colour, a picture and a Chinese cue", () => {
     expect(COLOUR_QUESTIONS).toHaveLength(8);
     COLOUR_QUESTIONS.forEach(item => {
-        expect(item.answer).toMatch(/^(red|yellow|green|blue|purple|white|brown|black)$/);
-        expect(item.swatch).toMatch(/^#[0-9a-f]{6}$/);
+        expect(item.answer).toMatch(/^(red|yellow|green|blue|purple|white|brown|gray)$/);
+        expect(item.picture).toBeTruthy();
+        expect(item.tile).toMatch(/^#[0-9a-f]{6}$/);
         expect(item.zh).toBeTruthy();
     });
 });

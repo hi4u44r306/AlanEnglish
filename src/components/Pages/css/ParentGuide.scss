@@ -1,31 +1,14 @@
-// The parent page shares the trial lesson's shell (colours, hero, closing block) and adds lists.
+// The parent page shares the trial lesson's shell (colours, hero, closing block). It is meant
+// to fit on about one phone screen.
 .parent-guide__title { font-size: clamp(30px, 8.6vw, 44px) !important; line-height: 1.25 !important; }
 
-.parent-guide__section { display: grid; gap: 14px; margin-bottom: 28px;
-    > h2 { font-size: 24px; font-weight: 800; }
-    ul, ol { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
-    li p { margin: 2px 0 0; font-size: 16px; line-height: 1.6; color: var(--trial-muted); }
-    li strong { font-size: 18px; font-weight: 800; }
+.parent-guide__steps li > span { display: grid; justify-items: center; gap: 6px; min-height: 76px; padding: 12px 6px; border: 1px solid var(--trial-line); border-radius: 16px; background: #fff; font-size: 15px; font-weight: 800; text-align: center; }
+
+.parent-guide__reasons { display: grid; gap: 0; margin: 0 auto 16px; padding: 0; list-style: none; border: 1px solid var(--trial-line); border-radius: 20px; background: #fff; overflow: hidden;
+    li { display: grid; gap: 2px; padding: 14px 18px; }
+    li + li { border-top: 1px solid #e6edf5; }
+    strong { font-size: 19px; font-weight: 800; }
+    span { font-size: 16px; line-height: 1.5; color: var(--trial-muted); }
 }
 
-.parent-guide__steps li, .parent-guide__list li { display: grid; grid-template-columns: auto auto minmax(0, 1fr); align-items: center; gap: 12px; padding: 14px 16px; border: 1px solid var(--trial-line); border-radius: 18px; background: #fff;
-    > svg { width: 26px; height: 26px; color: #245fc5; }
-}
-.parent-guide__list li { grid-template-columns: auto minmax(0, 1fr); }
-.parent-guide__number { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--trial-navy); color: #fff; font-size: 16px; font-weight: 900; }
-
-.parent-guide__try { display: flex; align-items: center; justify-content: center; min-height: 56px; padding: 0 20px; border-radius: 18px; background: var(--trial-yellow); color: var(--trial-navy); font-size: 18px; font-weight: 900; text-decoration: none; }
-
-.parent-guide__cards { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    li { padding: 16px; border: 1px solid var(--trial-line); border-radius: 18px; background: #fff; }
-}
-
-.parent-guide__faq { display: grid; gap: 8px;
-    details { border: 1px solid var(--trial-line); border-radius: 16px; background: #fff; }
-    summary { min-height: 52px; padding: 14px 16px; font-size: 17px; font-weight: 800; cursor: pointer; }
-    summary:focus-visible { outline: 3px solid var(--trial-navy); outline-offset: 2px; border-radius: 16px; }
-    p { margin: 0; padding: 0 16px 16px; font-size: 16px; line-height: 1.7; color: var(--trial-muted); }
-    a { color: #245fc5; font-weight: 700; }
-}
-
-.parent-guide .trial-lesson__next a > svg { width: 20px; height: 20px; margin-right: 8px; }
+.parent-guide__note { margin: 0 auto 20px !important; font-size: 15px; line-height: 1.6; color: var(--trial-muted); text-align: center; }
