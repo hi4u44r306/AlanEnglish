@@ -185,7 +185,9 @@ body.speaking-challenge-active .speaking-challenge-page { background: transparen
 
 // Top bar floats without a box; progress is a fat, friendly bar.
 body.speaking-challenge-active .speaking-lesson-header { border: 0 !important; background: transparent !important; padding-inline: 4px !important; }
-body.speaking-challenge-active .speaking-lesson-header .speaking-back { width: 48px; height: 48px; border-radius: 50% !important; background: #fff !important; border: 1px solid #d5e3f0 !important; }
+// The round back button shows only its arrow at every width; its label stays for screen readers.
+body.speaking-challenge-active .speaking-lesson-header .speaking-back { flex: 0 0 48px; justify-content: center; width: 48px; min-width: 48px; height: 48px; min-height: 48px; padding: 0 !important; border-radius: 50% !important; background: #fff !important; border: 1px solid #d5e3f0 !important; font-size: 0 !important; }
+body.speaking-challenge-active .speaking-lesson-header .speaking-back svg { width: 26px; height: 26px; flex: none; }
 body.speaking-challenge-active .speaking-lesson-page { padding: 6px 16px; border-radius: 16px; background: #17365d; color: #fff !important; font-size: 18px !important; letter-spacing: .02em; }
 body.speaking-challenge-active .speaking-lesson-progress span { color: #17365d !important; font-weight: 800 !important; }
 body.speaking-challenge-active .speaking-progress-track { height: 12px !important; border-radius: 12px !important; background: #fff !important; border: 1px solid #d5e3f0; }
@@ -247,3 +249,11 @@ body.speaking-challenge-active .speaking-pronunciation-mic.speaking-pronunciatio
 @keyframes speaking-mic-rings { 50% { box-shadow: 0 0 0 2px #f2b61c, 0 0 0 20px rgba(255, 208, 63, .16), 0 0 0 38px rgba(255, 208, 63, .04); } }
 @keyframes speaking-mic-rings-live { 50% { box-shadow: 0 0 0 2px #e23a2e, 0 0 0 22px rgba(244, 86, 63, .14), 0 0 0 40px rgba(244, 86, 63, .03); } }
 @media (prefers-reduced-motion: reduce) { body.speaking-challenge-active .speaking-pronunciation-mic.speaking-pronunciation-mic { animation: none !important; transition: none; } }
+
+// One centred column at every width: on wide screens the two-column grid left the question squeezed
+// into the left half whenever a full-width control (the "listen to the sentence" button) sat between.
+body.speaking-challenge-active .speaking-adventure-session .speaking-challenge-detail.speaking-immersive-play .speaking-focus-card.speaking-lesson-workspace { grid-template-columns: minmax(0, 1fr) !important; }
+body.speaking-challenge-active .speaking-lesson-workspace > * { grid-column: 1 / -1 !important; }
+// The hint pill sits on the centre line with the microphone; the top bar is as wide as the card below.
+body.speaking-challenge-active .speaking-practice-flow .speaking-help-toggle { justify-self: center !important; margin-inline: auto !important; }
+@media (min-width: 768px) { body.speaking-challenge-active .speaking-lesson-header { width: min(720px, 100%) !important; max-width: 720px !important; margin-inline: auto !important; padding-inline: 0 !important; } }
