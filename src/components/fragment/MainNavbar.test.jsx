@@ -131,7 +131,9 @@ describe("MainNavbar student navigation", () => {
         expect(screen.getByRole("button", { name: "開啟功能選單" })).toBeInTheDocument();
         expect(screen.getByRole("button", { name: "開啟設定" })).toHaveAttribute("aria-controls", "student-navigation-drawer");
         screen.getAllByRole("link", { name: "我的進度" }).forEach(link => expect(link).toHaveAttribute("href", "/student/settings"));
-        expect([...screen.getByRole("navigation", { name: "學生主要導覽" }).children].map(item => item.getAttribute("aria-label") || item.textContent)).toEqual(["我的進度", "教材", "冒險"]);
+        expect([...screen.getByRole("navigation", { name: "學生主要導覽" }).children].map(item => item.getAttribute("aria-label") || item.textContent)).toEqual(["我的進度", "作業", "教材", "冒險"]);
+        screen.getAllByRole("link", { name: "作業" }).forEach(link => expect(link).toHaveAttribute("href", "/student/assignments"));
+        expect(screen.getAllByRole("link", { name: "作業" })).toHaveLength(2);
         const bottomNavigation = screen.getByRole("navigation", { name: "學生主要導覽" });
         expect(bottomNavigation).toBeInTheDocument();
         expect(bottomNavigation.parentElement).toBe(document.body);
@@ -418,6 +420,8 @@ describe("MainNavbar student navigation", () => {
         fireEvent.click(screen.getByRole("button", { name: "開啟功能選單" }));
 
         expect(within(await screen.findByRole("complementary")).getByRole("link", { name: "個人資料" })).toHaveAttribute("href", "/student/profile");
+        // Homework is for enrolled class students; a textbook customer has no 作業 entry anywhere.
+        expect(screen.queryByRole("link", { name: "作業" })).not.toBeInTheDocument();
         expect(screen.queryByRole("link", { name: "獎品商城" })).not.toBeInTheDocument();
         expect(screen.queryByRole("link", { name: "每週報告" })).not.toBeInTheDocument();
     });

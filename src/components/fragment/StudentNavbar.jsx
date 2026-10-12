@@ -9,6 +9,7 @@ import { Link, useLocation } from "react-router-dom";
 import {
     FiBell,
     FiBookOpen,
+    FiCheckSquare,
     FiChevronRight,
     FiCreditCard,
     FiHelpCircle,
@@ -75,11 +76,14 @@ const StudentNavbar = ({
     const materialCount = accessibleCategories.reduce((total, category) => total + category.books.length, 0);
     const hasActiveLearningAccess = profile?.membership?.is_active === true;
     const features = profile?.membership?.effective_access?.features || {};
+    // Homework belongs to enrolled class students only; everyone else never sees the entry.
+    const hasAssignmentsAccess = hasActiveLearningAccess && features.assignments === true;
     const hasSpeakingChallengeAccess = hasActiveLearningAccess && features.pronunciation === true;
     const unreadCount = notifications.filter(item => !item.read_at).length;
     const isPathActive = path => location.pathname === path || location.pathname.startsWith(`${path}/`);
     const speakingActive = isPathActive("/student/speaking-challenges");
     const materialsActive = isPathActive("/student/books");
+    const assignmentsActive = isPathActive("/student/assignments");
     const profileActive = [
         "/student/settings",
         "/student/leaderboard",
@@ -87,7 +91,6 @@ const StudentNavbar = ({
         "/student/notifications",
         "/account/security",
         "/support",
-        "/student/assignments",
         "/student/review",
         "/student/weekly-report",
         "/student/rewards",
@@ -198,6 +201,10 @@ const StudentNavbar = ({
                 <NavigationIcon tone="profile"><FiTrendingUp /></NavigationIcon>
                 <span>我的進度</span>
             </Link>
+            {hasAssignmentsAccess && <Link data-tour="assignments" to="/student/assignments" aria-current={assignmentsActive ? "page" : undefined} className={assignmentsActive ? "active" : ""}>
+                <NavigationIcon tone="homework"><FiCheckSquare /></NavigationIcon>
+                <span>作業</span>
+            </Link>}
             <button type="button" data-tour="materials" onClick={() => openDrawer("materials")} aria-current={materialsActive ? "page" : undefined} aria-expanded={drawerOpen && drawer === "materials"} aria-controls="student-navigation-drawer" className={`${materialsActive ? "active" : ""} ${drawerOpen && drawer === "materials" ? "is-open" : ""}`}><NavigationIcon tone="books"><FiBookOpen /></NavigationIcon><span>教材</span></button>
             <button type="button" data-tour="adventure" onClick={() => openDrawer("speaking")} aria-current={speakingActive ? "page" : undefined} aria-expanded={drawerOpen && drawer === "speaking"} aria-controls="student-navigation-drawer" className={`${speakingActive ? "active" : ""} ${drawerOpen && drawer === "speaking" ? "is-open" : ""}`}><NavigationIcon tone="adventure"><PiJoystick /></NavigationIcon><span>冒險</span>{bossEvent && <span className="ae-boss-nav-badge" aria-label="Boss 挑戰出現了"><PiFireFill aria-hidden="true" /></span>}</button>
         </nav>
@@ -210,6 +217,7 @@ const StudentNavbar = ({
                     <StudentGrowthHeader key={firebaseUser?.uid} summary={growthSummary} loading={growthLoading} error={growthError} pointsAccess={hasRewardsAccess} onRetry={onGrowthRetry} avatarUrl={avatarUrl} name={profileName} />
                     <Nav as="nav" className="ae-student-desktop-nav" aria-label="學生桌面導覽" onSelect={closeDrawer}>
                         <Nav.Link as={Link} data-tour="progress" to="/student/settings" aria-current={isPathActive("/student/settings") ? "page" : undefined} className={profileActive ? "active" : ""} aria-label="我的進度"><span><NavigationIcon tone="profile"><FiTrendingUp /></NavigationIcon>我的進度</span></Nav.Link>
+                        {hasAssignmentsAccess && <Nav.Link as={Link} data-tour="assignments" to="/student/assignments" aria-current={assignmentsActive ? "page" : undefined} className={assignmentsActive ? "active" : ""}><span><NavigationIcon tone="homework"><FiCheckSquare /></NavigationIcon>作業</span></Nav.Link>}
                         <NavDropdown id="student-materials" data-tour="materials" title={<span><NavigationIcon tone="books"><FiBookOpen /></NavigationIcon>教材</span>} show={materialsOpen} onToggle={setMaterialsOpen} autoClose="outside" className={materialsActive ? "active" : ""}>
                             <div className="ae-student-dropdown-heading"><strong>選一本教材</strong><small>{loading ? "教材載入中…" : `${materialCount} 本可使用`}</small></div>
                             {renderMaterials()}
