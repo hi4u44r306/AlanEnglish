@@ -1,6 +1,10 @@
 import { selectAzureAssessmentResult, readAzureWordAssessment } from "./azure-pronunciation.ts";
 import { matchesFoundationAnswer, evaluateLetterSpellingAssessment } from "./speaking-foundation-answer.ts";
 
+// A single letter is under a second of sound, so its score swings a lot; it passes at 60.
+// Spelling a whole word gives the scorer more to work with and keeps the usual 70.
+export const ALPHABET_LETTER_PASS_SCORE = 60;
+export const LETTER_SPELLING_PASS_SCORE = 70;
 const score = (value: unknown) => Number.isFinite(Number(value)) ? Math.max(0, Math.min(100, Number(value))) : 0;
 export async function assessAzureAlphabet(audio: ArrayBuffer, answer: string, key: string, region: string, interactionType = "alphabet_round") {
     if (!key || !/^[a-z0-9-]{2,32}$/.test(region)) throw Object.assign(new Error("A–Z 評分服務尚未設定"), { status: 503, code: "service_not_configured" });
@@ -30,8 +34,8 @@ export async function assessAzureAlphabet(audio: ArrayBuffer, answer: string, ke
     const text = String(best.Display || best.Lexical || "").trim();
     if (!text) throw Object.assign(new Error("沒有聽清楚字母，請重錄"), { status: 422, code: "speech_no_match" });
     const spelling = interactionType === "letter_spelling" ? evaluateLetterSpellingAssessment(answer, text, best.Words) : null;
-    const matched = (spelling ? spelling.answerMatch : matchesFoundationAnswer("alphabet_round", answer, text, [])) && score(assessment.PronScore ?? assessment.AccuracyScore) >= 70;
-    return { assessment_kind: "azure_pronunciation", assessment_status: spelling?.uncertain ? "uncertain" : "assessed", answer_match: matched, recognized_text: text,
+    const matched = (spelling ? spelling.answerMatch : matchesFoundationAnswer("alphabet_round", answer, text, [])) && score(assessment.PronScore ?? assessment.AccuracyScore) >= (spelling ? LETTER_SPELLING_PASS_SCORE : ALPHABET_LETTER_PASS_SCORE);
+    return { pass_score: spelling ? LETTER_SPELLING_PASS_SCORE : ALPHABET_LETTER_PASS_SCORE, assessment_kind: "azure_pronunciation", assessment_status: spelling?.uncertain ? "uncertain" : "assessed", answer_match: matched, recognized_text: text,
         scores: { pronunciation: score(assessment.PronScore ?? assessment.AccuracyScore), accuracy: score(assessment.AccuracyScore),
             fluency: score(assessment.FluencyScore), completeness: matched ? 100 : 0, prosody: null },
         words: (Array.isArray(best.Words) ? best.Words : []).map((word: any) => ({ text: String(word.Word || ""),

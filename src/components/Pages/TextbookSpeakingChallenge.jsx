@@ -352,7 +352,8 @@ export default function TextbookSpeakingChallenge() {
         return () => { cancelled = true; };
     }, [firebaseUser, questionSetId, staffPreview, challengeMode, navigate, location.pathname, location.state, readAttempt]);
 
-    const switchToPractice = useCallback(reason => setChallenge(current => current ? { ...current, practice_only: true, practice_reason: reason } : current), []);
+    // The practice page opens on the question the student was stuck on, when the caller knows it.
+    const switchToPractice = useCallback((reason, questionId) => setChallenge(current => current ? { ...current, practice_only: true, practice_reason: reason, practice_question_id: questionId ?? null } : current), []);
     const markComplete = async (question, sessionId = challengeSessionId) => {
         if (staffPreview) return { success: true, demo_mode: true };
         const requestKey = activeRouteRef.current;

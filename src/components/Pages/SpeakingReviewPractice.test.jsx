@@ -14,3 +14,9 @@ test("完成的 A–Z 可切換練習字母，離開推薦換關，沒有送評�
     fireEvent.click(screen.getByRole("button",{name:"返回地圖，換一關"}));
     expect(onExit).toHaveBeenCalledTimes(1);
 });
+test("念錯三次進來時，直接停在卡住的那個字母", () => {
+    render(<SpeakingReviewPractice challenge={{title:"A–Z",practice_question_id:2,generation_metadata:{interaction_type:"alphabet_round"},speaking_questions:[{id:1,question_text:"A"},{id:2,question_text:"B"},{id:3,question_text:"C"}]}} onExit={jest.fn()} />);
+    expect(screen.getByRole("heading",{name:"B"})).toBeInTheDocument();
+    expect(screen.getByText(/第 2 \/ 3 題/)).toBeInTheDocument();
+    expect(screen.getByRole("button",{name:"上一題"})).toBeEnabled();
+});

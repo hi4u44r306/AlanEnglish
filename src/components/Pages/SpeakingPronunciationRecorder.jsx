@@ -267,7 +267,7 @@ export default function SpeakingPronunciationRecorder({
             );
         } catch (cause) {
             if (token !== generationRef.current) return;
-            if (cause?.code === "speaking_level_completed_today") { onPracticeOnly?.(cause.message); return; }
+            if (cause?.code === "speaking_level_completed_today") { onPracticeOnly?.(cause.message, question?.id); return; }
             setResult(null);
             setEngineReady(azureLetters || Boolean(engineRef.current?.ready));
             const limited = SPEAKING_BUDGET_ERROR_CODES.has(cause?.code);
