@@ -15,6 +15,7 @@ import {
 } from "../../services/gamificationService";
 import { readAppShellCacheEntry, writeAppShellCache } from "../../services/appShellCache";
 import "./css/Gamification.scss";
+import "./css/StudentPagesMinimal.scss";
 
 const PERIODS = [
     { value: "week", label: "本週" },
@@ -95,7 +96,7 @@ function LearningLeaderboard() {
     const currentClass = isOverall ? "" : (data?.class_code || classCode || studentProfile?.class || "");
 
     return (
-        <main className="gamification-page">
+        <main className={`gamification-page${isStudent ? " gamification-page--student" : ""}`}>
             <section className="gamification-hero">
                 <div>
                     <span className="gamification-eyebrow"><FiTrendingUp /> {isOverall ? "OVERALL LEADERBOARD" : "CLASS LEADERBOARD"}</span>

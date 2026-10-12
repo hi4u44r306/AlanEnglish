@@ -6,6 +6,8 @@ import { useAuth } from "../../auth/AuthContext";
 import useStudentPageQuery from "../../hooks/useStudentPageQuery";
 import { useStudentLearningHistory } from "../../hooks/useStudentLearningResume";
 import { getAccessibleCatalog } from "../../services/contentAccessService";
+import { getBookPlaybackProgress } from "../../services/listeningService";
+import { DAILY_LISTENING_GOAL } from "../../constants/listeningProgress";
 import { getStudentAssignments, getStudentAssignmentsV2 } from "../../services/assignmentService";
 import { getSpeakingChallengeCatalog } from "../../services/speakingChallengeService";
 import { findResumeBook, learningResumePath } from "../../services/studentLearningResume";
@@ -33,11 +35,13 @@ function StudentProgressOverview() {
     const assignmentsV2Query = useStudentPageQuery("assignments:v2", () => getStudentAssignmentsV2(firebaseUser), { enabled: assignmentAccess });
     const speakingQuery = useStudentPageQuery("speaking:catalog", () => getSpeakingChallengeCatalog(firebaseUser), { enabled: speakingAccess });
 
+    const books = useMemo(() => getStudentMaterialCategories(catalogQuery.data?.categories).flatMap(category => category.books), [catalogQuery.data]);
     // Saved bookmarks only become links for books the catalog still authorizes.
-    const listening = useMemo(() => {
-        const books = getStudentMaterialCategories(catalogQuery.data?.categories).flatMap(category => category.books);
-        return history.map(bookmark => ({ bookmark, book: findResumeBook(bookmark, books) })).filter(item => item.book);
-    }, [history, catalogQuery.data]);
+    const listening = useMemo(() => history.map(bookmark => ({ bookmark, book: findResumeBook(bookmark, books) })).filter(item => item.book), [history, books]);
+    // Today's valid listens come back with any book's progress, so the query shares the listening
+    // page's cache entry (and its invalidation after a counted listen) instead of adding an endpoint.
+    const todayBook = listening[0]?.book || books.find(book => book.id && book.locked !== true);
+    const todayQuery = useStudentPageQuery(`progress:${todayBook?.id}`, () => getBookPlaybackProgress(firebaseUser, todayBook.id), { enabled: active && Boolean(todayBook?.id) });
 
     const speaking = useMemo(() => {
         const groups = new Map();
@@ -67,8 +71,16 @@ function StudentProgressOverview() {
     const speakingStarted = speaking.filter(group => group.completed > 0 && group.completed < group.total);
     // The top card already is the first assignment, so a row is only worth showing for the rest.
     const otherTasks = Math.max(0, tasks.length - 1);
+    const todayRaw = todayQuery.data?.daily_count;
+    const todayCount = todayRaw != null && Number.isFinite(Number(todayRaw)) ? Math.max(0, Number(todayRaw)) : null;
+    const todayDone = todayCount != null && todayCount >= DAILY_LISTENING_GOAL;
 
     return <section className="student-progress" aria-label="學習進度">
+        {todayCount != null && <p className={`student-progress__today${todayDone ? " is-done" : ""}`} role="status" aria-label={todayDone ? `今天聽了 ${todayCount} 首，今天的目標完成了` : `今天聽了 ${todayCount} 首，目標 ${DAILY_LISTENING_GOAL} 首`}>
+            <span>{todayDone ? "今天的目標完成了！" : "今天聽了"}</span>
+            <strong>{todayDone ? `${todayCount} 首` : `${todayCount} / ${DAILY_LISTENING_GOAL} 首`}</strong>
+            <span className="student-progress__today-dots" aria-hidden="true">{Array.from({ length: DAILY_LISTENING_GOAL }, (_, index) => <i key={index} className={index < todayCount ? "is-on" : ""} />)}</span>
+        </p>}
         {nextTask ? <Link className={`student-progress__next${nextTask.state === "overdue" ? " is-overdue" : ""}`} to={taskPath(nextTask)}>
             <img className="student-progress__scene" src={forestScene} alt="" />
             <span className="student-progress__next-label">{nextTask.state === "overdue" ? "作業遲交" : "接下來：作業"}</span>

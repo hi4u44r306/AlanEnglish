@@ -48,6 +48,7 @@ const SpeakingBookCard = ({ group, index, onOpen, rewardPolicy }) => {
                 ><span style={{ width: `${progressPercent}%` }} /></span>
             </span>
         </span>
+        <b className="speaking-book-card__tally" aria-hidden="true">{completedCount} / {group.itemCount}</b>
         <span className="speaking-book-card__action">{actionLabel}<FiChevronRight aria-hidden="true" /></span>
     </button>;
 };

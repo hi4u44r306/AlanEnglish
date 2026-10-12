@@ -379,3 +379,11 @@ a.student-settings-row:focus-visible, summary.student-settings-row:focus-visible
 // Flat round buttons on both cards.
 .student-progress__next > .student-progress__next-action, .student-progress__listen-play { box-shadow: none !important; }
 .student-progress__next:active .student-progress__next-action, .student-progress__listen:active .student-progress__listen-play { transform: scale(.94); }
+
+// Today's small target: one line, three dots.
+.student-progress__today { display: flex; align-items: center; gap: 10px; margin: 0; padding: 12px 20px; border: 1px solid #d5e3f0; border-radius: 16px; background: #fff; color: #17365d; font-size: 16px; font-weight: 700;
+    strong { font-size: 20px; font-weight: 900; font-variant-numeric: tabular-nums; }
+    &.is-done { border-color: #9cc3a8; background: #eef8f1; color: #17694a; }
+}
+.student-progress__today-dots { display: inline-flex; gap: 8px; margin-left: auto; > i { width: 18px; height: 18px; border-radius: 50%; border: 2px solid #c5d6e8; background: #fff; } > i.is-on { border-color: #f2b61c; background: #ffd84d; } }
+.student-progress__today.is-done .student-progress__today-dots > i.is-on { border-color: #247a56; background: #247a56; }

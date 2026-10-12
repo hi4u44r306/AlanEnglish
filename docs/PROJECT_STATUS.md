@@ -1,5 +1,14 @@
 # Alan English 專案狀態
 
+### 每日小目標、三頁精簡、口說流程測試修復（2026-10-12，分支 `feature/daily-goal-and-tidy`，待擁有者說「幫我合併」）
+
+- 純前端，無後端變更。PR #536（頂端列頭貼）已於 2026-10-12 發布，Workers Builds 成功、正式站含 `ae-growth-header__mark has-avatar`。
+- 測試修復：`SpeakingChallengeFlow.test.jsx` 原 9 項（加上 AE Points 收起後共 10 項）失敗，原因是 `c58a8ab6`（僅挑戰模式計通關）之後測試未更新：朗讀關卡不再強制改為 easy、關卡摘要同時提供自由練習與挑戰、easy 完成標題為「練習完成！」、下一關僅在挑戰通過後提供。已改為現行行為，22 項通過；未改任何元件。
+- 每日小目標：`DAILY_LISTENING_GOAL = 3`（`constants/listeningProgress.js`，與每週報告既有「每日 3 次目標」一致）。`StudentProgressOverview.jsx` 以既有 `get-playback-progress` 回傳的 `daily_count` 顯示，沿用 `progress:{bookId}` 快取鍵（聆聽計次後會被 invalidated）；取最近一本或第一本未鎖教材的 id 呼叫。
+- `SpeakingBookCard.jsx` 新增 `speaking-book-card__tally`，其餘以 `SpeakingMinimalLevel.scss` 隱藏；新增 `css/StudentPagesMinimal.scss`，以 `gamification-page--student`／`weekly-report-page--student` 限定學生視角精簡排行榜與每週報告。
+- 驗證：StudentProgressOverview、LearningLeaderboard、WeeklyReport、TextbookSpeakingChallenge、SpeakingChallengeFlow 共 93 項通過。**未做畫面實看**：本機預覽重啟後為登出狀態，需擁有者登入後再看；iPhone Safari 未驗。
+- 未做：家長每週報告自動寄送的開關仍為關閉，需擁有者於管理後台先手動寄一封測試信再開啟。
+
 ### 頂端列顯示學生頭貼（2026-10-12，分支 `feature/header-avatar`，待擁有者說「幫我合併」）
 
 - 純前端：`StudentGrowthHeader.jsx` 的 `ae-growth-header__mark` 只在有 `avatarUrl` 時渲染 `StudentAvatarImage`（無頭貼不顯示圖案；1280px 以上隱藏，因桌面帳號區已有頭貼）。`StudentNavbar.jsx` 的「我的進度」按鈕圖示由頭貼改為 `FiTrendingUp`。

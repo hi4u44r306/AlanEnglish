@@ -30,6 +30,7 @@ import {
 } from "../../services/weeklyReportService";
 import "./css/WeeklyReport.scss";
 import "./css/WeeklyReportOverview.scss";
+import "./css/StudentPagesMinimal.scss";
 
 const formatDate = value => {
     if (!value) return "";
@@ -198,10 +199,10 @@ const WeeklyReport = () => {
     const speakingChallenge = report.speaking_challenge;
 
     return (
-        <main className={`weekly-report-page ${isManager ? "weekly-report-page--manager" : ""}`}>
+        <main className={`weekly-report-page ${isManager ? "weekly-report-page--manager" : "weekly-report-page--student"}`}>
             <div className="weekly-report-shell">
                 <nav className="weekly-report-toolbar" aria-label="週報工具列">
-                    <Link to={backPath}><FiArrowLeft /> 返回{isManager ? "管理首頁" : "學習首頁"}</Link>
+                    <Link to={backPath}><FiArrowLeft /> 返回{isManager ? "管理首頁" : "我的進度"}</Link>
                     <div className="weekly-report-toolbar__actions">
                         <button type="button" onClick={handleCopy} disabled={!report.family_message}><FiCopy /> 複製文字摘要</button>
                         <button type="button" onClick={() => window.print()}><FiPrinter /> 列印／存 PDF</button>
