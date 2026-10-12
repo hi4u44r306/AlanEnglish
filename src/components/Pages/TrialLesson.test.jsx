@@ -4,6 +4,7 @@ import "@testing-library/jest-dom";
 import { MemoryRouter } from "react-router-dom";
 import TrialLesson, { COLOUR_QUESTIONS, SAMPLE_AUDIO } from "./TrialLesson";
 import useTrialSpeaking, { heardExpectedWord } from "../../hooks/useTrialSpeaking";
+import { TRIAL_PICTURE_IDS } from "./TrialPictures";
 
 jest.mock("../../hooks/useTrialSpeaking", () => ({ __esModule: true, default: jest.fn(), heardExpectedWord: jest.requireActual("../../hooks/useTrialSpeaking").heardExpectedWord }));
 const speaking = overrides => ({ status: "idle", heard: "", message: "", start: jest.fn(), stop: jest.fn(), reset: jest.fn(), ...overrides });
@@ -23,6 +24,7 @@ test("shows the lesson, its three steps and no video request until asked", () =>
 test("speaking practice hides the answer until the learner has tried, then moves on", () => {
     renderPage();
     expect(screen.getByText("What color is the apple?")).toBeInTheDocument();
+    expect(document.querySelector(".trial-lesson__picture img.trial-lesson__drawing")).toHaveAttribute("src", "/trial/apple.png");
     expect(screen.queryByText("red")).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "看答案" }));
     expect(screen.getByText("red")).toHaveClass("is-shown");
@@ -39,11 +41,11 @@ test("says so plainly when the sample audio is not available", () => {
     expect(screen.getByRole("status")).toHaveTextContent("試聽音檔正在準備中");
 });
 
-test("every colour question has a real colour and a Chinese cue", () => {
+test("every colour question has a real colour, a picture and a Chinese cue", () => {
     expect(COLOUR_QUESTIONS).toHaveLength(8);
     COLOUR_QUESTIONS.forEach(item => {
-        expect(item.answer).toMatch(/^(red|yellow|green|blue|purple|white|brown|black)$/);
-        expect(item.swatch).toMatch(/^#[0-9a-f]{6}$/);
+        expect(item.answer).toMatch(/^(red|yellow|green|blue|purple|white|brown|gray)$/);
+        expect(TRIAL_PICTURE_IDS).toContain(item.id);
         expect(item.zh).toBeTruthy();
     });
 });

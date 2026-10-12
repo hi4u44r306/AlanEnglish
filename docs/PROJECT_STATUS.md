@@ -1,5 +1,11 @@
 # Alan English 專案狀態
 
+### 試聽頁實物圖、家長頁精簡（2026-10-12，分支 `fix/trial-pictures`，待擁有者說「幫我合併」）
+
+- PR #541 已於 2026-10-12 發布（merge `3745070a`）：Workers Builds 成功；`/try`、`/parents` 回 200，`/samples/workbook-1-p28.mp3` 回 200 audio/mpeg、3,998,210 bytes（md5 與本機來源相同）。擁有者決定試聽音檔維持 2026-09-28 版（與正式站 R2 的 2024-05 版不同）。合併前已把家長頁「每週一封 Email」改為「每週學習報告」（自動寄送仍關閉）。
+- 擁有者回饋：試聽頁的蘋果（純色圓圈）不好 → 先改為 emoji，擁有者選擇「用固定圖案」後先改為自繪 SVG，擁有者認為不好看並要求「上網找下載好看的圖片」，最後採用 Microsoft Fluent Emoji 3D PNG（MIT 授權，來源 `github.com/microsoft/fluentui-emoji`；檔案與授權文字在 `public/trial/`，共 8 張約 260KB）；天空與雲以藍色底板合成；家長頁太冗長 → 由約 2480px 縮為約 864px（375 寬）。純前端。
+- 驗證：`TrialLesson.test.jsx`、`ParentGuide.test.jsx` 共 9 項通過；本機 375 寬實看兩頁。已以暫時的對照頁一次看過 8 張圖（已刪除該暫時檔）。未驗：實際錄音辨識、iPhone Safari。
+
 ### 首頁連到工具箱、Cloudflare 補上 SEO／noindex 路由（2026-10-12，已發布）
 
 - 發布紀錄：PR #542 合併為 main `42642426`，Cloudflare 部署完成。正式站實測：`/` 為 `index,follow`；`/links` 與 `/links/` 回傳自己的標題與 canonical `https://alanenglish.com.tw/links`；`/login`、`/student/dashboard`、`/shop/cart`、`/try` 為 `noindex,nofollow`；`/ads.txt`、`/sitemap.xml`、`/manifest.json`、`/api/basic-reading/catalog` 與工具箱路徑正常。瀏覽器實看首頁頁尾有「免費學習工具」連結、`/login` 登入表單正常顯示且主控台無錯誤。未驗：實際登入後的學生與老師流程。
