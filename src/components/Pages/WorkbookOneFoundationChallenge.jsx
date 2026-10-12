@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import HandwritingPair from "./HandwritingLetters";
 import { FiChevronLeft, FiChevronRight, FiHeadphones, FiPause, FiPlay, FiRefreshCw, FiVolume2 } from "react-icons/fi";
 import { createFoundationRound } from "../../utils/speakingChallengeRound";
 import AlphabetAutomaticRecorder from "./AlphabetAutomaticRecorder";
@@ -387,7 +388,7 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
             <div className="speaking-alphabet-list" aria-label="英文字母 A 到 Z">{sourceQuestions.map((question, index) => {
                 const uppercase = String(question.question_text || "").toUpperCase();
                 const lowercase = uppercase.toLowerCase();
-                return <span aria-label={`大寫 ${uppercase}，小寫 ${lowercase}`} className={index === introIndex && introPlaying ? "active" : index < introIndex || introComplete ? "heard" : ""} key={question.id}>{uppercase}<small>{lowercase}</small></span>;
+                return <span aria-label={`大寫 ${uppercase}，小寫 ${lowercase}`} className={index === introIndex && introPlaying ? "active" : index < introIndex || introComplete ? "heard" : ""} key={question.id}><HandwritingPair upper={uppercase} lower={lowercase} /></span>;
             })}</div>
             {!allAlphabetAudioReady && <p className="speaking-foundation-warning" role="alert">A–Z 單一慢速音檔尚未準備完成，這個關卡暫時不能開始。</p>}
             {statusAlert}

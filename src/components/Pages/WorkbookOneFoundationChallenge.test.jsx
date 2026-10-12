@@ -232,7 +232,7 @@ describe("WorkbookOneFoundationChallenge", () => {
             onExit={jest.fn()}
         />);
 
-        expect(screen.getByLabelText("大寫 A，小寫 a")).toHaveTextContent("Aa");
+        expect(screen.getByLabelText("大寫 A，小寫 a").querySelectorAll("svg.handwriting-letter")).toHaveLength(2);
         expect(screen.getByLabelText("大寫 Z，小寫 z")).toHaveTextContent("Zz");
         expect(screen.getByLabelText("英文字母 A 到 Z").querySelectorAll("span")).toHaveLength(26);
     });
