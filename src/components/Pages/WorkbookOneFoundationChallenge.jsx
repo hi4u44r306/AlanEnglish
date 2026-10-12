@@ -18,6 +18,16 @@ const interactionCopy = {
     }
 };
 
+// When the right letter was heard but the pronunciation score fell short, say so: telling the
+// child "the system heard N" on a question whose answer is N reads like a mistake in the site.
+const lettersOnly = value => String(value || "").toUpperCase().replace(/[^A-Z]/g, "");
+const retryFeedbackFor = (question, result) => {
+    const expected = question?.display_text || "", heard = String(result?.recognized_text || "").trim();
+    const answer = lettersOnly(question?.model_answer || expected);
+    const score = Number(result?.scores?.pronunciation);
+    return { expected, heard, rightLetter: Boolean(heard) && lettersOnly(heard) === answer, score: Number.isFinite(score) ? Math.round(score) : null, passScore: Number(result?.pass_score) || null };
+};
+
 export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser, challengeMode = "challenge", onComplete, onPracticeOnly, onStartRound, onStartAlphabetIntro, onCompleteAlphabetIntro, onExit, onFinished, staffPreview = false, adminScoringPreview = false, audioWorking = "", onPlayModelAudio, audioError = "" }) {
     const interactionType = String(challenge?.generation_metadata?.interaction_type || "");
     const alphabetMode = interactionType === "alphabet_round";
@@ -321,7 +331,7 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
         if (alphabetMode) {
             if (adminScoringPreview || challengeMode === "easy") {
                 if (result?.answer_match === false) {
-                    setRetryFeedback({ expected: activeQuestion?.display_text || "", heard: String(result?.recognized_text || "").trim() });
+                    setRetryFeedback(retryFeedbackFor(activeQuestion, result));
                     return;
                 }
                 if (activeIndex >= round.length - 1) { setPhase("result"); onFinished?.({ demo_mode: adminScoringPreview, practice_completed: challengeMode === "easy" }); }
@@ -330,7 +340,7 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
             }
             const expectedStatus = activeIndex >= round.length - 1 ? "completed" : "open";
             if (result?.foundation_round?.status === "retry") {
-                setRetryFeedback({ expected: activeQuestion?.display_text || "", heard: String(result?.recognized_text || "").trim() });
+                setRetryFeedback(retryFeedbackFor(activeQuestion, result));
                 return;
             }
             if (result?.foundation_round?.status !== expectedStatus) {
@@ -454,7 +464,8 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
                 onPracticeOnly={onPracticeOnly}
             />}
             {!alphabetMode && audioError && <p className="speaking-audio-notice" role="alert">{audioError}</p>}
-            {retryFeedback && <aside className="speaking-foundation-feedback" role="status" aria-live="assertive"><strong>沒關係，再試一次！</strong><span>這一題是 {retryFeedback.expected}。{retryFeedback.heard ? ` 系統剛剛聽到「${retryFeedback.heard}」。` : " 系統剛剛沒有聽清楚。"}</span></aside>}
+            {retryFeedback && <aside className="speaking-foundation-feedback" role="status" aria-live="assertive">{retryFeedback.rightLetter ? <><strong>字母對了，再唸清楚一點！</strong><span>聲音大一點、慢一點，把 {retryFeedback.expected} 唸完整。{retryFeedback.score !== null && retryFeedback.passScore ? ` 這次 ${retryFeedback.score} 分，${retryFeedback.passScore} 分過關。` : ""}</span></>
+                : <><strong>沒關係，再試一次！</strong><span>這一題是 {retryFeedback.expected}。{retryFeedback.heard ? ` 系統剛剛聽到「${retryFeedback.heard}」。` : " 系統剛剛沒有聽清楚。"}</span></>}</aside>}
             {statusAlert}
         </article></section>
         {staffPreview && <nav className="speaking-question-navigation" aria-label="小關卡預覽切換"><button type="button" onClick={() => { stopAudio(); setActiveIndex(index => index - 1); }} disabled={activeIndex === 0}><FiChevronLeft />上一題</button><span>預覽第 {activeIndex + 1} / {round.length} 題</span><button type="button" className="primary" onClick={() => {

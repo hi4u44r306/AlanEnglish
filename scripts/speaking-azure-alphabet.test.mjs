@@ -13,11 +13,11 @@ test('設定、供應商或空白辨識錯誤不能當成功成績',async()=>{
  try {globalThis.fetch=async()=>{throw Error('must not call');};await assert.rejects(assessAzureAlphabet(new ArrayBuffer(2),'A','','southeastasia'),e=>e.code==='service_not_configured');globalThis.fetch=async()=>new Response('{}',{status:429});await assert.rejects(assessAzureAlphabet(new ArrayBuffer(2),'A','synthetic','southeastasia'),e=>e.code==='provider_failed');globalThis.fetch=async()=>new Response('{}');await assert.rejects(assessAzureAlphabet(new ArrayBuffer(2),'A','synthetic','southeastasia'),e=>e.code==='speech_no_match');}
  finally {globalThis.fetch=originalFetch;}
 });
-test('字母正確仍須 70 分；拼字使用分開的參考字母與聲音對齊結果',async()=>{
+test('字母正確仍須 60 分；拼字使用分開的參考字母與聲音對齊結果',async()=>{
  try {
-  for(const value of [69,70]){
+  for(const value of [59,60]){
    globalThis.fetch=async()=>new Response(JSON.stringify({NBest:[{Display:'A',PronunciationAssessment:{PronScore:value,AccuracyScore:80,FluencyScore:80}}]}));
-   const result=await assessAzureAlphabet(new ArrayBuffer(2),'A','synthetic','southeastasia');assert.equal(result.answer_match,value>=70);
+   const result=await assessAzureAlphabet(new ArrayBuffer(2),'A','synthetic','southeastasia');assert.equal(result.answer_match,value>=60);assert.equal(result.pass_score,60);
   }
   globalThis.fetch=async(url,options)=>{
    assert.equal(JSON.parse(atob(options.headers['Pronunciation-Assessment'])).ReferenceText,'C A T');
