@@ -71,6 +71,7 @@ const ReviewCenter = lazy(() => import("../components/Pages/ReviewCenter"));
 const WeeklyReport = lazy(() => import("../components/Pages/WeeklyReport"));
 const MembershipCenter = lazy(() => import("../components/Pages/MembershipCenter"));
 const Rewards = lazy(() => import("../components/Pages/Rewards"));
+const TrialLesson = lazy(() => import("../components/Pages/TrialLesson"));
 const TeamBossSpeakingPreview = lazy(() => import("../components/Pages/TeamBossSpeakingPreview/Preview"));
 
 const LegacyPlaylistRedirect = () => {
@@ -143,6 +144,7 @@ const App = () => {
                 <Routes>
                     <Route path="/" element={<Showcase />} />
                     <Route path="/install" element={<InstallGuide />} />
+                    <Route path="/try" element={<TrialLesson />} />
                     <Route path="/links" element={<Links />} />
                     <Route path="/basic-reading" element={<BasicReading />} />
                     <Route path="/basic-reading/:level" element={<BasicReading />} />

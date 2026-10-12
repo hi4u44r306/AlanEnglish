@@ -1,5 +1,14 @@
 # Alan English 專案狀態
 
+### 免費試聽一課 `/try` 草稿（2026-10-12，分支 `feature/free-trial-lesson`，草稿、未合併）
+
+- PR #540（後台選單）已合併至 `main`（merge `16526f16`），先與 #539 的文件衝突合併解決。
+- 背景：擁有者想對外開放、吸引非英文班家長；討論後先以「單一免費試聽單元」驗證需求，暫不改收費與權限模型。擁有者同意以 Workbook 1 P28「顏色」為試聽內容。
+- 純前端、無後端：`Pages/TrialLesson.jsx`、`css/TrialLesson.scss`、測試；`App.jsx` 新增公開路由 `/try`（lazy）。影片用 `youtube-nocookie` 嵌入、點擊後才載入；口說為自我練習（不錄音、不評分），題目文字取自已發布題組並內嵌於頁面。尚無任何入口連結。
+- 待擁有者決定：(1) 是否同意把 `Workbook_1_P28.mp3` 以靜態檔公開於 `public/samples/workbook-1-p28.mp3`（目前 R2 為私有，未取得檔案）；(2) 課本頁面圖文可否公開；(3) 「想了解教材」要導向哪裡（目前為 `/support`）；(4) 是否從公開首頁連過來。
+- 發現的資料問題（未修改）：正式庫 Workbook 1 P28 題組第 7 題示範答案拼成 `pruple`（應為 purple）；第 6 題「African berry … blue」語意待確認。試聽頁內嵌的是修正後的 purple。
+- 驗證：`TrialLesson.test.jsx` 4 項通過；本機 375 寬實看首屏與作答互動（點「看答案」後可換下一題）。未驗：音檔播放（無檔案）、影片實際播放、桌面寬度、iPhone Safari。
+
 ### 後台選單整理（2026-10-12，分支 `feature/admin-nav-tidy`，待擁有者說「幫我合併」）
 
 - PR #538 已於 2026-10-12 發布：Workers Builds 成功，正式站 JS／CSS 含 `gamification-page--student`、`weekly-report-page--student`、`speaking-book-card__tally` 與排行榜快取鍵。
