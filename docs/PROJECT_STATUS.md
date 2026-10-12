@@ -1,5 +1,14 @@
 # Alan English 專案狀態
 
+### 主網域掛載 Alan 工具箱公開頁（2026-10-12，分支 `feature/toolbox-proxy`，待擁有者說「幫我合併」）
+
+- 背景：AdSense 以「缺乏價值的內容」拒絕 `alanenglish.com.tw`；主網域可索引頁僅 `/` 與 `/links`。工具箱（另一個 repo `teacher-toolbox`，Astro 靜態站，Netlify 部署於 `tools.alanenglish.com.tw`）有約 90 個繁中工具頁與 24 篇文章。
+- 修改：`worker/index.mjs` 新增 `isToolboxPath`／`handleToolbox`，只對 GET／HEAD 且路徑為工具箱語系前綴（`/zh-tw/`、`/en/` 等 12 個）、`/_astro/*`、`/sitemap-index.xml`、`/sitemap-0.xml` 與 4 個工具箱靜態檔的請求，轉送到 `https://tools.alanenglish.com.tw`；不轉送 Cookie 與 Authorization；上游轉址改寫回主網域；上游失敗回 502。其餘路徑行為不變。`public/robots.txt` 新增工具箱 sitemap。
+- 風險：動到正式 Worker 路由，但不涉及登入、權限、付款、資料庫或 Edge Function；語系前綴與現有 SPA 路由無重疊。還原方式：revert 本次 commit。
+- 驗證：`node --test worker/index.test.mjs` 10 項通過（含 4 項新增）；`git diff --check` 通過。`scripts/seo-foundation.test.mjs` 有 2 項因本機沒有 `build/` 而失敗，與本次修改無關，未執行 Production build。
+- 未驗：Worker 實際對同一 Cloudflare zone 的子網域發出 subrequest 是否正常，須於正式站部署後以 `alanenglish.com.tw/zh-tw/` 實測。
+- 後續（工具箱 repo）：正式站驗收後，把工具箱的 canonical、sitemap 網址改為主網域。
+
 ### 三頁精簡、口說流程測試修復（2026-10-12，分支 `feature/daily-goal-and-tidy`，待擁有者說「幫我合併」）
 
 - 純前端，無後端變更。PR #536（頂端列頭貼）已於 2026-10-12 發布，Workers Builds 成功、正式站含 `ae-growth-header__mark has-avatar`。
