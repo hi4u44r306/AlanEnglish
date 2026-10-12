@@ -14,6 +14,7 @@ import {
     getGamificationSummary
 } from "../../services/gamificationService";
 import { readAppShellCacheEntry, writeAppShellCache } from "../../services/appShellCache";
+import { fetchStudentPageCache, readStudentPageCache, studentPageScope } from "../../services/studentPageCache";
 import "./css/Gamification.scss";
 import "./css/StudentPagesMinimal.scss";
 
@@ -55,10 +56,17 @@ function LearningLeaderboard() {
 
     const load = useCallback(async ({ silent = false } = {}) => {
         if (!firebaseUser) return;
-        silent ? setRefreshing(true) : setLoading(true);
+        // Students see the last ranking they loaded at once, then the fresh one replaces it.
+        const cacheScope = isStudent ? studentPageScope(firebaseUser, role, studentProfile) : "";
+        const cacheKey = `leaderboard:${leaderboardScope}:${period}`;
+        const cached = cacheScope ? readStudentPageCache(cacheScope, cacheKey)?.value : null;
+        if (cached) setData(cached);
+        silent || cached ? setRefreshing(true) : setLoading(true);
+        if (cached) setLoading(false);
         try {
+            const fetchLeaderboard = () => getGamificationLeaderboard(firebaseUser, period, isStaff ? classCode || null : null, leaderboardScope);
             const requests = [
-                getGamificationLeaderboard(firebaseUser, period, isStaff ? classCode || null : null, leaderboardScope)
+                cacheScope ? fetchStudentPageCache(cacheScope, cacheKey, fetchLeaderboard, { force: true }) : fetchLeaderboard()
             ];
             if (isStudent) requests.push(getGamificationSummary(firebaseUser));
             if (isStaff) requests.push(getGamificationClasses(firebaseUser));
@@ -85,7 +93,7 @@ function LearningLeaderboard() {
             setLoading(false);
             setRefreshing(false);
         }
-    }, [firebaseUser, period, classCode, leaderboardScope, isStudent, isStaff, studentProfile?.user_image, studentProfile?.userimage]);
+    }, [firebaseUser, role, studentProfile, period, classCode, leaderboardScope, isStudent, isStaff]);
 
     useEffect(() => {
         load();
