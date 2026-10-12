@@ -80,7 +80,7 @@ const writeAscii = (bytes: Uint8Array, offset: number, value: string) => {
     for (let index = 0; index < value.length; index += 1) bytes[offset + index] = value.charCodeAt(index);
 };
 
-const buildPcmWav = (pcm: Uint8Array, sampleRate: number, channels: number, bitsPerSample: number) => {
+export const buildPcmWav = (pcm: Uint8Array, sampleRate: number, channels: number, bitsPerSample: number) => {
     const blockAlign = channels * bitsPerSample / 8;
     const output = new Uint8Array(44 + pcm.length);
     const view = new DataView(output.buffer);

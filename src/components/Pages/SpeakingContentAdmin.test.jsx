@@ -523,7 +523,7 @@ describe("SpeakingContentAdmin whole-book OCR", () => {
 
         await waitFor(() => expect(prepareSpeakingAlphabetAudioCandidate).toHaveBeenCalledWith(mockFirebaseUser, 7));
         expect(await screen.findByText("先逐一完整試聽，再選一個套用")).toBeInTheDocument();
-        expect(screen.getByText(/三個 Chirp 3 HD 自然女聲/)).toBeInTheDocument();
+        expect(screen.getByText(/Azure 候選每個字母各自發音、語調一致/)).toBeInTheDocument();
         const ledaButton = screen.getByRole("button", { name: "核准 Leda 套用學生版本" });
         const aoedeButton = screen.getByRole("button", { name: "核准 Aoede 套用學生版本" });
         expect(ledaButton).toBeDisabled();

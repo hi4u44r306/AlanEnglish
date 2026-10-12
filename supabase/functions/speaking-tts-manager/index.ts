@@ -13,15 +13,20 @@ import {
     alphabetAudioSequenceValid,
     alphabetSourceFingerprint,
     assembleAlphabetAudioSequence,
+    buildPcmWav,
     parseLinear16MonoWav
 } from "../_shared/alphabet-audio-sequence.ts";
 import {
     ALPHABET_CANDIDATE_ASSEMBLER,
     ALPHABET_CANDIDATE_PROFILES,
+    ALPHABET_AZURE_OUTPUT_FORMAT,
+    ALPHABET_AZURE_SAMPLE_RATE,
     ALPHABET_CANDIDATE_SETTINGS,
     alphabetCandidateProfileForRecord,
+    alphabetCandidateRecipe,
     buildAlphabetCandidateSegments,
-    buildAlphabetMasterSsml
+    buildAlphabetMasterSsml,
+    buildAzureAlphabetSsml
 } from "../_shared/alphabet-master-voice.ts";
 import {
     chooseSpeakingVoice,
@@ -476,6 +481,39 @@ const alphabetCandidateValid = (
     && allowedStatuses.includes(candidate.status)
     && alphabetAudioSequenceValid(questions, { ...candidate, status: "ready" });
 
+// Azure returns headerless PCM; it is wrapped as WAV here so it is stored and served like the others.
+const requestAzureAlphabetMaster = async (profile: any) => {
+    const key = Deno.env.get("AZURE_SPEECH_KEY") || "";
+    const region = String(Deno.env.get("AZURE_SPEECH_REGION") || "").trim().toLowerCase();
+    if (!key || !/^[a-z0-9]{3,40}$/.test(region)) {
+        throw Object.assign(new Error("Azure 語音尚未設定，無法產生 A–Z 候選音檔"), { status: 503, code: "azure_tts_not_configured" });
+    }
+    const ssml = buildAzureAlphabetSsml(profile.voiceId, ALPHABET_SEQUENCE_GAP_MS);
+    const response = await fetch(`https://${region}.tts.speech.microsoft.com/cognitiveservices/v1`, {
+        method: "POST",
+        headers: {
+            "Ocp-Apim-Subscription-Key": key,
+            "Content-Type": "application/ssml+xml",
+            "X-Microsoft-OutputFormat": ALPHABET_AZURE_OUTPUT_FORMAT,
+            "User-Agent": "alan-english-speaking-tts"
+        },
+        body: ssml
+    });
+    if (!response.ok) {
+        await response.body?.cancel().catch(() => {});
+        throw Object.assign(new Error("Azure 語音暫時無法產生 A–Z 候選音檔"), {
+            status: response.status >= 500 ? 502 : 400, code: `azure_tts_http_${response.status}`
+        });
+    }
+    const raw = new Uint8Array(await response.arrayBuffer());
+    const pcm = raw.length % 2 ? raw.slice(0, raw.length - 1) : raw;
+    if (pcm.length < ALPHABET_AZURE_SAMPLE_RATE || pcm.length + 44 > 20 * 1024 * 1024) {
+        throw Object.assign(new Error("Azure 回傳的 A–Z 音檔長度不正確"), { status: 502, code: "azure_tts_audio_invalid" });
+    }
+    const durationMs = Math.round((pcm.length / 2) * 1000 / ALPHABET_AZURE_SAMPLE_RATE);
+    return { bytes: buildPcmWav(pcm, ALPHABET_AZURE_SAMPLE_RATE, 1, 16), pcm, sampleRate: ALPHABET_AZURE_SAMPLE_RATE, durationMs, usedCharacters: ssml.length };
+};
+
 const alphabetCandidateStored = async (candidate: any) => {
     if (!candidate?.private_object_key || Number(candidate?.byte_size || 0) <= 0) return false;
     const probe = await fetchR2(candidate.private_object_key, { method: "HEAD" });
@@ -490,8 +528,7 @@ const prepareAlphabetCandidate = async (admin: any, questions: any[], questionSe
     const settingsHash = await sha256(JSON.stringify({
         revision: profile.revision,
         voice_id: profile.voiceId,
-        settings: ALPHABET_CANDIDATE_SETTINGS,
-        ssml: buildAlphabetMasterSsml(ALPHABET_SEQUENCE_GAP_MS)
+        ...alphabetCandidateRecipe(profile, ALPHABET_SEQUENCE_GAP_MS)
     }));
     const sourceFingerprint = await sha256(JSON.stringify({
         question_set_id: Number(questionSet.id), question_set_version: Number(questionSet.version), settings_hash: settingsHash,
@@ -540,7 +577,9 @@ const prepareAlphabetCandidate = async (admin: any, questions: any[], questionSe
         candidateId = inserted.id;
     }
     try {
-        const generated = await requestGoogleAlphabetMaster(profile);
+        const generated = profile.provider === "azure"
+            ? await requestAzureAlphabetMaster(profile)
+            : await requestGoogleAlphabetMaster(profile);
         const objectKey = normalizeObjectKey(`speaking-tts/derived/alphabet-candidates/${sourceFingerprint}.wav`);
         const stored = await fetchR2(objectKey, {
             method: "PUT", body: generated.bytes,
@@ -571,11 +610,19 @@ const prepareAlphabetCandidate = async (admin: any, questions: any[], questionSe
 };
 
 const prepareAlphabetCandidates = async (admin: any, questions: any[], questionSet: any) => {
-    const candidates = [];
+    // One voice failing (for example a provider that is not set up) must not hide the others.
+    const candidates = [], failed = [];
+    let firstError: any = null;
     for (const profile of ALPHABET_CANDIDATE_PROFILES) {
-        candidates.push(await prepareAlphabetCandidate(admin, questions, questionSet, profile));
+        try {
+            candidates.push(await prepareAlphabetCandidate(admin, questions, questionSet, profile));
+        } catch (error: any) {
+            firstError ||= error;
+            failed.push({ voice_label: profile.label, code: cleanText(error?.code, 120) || "alphabet_candidate_failed", message: cleanText(error?.message, 200) || "產生失敗" });
+        }
     }
-    return { success: true, candidates, reused: candidates.every(candidate => candidate.reused) };
+    if (!candidates.length) throw firstError;
+    return { success: true, candidates, failed, reused: candidates.every(candidate => candidate.reused) };
 };
 
 const generateQuestionAudio = async (admin: any, question: any, target: any = null) => {
@@ -972,8 +1019,7 @@ Deno.serve(async (req: Request) => {
             const settingsHash = await sha256(JSON.stringify({
                 revision: profile.revision,
                 voice_id: profile.voiceId,
-                settings: ALPHABET_CANDIDATE_SETTINGS,
-                ssml: buildAlphabetMasterSsml(ALPHABET_SEQUENCE_GAP_MS)
+                ...alphabetCandidateRecipe(profile, ALPHABET_SEQUENCE_GAP_MS)
             }));
             const sourceFingerprint = await sha256(JSON.stringify({
                 question_set_id: Number(questionSet.id), question_set_version: Number(questionSet.version), settings_hash: settingsHash,
