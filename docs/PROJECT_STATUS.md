@@ -1,5 +1,13 @@
 # Alan English 專案狀態
 
+### 教材與冒險改為頁面（2026-10-12，分支 `feature/materials-adventure-pages`，待擁有者說「幫我合併」）
+
+- PR #549 已於 2026-10-12 發布：Workers Builds 成功；正式站含 `is-homework` 與作業入口。
+- 擁有者要求教材與冒險「跟其他頁面一樣的顯示方式，不要有抽屜」（此前曾要求教材用抽屜，現改回頁面）。
+- 純前端：新增 `Pages/StudentMaterials.jsx` 與路由 `/student/books`（學生、需有效會員；沿用 `catalog` 快取與 `getStudentMaterialCategories`，不列出鎖定教材）。`StudentNavbar.jsx` 的教材／冒險改為連結，移除 materials／speaking 抽屜與桌面下拉；抽屜僅剩設定。`ae:open-student-menu` 的 `materials`／`speaking` 請求改為導頁。無口說權限時「冒險」為停用按鈕。
+- 影響：休眠中的 `BossChallengeEntry` 火焰卡片原本放在冒險抽屜內，現無放置位置（導覽上的火焰標記仍保留）；`StudentNavbar.scss` 仍留有 `is-materials`／`is-choice` 等已不使用的樣式，未清理。
+- 驗證：MainNavbar、StudentMaterials、StudentProgressOverview、User、StudentSettings 共 61 項通過。未驗：實際畫面（預覽視窗為管理員登入）、iPhone Safari。
+
 ### 學習平台移除 AdSense 廣告程式（2026-10-12，已發布）
 
 - 發布紀錄：PR #550 合併為 main `95589036`，Cloudflare 部署完成。正式站實測 `/`、`/login`、`/links`、`/student/dashboard` 都不再載入 `adsbygoogle.js`，且都有 `google-adsense-account` meta 標記；`/zh-tw/` 與 `/zh-tw/math/bmi-calculator/` 仍載入廣告程式；`/ads.txt` 與 `/api/basic-reading/catalog` 正常。未驗：AdSense 複查是否受影響（待審核結果）。

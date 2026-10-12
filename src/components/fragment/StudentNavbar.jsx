@@ -5,7 +5,7 @@ import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
 import NavDropdown from "react-bootstrap/NavDropdown";
 import Offcanvas from "react-bootstrap/Offcanvas";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
     FiBell,
     FiBookOpen,
@@ -16,13 +16,11 @@ import {
     FiLock,
     FiLogOut,
     FiMenu,
-    FiStar,
     FiTrendingUp,
     FiUser
 } from "react-icons/fi";
 import { PiFireFill, PiJoystick } from "react-icons/pi";
 import StudentGrowthHeader from "./StudentGrowthHeader";
-import BossChallengeEntry from "./BossChallengeEntry";
 import StudentAvatarImage from "./StudentAvatarImage";
 import { getStudentAvatarDisplayUrl } from "../../constants/defaultStudentAvatars";
 import { getStudentNotificationDestination } from "../../constants/studentNotificationRoutes";
@@ -71,13 +69,11 @@ const StudentNavbar = ({
     const location = useLocation();
     const [drawer, setDrawer] = useState("");
     const [drawerOpen, setDrawerOpen] = useState(false);
-    const [materialsOpen, setMaterialsOpen] = useState(false);
-    const accessibleCategories = categories || [];
-    const materialCount = accessibleCategories.reduce((total, category) => total + category.books.length, 0);
     const hasActiveLearningAccess = profile?.membership?.is_active === true;
     const features = profile?.membership?.effective_access?.features || {};
     // Homework belongs to enrolled class students only; everyone else never sees the entry.
     const hasAssignmentsAccess = hasActiveLearningAccess && features.assignments === true;
+    // Without the speaking entitlement the entry stays visible but locked, as it was in the drawer.
     const hasSpeakingChallengeAccess = hasActiveLearningAccess && features.pronunciation === true;
     const unreadCount = notifications.filter(item => !item.read_at).length;
     const isPathActive = path => location.pathname === path || location.pathname.startsWith(`${path}/`);
@@ -113,51 +109,27 @@ const StudentNavbar = ({
     }, []);
     const closeDrawer = () => {
         setDrawerOpen(false);
-        setMaterialsOpen(false);
     };
     const closeDrawerThenNavigate = () => closeDrawer();
     const handleDrawerExited = () => {
         setDrawer("");
     };
 
+    const navigate = useNavigate();
     useEffect(() => {
+        // 教材 and 冒險 are pages now; other screens that used to ask for those drawers are sent there.
         const handleMenuRequest = event => {
-            const requestedMenu = ["materials", "speaking", "menu"].includes(event.detail)
-                ? event.detail
-                : "menu";
-            openDrawer(requestedMenu);
+            if (event.detail === "materials") navigate("/student/books");
+            else if (event.detail === "speaking") navigate("/student/speaking-challenges");
+            else openDrawer("menu");
         };
         window.addEventListener("ae:open-student-menu", handleMenuRequest);
         return () => window.removeEventListener("ae:open-student-menu", handleMenuRequest);
-    }, [openDrawer]);
+    }, [openDrawer, navigate]);
 
     useEffect(() => {
         closeDrawer();
     }, [location.pathname]);
-
-    // Every authorized book as one big card: the whole card is the link, and it shows only the book name.
-    const renderMaterials = () => loading ? <div className="ae-student-menu-status">教材載入中...</div>
-        : navError ? <div className="ae-student-menu-status error">教材暫時無法載入</div>
-        : !materialCount ? <div className="ae-student-menu-status">目前沒有可使用的教材</div>
-        : <div className="ae-student-material-grid">
-            {accessibleCategories.flatMap(category => category.books).map(book => (
-                <InstantDrawerLink key={book.id || book.code} to={book.path || `/student/books/${encodeURIComponent(book.code)}`} onNavigate={closeDrawerThenNavigate} className={isPathActive(`/student/books/${book.code}`) ? "active" : ""}>{book.name}</InstantDrawerLink>
-            ))}
-        </div>;
-
-    const speakingLinks = (
-        <div className="ae-student-choice-list">
-            <BossChallengeEntry event={bossEvent} onNavigate={closeDrawerThenNavigate} />
-            {hasSpeakingChallengeAccess ? <InstantDrawerLink to="/student/speaking-challenges" onNavigate={closeDrawerThenNavigate}>
-                <span className="is-orange"><FiStar /></span>
-                <span><strong>口說大挑戰</strong><small>選擇教材，開始闖關</small></span>
-            </InstantDrawerLink> : <button type="button" disabled aria-label="口說大挑戰，需要有效發音練習權限">
-                <span className="is-orange"><FiStar /></span>
-                <span><strong>口說大挑戰</strong><small>需要有效發音練習權限</small></span>
-                <b><FiLock /></b>
-            </button>}
-        </div>
-    );
 
     // The menu is the settings place: who I am, notifications, account, help. Everything about
     // learning lives on 我的進度 and the bottom bar, so nothing is listed twice.
@@ -205,8 +177,10 @@ const StudentNavbar = ({
                 <NavigationIcon tone="homework"><FiCheckSquare /></NavigationIcon>
                 <span>作業</span>
             </Link>}
-            <button type="button" data-tour="materials" onClick={() => openDrawer("materials")} aria-current={materialsActive ? "page" : undefined} aria-expanded={drawerOpen && drawer === "materials"} aria-controls="student-navigation-drawer" className={`${materialsActive ? "active" : ""} ${drawerOpen && drawer === "materials" ? "is-open" : ""}`}><NavigationIcon tone="books"><FiBookOpen /></NavigationIcon><span>教材</span></button>
-            <button type="button" data-tour="adventure" onClick={() => openDrawer("speaking")} aria-current={speakingActive ? "page" : undefined} aria-expanded={drawerOpen && drawer === "speaking"} aria-controls="student-navigation-drawer" className={`${speakingActive ? "active" : ""} ${drawerOpen && drawer === "speaking" ? "is-open" : ""}`}><NavigationIcon tone="adventure"><PiJoystick /></NavigationIcon><span>冒險</span>{bossEvent && <span className="ae-boss-nav-badge" aria-label="Boss 挑戰出現了"><PiFireFill aria-hidden="true" /></span>}</button>
+            <Link data-tour="materials" to="/student/books" aria-current={materialsActive ? "page" : undefined} className={materialsActive ? "active" : ""}><NavigationIcon tone="books"><FiBookOpen /></NavigationIcon><span>教材</span></Link>
+            {hasSpeakingChallengeAccess
+                ? <Link data-tour="adventure" to="/student/speaking-challenges" aria-current={speakingActive ? "page" : undefined} className={speakingActive ? "active" : ""}><NavigationIcon tone="adventure"><PiJoystick /></NavigationIcon><span>冒險</span>{bossEvent && <span className="ae-boss-nav-badge" aria-label="Boss 挑戰出現了"><PiFireFill /></span>}</Link>
+                : <button type="button" data-tour="adventure" disabled aria-label="冒險，需要有效發音練習權限"><NavigationIcon tone="adventure"><FiLock /></NavigationIcon><span>冒險</span></button>}
         </nav>
     );
 
@@ -218,14 +192,10 @@ const StudentNavbar = ({
                     <Nav as="nav" className="ae-student-desktop-nav" aria-label="學生桌面導覽" onSelect={closeDrawer}>
                         <Nav.Link as={Link} data-tour="progress" to="/student/settings" aria-current={isPathActive("/student/settings") ? "page" : undefined} className={profileActive ? "active" : ""} aria-label="我的進度"><span><NavigationIcon tone="profile"><FiTrendingUp /></NavigationIcon>我的進度</span></Nav.Link>
                         {hasAssignmentsAccess && <Nav.Link as={Link} data-tour="assignments" to="/student/assignments" aria-current={assignmentsActive ? "page" : undefined} className={assignmentsActive ? "active" : ""}><span><NavigationIcon tone="homework"><FiCheckSquare /></NavigationIcon>作業</span></Nav.Link>}
-                        <NavDropdown id="student-materials" data-tour="materials" title={<span><NavigationIcon tone="books"><FiBookOpen /></NavigationIcon>教材</span>} show={materialsOpen} onToggle={setMaterialsOpen} autoClose="outside" className={materialsActive ? "active" : ""}>
-                            <div className="ae-student-dropdown-heading"><strong>選一本教材</strong><small>{loading ? "教材載入中…" : `${materialCount} 本可使用`}</small></div>
-                            {renderMaterials()}
-                        </NavDropdown>
-                        <NavDropdown id="student-speaking" data-tour="adventure" title={<span><NavigationIcon tone="adventure"><PiJoystick /></NavigationIcon>口說冒險{bossEvent && <PiFireFill className="ae-boss-nav-flame" aria-label="Boss 挑戰出現了" />}</span>} className={speakingActive ? "active" : ""}>
-                                <div className="ae-student-dropdown-heading"><strong>冒險世界</strong><small>選擇教材，開始闖關</small></div>
-                                {speakingLinks}
-                        </NavDropdown>
+                        <Nav.Link as={Link} data-tour="materials" to="/student/books" aria-current={materialsActive ? "page" : undefined} className={materialsActive ? "active" : ""}><span><NavigationIcon tone="books"><FiBookOpen /></NavigationIcon>教材</span></Nav.Link>
+                        {hasSpeakingChallengeAccess
+                            ? <Nav.Link as={Link} data-tour="adventure" to="/student/speaking-challenges" aria-current={speakingActive ? "page" : undefined} className={speakingActive ? "active" : ""}><span><NavigationIcon tone="adventure"><PiJoystick /></NavigationIcon>冒險{bossEvent && <PiFireFill className="ae-boss-nav-flame" aria-label="Boss 挑戰出現了" />}</span></Nav.Link>
+                            : <button type="button" className="nav-link" disabled aria-label="冒險，需要有效發音練習權限"><span><NavigationIcon tone="adventure"><FiLock /></NavigationIcon>冒險</span></button>}
                     </Nav>
                     <div className="ae-student-desktop-account">
                         {notificationMenu}
@@ -246,13 +216,11 @@ const StudentNavbar = ({
 
             {typeof document === "undefined" ? bottomNavigation : createPortal(bottomNavigation, document.body)}
 
-            <Offcanvas id="student-navigation-drawer" show={drawerOpen} onHide={closeDrawer} onExited={handleDrawerExited} placement={drawer === "speaking" ? "bottom" : "end"} className={`ae-student-drawer ${drawer === "menu" ? "is-menu" : drawer === "materials" ? "is-materials" : "is-choice"}`} backdrop scroll={false}>
+            <Offcanvas id="student-navigation-drawer" show={drawerOpen} onHide={closeDrawer} onExited={handleDrawerExited} placement="end" className="ae-student-drawer is-menu" backdrop scroll={false}>
                 <Offcanvas.Header closeButton closeLabel="關閉選單">
-                    <div><strong>{drawer === "materials" ? "我的教材" : drawer === "speaking" ? "口說冒險" : "設定"}</strong><small>{drawer === "materials" ? "點一本教材開始" : drawer === "speaking" ? "選擇教材，開始闖關" : profileName}</small></div>
+                    <div><strong>設定</strong><small>{profileName}</small></div>
                 </Offcanvas.Header>
                 <Offcanvas.Body>
-                    {drawer === "materials" && renderMaterials()}
-                    {drawer === "speaking" && speakingLinks}
                     {drawer === "menu" && (
                         <>
                             {settingsLinks}
