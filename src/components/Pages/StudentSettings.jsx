@@ -18,7 +18,6 @@ import { disableWebPush, enableWebPush, getCurrentWebPushStatus, getWebPushAvail
 import { hasAiPremiumAccess } from "../../constants/membershipPlans";
 import { validatePublicNickname } from "../../utils/nicknameValidation";
 import StudentProgressOverview from "./StudentProgressOverview";
-import { useLocation } from "react-router-dom";
 import StudentAvatarImage from "../fragment/StudentAvatarImage";
 import StudentSettingsGroup from "../fragment/StudentSettingsGroup";
 import "./css/StudentSettings.scss";
@@ -90,15 +89,11 @@ const getCropPosition = (draft, offsetX, offsetY, zoom = draft?.zoom || 1) => {
 // 教材與方案 details are hidden for now; flip to bring the section back.
 const SHOW_PLAN_DETAILS = false;
 
-// One component, two pages: 我的進度 (what to do next) and 個人資料 (picture, nickname,
-// notifications). Account links live in the menu.
+// One component, three pages: 我的進度 (what to do next), 個人資料 (picture and nickname) and
+// 通知設定 (push and the parent's e-mail). Account links live in the menu.
 function StudentSettings({ view = "progress" }) {
     const profileView = view === "profile";
-    const { hash } = useLocation();
-    // 通知設定 in the menu points at the notifications block of this page.
-    useEffect(() => {
-        if (profileView && hash === "#notifications") document.getElementById("notifications")?.scrollIntoView?.({ block: "start" });
-    }, [profileView, hash]);
+    const notificationsView = view === "notifications";
     const { firebaseUser, studentProfile, setStudentProfile, refreshStudentProfile } = useAuth();
     const fileInputRef = useRef(null);
     const enabled = Boolean(firebaseUser);
@@ -526,14 +521,14 @@ function StudentSettings({ view = "progress" }) {
         .values());
 
     return (
-        <main className={`student-settings-page${profileView ? " is-profile" : ""}`}>
+        <main className={`student-settings-page${profileView || notificationsView ? " is-profile" : ""}`}>
             <section className="student-settings-hero">
-                <h1>{profileView ? "個人資料" : "我的進度"}</h1>
+                <h1>{profileView ? "個人資料" : notificationsView ? "通知設定" : "我的進度"}</h1>
             </section>
 
-            {!profileView && <StudentProgressOverview />}
+            {!profileView && !notificationsView && <StudentProgressOverview />}
 
-            {profileView && (commerceQuery.error || nicknameQuery.error) && <p role="status">部分設定暫時無法更新，已有資料會保留。<button type="button" onClick={load}>重新讀取設定</button></p>}
+            {(profileView || notificationsView) && (commerceQuery.error || nicknameQuery.error) && <p role="status">部分設定暫時無法更新，已有資料會保留。<button type="button" onClick={load}>重新讀取設定</button></p>}
             {profileView && <section className="student-settings-profile-card">
                 <div className="student-settings-avatar-wrap">
                     {avatarDisplayUrl
@@ -705,8 +700,8 @@ function StudentSettings({ view = "progress" }) {
             </section>
             </StudentSettingsGroup>}
 
-            {profileView && <section className="student-settings-list" id="notifications" aria-labelledby="student-settings-notify-heading">
-                <h2 id="student-settings-notify-heading">通知</h2>
+            {notificationsView && <section className="student-settings-list" aria-labelledby="student-settings-notify-heading">
+                <h2 id="student-settings-notify-heading" className="student-settings-visually-hidden">通知</h2>
                 <div className="student-settings-row">
                     <FiBell aria-hidden="true" />
                     <div><strong id="student-settings-push-label">手機推播通知</strong><small aria-live="polite">{pushStatus?.reason || (pushConfig?.enabled === false ? "推播服務暫時未開放；網站內通知仍可使用。" : pushStatus?.active ? "此裝置已開啟：新作業與教材期限提醒" : "此裝置尚未開啟")}</small></div>

@@ -1,0 +1,20 @@
+// 會員與功能, reduced to what a student uses: who I am, what I can use, and where to enter an
+// activation code. Sales and explanatory blocks stay in the markup (and in their tests) but are
+// not shown; removing this sheet brings them back.
+.membership-student-view {
+    .platform-eyebrow,
+    .membership-page-title > p,
+    .platform-section-title p,
+    .membership-upgrade-panel,
+    .membership-active-addon,
+    .platform-material-access,
+    .membership-plans,
+    .membership-compact-card + .membership-compact-card { display: none !important; }
+
+    .membership-page-header { display: grid !important; gap: 12px; margin-bottom: 16px !important; padding: 0 !important; border: 0 !important; background: none !important; box-shadow: none !important; }
+    .membership-page-title h1 { margin: 0 !important; font-size: 28px !important; font-weight: 800 !important; color: #17365d !important; }
+    .membership-access-summary { margin: 0 !important; }
+    .platform-card { border: 1px solid #d5e3f0 !important; border-radius: 20px !important; box-shadow: none !important; }
+    .platform-section-title h2 { font-size: 20px !important; font-weight: 800 !important; color: #17365d !important; }
+    .membership-feature-columns { display: block !important; }
+}

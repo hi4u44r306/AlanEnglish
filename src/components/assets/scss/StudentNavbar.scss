@@ -847,7 +847,7 @@ html { background: #f7f9fc; }
 // 個人資料 shows its title; 我的進度 keeps it for assistive technology only.
 .student-settings-page.is-profile .student-settings-hero { position: static; width: auto; height: auto; margin: 0 0 16px; padding: 0; overflow: visible; clip-path: none; white-space: normal; border: 0; background: none; box-shadow: none; }
 .student-settings-page.is-profile .student-settings-hero h1 { margin: 0; font-size: 28px; font-weight: 800; color: #17365d; }
-.student-settings-page.is-profile #notifications { scroll-margin-top: 96px; }
+.student-settings-visually-hidden { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 button.ae-student-account-link { padding: 0; border: 0; background: none; font: inherit; color: inherit; cursor: pointer; }
 button.ae-student-account-link:focus-visible { outline: 3px solid #245fc5; outline-offset: 3px; border-radius: 16px; }
 

@@ -4,7 +4,8 @@ import { useAuth } from "../../auth/AuthContext";
 import { completeTourProgress, getTourProgress } from "../../services/tourService";
 import "../assets/scss/GuidedTour.scss";
 
-const TOUR_VERSION = 1;
+// Bumped when the tour is rewritten, so everyone sees the new one once.
+const TOUR_VERSION = 2;
 
 const getVisibleTarget = selector => {
     if (!selector || typeof document === "undefined") return null;
@@ -25,53 +26,53 @@ const buildSystemTour = role => {
         title: staff ? "Alan English 管理功能導覽" : "歡迎來到 Alan English",
         steps: staff ? [
             {
-                title: "歡迎使用 Teacher / Admin",
-                body: "這裡可以查看學生學習狀況、示範英文對話、管理帳號與教材。第一次只需要花不到一分鐘認識主要入口。"
+                title: "歡迎使用後台",
+                body: "這裡可以看學生的學習狀況、發布作業、管理教材。花不到一分鐘認識幾個入口。"
             },
             {
                 selector: "[data-tour='home']",
                 title: "管理首頁",
-                body: "從這裡回到學生學習狀況 Dashboard，久未登入或久未學習的學生會有清楚標記。"
-            },
-            {
-                selector: "[data-tour='conversation']",
-                title: "英文對話示範",
-                body: "老師與管理員可以完整示範語音 Conversation，但 Demo Mode 不會寫進學生學習紀錄。"
+                body: "學生最近有沒有登入、有沒有在學，都在這裡。很久沒使用的學生會特別標出來。"
             },
             {
                 selector: "[data-tour='accounts']",
-                title: "學生與帳號管理",
-                body: "需要查看或管理學生帳號時，從管理工具區進入。"
-            },
-            {
-                selector: "[data-tour='help']",
-                title: "隨時重新觀看",
-                body: "忘記功能位置時，按「使用教學」就能重新打開導覽。"
-            }
-        ] : [
-            {
-                title: "嗨！歡迎來到 Alan English 👋",
-                body: "你可以在這裡練聽力、英文口說、使用 AI 教材，並讓學習進度自動保存。"
-            },
-            {
-                selector: "[data-tour='home']",
-                title: "我的首頁",
-                body: "從這裡回到自己的學習首頁，查看目前的學習資料。"
-            },
-            {
-                selector: "[data-tour='conversation']",
-                title: "英文對話",
-                body: "按這裡進入生活情境英文口說。用麥克風回答，AE 會即時顯示聽到的英文。"
+                title: "學生",
+                body: "帳號管理、建立學生、每週學習報告都在「學生」裡。"
             },
             {
                 selector: "[data-tour='materials']",
-                title: "我的教材",
-                body: "習作本、聽力本與課本都集中在教材區，選到真正的教材頁後選單會自動收起。"
+                title: "教材",
+                body: "音檔管理、班級可以用哪些教材，以及口說大挑戰的預覽，都在「教材」裡。"
             },
             {
                 selector: "[data-tour='help']",
-                title: "忘記了也沒關係",
-                body: "按「使用教學」可以隨時重新看一次，不需要擔心第一次沒有記住。"
+                title: "隨時再看一次",
+                body: "忘記功能在哪裡時，按「使用教學」就能重新打開這個導覽。"
+            }
+        ] : [
+            {
+                title: "歡迎來到 Alan English",
+                body: "課本翻到哪一頁，這裡就練哪一頁：聽課本、開口說，進度會自動記下來。"
+            },
+            {
+                selector: "[data-tour='progress']",
+                title: "我的進度",
+                body: "一進來先看這裡：老師出的作業、上次聽到哪一頁，點一下就能接著做。"
+            },
+            {
+                selector: "[data-tour='materials']",
+                title: "教材",
+                body: "選一本課本，就會看到每一頁的音檔。按播放開始聽，圈圈滿了算一次。"
+            },
+            {
+                selector: "[data-tour='adventure']",
+                title: "冒險",
+                body: "口說大挑戰在這裡。看著句子開口說，說對了就過關。"
+            },
+            {
+                selector: "[data-tour='settings']",
+                title: "設定",
+                body: "換頭貼和暱稱、通知、改密碼、聯絡客服都在這裡。想再看一次教學，也是從這裡打開。"
             }
         ]
     };

@@ -44,15 +44,15 @@ function AccountSecurity() {
     };
 
     return (
-        <main className="platform-page platform-narrow">
-            <header className="platform-hero"><div><span className="platform-eyebrow">ACCOUNT SECURITY</span><h1>帳號與密碼</h1><p>你可以隨時更換自己的密碼；管理員與櫃檯人員不會看到密碼。</p></div></header>
+        <main className="platform-page platform-narrow account-security">
+            <h1 className="account-security__title">帳號與密碼</h1>
             <section className="platform-card">
                 <form className="platform-form" onSubmit={submit}>
                     <label><span>{usesStudentPin ? "登入帳號" : "登入 Email"}</span><input value={usesStudentPin ? studentProfile?.login_username || "" : firebaseUser?.email || ""} readOnly /></label>
                     <label><span>目前密碼</span><input name="currentPassword" type={showPassword ? "text" : "password"} value={form.currentPassword} onChange={update} autoCapitalize="none" autoCorrect="off" spellCheck={false} autoComplete="current-password" required /></label>
                     <div className="platform-form-grid"><label><span>新密碼</span><input name="password" type={showPassword ? "text" : "password"} inputMode="text" value={form.password} onChange={update} minLength={usesStudentPin ? 6 : 8} autoCapitalize="none" autoCorrect="off" spellCheck={false} autoComplete="new-password" required /></label><label><span>再次輸入新密碼</span><input name="confirmPassword" type={showPassword ? "text" : "password"} inputMode="text" value={form.confirmPassword} onChange={update} minLength={usesStudentPin ? 6 : 8} autoCapitalize="none" autoCorrect="off" spellCheck={false} autoComplete="new-password" required /></label></div>
                     <button type="button" className="platform-password-toggle" onClick={() => setShowPassword(current => !current)} aria-pressed={showPassword}>{showPassword ? "隱藏密碼" : "顯示密碼"}</button>
-                    {usesStudentPin && <small className="platform-password-help">英文班帳號的密碼至少 6 個字元，可使用小寫英文、數字或符號。</small>}
+                    <small className="platform-password-help">新密碼至少 {usesStudentPin ? 6 : 8} 個字。</small>
                     {error && <div className="platform-form-error" role="alert"><strong>無法更新密碼</strong><span>{error}</span></div>}
                     {success && <div className="platform-verification-notice success" role="status">{success}</div>}
                     <button className="platform-primary" type="submit" disabled={submitting}>{submitting ? "更新中…" : "更新密碼"}</button>
