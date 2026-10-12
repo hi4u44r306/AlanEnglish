@@ -7,7 +7,7 @@
 - 資料庫：正式站 `record_speaking_foundation_challenge_v4` 內另有寫死的 `>=70`（已唯讀確認與 migration 檔一致），只改 Function 的話挑戰模式仍會以 70 擋下。新增 additive migration `20261012150000_speaking_alphabet_letter_pass_score.sql`：以 round 所屬題組的 `interaction_type` 決定門檻（`alphabet_round` 60，其餘 70），其餘內容與權限不變。**尚未套用。** 回復：以 `20261007155958` 的定義重新建立該函式。`complete_speaking_session_question_v2` 的 70 未動（A–Z 不走這條路徑）。
 - 前端：`WorkbookOneFoundationChallenge.jsx` 重試訊息區分「字母不對」與「字母對但分數不足」；`SpeakingReviewPractice.jsx`／`.scss` 重新設計練習回聽頁。
 - 驗證：`speaking-azure-alphabet`＋`speaking-local-handler` node 測試 15/15；`SpeakingReviewPractice`、`WorkbookOneFoundationChallenge` 26/26。練習回聽頁以暫時強制顯示的方式（已還原）在 340／412／417／768／1440 寬量測位置，417 寬實看截圖。未驗：實際錄音在 60–69 分時於挑戰模式通過（需套用 migration 並部署後以學生帳號實測）；練習回聽頁在真實觸發情境、電腦寬度實際截圖、iPhone Safari。
-- 已知未處理：念錯三次進入練習回聽頁時會從第 1 題（A）開始，而不是停在剛才那個字母。
+- 練習回聽頁會停在觸發限制的那一題：`onPracticeOnly(reason, questionId)` → `challenge.practice_question_id` → `SpeakingReviewPractice` 的起始題；不知道題目時仍從第 1 題開始。已加測試。
 
 ### A–Z 示範音檔新增 Azure 逐字母候選（2026-10-12，分支 `feature/alphabet-azure-voice`，擁有者已同意後端修改；待「幫我合併」後部署）
 

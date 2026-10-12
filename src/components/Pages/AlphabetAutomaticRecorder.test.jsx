@@ -175,7 +175,7 @@ describe("AlphabetAutomaticRecorder", () => {
         render(<AlphabetAutomaticRecorder {...props} onPracticeOnly={onPracticeOnly} />);
         await waitFor(() => expect(recorders.length).toBe(1));
         await speak();
-        expect(onPracticeOnly).toHaveBeenCalledWith("明天再挑戰");
+        expect(onPracticeOnly).toHaveBeenCalledWith("明天再挑戰", 1);
         expect(callbacks.onScored).not.toHaveBeenCalled();
         expect(submitAlphabetPronunciationAttempt).toHaveBeenCalledTimes(1);
     });

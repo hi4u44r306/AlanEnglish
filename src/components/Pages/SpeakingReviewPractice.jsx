@@ -5,7 +5,7 @@ import { FiChevronLeft, FiChevronRight, FiVolume2 } from "react-icons/fi";
 import "./css/SpeakingReviewPractice.scss";
 
 export default function SpeakingReviewPractice({ challenge, onExit }) {
-    const [index, setIndex] = useState(0);
+    const [index, setIndex] = useState(() => Math.max(0, (challenge.speaking_questions || []).findIndex(item => Number(item.id) === Number(challenge.practice_question_id))));
     const [audioError, setAudioError] = useState("");
     const [recorderPhase, setRecorderPhase] = useState("ready");
     const audioRef = useRef(null);

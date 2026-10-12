@@ -304,7 +304,7 @@ export default function AlphabetAutomaticRecorder({
                 }
                 if (operationId !== operationRef.current) return;
                 if (result?.answer_match === false && result?.alphabet_usage?.remaining === 0) {
-                    onPracticeOnly?.("這個字母今天已評分三次，先錄音回聽，明天再挑戰。");
+                    onPracticeOnly?.("這個字母今天已評分三次，先錄音回聽，明天再挑戰。", question?.id);
                     return;
                 }
                 setStatus("result");
@@ -313,7 +313,7 @@ export default function AlphabetAutomaticRecorder({
                 setRecordedBlob(null);
             } catch (cause) {
                 if (operationId !== operationRef.current) return;
-                if (["alphabet_letter_daily_limit_reached", "speaking_level_completed_today"].includes(cause?.code)) { onPracticeOnly?.(cause.message); return; }
+                if (["alphabet_letter_daily_limit_reached", "speaking_level_completed_today"].includes(cause?.code)) { onPracticeOnly?.(cause.message, question?.id); return; }
                 setError(cause?.message || "評分暫時無法完成，錄音已保留，請重試評分。");
                 setBudgetBlocked(SPEAKING_BUDGET_ERROR_CODES.has(cause?.code));
                 if (ROUND_RESET_ERROR_CODES.has(String(cause?.code || ""))) {
