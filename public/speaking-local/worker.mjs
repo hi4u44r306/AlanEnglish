@@ -1,4 +1,10 @@
 let recognizer;
+// Two sizes of the same English-only model. "base" hears children's speech more accurately;
+// "tiny" is the fallback for phones that cannot hold or run the larger one in reasonable time.
+const MODELS = {
+  base: { legacy: ['Xenova/whisper-base.en', '95bf40a508535962c6483ead40270b2e32267508'], current: ['onnx-community/whisper-base.en', '51eefc0af78b103839eda9e7e4f4186acc6517fe'] },
+  tiny: { legacy: ['Xenova/whisper-tiny.en', '79fb389fc764e7c395bd330e9531d9d32ada7049'], current: ['onnx-community/whisper-tiny.en', '2575352d61be1bf7225cf8f8b268a4678025fc58'] },
+};
 let stage = 'starting', lastResource = '';
 function diagnosticText(value) {
   return String(value || '').replace(/https?:\/\/[^\s"'<>]+/gi, '[resource URL]')
@@ -22,8 +28,11 @@ self.onmessage = async ({ data }) => {
       const simdSupported = supportsSimd();
       compatibility = data.forceCompatibility === true || !simdSupported;
       accelerated = compatibility && data.preferSimd === true && simdSupported;
+      // The larger model is only worth running with SIMD; without it a phone would take far too long.
+      const model = data.model === 'base' && simdSupported && (accelerated || !compatibility) ? 'base' : 'tiny';
+      const [repository, revision] = MODELS[model][compatibility ? 'legacy' : 'current'];
       stage = 'import-engine'; lastResource = '';
-      self.postMessage({ id, type: 'mode', compatibility, accelerated, simdSupported });
+      self.postMessage({ id, type: 'mode', compatibility, accelerated, simdSupported, model });
       const { pipeline, env } = compatibility
         ? await import('https://cdn.jsdelivr.net/npm/@xenova/transformers@2.17.2/dist/transformers.min.js')
         : await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.8.1/dist/transformers.min.js');
@@ -37,8 +46,8 @@ self.onmessage = async ({ data }) => {
       }
       stage = 'initialize-model';
       self.postMessage({ id, type: 'stage', stage });
-      recognizer ??= pipeline('automatic-speech-recognition', compatibility ? 'Xenova/whisper-tiny.en' : 'onnx-community/whisper-tiny.en', {
-        revision: compatibility ? '79fb389fc764e7c395bd330e9531d9d32ada7049' : '2575352d61be1bf7225cf8f8b268a4678025fc58',
+      recognizer ??= pipeline('automatic-speech-recognition', repository, {
+        revision,
         ...(compatibility ? { quantized: true } : { device: 'wasm', dtype: 'q8' }),
         progress_callback: progress => {
           if (progress.file) lastResource = `${diagnosticText(progress.file)} (${diagnosticText(progress.status)})`;
@@ -51,9 +60,9 @@ self.onmessage = async ({ data }) => {
         const cache = await caches.open('transformers-cache');
         const urls = (await cache.keys()).map(request => request.url);
         cached = ['encoder_model_quantized.onnx', 'decoder_model_merged_quantized.onnx', 'tokenizer.json']
-          .every(file => urls.some(url => url.includes('79fb389fc764e7c395bd330e9531d9d32ada7049') && url.endsWith(file)));
+          .every(file => urls.some(url => url.includes(revision) && url.endsWith(file)));
       } catch { /* Cache persistence is best effort on mobile/private browsers. */ }
-      self.postMessage({ id, type: 'ready', cached });
+      self.postMessage({ id, type: 'ready', cached, model });
     } else if (type === 'transcribe') {
       stage = 'transcribe';
       if (!recognizer) throw new Error('not ready');
