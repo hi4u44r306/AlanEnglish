@@ -1942,7 +1942,9 @@
 .showcase-footer-links {
   display: flex !important;
   flex-direction: row !important;
-  gap: 18px !important;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px 18px !important;
 
   a {
     color: #667085;

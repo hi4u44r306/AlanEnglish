@@ -277,7 +277,7 @@ const Showcase = () => {
             <footer className="showcase-footer">
                 <div className="showcase-shell showcase-footer-inner">
                     <div><strong>ALAN ENGLISH</strong><span>Listen. Practice. Progress.</span></div>
-                    <div className="showcase-footer-links"><Link to="/install">加到手機桌面</Link><Link to="/login">登入</Link></div>
+                    <div className="showcase-footer-links"><Link to="/links">教材音檔</Link><a href="/zh-tw/">免費學習工具</a><a href="/zh-tw/blog/">教學文章</a><Link to="/install">加到手機桌面</Link><Link to="/login">登入</Link></div>
                     <p>© {new Date().getFullYear()} Alan English. All rights reserved.</p>
                 </div>
             </footer>
