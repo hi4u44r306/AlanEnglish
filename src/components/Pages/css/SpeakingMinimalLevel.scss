@@ -257,3 +257,21 @@ body.speaking-challenge-active .speaking-lesson-workspace > * { grid-column: 1 /
 // The hint pill sits on the centre line with the microphone; the top bar is as wide as the card below.
 body.speaking-challenge-active .speaking-practice-flow .speaking-help-toggle { justify-self: center !important; margin-inline: auto !important; }
 @media (min-width: 768px) { body.speaking-challenge-active .speaking-lesson-header { width: min(720px, 100%) !important; max-width: 720px !important; margin-inline: auto !important; padding-inline: 0 !important; } }
+
+// A–Z tiles are strips of four-line handwriting paper: three equal spaces, a green base line, and
+// letters drawn to sit on them (see HandwritingLetters.jsx). The lines are at 2, 12, 22 and 32 of the
+// drawing's 34-unit height, which is where the letters' top, middle, base and tail lines are.
+// The strip is 46 units wide for its 34 of height, enough for the widest pair (Mm, Ww) with a margin.
+body.speaking-challenge-active .speaking-alphabet-list span { overflow: hidden; align-items: center !important; min-height: 0 !important; padding: 7px 0 !important; color: #17365d; }
+body.speaking-challenge-active .speaking-alphabet-list span.heard { color: #146c43; }
+body.speaking-challenge-active .speaking-alphabet-list .handwriting-paper {
+  --paper-line: #e3e9f0; --paper-base: #b5e2d6;
+  display: flex; align-items: stretch; justify-content: center; gap: 5%; box-sizing: border-box; width: 100%; aspect-ratio: 46 / 34; max-height: 78px;
+  background:
+    linear-gradient(var(--paper-line), var(--paper-line)) 0 calc(100% * 2 / 34) / 100% 1.5px no-repeat,
+    linear-gradient(var(--paper-line), var(--paper-line)) 0 calc(100% * 12 / 34) / 100% 1.5px no-repeat,
+    linear-gradient(var(--paper-base), var(--paper-base)) 0 calc(100% * 22 / 34) / 100% 2px no-repeat,
+    linear-gradient(var(--paper-line), var(--paper-line)) 0 calc(100% * 32 / 34) / 100% 1.5px no-repeat;
+}
+body.speaking-challenge-active .speaking-alphabet-list .handwriting-letter { flex: none; height: 100%; width: auto; overflow: visible; }
+body.speaking-challenge-active .speaking-alphabet-list .handwriting-letter path { stroke-width: 2.3; }
