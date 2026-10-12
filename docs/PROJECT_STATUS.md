@@ -1,5 +1,12 @@
 # Alan English 專案狀態
 
+### A–Z 字母卡四線格手寫字母（2026-10-13，分支 `feature/alphabet-four-line-tiles`，待擁有者說「幫我合併」）
+
+- 2026-10-12 擁有者已於後台核准 Azure Aria 為 A–Z 正式示範聲音（內建瀏覽器不顯示確認視窗，依擁有者明確指示代為送出）；正式資料庫確認 `en-US-AriaNeural` 為 active、學生端 sequence 指向同一檔。Leda 候選狀態為 superseded，無法由後台一鍵切回。
+- 擁有者提供參考圖（三格等高、單層 a／g 的手寫印刷體）。以 canvas 量測約 90 種 Google 字體，直立且單層 a／g 的字體 x-height 皆約為大寫高度的 0.7，無法落在等高三格；符合比例的 Edu 系列為斜體手寫。因此新增 `HandwritingLetters.jsx`：52 個字母以直線與圓弧畫在 y=0／10／20／30 的格線上，輸出 inline SVG。
+- `WorkbookOneFoundationChallenge.jsx` 字母卡改用 `HandwritingPair`（外層 `aria-label` 不變）；`SpeakingMinimalLevel.scss` 以背景漸層畫四條線（位置對應 SVG 的 2／12／22／32）。
+- 驗證：`WorkbookOneFoundationChallenge` 測試通過（字母卡斷言改為檢查兩個 SVG）。管理員預覽 417 寬實看 26 張卡片與播放中／已聽過狀態；340／768／1440 寬量測每張卡片字母左右皆有留白。未驗：電腦寬度實際截圖、iPhone Safari 與 Android 實機。
+
 ### A–Z 單字母 60 分過關、訊息與練習回聽頁（2026-10-12，分支 `fix/alphabet-letter-pass-score`，擁有者已指定 60 分；待「幫我合併」後套用 migration 並部署）
 
 - PR #556 已合併（main `2db92141`）；`speaking-tts-manager`、`speaking-challenge`、`speaking-content-manager` 已由 main 部署，未帶權杖呼叫皆回 401（可啟動）。Azure 候選尚未實際產生，待管理員在後台產生並試聽。
