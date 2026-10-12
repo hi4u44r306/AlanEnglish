@@ -7,6 +7,7 @@
 - `AccountSecurity.jsx`：移除 hero 與說明，欄位單欄（樣式於 `Platform.scss`）。密碼更新邏輯未動。
 - `MembershipCenter.jsx`：標題改為「會員與功能」，新增 `css/MembershipMinimal.scss` 以 `.membership-student-view` 隱藏升級說明、AI Premium 橫幅、教材清單、方案與加購、實體教材；JSX 與結帳邏輯保留。**影響：學生端暫無訂閱／加購入口**（擁有者正重新考慮收費模式）。
 - `GuidedTour.jsx`：學生與教職員步驟重寫，`TOUR_VERSION` 1 → 2（所有帳號會再看一次）；`StudentNavbar.jsx` 新增 `data-tour`（progress／materials／adventure／settings）。
+- 每週報告學生視角：新增 `Pages/WeeklyReportStudent.jsx`（讀取既有回傳的 `metrics.active_days`、`listening.plays`、`speaking_challenge.completed_questions`、`assignments`、`daily_breakdown`，頁面不自行計算），`WeeklyReport.jsx` 於非管理者顯示；原摘要、折線圖與建議以 `StudentPagesMinimal.scss` 對學生隱藏。後端未動。擁有者希望呈現「會多少單字」——後端目前無單字掌握數，僅能以口說通過句數呈現；若要單字數需另行設計資料來源。WeeklyReport、WeeklyReportStudent 共 10 項通過；學生畫面未實看。
 - 驗證：StudentSettings、MainNavbar、MembershipCenter 共 62 項通過；本機以管理員實看帳號與密碼頁及新版教職員導覽第一步（未按下一步，以免寫入正式庫的導覽完成紀錄）。**未驗**：學生的通知設定、個人資料、會員與功能實際畫面與學生版導覽（預覽視窗為管理員登入）；iPhone Safari。
 
 ### 頂端列名字、頁面高度改用可視高度（2026-10-12，分支 `fix/header-name-and-page-height`，待擁有者說「幫我合併」）

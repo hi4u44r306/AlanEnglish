@@ -30,6 +30,7 @@ import {
 } from "../../services/weeklyReportService";
 import "./css/WeeklyReport.scss";
 import "./css/WeeklyReportOverview.scss";
+import WeeklyReportStudent from "./WeeklyReportStudent";
 import "./css/StudentPagesMinimal.scss";
 
 const formatDate = value => {
@@ -231,7 +232,7 @@ const WeeklyReport = () => {
                 <header className="weekly-report-hero weekly-report-hero--parent">
                     <div className="weekly-report-hero__copy">
                         <span className="weekly-report-kicker"><FiTrendingUp aria-hidden="true" />每週一起看見進步</span>
-                        <h1>{report.student.name} 的每週學習報告</h1>
+                        <h1>{isManager ? `${report.student.name} 的每週學習報告` : "這週的學習"}</h1>
                         <div className="weekly-report-week-picker">
                             <button
                                 type="button"
@@ -267,6 +268,7 @@ const WeeklyReport = () => {
                     </div>
                 </header>
 
+                {!isManager && <WeeklyReportStudent report={report} />}
                 <WeeklyReportOverview report={report} />
 
                 <div className="weekly-report-trends" id="weekly-report-trends">
