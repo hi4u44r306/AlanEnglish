@@ -5,7 +5,9 @@
 - PR #559 已於 2026-10-13 發布：Workers Builds 成功；正式站 JS／CSS 含 `handwriting-paper`。PR #558（收尾）已合併，其建置結果未等待確認。
 - `WorkbookOneFoundationChallenge.jsx`：A–Z 練習／工作人員預覽的 `display_text` 由固定大寫改為前端隨機大小寫（挑戰模式仍由 `speaking-challenge` 伺服器決定）。`SpeakingMapEntry.jsx`、`TextbookSpeakingChallenge.jsx`：移除寫死的「70 分」文字。
 - 驗證：相關 5 組測試 117 項通過；管理員預覽實讀關卡摘要文字。未驗：練習模式大小寫隨機的實際畫面（內建瀏覽器截圖逾時）。
-- 待擁有者決定：在「自由練習」按鈕顯示練習次數，需修改並重新部署 `speaking-challenge`（目錄回傳多一個計數），尚未實作。
+- 練習次數（擁有者選定「進去練習過幾回」並同意後端修改）：新增 `_shared/speaking-practice-count.ts`，以 `speaking_pronunciation_attempts` 中該學生 `challenge_mode=easy` 且有 `client_session_id` 的紀錄，按題組計算不重複場次；`speaking-challenge` 目錄每關多回傳 `practice_session_count`（示範模式為 0）。唯讀、無 migration。合併後需由 main 重新部署 `speaking-challenge`；回復＝部署前一版。
+- 驗證補充：`scripts/speaking-practice-count.test.mjs` 2/2；`SpeakingMapEntry` 等 52 項通過。正式資料唯讀確認近期練習紀錄（A–Z 與看圖補句）皆有場次編號。`textbook-speaking-generator-contract` 仍為既有的 4 項失敗。未驗：部署後學生帳號實際看到的次數。
+- 擁有者詢問「A–Z 未通過為何 P.11 可挑戰」：`speaking-challenge-progression.ts` 設計為 preparation／textbook／topic 三條獨立路線、各自第一關開放；未修改。
 
 ### A–Z 字母卡四線格手寫字母（2026-10-13，分支 `feature/alphabet-four-line-tiles`，待擁有者說「幫我合併」）
 

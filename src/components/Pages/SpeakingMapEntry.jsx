@@ -37,6 +37,7 @@ export const ChallengePreviewDialog = ({ item, section, sectionCopy, pages, onCl
     const topicLabel = speakingLessonTopic(item, pages, sectionCopy.label);
     const practiceOnly = !staffPreview && item.generation_metadata?.interaction_type === "alphabet_round" && item.completed_today === true;
     const easyAction = practiceOnly ? "聽示範與錄音練習" : "自由練習";
+    const practiceCount = Math.max(0, Number(item.practice_session_count) || 0);
     const challengeAction = speakingEntryAction(challengeCompletedCount, questionCount, false, "challenge");
     return <div className="speaking-level-overlay" onMouseDown={event => { if (event.target === event.currentTarget) onClose(); }}>
         <section className={`speaking-level-dialog${locked ? " is-locked" : ""}`} ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="speaking-level-title" aria-describedby="speaking-level-description">
@@ -53,7 +54,7 @@ export const ChallengePreviewDialog = ({ item, section, sectionCopy, pages, onCl
             {practiceOnly ? <p role="status">A–Z 今日挑戰已完成，明天可再評分；現在可聽示範與錄音練習。</p> : <p role="status">{item.is_completed ? "已通關，仍可再次挑戰與評分；獎勵只領一次。" : "挑戰裡每一題都通過，才算正式通關。"}</p>}
             <div className={`speaking-level-dialog__actions${singlePractice ? " is-single" : ""}`}>
                 {!practiceOnly && <button type="button" className="primary is-challenge" aria-label={locked ? "挑戰模式尚未解鎖" : `${challengeAction} · 挑戰 · 看題目回答`} onClick={() => onEnter("challenge")} disabled={locked}><span><strong>{locked ? "尚未解鎖" : challengeAction}</strong><small>通過才算過關</small></span><FiChevronRight aria-hidden="true" /></button>}
-                <button type="button" className="primary is-easy" aria-label={locked ? "尚未解鎖" : easyAction} onClick={() => onEnter("easy")} disabled={locked}><span><strong>{locked ? "尚未解鎖" : easyAction}</strong><small>{practiceOnly ? "不送評、不計通關" : "可評分 · 不計通關或獎勵"}</small></span><FiChevronRight aria-hidden="true" /></button>
+                <button type="button" className="primary is-easy" aria-label={locked ? "尚未解鎖" : easyAction} onClick={() => onEnter("easy")} disabled={locked}><span><strong>{locked ? "尚未解鎖" : easyAction}</strong><small>{practiceOnly ? "不送評、不計通關" : staffPreview ? "可評分 · 不計通關或獎勵" : `${practiceCount ? `已練習 ${practiceCount} 次` : "還沒練習過"} · 不計通關`}</small></span><FiChevronRight aria-hidden="true" /></button>
                 <button type="button" className="speaking-level-dialog__return" onClick={onClose}>返回地圖</button>
             </div>
         </section>
