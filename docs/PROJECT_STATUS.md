@@ -8,6 +8,7 @@
 - 驗證：`node --test worker/index.test.mjs` 10 項通過（含 4 項新增）；`git diff --check` 通過。`scripts/seo-foundation.test.mjs` 有 2 項因本機沒有 `build/` 而失敗，與本次修改無關，未執行 Production build。
 - 未驗：Worker 實際對同一 Cloudflare zone 的子網域發出 subrequest 是否正常，須於正式站部署後以 `alanenglish.com.tw/zh-tw/` 實測。
 - 後續（工具箱 repo）：正式站驗收後，把工具箱的 canonical、sitemap 網址改為主網域。
+
 ### 三頁精簡、口說流程測試修復（2026-10-12，分支 `feature/daily-goal-and-tidy`，待擁有者說「幫我合併」）
 
 - 純前端，無後端變更。PR #536（頂端列頭貼）已於 2026-10-12 發布，Workers Builds 成功、正式站含 `ae-growth-header__mark has-avatar`。
