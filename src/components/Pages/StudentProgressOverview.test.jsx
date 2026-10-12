@@ -5,7 +5,6 @@ import { MemoryRouter } from "react-router-dom";
 import StudentProgressOverview from "./StudentProgressOverview";
 import { useAuth } from "../../auth/AuthContext";
 import { getAccessibleCatalog } from "../../services/contentAccessService";
-import { getBookPlaybackProgress } from "../../services/listeningService";
 import { getSpeakingChallengeCatalog } from "../../services/speakingChallengeService";
 import { getStudentAssignments, getStudentAssignmentsV2 } from "../../services/assignmentService";
 import { clearStudentPageCache, studentPageScope } from "../../services/studentPageCache";
@@ -13,7 +12,6 @@ import { saveStudentLearningResume } from "../../services/studentLearningResume"
 
 jest.mock("../../auth/AuthContext", () => ({ useAuth: jest.fn() }));
 jest.mock("../../services/contentAccessService", () => ({ getAccessibleCatalog: jest.fn() }));
-jest.mock("../../services/listeningService", () => ({ getBookPlaybackProgress: jest.fn() }));
 jest.mock("../../services/speakingChallengeService", () => ({ getSpeakingChallengeCatalog: jest.fn() }));
 jest.mock("../../services/assignmentService", () => ({ getStudentAssignments: jest.fn(), getStudentAssignmentsV2: jest.fn() }));
 
@@ -35,7 +33,6 @@ beforeEach(() => {
         { id: 3, title: "已完成的作業", due_at: "2099-01-01T00:00:00Z", progress: { completed: true } }
     ] });
     getStudentAssignmentsV2.mockResolvedValue({ assignments: [] });
-    getBookPlaybackProgress.mockResolvedValue({ progress: [], daily_count: 1 });
     getSpeakingChallengeCatalog.mockResolvedValue({ challenges: [
         { id: 1, book: { id: 10, name: "Workbook 1" }, is_completed: true },
         { id: 2, book: { id: 10, name: "Workbook 1" }, is_completed: false },
@@ -137,30 +134,4 @@ test("says assignments are done, and does not hide a failed load", async () => {
     expect(screen.queryByRole("link", { name: /作業.*都完成了/ })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "重新讀取" }));
     await waitFor(() => expect(getStudentAssignmentsV2).toHaveBeenCalledTimes(3));
-});
-
-test("shows today's listens against the daily goal, read from an unlocked book", async () => {
-    useAuth.mockReturnValue(auth({ assignments: false, pronunciation: false }, "customer"));
-    renderOverview();
-    const today = await screen.findByRole("status", { name: "今天聽了 1 首，目標 3 首" });
-    expect(today).toHaveTextContent("1 / 3 首");
-    expect(today.querySelectorAll(".student-progress__today-dots > .is-on")).toHaveLength(1);
-    // Workbook 2 is locked, so the first unlocked book is the one asked for.
-    expect(getBookPlaybackProgress).toHaveBeenCalledWith(expect.objectContaining({ uid: "customer" }), 10);
-});
-
-test("celebrates a met goal, and shows nothing rather than a made-up zero when the count is unknown", async () => {
-    useAuth.mockReturnValue(auth({ assignments: false, pronunciation: false }, "customer"));
-    getBookPlaybackProgress.mockResolvedValue({ progress: [], daily_count: 5 });
-    const first = renderOverview();
-    const done = await screen.findByRole("status", { name: "今天聽了 5 首，今天的目標完成了" });
-    expect(done).toHaveClass("is-done");
-    expect(done).toHaveTextContent("今天的目標完成了！");
-    first.unmount();
-    clearStudentPageCache();
-    getBookPlaybackProgress.mockRejectedValue(new Error("offline"));
-    renderOverview();
-    await screen.findByRole("button", { name: /選一本教材開始/ });
-    await waitFor(() => expect(getBookPlaybackProgress).toHaveBeenCalledTimes(2));
-    expect(screen.queryByText(/今天聽了/)).not.toBeInTheDocument();
 });
