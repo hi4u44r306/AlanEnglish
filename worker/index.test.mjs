@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import worker, { BASIC_READING_COLLECTIONS } from "./index.mjs";
+import worker, { BASIC_READING_COLLECTIONS, isToolboxPath } from "./index.mjs";
 
 const secret = "test-only-basic-reading-secret";
 
@@ -99,4 +99,69 @@ test("non-API routes fall through to static assets", async () => {
     const response = await worker.fetch(new Request("https://alanenglish.com.tw/basic-reading"), createEnv());
     assert.equal(response.status, 200);
     assert.equal(await response.text(), "asset");
+});
+
+const withMockedFetch = async (handler, run) => {
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = handler;
+    try {
+        return await run();
+    } finally {
+        globalThis.fetch = originalFetch;
+    }
+};
+
+test("toolbox paths only cover locale pages and their static assets", () => {
+    for (const pathname of ["/zh-tw/", "/zh-tw", "/zh-tw/math/gcd-calculator/", "/en/unit/time-converter/", "/_astro/index.abc.css", "/sitemap-index.xml", "/images/study-tools-logo.png"]) {
+        assert.equal(isToolboxPath(pathname), true, pathname);
+    }
+    for (const pathname of ["/", "/links", "/login", "/home", "/student/dashboard", "/shop/cart", "/install", "/english", "/idea", "/sitemap.xml", "/ads.txt", "/api/basic-reading/catalog", "/images/other.png"]) {
+        assert.equal(isToolboxPath(pathname), false, pathname);
+    }
+});
+
+test("toolbox pages are proxied without forwarding cookies", async () => {
+    const calls = [];
+    const response = await withMockedFetch(async (target, init) => {
+        calls.push({ target: String(target), init });
+        return new Response("<h1>tool</h1>", { status: 200, headers: { "Content-Type": "text/html; charset=utf-8" } });
+    }, () => worker.fetch(new Request("https://alanenglish.com.tw/zh-tw/math/gcd-calculator/?a=1", {
+        headers: { Cookie: "session=secret", Authorization: "Bearer secret", "Accept-Language": "zh-TW" }
+    }), createEnv()));
+
+    assert.equal(response.status, 200);
+    assert.equal(await response.text(), "<h1>tool</h1>");
+    assert.equal(calls.length, 1);
+    assert.equal(calls[0].target, "https://tools.alanenglish.com.tw/zh-tw/math/gcd-calculator/?a=1");
+    assert.equal(calls[0].init.redirect, "manual");
+    assert.equal(calls[0].init.headers.get("Cookie"), null);
+    assert.equal(calls[0].init.headers.get("Authorization"), null);
+    assert.equal(calls[0].init.headers.get("Accept-Language"), "zh-TW");
+});
+
+test("toolbox redirects stay on the requesting host", async () => {
+    const response = await withMockedFetch(async () => new Response(null, {
+        status: 301,
+        headers: { Location: "https://tools.alanenglish.com.tw/zh-tw/" }
+    }), () => worker.fetch(new Request("https://alanenglish.com.tw/zh-tw"), createEnv()));
+
+    assert.equal(response.status, 301);
+    assert.equal(response.headers.get("Location"), "https://alanenglish.com.tw/zh-tw/");
+});
+
+test("toolbox upstream failure returns 502 and non-toolbox paths still use assets", async () => {
+    const failed = await withMockedFetch(async () => {
+        throw new Error("network");
+    }, () => worker.fetch(new Request("https://alanenglish.com.tw/zh-tw/"), createEnv()));
+    assert.equal(failed.status, 502);
+
+    const assetResponse = await withMockedFetch(async () => {
+        throw new Error("toolbox must not be called");
+    }, async () => {
+        const home = await worker.fetch(new Request("https://alanenglish.com.tw/login"), createEnv());
+        const post = await worker.fetch(new Request("https://alanenglish.com.tw/zh-tw/", { method: "POST" }), createEnv());
+        return [home, post];
+    });
+    assert.equal(await assetResponse[0].text(), "asset");
+    assert.equal(await assetResponse[1].text(), "asset");
 });

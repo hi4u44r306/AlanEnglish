@@ -168,6 +168,56 @@ const handleAudio = async (request, env, match) => {
     });
 };
 
+// Alan 工具箱（Astro 靜態站）掛在主網域的公開路徑；其餘路徑維持原本的 SPA 與 noindex 行為。
+const TOOLBOX_ORIGIN = "https://tools.alanenglish.com.tw";
+const TOOLBOX_LOCALE_PATH = /^\/(?:zh-tw|zh-cn|en|es|pt|ja|ko|fr|de|hi|id|ar)(?:\/|$)/;
+const TOOLBOX_EXACT_PATHS = new Set([
+    "/sitemap-index.xml",
+    "/sitemap-0.xml",
+    "/favicon-144.png",
+    "/favicon.svg",
+    "/icons.svg",
+    "/images/study-tools-logo.png"
+]);
+const TOOLBOX_FORWARDED_HEADERS = ["Accept", "Accept-Language", "If-None-Match", "If-Modified-Since", "Range", "User-Agent"];
+
+export const isToolboxPath = pathname => TOOLBOX_LOCALE_PATH.test(pathname)
+    || pathname.startsWith("/_astro/")
+    || TOOLBOX_EXACT_PATHS.has(pathname);
+
+const handleToolbox = async (request, url) => {
+    // 不轉送 Cookie 與 Authorization，避免主站登入資訊送到工具箱主機。
+    const headers = new Headers();
+    for (const name of TOOLBOX_FORWARDED_HEADERS) {
+        const value = request.headers.get(name);
+        if (value) headers.set(name, value);
+    }
+
+    let upstream;
+    try {
+        upstream = await fetch(new URL(url.pathname + url.search, TOOLBOX_ORIGIN), {
+            method: request.method,
+            headers,
+            redirect: "manual"
+        });
+    } catch {
+        return new Response("工具箱暫時無法連線，請稍後再試。", {
+            status: 502,
+            headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" }
+        });
+    }
+
+    const response = new Response(upstream.body, upstream);
+    const location = response.headers.get("Location");
+    if (location) {
+        const target = new URL(location, TOOLBOX_ORIGIN);
+        if (target.origin === TOOLBOX_ORIGIN) {
+            response.headers.set("Location", new URL(target.pathname + target.search + target.hash, url.origin).toString());
+        }
+    }
+    return response;
+};
+
 export const worker = {
     async fetch(request, env) {
         const url = new URL(request.url);
@@ -180,6 +230,10 @@ export const worker = {
                 return json({ error: "Method not allowed" }, 405, { Allow: "GET, HEAD" });
             }
             return handleAudio(request, env, match);
+        }
+
+        if ((request.method === "GET" || request.method === "HEAD") && isToolboxPath(url.pathname)) {
+            return handleToolbox(request, url);
         }
 
         return env.ASSETS.fetch(request);
