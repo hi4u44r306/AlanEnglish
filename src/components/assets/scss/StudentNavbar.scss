@@ -818,3 +818,35 @@ body:has(.ae-student-navbar):not(.speaking-challenge-active):not(.sr-immersive) 
 
 // iOS shows the page background while rubber-banding past the end; match the shell instead of white.
 html { background: #f7f9fc; }
+
+// The menu is the settings place: a calm white sheet, one row per setting, a soft coloured tile
+// for each so the rows are easy to tell apart without the sheet itself being loud.
+.ae-student-drawer.is-menu { background: #f7f9fc; }
+.ae-student-drawer.is-menu .offcanvas-header { min-height: 68px; border-bottom: 0; background: #f7f9fc; }
+.ae-student-drawer.is-menu .offcanvas-header strong { color: #17365d; font-size: 24px; font-weight: 800; }
+.ae-student-drawer.is-menu .offcanvas-header small { color: #526780; font-size: 14px; font-weight: 600; }
+.ae-student-drawer.is-menu .offcanvas-body { align-content: start; gap: 16px; padding-top: 4px; }
+.ae-student-menu-list { display: grid; overflow: hidden; border: 1px solid #d5e3f0; border-radius: 20px; background: #fff;
+  > a, > button { display: flex; align-items: center; gap: 14px; width: 100%; min-height: 64px; padding: 10px 16px; border: 0; background: none; color: #17365d; font: inherit; text-align: left; text-decoration: none; cursor: pointer; }
+  > * + * { border-top: 1px solid #e6edf5; }
+  > a:hover, > button:hover, > a.active { background: #f5f8fc; color: #17365d; }
+  > a:focus-visible, > button:focus-visible { outline: 3px solid #245fc5; outline-offset: -3px; }
+  strong { flex: 1; min-width: 0; font-size: 18px; font-weight: 700; }
+  > * > svg { flex-shrink: 0; width: 20px; height: 20px; color: #8a9bb0; }
+}
+.ae-student-menu-tile { flex-shrink: 0; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 14px; > svg { width: 22px; height: 22px; }
+  &.is-blue { background: #dbe8ff; color: #1d4fa8; }
+  &.is-yellow { background: #ffe9a8; color: #8a5a00; }
+  &.is-navy { background: #e1e8f2; color: #17365d; }
+  &.is-green { background: #d6f2e1; color: #17694a; }
+  &.is-orange { background: #ffe1cc; color: #b54708; }
+  &.is-purple { background: #ece3f8; color: #6a3aa8; }
+}
+.ae-student-drawer.is-menu .ae-student-drawer-logout { min-height: 56px; border: 1px solid #f0c9c4; border-radius: 18px; background: #fff; color: #b3261e; font-size: 17px; font-weight: 700; }
+
+// 個人資料 shows its title; 我的進度 keeps it for assistive technology only.
+.student-settings-page.is-profile .student-settings-hero { position: static; width: auto; height: auto; margin: 0 0 16px; padding: 0; overflow: visible; clip-path: none; white-space: normal; border: 0; background: none; box-shadow: none; }
+.student-settings-page.is-profile .student-settings-hero h1 { margin: 0; font-size: 28px; font-weight: 800; color: #17365d; }
+.student-settings-page.is-profile #notifications { scroll-margin-top: 96px; }
+button.ae-student-account-link { padding: 0; border: 0; background: none; font: inherit; color: inherit; cursor: pointer; }
+button.ae-student-account-link:focus-visible { outline: 3px solid #245fc5; outline-offset: 3px; border-radius: 16px; }

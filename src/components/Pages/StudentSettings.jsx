@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { FiBell, FiCamera, FiChevronRight, FiCreditCard, FiGift, FiHelpCircle, FiLock, FiMail, FiMove, FiX, FiZoomIn } from "react-icons/fi";
-import { Link } from "react-router-dom";
+import { FiBell, FiCamera, FiChevronRight, FiCreditCard, FiGift, FiLock, FiMail, FiMove, FiX, FiZoomIn } from "react-icons/fi";
 import { toast } from "react-toastify";
 import { useAuth } from "../../auth/AuthContext";
 import { cacheStudentAvatarDisplayUrl, updateStudentAvatarCache } from "../../constants/studentAvatarCache";
@@ -19,6 +18,7 @@ import { disableWebPush, enableWebPush, getCurrentWebPushStatus, getWebPushAvail
 import { hasAiPremiumAccess } from "../../constants/membershipPlans";
 import { validatePublicNickname } from "../../utils/nicknameValidation";
 import StudentProgressOverview from "./StudentProgressOverview";
+import { useLocation } from "react-router-dom";
 import StudentAvatarImage from "../fragment/StudentAvatarImage";
 import StudentSettingsGroup from "../fragment/StudentSettingsGroup";
 import "./css/StudentSettings.scss";
@@ -90,7 +90,15 @@ const getCropPosition = (draft, offsetX, offsetY, zoom = draft?.zoom || 1) => {
 // 教材與方案 details are hidden for now; flip to bring the section back.
 const SHOW_PLAN_DETAILS = false;
 
-function StudentSettings() {
+// One component, two pages: 我的進度 (what to do next) and 個人資料 (picture, nickname,
+// notifications). Account links live in the menu.
+function StudentSettings({ view = "progress" }) {
+    const profileView = view === "profile";
+    const { hash } = useLocation();
+    // 通知設定 in the menu points at the notifications block of this page.
+    useEffect(() => {
+        if (profileView && hash === "#notifications") document.getElementById("notifications")?.scrollIntoView?.({ block: "start" });
+    }, [profileView, hash]);
     const { firebaseUser, studentProfile, setStudentProfile, refreshStudentProfile } = useAuth();
     const fileInputRef = useRef(null);
     const enabled = Boolean(firebaseUser);
@@ -518,15 +526,15 @@ function StudentSettings() {
         .values());
 
     return (
-        <main className="student-settings-page">
+        <main className={`student-settings-page${profileView ? " is-profile" : ""}`}>
             <section className="student-settings-hero">
-                <h1>我的進度</h1>
+                <h1>{profileView ? "個人資料" : "我的進度"}</h1>
             </section>
 
-            <StudentProgressOverview />
+            {!profileView && <StudentProgressOverview />}
 
-            {(commerceQuery.error || nicknameQuery.error) && <p role="status">部分設定暫時無法更新，已有資料會保留。<button type="button" onClick={load}>重新讀取設定</button></p>}
-            <section className="student-settings-profile-card">
+            {profileView && (commerceQuery.error || nicknameQuery.error) && <p role="status">部分設定暫時無法更新，已有資料會保留。<button type="button" onClick={load}>重新讀取設定</button></p>}
+            {profileView && <section className="student-settings-profile-card">
                 <div className="student-settings-avatar-wrap">
                     {avatarDisplayUrl
                         ? <StudentAvatarImage src={avatarDisplayUrl} className="student-settings-avatar" alt={`${publicDisplayName} 的頭像`} />
@@ -575,7 +583,7 @@ function StudentSettings() {
                         ))}
                     </div>
                 </details>
-            </section>
+            </section>}
 
             {
                 avatarDraft && !avatarConfirmation && (
@@ -697,7 +705,7 @@ function StudentSettings() {
             </section>
             </StudentSettingsGroup>}
 
-            <section className="student-settings-list" aria-labelledby="student-settings-notify-heading">
+            {profileView && <section className="student-settings-list" id="notifications" aria-labelledby="student-settings-notify-heading">
                 <h2 id="student-settings-notify-heading">通知</h2>
                 <div className="student-settings-row">
                     <FiBell aria-hidden="true" />
@@ -727,14 +735,7 @@ function StudentSettings() {
                     )}
                     </div>
                 </details>
-            </section>
-
-            <section className="student-settings-list" aria-labelledby="student-settings-account-heading">
-                <h2 id="student-settings-account-heading">帳號</h2>
-                <Link className="student-settings-row" to="/account/security"><FiLock aria-hidden="true" /><div><strong>帳號與密碼</strong></div><FiChevronRight aria-hidden="true" /></Link>
-                <Link className="student-settings-row" to="/student/membership"><FiCreditCard aria-hidden="true" /><div><strong>會員與功能</strong></div><FiChevronRight aria-hidden="true" /></Link>
-                <Link className="student-settings-row" to="/support"><FiHelpCircle aria-hidden="true" /><div><strong>聯絡客服</strong></div><FiChevronRight aria-hidden="true" /></Link>
-            </section>
+            </section>}
         </main >
     );
 }
