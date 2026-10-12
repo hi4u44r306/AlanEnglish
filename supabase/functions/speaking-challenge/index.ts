@@ -18,6 +18,7 @@ import {
     alphabetSourceFingerprint
 } from "../_shared/alphabet-audio-sequence.ts";
 import { DEFAULT_FEMALE_VOICE_ID } from "../_shared/speaking-voice-assignment.ts";
+import { loadPracticeSessionCounts } from "../_shared/speaking-practice-count.ts";
 import {
     alphabetCandidateSequenceAllowed
 } from "../_shared/alphabet-master-voice.ts";
@@ -196,12 +197,14 @@ Deno.serve(async (req: Request) => {
             });
             const challengePolicy = await speakingChallengePolicy(admin, Number(user.id), demoMode);
             const levelPolicy = await dailyLevelPolicy(admin, Number(user.id), demoMode);
+            const practiceCounts = demoMode ? new Map<number, number>() : await loadPracticeSessionCounts(admin, Number(user.id));
             return json(200, { success: true, demo_mode: demoMode, reward_policy: SPEAKING_CHALLENGE_REWARD_POLICY, challenge_policy: challengePolicy, challenges: orderedSets.map((set: any) => ({
                 id: set.id, book: set.books, title: set.title, topic: set.topic, difficulty: set.difficulty,
                 completed_today: set.generation_metadata?.interaction_type === "alphabet_round" && levelPolicy.completed_set_ids.includes(Number(set.id)),
                 intro_zh: set.intro_zh, learning_goal_zh: set.learning_goal_zh,
                 version: set.version, generation_metadata: set.generation_metadata || {},
                 question_count: (set.speaking_questions || []).length,
+                practice_session_count: practiceCounts.get(Number(set.id)) || 0,
                 completed_count: (set.speaking_questions || []).filter((question: any) => completed.has(Number(question.id))).length,
                 challenge_completed_count: (set.speaking_questions || []).filter((question: any) => challengeCompleted.has(Number(question.id))).length,
                 challenge_is_completed: !demoMode && (set.speaking_questions || []).length > 0

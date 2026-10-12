@@ -59,7 +59,7 @@ test("Workbook 1 依入門、課本頁序、主題分區排序", () => {
     assert.deepEqual(speakingChallengeSourcePages(grouped[0]), [35, 36, 100]);
 });
 
-test("每個分類第一關固定開放，後續關卡只依同分類順序解鎖", () => {
+test("A–Z 起始關通過後才開放課本頁，之後依序解鎖；主題練習是獨立路線", () => {
     const grouped = [
         { id: 7, title: "00 A–Z", generation_metadata: { interaction_type: "alphabet_round" }, speaking_questions: [{ id: 701 }] },
         { id: 10, title: "P14 看字拼讀", generation_metadata: { source_pages: [14] }, speaking_questions: [{ id: 1001 }] },
@@ -69,7 +69,7 @@ test("每個分類第一關固定開放，後續關卡只依同分類順序解�
     ];
 
     const beforePreparation = speakingChallengeUnlockState(grouped, new Set());
-    assert.deepEqual(beforePreparation.map(item => [item.id, item.is_unlocked]), [[7, true], [10, true], [11, false], [3, true], [4, false]]);
+    assert.deepEqual(beforePreparation.map(item => [item.id, item.is_unlocked]), [[7, true], [10, false], [11, false], [3, true], [4, false]]);
 
     const afterPreparation = speakingChallengeUnlockState(grouped, new Set([701]));
     assert.deepEqual(afterPreparation.map(item => [item.id, item.is_unlocked]), [[7, true], [10, true], [11, false], [3, true], [4, false]]);
@@ -77,6 +77,14 @@ test("每個分類第一關固定開放，後續關卡只依同分類順序解�
     const afterFirstTextbook = speakingChallengeUnlockState(grouped, new Set([701, 1001]));
     assert.deepEqual(afterFirstTextbook.map(item => [item.id, item.is_unlocked]), [[7, true], [10, true], [11, true], [3, true], [4, false]]);
 
+    // Textbook pages passed earlier do not open anything while A–Z is still not passed.
+    const textbookWithoutPreparation = speakingChallengeUnlockState(grouped, new Set([1001]));
+    assert.deepEqual(textbookWithoutPreparation.map(item => [item.id, item.is_unlocked]), [[7, true], [10, false], [11, false], [3, true], [4, false]]);
+
     const afterFirstTopic = speakingChallengeUnlockState(grouped, new Set([301]));
-    assert.deepEqual(afterFirstTopic.map(item => [item.id, item.is_unlocked]), [[7, true], [10, true], [11, false], [3, true], [4, true]]);
+    assert.deepEqual(afterFirstTopic.map(item => [item.id, item.is_unlocked]), [[7, true], [10, false], [11, false], [3, true], [4, true]]);
+
+    // A book without a starting level opens at its first textbook page.
+    const noPreparation = speakingChallengeUnlockState(grouped.slice(1), new Set());
+    assert.deepEqual(noPreparation.map(item => [item.id, item.is_unlocked]), [[10, true], [11, false], [3, true], [4, false]]);
 });

@@ -1,5 +1,14 @@
 # Alan English 專案狀態
 
+### A–Z 練習大小寫隨機、關卡摘要文字（2026-10-13，分支 `feature/speaking-level-dialog-practice-count`，待擁有者說「幫我合併」）
+
+- PR #559 已於 2026-10-13 發布：Workers Builds 成功；正式站 JS／CSS 含 `handwriting-paper`。PR #558（收尾）已合併，其建置結果未等待確認。
+- `WorkbookOneFoundationChallenge.jsx`：A–Z 練習／工作人員預覽的 `display_text` 由固定大寫改為前端隨機大小寫（挑戰模式仍由 `speaking-challenge` 伺服器決定）。`SpeakingMapEntry.jsx`、`TextbookSpeakingChallenge.jsx`：移除寫死的「70 分」文字。
+- 驗證：相關 5 組測試 117 項通過；管理員預覽實讀關卡摘要文字。未驗：練習模式大小寫隨機的實際畫面（內建瀏覽器截圖逾時）。
+- 練習次數（擁有者選定「進去練習過幾回」並同意後端修改）：新增 `_shared/speaking-practice-count.ts`，以 `speaking_pronunciation_attempts` 中該學生 `challenge_mode=easy` 且有 `client_session_id` 的紀錄，按題組計算不重複場次；`speaking-challenge` 目錄每關多回傳 `practice_session_count`（示範模式為 0）。唯讀、無 migration。合併後需由 main 重新部署 `speaking-challenge`；回復＝部署前一版。
+- 驗證補充：`scripts/speaking-practice-count.test.mjs` 2/2；`SpeakingMapEntry` 等 52 項通過。正式資料唯讀確認近期練習紀錄（A–Z 與看圖補句）皆有場次編號。`textbook-speaking-generator-contract` 仍為既有的 4 項失敗。未驗：部署後學生帳號實際看到的次數。
+- 解鎖規則（擁有者指定）：`speaking-challenge-progression.ts` 改為 preparation 全部通過後才開放 textbook 第一關，topic 仍獨立；無 preparation 的教材由 textbook 第一關開始。目錄與 `assertStudentChallengeUnlocked` 共用此函式，前後端一致。正式資料唯讀統計：Workbook 1 目前沒有任何學生有課本頁挑戰通關紀錄（0 人），也沒有人通過 A–Z，因此不會有人被鎖回。`speaking-challenge-progression`／`speaking-cost-access`／`speaking-practice-count` node 測試 10/10（`speaking-cost-access` 的假資料庫已補上練習次數查詢）。
+
 ### A–Z 字母卡四線格手寫字母（2026-10-13，分支 `feature/alphabet-four-line-tiles`，待擁有者說「幫我合併」）
 
 - 2026-10-12 擁有者已於後台核准 Azure Aria 為 A–Z 正式示範聲音（內建瀏覽器不顯示確認視窗，依擁有者明確指示代為送出）；正式資料庫確認 `en-US-AriaNeural` 為 active、學生端 sequence 指向同一檔。Leda 候選狀態為 superseded，無法由後台一鍵切回。

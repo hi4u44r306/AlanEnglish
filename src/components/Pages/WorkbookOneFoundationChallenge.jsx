@@ -271,7 +271,8 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
             if (alphabetMode && (staffPreview || challengeMode === "easy")) {
                 nextRound = sourceQuestions.map(question => ({
                     ...question,
-                    display_text: String(question.question_text || "").toUpperCase()
+                    // Practice mixes capitals and small letters at random, like the challenge does.
+                    display_text: Math.random() < 0.5 ? String(question.question_text || "").toUpperCase() : String(question.question_text || "").toLowerCase()
                 })).filter(question => /^[A-Za-z]$/.test(question.display_text));
                 if (nextRound.length !== 26 || new Set(nextRound.map(question => Number(question.id))).size !== 26) {
                     throw new Error("A–Z 示範題目尚未準備完成");

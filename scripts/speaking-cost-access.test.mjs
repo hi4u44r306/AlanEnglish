@@ -5,6 +5,7 @@ import vm from 'node:vm';
 import ts from 'typescript';
 import * as view from '../supabase/functions/_shared/speaking-challenge-view.ts';
 import * as progression from '../supabase/functions/_shared/speaking-challenge-progression.ts';
+import * as practiceCount from '../supabase/functions/_shared/speaking-practice-count.ts';
 test('新增每日紀錄關聯後，學生與管理員仍能載入口說列表及題數',async()=>{
  for (const role of ['student','admin']) {
   let handler;
@@ -13,7 +14,7 @@ test('新增每日紀錄關聯後，學生與管理員仍能載入口說列表�
    rpc:async()=>({data:{completed_set_ids:[],level_daily_limit:1,alphabet_letter_daily_limit:3}}),
    from:table=>{
     let selection='';
-    const query={select:v=>{selection=v;return query;},eq:()=>query,in:()=>query,
+    const query={select:v=>{selection=v;return query;},eq:()=>query,in:()=>query,not:()=>query,order:()=>query,range:()=>query,
      then:resolve=>{
       const ambiguous=table==='speaking_question_sets'&&selection.includes('speaking_questions(');
       return Promise.resolve(ambiguous?{data:null,error:{code:'PGRST201'}}:
@@ -27,6 +28,7 @@ test('新增每日紀錄關聯後，學生與管理員仍能載入口說列表�
    if(name.endsWith('/firebase-auth.ts'))return{verifyFirebaseRequest:async()=>({id:5,role}),cleanText:v=>String(v||'')};
    if(name.endsWith('/speaking-challenge-view.ts'))return view;
    if(name.endsWith('/speaking-challenge-progression.ts'))return progression;
+   if(name.endsWith('/speaking-practice-count.ts'))return practiceCount;
    if(name.endsWith('/book-entitlement.ts'))return{isBookEntitled:async()=>true,relationOne:v=>v};
    if(name.endsWith('/effective-access.ts'))return{loadEffectiveAccess:async()=>({is_active:true,features:{pronunciation:true}})};
    if(name.endsWith('/public-error.ts'))return{toPublicErrorResponse:error=>({status:500,payload:{error:error.code}})};
@@ -37,6 +39,7 @@ test('新增每日紀錄關聯後，學生與管理員仍能載入口說列表�
   const result=await response.json();
   assert.equal(result.challenges.length,1);
   assert.equal(result.challenges[0].question_count,1);
+  assert.equal(result.challenges[0].practice_session_count,0);
   assert.equal(result.challenges[0].is_unlocked,true);
   assert.equal(result.challenges[0].completed_today,false);
   assert.equal(result.demo_mode,role==='admin');
