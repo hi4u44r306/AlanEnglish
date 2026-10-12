@@ -1,5 +1,11 @@
 # Alan English 專案狀態
 
+### 教職員筆電寬度顯示上方選單（2026-10-12，分支 `feature/staff-laptop-nav`，待擁有者說「幫我合併」）
+
+- PR #545 已合併至 `main`（merge `2ef22290`）；建置與正式站檢查結果見對話回報。
+- 純前端：`MainNavbar.jsx` 的 `Navbar` 於教職員加上 `is-staff`；`StaffMenuLight.scss` 於 1200–1500px 對 `.ae-navbar.is-staff` 顯示桌面選單並隱藏漢堡按鈕（原 `Navigation.scss` 於 1500px 以下一律收合，對學生與公開頁維持不變）。
+- 實測（本機、管理員）：1280 寬時商標右緣到選單左緣尚有 332px 空白；1200 寬時 152px；兩者皆無水平捲動。`MainNavbar.test.jsx` 35 項通過。未驗：老師帳號（項目較少，理應更寬鬆）、實際筆電。
+
 ### 學生設定集中到選單、新增個人資料頁（2026-10-12，分支 `feature/student-menu-settings`，待擁有者說「幫我合併」）
 
 - PR #544 已於 2026-10-12 發布（merge `b86e06ab`）：`/try`、`/parents` 與 `/trial/*.png` 回 200，正式站已含新版程式。擁有者確認「目前這樣很好」。

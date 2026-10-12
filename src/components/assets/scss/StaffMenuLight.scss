@@ -46,3 +46,13 @@
   .ae-mobile-logout { min-height: 56px; margin: 0 !important; border: 1px solid #f0c9c4 !important; border-radius: 18px !important; background: #fff !important; box-shadow: none !important; color: #b3261e !important; font-size: 17px !important; font-weight: 700 !important; }
   .ae-mobile-logout svg { color: #b3261e !important; }
 }
+
+// With the staff menu down to five entries it fits on a laptop, so the top bar stays visible
+// from 1200px up instead of collapsing into the drawer below 1500px.
+@media (min-width: 1200px) and (max-width: 1500px) {
+  .ae-navbar.is-staff .ae-desktop-nav { display: flex !important; gap: 2px; }
+  .ae-navbar.is-staff .ae-mobile-actions,
+  .ae-navbar.is-staff .ae-mobile-toggle,
+  .ae-navbar.is-staff .ae-mobile-notification { display: none !important; }
+  .ae-navbar.is-staff .ae-brand { max-width: none; }
+}
