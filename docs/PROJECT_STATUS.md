@@ -1,5 +1,14 @@
 # Alan English 專案狀態
 
+### A–Z 示範音檔新增 Azure 逐字母候選（2026-10-12，分支 `feature/alphabet-azure-voice`，擁有者已同意後端修改；待「幫我合併」後部署）
+
+- PR #555 已於 2026-10-12 發布：Workers Builds 成功；正式站 CSS 含置中的 `speaking-help-toggle`。
+- 原因：現行候選（Google Chirp 3 HD）以單一 SSML 連續念完 A–Z，句調由高降到低。
+- `_shared/alphabet-master-voice.ts`：`ALPHABET_CANDIDATE_PROFILES` 增加 `provider`，並在最前面加入 Azure `en-US-AnaNeural`／`JennyNeural`／`AriaNeural`；`buildAzureAlphabetSsml` 以 26 個獨立 `<voice>` 區塊、各帶 800ms break 產生；`alphabetCandidateRecipe` 決定設定指紋（Google 候選的指紋與先前相同，既有候選可沿用）。assembler 版本字串沿用 `alphabet-chirp3-silence-sequence-v1`（單一 WAV＋靜音切段），因此 `speaking-content-manager` 與資料庫 RPC 不需修改。
+- `speaking-tts-manager`：`requestAzureAlphabetMaster` 以 `AZURE_SPEECH_KEY`／`AZURE_SPEECH_REGION` 呼叫 Azure TTS REST（raw 24kHz 16-bit mono PCM，後端包成 WAV）；單一聲音失敗不再讓整批候選失敗，回應多 `failed` 清單。前端 `SpeakingContentAdmin.jsx` 只改說明文字與失敗提示。
+- 部署需求（合併後、由 main）：`speaking-tts-manager`、`speaking-challenge`、`speaking-content-manager` 三個 Function 都引用語音允許清單，需一併重新部署；無 migration、無新 Secret。
+- 驗證：`scripts/speaking-alphabet-wav.test.mjs` 8/8、`SpeakingContentAdmin` 的 A–Z 測試通過。`scripts/textbook-speaking-generator-contract.test.mjs` 有 4 項失敗（16、18、19、21），其檢查的檔案與 main 完全相同，屬既有失敗，未在本批處理。未驗：實際呼叫 Azure（金鑰是否允許語音合成、三個聲音的實際音質、靜音切段是否抓到 25 個停頓）——需部署後由管理員產生候選並試聽。
+
 ### 口說關卡內電腦版版面修正（2026-10-12，分支 `fix/speaking-level-desktop-layout`，待擁有者說「幫我合併」）
 
 - PR #554 已於 2026-10-12 發布：Workers Builds 成功；正式站 Worker 含 `whisper-base.en`、JS 含 `ae-speaking-local-model`。

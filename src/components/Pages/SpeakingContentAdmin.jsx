@@ -981,7 +981,8 @@ export default function SpeakingContentAdmin() {
             const result = await prepareSpeakingAlphabetAudioCandidate(firebaseUser, questionSet.id);
             setAlphabetCandidates({ candidates: result.candidates || [], questionSetId: questionSet.id });
             setAlphabetCandidatesListened({});
-            toast.success(result.reused ? "已載入三個既有候選音檔，請逐一完整試聽" : "三個自然女聲 A–Z 候選音檔已完成，請逐一試聽");
+            toast.success(result.reused ? "已載入既有候選音檔，請逐一完整試聽" : "A–Z 候選音檔已完成，請逐一試聽");
+            if (result.failed?.length) toast.error(`無法產生：${result.failed.map(item => item.voice_label).join("、")}（${result.failed[0].message}）`);
         } catch (error) { toast.error(error.message || "A–Z 候選音檔產生失敗"); }
         finally { setWorking(""); }
     };
@@ -1050,10 +1051,10 @@ export default function SpeakingContentAdmin() {
                         </button>
                         {alphabetCandidates?.candidates?.length > 0 && Number(alphabetCandidates.questionSetId) === Number(existing.id) && <div className="speaking-alphabet-candidates">
                             <strong>先逐一完整試聽，再選一個套用</strong>
-                            <span>三個 Chirp 3 HD 自然女聲 · 相同兒童友善語速 · Z 固定為美式 zee</span>
+                            <span>Azure 候選每個字母各自發音、語調一致；其餘為一口氣念完的 Chirp 3 HD 自然女聲 · Z 固定為美式 zee</span>
                             {alphabetCandidates.candidates.map(candidate => <div className="speaking-alphabet-candidate" key={candidate.candidate_id}>
                                 <strong>{candidate.voice_label}</strong>
-                                <span>單次連續念完 A–Z，不會拆成 26 次生成。</span>
+                                <span>{/Neural$/.test(candidate.voice_id || "") ? "26 個字母各自發音，音高不會越念越低。" : "單次連續念完 A–Z，不會拆成 26 次生成。"}</span>
                                 <audio controls preload="metadata" src={candidate.audio_url} aria-label={`${candidate.voice_label} A–Z 女聲候選音檔`}
                                     onEnded={() => setAlphabetCandidatesListened(current => ({ ...current, [candidate.candidate_id]: true }))}
                                     onError={() => setAlphabetCandidatesListened(current => ({ ...current, [candidate.candidate_id]: false }))}

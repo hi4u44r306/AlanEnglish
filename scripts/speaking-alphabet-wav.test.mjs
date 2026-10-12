@@ -11,7 +11,10 @@ import {
     ALPHABET_CANDIDATE_ASSEMBLER,
     ALPHABET_CANDIDATE_PROFILES,
     ALPHABET_CANDIDATE_SETTINGS,
+    alphabetCandidateRecipe,
+    alphabetCandidateSequenceAllowed,
     buildAlphabetCandidateSegments,
+    buildAzureAlphabetSsml,
     buildAlphabetMasterSsml,
     detectAlphabetSpeechBoundaries
 } from "../supabase/functions/_shared/alphabet-master-voice.ts";
@@ -133,10 +136,10 @@ test("新版 A–Z 提供三個固定 Chirp 3 HD 女聲候選且 Z 明確念 zee
     assert.equal((ssml.match(/<break time="800ms"\/>/g) || []).length, 25);
     assert.match(ssml, /<phoneme alphabet="ipa" ph="ziː">Z<\/phoneme>/);
     assert.doesNotMatch(ssml, /<mark|<prosody|pitch=|volume=/);
-    assert.deepEqual(ALPHABET_CANDIDATE_PROFILES.map(profile => profile.voiceId), [
+    assert.deepEqual(ALPHABET_CANDIDATE_PROFILES.filter(profile => profile.provider === "google").map(profile => profile.voiceId), [
         "en-US-Chirp3-HD-Leda", "en-US-Chirp3-HD-Aoede", "en-US-Chirp3-HD-Zephyr"
     ]);
-    assert.equal(new Set(ALPHABET_CANDIDATE_PROFILES.map(profile => profile.revision)).size, 3);
+    assert.equal(new Set(ALPHABET_CANDIDATE_PROFILES.map(profile => profile.revision)).size, ALPHABET_CANDIDATE_PROFILES.length);
     assert.equal(ALPHABET_CANDIDATE_ASSEMBLER, "alphabet-chirp3-silence-sequence-v1");
     assert.deepEqual(ALPHABET_CANDIDATE_SETTINGS, { audioEncoding: "LINEAR16", speakingRate: 0.92 });
 });
@@ -148,7 +151,7 @@ test("單次完整 A–Z WAV 會以 25 個靜音邊界建立 26 段", () => {
     const pcm = alphabetPcm();
     const boundaries = detectAlphabetSpeechBoundaries(pcm, 16000);
     assert.equal(boundaries.length, 27);
-    const segments = buildAlphabetCandidateSegments(questions, pcm, 16000, ALPHABET_CANDIDATE_PROFILES[0].voiceId);
+    const segments = buildAlphabetCandidateSegments(questions, pcm, 16000, "en-US-Chirp3-HD-Leda");
     assert.equal(segments.length, 26);
     assert.deepEqual(segments[0], {
         question_id: 1, letter: "A", start_ms: 0, end_ms: 700, voice_id: "en-US-Chirp3-HD-Leda"
@@ -165,4 +168,28 @@ test("Chirp 音檔缺少長靜音、題序錯誤或 voice 未核准時 fail clos
     const wrongQuestions = questions.map(question => ({ ...question }));
     wrongQuestions[8].model_answer = "J";
     assert.throws(() => buildAlphabetCandidateSegments(wrongQuestions, alphabetPcm(), 16000, ALPHABET_CANDIDATE_PROFILES[1].voiceId), /題目順序不正確/);
+});
+
+test("Azure A–Z 候選每個字母各自一段語音，語調不會由高滑到低", () => {
+    const azure = ALPHABET_CANDIDATE_PROFILES.filter(profile => profile.provider === "azure");
+    assert.deepEqual(azure.map(profile => profile.voiceId), ["en-US-AnaNeural", "en-US-JennyNeural", "en-US-AriaNeural"]);
+    assert.deepEqual(ALPHABET_CANDIDATE_PROFILES.slice(0, 3), azure);
+    const ssml = buildAzureAlphabetSsml("en-US-AnaNeural", 800);
+    assert.equal((ssml.match(/<voice name="en-US-AnaNeural">/g) || []).length, 26);
+    assert.equal((ssml.match(/<say-as interpret-as="characters">[A-Y]<\/say-as>/g) || []).length, 25);
+    assert.equal((ssml.match(/<break time="800ms"\/>/g) || []).length, 25);
+    assert.match(ssml, /<phoneme alphabet="ipa" ph="ziː">Z<\/phoneme><\/prosody><\/voice><\/speak>$/);
+    assert.doesNotMatch(ssml, /pitch=|contour=/);
+    assert.throws(() => buildAzureAlphabetSsml('x"><voice name="y', 800), /voice 不正確/);
+    assert.throws(() => buildAzureAlphabetSsml("en-US-AnaNeural", 100), /間隔不正確/);
+});
+
+test("既有 Google 候選的設定指紋不變；Azure 候選有自己的指紋且通過學生端允許清單", () => {
+    const google = ALPHABET_CANDIDATE_PROFILES.find(profile => profile.id === "leda");
+    assert.equal(JSON.stringify({ revision: google.revision, voice_id: google.voiceId, ...alphabetCandidateRecipe(google, 800) }),
+        JSON.stringify({ revision: google.revision, voice_id: google.voiceId, settings: ALPHABET_CANDIDATE_SETTINGS, ssml: buildAlphabetMasterSsml(800) }));
+    const azure = ALPHABET_CANDIDATE_PROFILES.find(profile => profile.id === "azure-ana");
+    assert.deepEqual(Object.keys(alphabetCandidateRecipe(azure, 800)), ["provider", "output_format", "ssml"]);
+    assert.equal(alphabetCandidateSequenceAllowed(ALPHABET_CANDIDATE_ASSEMBLER, [{ voice_id: "en-US-AnaNeural" }]), true);
+    assert.equal(alphabetCandidateSequenceAllowed(ALPHABET_CANDIDATE_ASSEMBLER, [{ voice_id: "en-US-GuyNeural" }]), false);
 });
