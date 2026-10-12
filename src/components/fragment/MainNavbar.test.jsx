@@ -580,7 +580,8 @@ describe("MainNavbar student navigation", () => {
 
         render(<MemoryRouter initialEntries={["/student/dashboard"]}><MainNavbar /></MemoryRouter>);
 
-        expect(await screen.findByText("Sunny Fox")).toBeInTheDocument();
+        expect((await screen.findAllByText("Sunny Fox")).length).toBeGreaterThan(0);
+        expect(document.querySelector(".ae-growth-header__name")).toHaveTextContent("Sunny Fox");
         expect(screen.getByRole("link", { name: "查看通知，目前有 1 則未讀" })).toBeInTheDocument();
         act(() => window.dispatchEvent(new CustomEvent("ae:notifications-read", { detail: { notificationIds: "all" } })));
         await waitFor(() => expect(screen.getByRole("link", { name: "查看通知" })).toBeInTheDocument());

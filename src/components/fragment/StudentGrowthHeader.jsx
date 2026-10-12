@@ -12,7 +12,7 @@ const number = value => Number(value).toLocaleString("zh-TW");
 const compact = value => Math.abs(Number(value)) < 10000 ? number(value) : new Intl.NumberFormat("zh-TW", { notation: "compact", maximumFractionDigits: 1 }).format(Number(value));
 const taipeiDate = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Taipei", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
 
-export default function StudentGrowthHeader({ summary, loading = false, error, pointsAccess = false, onRetry, avatarUrl }) {
+export default function StudentGrowthHeader({ summary, loading = false, error, pointsAccess = false, onRetry, avatarUrl, name = "" }) {
     const [detail, setDetail] = useState("");
     const [today, setToday] = useState(taipeiDate);
     const balance = summary?.balance;
@@ -44,7 +44,7 @@ export default function StudentGrowthHeader({ summary, loading = false, error, p
             <button type="button" className="ae-growth-header__level" aria-label="查看成長詳情" onClick={() => setDetail("growth")}>
                 {avatarUrl && <span className="ae-growth-header__mark has-avatar" aria-hidden="true"><StudentAvatarImage src={avatarUrl} alt="" /></span>}
                 <span className="ae-growth-header__copy">
-                    <span className="ae-growth-header__heading"><strong>{hasLevel ? `Lv.${compact(balance.level)}` : "—"}</strong>{boosted && <span className="ae-growth-header__boost">XP ×2</span>}</span>
+                    <span className="ae-growth-header__heading">{name && <b className="ae-growth-header__name">{name}</b>}<strong>{hasLevel ? `Lv.${compact(balance.level)}` : "—"}</strong>{boosted && <span className="ae-growth-header__boost">XP ×2</span>}</span>
                     {progress != null && <progress value={progress} max="100" aria-label="目前等級成長進度" />}
                     <small>{error || remaining == null ? status : <><span className="ae-growth-header__remaining">再 {compact(remaining)} XP 升級</span><span className="ae-growth-header__short">差 {compact(remaining)} XP</span></>}</small>
                 </span>

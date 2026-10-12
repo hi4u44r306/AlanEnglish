@@ -850,3 +850,7 @@ html { background: #f7f9fc; }
 .student-settings-page.is-profile #notifications { scroll-margin-top: 96px; }
 button.ae-student-account-link { padding: 0; border: 0; background: none; font: inherit; color: inherit; cursor: pointer; }
 button.ae-student-account-link:focus-visible { outline: 3px solid #245fc5; outline-offset: 3px; border-radius: 16px; }
+
+// A page that fits on the screen should stay put: no rubber-band drag when there is nothing
+// below. Pages longer than the screen still scroll normally.
+html:has(.ae-student-navbar) { overscroll-behavior-y: none; }

@@ -23,7 +23,7 @@
 .platform-narrow { width: min(840px, calc(100% - 32px)); }
 
 .platform-public {
-    min-height: 100vh;
+    min-height: 100vh; min-height: 100dvh;
     display: grid;
     place-items: center;
     padding: 32px 16px;

@@ -207,7 +207,7 @@ const StudentNavbar = ({
         <>
             <Navbar className={`ae-navbar ae-student-navbar ${scrolled ? "scrolled" : ""}`}>
                 <Container fluid className="ae-navbar-container">
-                    <StudentGrowthHeader key={firebaseUser?.uid} summary={growthSummary} loading={growthLoading} error={growthError} pointsAccess={hasRewardsAccess} onRetry={onGrowthRetry} avatarUrl={avatarUrl} />
+                    <StudentGrowthHeader key={firebaseUser?.uid} summary={growthSummary} loading={growthLoading} error={growthError} pointsAccess={hasRewardsAccess} onRetry={onGrowthRetry} avatarUrl={avatarUrl} name={profileName} />
                     <Nav as="nav" className="ae-student-desktop-nav" aria-label="學生桌面導覽" onSelect={closeDrawer}>
                         <Nav.Link as={Link} to="/student/settings" aria-current={isPathActive("/student/settings") ? "page" : undefined} className={profileActive ? "active" : ""} aria-label="我的進度"><span><NavigationIcon tone="profile"><FiTrendingUp /></NavigationIcon>我的進度</span></Nav.Link>
                         <NavDropdown id="student-materials" title={<span><NavigationIcon tone="books"><FiBookOpen /></NavigationIcon>教材</span>} show={materialsOpen} onToggle={setMaterialsOpen} autoClose="outside" className={materialsActive ? "active" : ""}>
