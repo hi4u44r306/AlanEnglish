@@ -145,7 +145,7 @@ describe("MainNavbar student navigation", () => {
         expect(within(mobileMenu).queryByRole("link", { name: "智慧複習" })).not.toBeInTheDocument();
         expect(within(mobileMenu).queryByRole("link", { name: "AI 練習教材" })).not.toBeInTheDocument();
         expect(within(mobileMenu).getByRole("link", { name: "個人資料" })).toHaveAttribute("href", "/student/profile");
-        expect(within(mobileMenu).getByRole("link", { name: "通知設定" })).toHaveAttribute("href", "/student/profile#notifications");
+        expect(within(mobileMenu).getByRole("link", { name: "通知設定" })).toHaveAttribute("href", "/student/notification-settings");
         expect(within(mobileMenu).getByRole("link", { name: "帳號與密碼" })).toHaveAttribute("href", "/account/security");
         ["每週報告", "排行榜", "我的作業", "獎品商城", "我的進度"].forEach(name => expect(within(mobileMenu).queryByRole("link", { name })).not.toBeInTheDocument());
         expect(within(mobileMenu).queryByRole("link", { name: "實體教材商城" })).not.toBeInTheDocument();

@@ -654,3 +654,8 @@ textarea { resize: vertical; }
     .membership-admin .platform-table td:first-child, .membership-admin .platform-table td:last-child { grid-column: 1 / -1; }
     .membership-admin .platform-table td::before { display: block; content: attr(data-label); color: #53647d; font-size: 12px; font-weight: 700; margin-bottom: 4px; }
 }
+
+// 帳號與密碼: a title and the form.
+.account-security { padding-top: 20px; }
+.account-security__title { margin: 0 0 16px; font-size: 28px; font-weight: 800; color: #17365d; }
+.account-security .platform-form-grid { grid-template-columns: minmax(0, 1fr); }

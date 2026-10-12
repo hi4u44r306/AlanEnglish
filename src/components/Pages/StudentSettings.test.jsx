@@ -118,14 +118,14 @@ describe("StudentSettings", () => {
         fireEvent(target, event);
     };
 
-    it("the profile page shows the picture, nickname and notifications; account links live in the menu", async () => {
+    it("the profile page shows the picture and nickname only; notifications and account links live elsewhere", async () => {
         render(<StudentSettings view="profile" />);
 
         expect(await screen.findByRole("heading", { name: "個人資料" })).toBeInTheDocument();
         expect(screen.getByText(/Ming Wang/)).toBeInTheDocument();
         expect(screen.queryByText(/AI Premium/)).not.toBeInTheDocument();
         expect(screen.queryByText(/支援 JPG/)).not.toBeInTheDocument();
-        expect(screen.getByRole("switch", { name: "手機推播通知" })).toBeInTheDocument();
+        expect(screen.queryByRole("switch", { name: "手機推播通知" })).not.toBeInTheDocument();
         ["帳號與密碼", "會員與功能", "聯絡客服"].forEach(name => expect(screen.queryByRole("link", { name })).not.toBeInTheDocument());
         for (const removed of ["成長與獎品", "教材與方案", "個人資料與紀錄", "基本資料", "出生年月日", "暱稱更改紀錄", "2015-05-12"]) {
             expect(screen.queryByText(removed)).not.toBeInTheDocument();
@@ -224,7 +224,7 @@ describe("StudentSettings", () => {
             masked_email: "n***@example.com"
         });
         confirmGuardianEmailVerification.mockResolvedValue({ success: true });
-        render(<StudentSettings view="profile" />);
+        render(<StudentSettings view="notifications" />);
 
         expect(await screen.findByText("parent@example.com · 已驗證")).toBeInTheDocument();
         fireEvent.click(screen.getByText("家長 Email"));
@@ -344,7 +344,7 @@ describe("StudentSettings", () => {
             .mockResolvedValueOnce({ supported: true, active: false })
             .mockResolvedValueOnce({ supported: true, active: true })
             .mockResolvedValueOnce({ supported: true, active: false });
-        render(<StudentSettings view="profile" />);
+        render(<StudentSettings view="notifications" />);
 
         const toggle = screen.getByRole("switch", { name: "手機推播通知" });
         await waitFor(() => expect(toggle).toBeEnabled());
@@ -360,13 +360,17 @@ describe("StudentSettings", () => {
     });
 
     it("reuses commerce and nickname data immediately when returning", async () => {
-        const first = render(<StudentSettings view="profile" />);
+        const first = render(<StudentSettings view="notifications" />);
         await screen.findByText("parent@example.com · 已驗證");
-        await waitFor(() => expect(screen.getByLabelText("公開暱稱")).toHaveValue("Sunny Fox"));
+        await waitFor(() => expect(getNicknameSettings).toHaveBeenCalled());
+        await act(async () => {});
         first.unmount();
-        render(<StudentSettings view="profile" />);
-        expect(screen.getByText("parent@example.com · 已驗證")).toBeInTheDocument();
+        // The profile page opens from the same cached data, with nothing refetched.
+        const second = render(<StudentSettings view="profile" />);
         expect(screen.getByLabelText("公開暱稱")).toHaveValue("Sunny Fox");
+        second.unmount();
+        render(<StudentSettings view="notifications" />);
+        expect(screen.getByText("parent@example.com · 已驗證")).toBeInTheDocument();
         await act(async () => {});
         expect(getGamificationSummary).toHaveBeenCalledTimes(1);
         expect(loadStudentCommerceProfile).toHaveBeenCalledTimes(1);
@@ -374,10 +378,10 @@ describe("StudentSettings", () => {
     });
 
     it("restores snapshots on reload without persisting guardian contact details", async () => {
-        const first = render(<StudentSettings view="profile" />);
+        const first = render(<StudentSettings view="notifications" />);
         await screen.findByText("parent@example.com · 已驗證");
         await waitFor(() => expect(getGamificationSummary).toHaveBeenCalled());
-        await waitFor(() => expect(screen.getByLabelText("公開暱稱")).toHaveValue("Sunny Fox"));
+        await waitFor(() => expect(getNicknameSettings).toHaveBeenCalled());
         await act(async () => {});
         first.unmount();
         const records = Object.keys(localStorage).filter(key => key.startsWith("ae-student-pages-v1:")).map(key => [key, localStorage.getItem(key)]);
@@ -388,15 +392,17 @@ describe("StudentSettings", () => {
         getGamificationSummary.mockImplementation(() => new Promise(() => {}));
         loadStudentCommerceProfile.mockImplementation(() => new Promise(() => {}));
         getNicknameSettings.mockImplementation(() => new Promise(() => {}));
-        render(<StudentSettings view="profile" />);
+        const restored = render(<StudentSettings view="profile" />);
         expect(screen.getByLabelText("公開暱稱")).toHaveValue("Sunny Fox");
+        restored.unmount();
+        render(<StudentSettings view="notifications" />);
         expect(screen.queryByText(/parent@example.com/)).not.toBeInTheDocument();
         await act(async () => {});
         expect(loadStudentCommerceProfile).toHaveBeenCalledTimes(2);
     });
 
     it("keeps cached data after a network failure but clears a forbidden commerce response", async () => {
-        render(<StudentSettings view="profile" />);
+        render(<StudentSettings view="notifications" />);
         await screen.findByText("parent@example.com · 已驗證");
         loadStudentCommerceProfile.mockRejectedValue(new Error("offline"));
         act(() => invalidateStudentPageCache("student-1", ["settings:commerce"]));
@@ -418,9 +424,10 @@ describe("StudentSettings", () => {
     });
 
     it("keeps the guardian email draft when its row is collapsed and reopened, without refetching", async () => {
-        render(<StudentSettings view="profile" />);
-        await screen.findByDisplayValue("Sunny Fox");
-        expect(screen.getByLabelText("公開暱稱")).toBeVisible();
+        render(<StudentSettings view="notifications" />);
+        await screen.findByText("家長 Email");
+        await waitFor(() => expect(getNicknameSettings).toHaveBeenCalled());
+        await act(async () => {});
         const calls = [getGamificationSummary.mock.calls.length, loadStudentCommerceProfile.mock.calls.length, getNicknameSettings.mock.calls.length, getCurrentWebPushStatus.mock.calls.length];
         const summary = screen.getByText("家長 Email").closest("summary");
         expect(summary.closest("details")).not.toHaveAttribute("open");
@@ -456,5 +463,13 @@ describe("StudentSettings", () => {
         expect(screen.queryByRole("switch", { name: "手機推播通知" })).not.toBeInTheDocument();
         expect(screen.queryByText("選擇預設頭像")).not.toBeInTheDocument();
         expect(screen.queryByRole("heading", { name: "個人資料" })).not.toBeInTheDocument();
+    });
+
+    it("通知設定 is its own page with push and the parent e-mail, and no profile card", async () => {
+        render(<StudentSettings view="notifications" />);
+        expect(await screen.findByRole("heading", { name: "通知設定" })).toBeInTheDocument();
+        expect(screen.getByRole("switch", { name: "手機推播通知" })).toBeInTheDocument();
+        expect(screen.getByText("家長 Email")).toBeInTheDocument();
+        expect(screen.queryByText("選擇預設頭像")).not.toBeInTheDocument();
     });
 });

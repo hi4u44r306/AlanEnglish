@@ -10,6 +10,7 @@ import { sendBrandedVerificationEmail } from "../../services/authEmailService";
 import { getPrimaryAccessPlanLabel, hasAiAddonPlan, hasAiPremiumAccess, isAiAddonPlanCode } from "../../constants/membershipPlans";
 import { PUBLIC_SELF_SERVICE_BILLING_ENABLED } from "../../constants/commerceAvailability";
 import "./css/Platform.scss";
+import "./css/MembershipMinimal.scss";
 
 const STATUS_LABELS = { pending_verification: "等待 Email 驗證", trialing: "免費試用中", active: "使用中", past_due: "付款待處理", cancelled: "已取消，期限前可使用", expired: "已到期", suspended: "已停用", complimentary: "贈送使用權" };
 const FEATURE_LABELS = {
@@ -278,7 +279,7 @@ function MembershipCenter() {
     return (
         <main className="platform-page membership-student-view">
             <header className="membership-page-header">
-                <div className="membership-page-title"><span className="platform-eyebrow">MY ACCESS</span><h1>我的教材與功能</h1><p>快速確認目前方案、可用功能與已取得教材。</p></div>
+                <div className="membership-page-title"><span className="platform-eyebrow">MY ACCESS</span><h1>會員與功能</h1><p>快速確認目前方案、可用功能與已取得教材。</p></div>
                 <dl className={`membership-access-summary ${membership?.is_active ? "is-active" : "is-expired"}`} aria-label="目前方案摘要">
                     <div><dt>會員身分</dt><dd>{membershipIdentityLabel}</dd></div>
                     <div><dt>目前方案</dt><dd>{membershipPlanLabel}</dd></div>
