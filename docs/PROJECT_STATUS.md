@@ -1,5 +1,14 @@
 # Alan English 專案狀態
 
+### 首頁連到工具箱、Cloudflare 補上 SEO／noindex 路由（2026-10-12，分支 `feature/public-toolbox-links`，擁有者已授權合併）
+
+- 背景：`public/_redirects` 不會進 `cloudflare-build`，所以正式站的 `/links` 與所有登入後路由實際都回傳首頁 HTML（`index,follow`、canonical 指向 `/`），`seo-links.html` 與 `noindex.html` 沒有被使用。
+- 修改：`worker/index.mjs` 新增 `seoAssetPathFor`，GET／HEAD 時 `/links` 改讀 `/seo-links`，其餘非首頁、無副檔名、非 `/static/`、非 `/api/` 的路徑改讀 `/noindex`；首頁、靜態檔、API 與其他 HTTP 方法不變。未移植 `_redirects` 中 `/home`、`/shop` 等轉址，避免改變現有 SPA 行為。
+- 修改：`Showcase.jsx` 頁尾新增「教材音檔」「免費學習工具」「教學文章」連結（後兩者為一般 `<a>`，由 Worker 轉送到工具箱）；`Showcase.scss` 讓頁尾連結可換行；`public/index.html` 的 `<noscript>` 加上同樣三個連結。
+- 風險：中。所有登入後路由的初始 HTML 由首頁殼改為 noindex 殼，兩者是同一份建置輸出，只差 title、description、robots 與 canonical。還原方式：revert 本次 commit。
+- 驗證：`node --test worker/index.test.mjs` 13 項通過（含 3 項新增）；`git diff --check` 通過。未在本機執行 Production build，由 Cloudflare 建置。
+- 未驗：正式站部署後須實測 `/links`、`/login`、`/student/dashboard` 的 robots 標記與登入流程是否正常，以及首頁頁尾在手機寬度的排版。
+
 ### 後台選單整理（2026-10-12，分支 `feature/admin-nav-tidy`，待擁有者說「幫我合併」）
 
 - PR #538 已於 2026-10-12 發布：Workers Builds 成功，正式站 JS／CSS 含 `gamification-page--student`、`weekly-report-page--student`、`speaking-book-card__tally` 與排行榜快取鍵。
@@ -8,7 +17,9 @@
 - 驗證：`MainNavbar.test.jsx` 35 項通過（含新增「已收起頁面無入口」「老師無設定選單」斷言）。**未做畫面實看**：本機預覽登入的是學生帳號，無法看教職員選單；需擁有者以管理員帳號確認。
 - 後續（未做）：管理首頁與各管理頁面的版面精簡，需擁有者逐頁確認用途後分批進行。
 
-### 主網域掛載 Alan 工具箱公開頁（2026-10-12，分支 `feature/toolbox-proxy`，待擁有者說「幫我合併」）
+### 主網域掛載 Alan 工具箱公開頁（2026-10-12，已發布）
+
+- 發布紀錄：PR #539 合併為 main `3db37dfb`，Cloudflare 部署完成。正式站實測 `alanenglish.com.tw/zh-tw/`、`/zh-tw/math/gcd-calculator/`、`/sitemap-index.xml`、`/_astro/*` 皆由工具箱回應 200，`/zh-tw` 301 至 `/zh-tw/`；`/`、`/login`、`/links`、`/ads.txt`、`/api/basic-reading/catalog` 正常。工具箱 repo 已把 canonical 與 sitemap 改為主網域（commit `63a7ab1`）。擁有者已於 AdSense 後台要求複查，狀態為「正在接受審查」。
 
 - 背景：AdSense 以「缺乏價值的內容」拒絕 `alanenglish.com.tw`；主網域可索引頁僅 `/` 與 `/links`。工具箱（另一個 repo `teacher-toolbox`，Astro 靜態站，Netlify 部署於 `tools.alanenglish.com.tw`）有約 90 個繁中工具頁與 24 篇文章。
 - 修改：`worker/index.mjs` 新增 `isToolboxPath`／`handleToolbox`，只對 GET／HEAD 且路徑為工具箱語系前綴（`/zh-tw/`、`/en/` 等 12 個）、`/_astro/*`、`/sitemap-index.xml`、`/sitemap-0.xml` 與 4 個工具箱靜態檔的請求，轉送到 `https://tools.alanenglish.com.tw`；不轉送 Cookie 與 Authorization；上游轉址改寫回主網域；上游失敗回 502。其餘路徑行為不變。`public/robots.txt` 新增工具箱 sitemap。

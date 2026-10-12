@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import worker, { BASIC_READING_COLLECTIONS, isToolboxPath } from "./index.mjs";
+import { readFile } from "node:fs/promises";
+import worker, { BASIC_READING_COLLECTIONS, isToolboxPath, PUBLIC_SEO_ASSETS, seoAssetPathFor } from "./index.mjs";
 
 const secret = "test-only-basic-reading-secret";
 
@@ -164,4 +165,33 @@ test("toolbox upstream failure returns 502 and non-toolbox paths still use asset
     });
     assert.equal(await assetResponse[0].text(), "asset");
     assert.equal(await assetResponse[1].text(), "asset");
+});
+
+test("public SEO routes match publicSeo.json and the generated asset names", async () => {
+    const publicSeo = JSON.parse(await readFile(new URL("../src/config/publicSeo.json", import.meta.url), "utf8"));
+    const expected = Object.fromEntries(Object.keys(publicSeo)
+        .filter(route => route !== "/")
+        .map(route => [route, `/seo-${route.slice(1).replaceAll("/", "-")}`]));
+    assert.deepEqual({ ...PUBLIC_SEO_ASSETS }, expected);
+});
+
+test("app routes read the noindex shell while the home page, files and APIs are untouched", () => {
+    assert.equal(seoAssetPathFor("/links"), "/seo-links");
+    assert.equal(seoAssetPathFor("/links/"), "/seo-links");
+    for (const pathname of ["/login", "/student/dashboard", "/shop/cart", "/install", "/basic-reading/400", "/unknown-page"]) {
+        assert.equal(seoAssetPathFor(pathname), "/noindex", pathname);
+    }
+    for (const pathname of ["/", "/ads.txt", "/sitemap.xml", "/manifest.json", "/static/js/main.abc.js", "/web-push-sw.js", "/og-image.png", "/api/other", "/noindex", "/seo-links"]) {
+        assert.equal(seoAssetPathFor(pathname), null, pathname);
+    }
+});
+
+test("worker serves the SEO and noindex assets for matching GET requests only", async () => {
+    const requested = [];
+    const env = { ...createEnv(), ASSETS: { fetch: async request => { requested.push(`${request.method} ${new URL(request.url).pathname}`); return new Response("asset"); } } };
+    await worker.fetch(new Request("https://alanenglish.com.tw/links"), env);
+    await worker.fetch(new Request("https://alanenglish.com.tw/login?next=%2Fhome"), env);
+    await worker.fetch(new Request("https://alanenglish.com.tw/"), env);
+    await worker.fetch(new Request("https://alanenglish.com.tw/login", { method: "POST" }), env);
+    assert.deepEqual(requested, ["GET /seo-links", "GET /noindex", "GET /", "POST /login"]);
 });

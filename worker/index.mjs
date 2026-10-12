@@ -218,6 +218,21 @@ const handleToolbox = async (request, url) => {
     return response;
 };
 
+// 對應 scripts/generate-static-seo-pages.mjs 產生的靜態 SEO HTML；key 必須與 src/config/publicSeo.json 一致（首頁除外）。
+export const PUBLIC_SEO_ASSETS = Object.freeze({ "/links": "/seo-links" });
+const NOINDEX_ASSET = "/noindex";
+const HAS_FILE_EXTENSION = /\.[A-Za-z0-9]+$/;
+
+// 回傳要改讀的靜態資產路徑；null 代表維持原本的資產與 SPA 行為。
+export const seoAssetPathFor = pathname => {
+    const route = pathname.length > 1 ? pathname.replace(/\/+$/, "") : pathname;
+    if (route === "" || route === "/") return null;
+    if (PUBLIC_SEO_ASSETS[route]) return PUBLIC_SEO_ASSETS[route];
+    if (HAS_FILE_EXTENSION.test(route) || route.startsWith("/static/") || route.startsWith("/api/")) return null;
+    if (route === NOINDEX_ASSET || Object.values(PUBLIC_SEO_ASSETS).includes(route)) return null;
+    return NOINDEX_ASSET;
+};
+
 export const worker = {
     async fetch(request, env) {
         const url = new URL(request.url);
@@ -234,6 +249,11 @@ export const worker = {
 
         if ((request.method === "GET" || request.method === "HEAD") && isToolboxPath(url.pathname)) {
             return handleToolbox(request, url);
+        }
+
+        if (request.method === "GET" || request.method === "HEAD") {
+            const seoAssetPath = seoAssetPathFor(url.pathname);
+            if (seoAssetPath) return env.ASSETS.fetch(new Request(new URL(seoAssetPath, url), request));
         }
 
         return env.ASSETS.fetch(request);
