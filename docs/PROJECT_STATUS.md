@@ -1,5 +1,11 @@
 # Alan English 專案狀態
 
+### 學生導覽列新增「作業」（2026-10-12，分支 `feature/student-nav-assignments`，待擁有者說「幫我合併」）
+
+- PR #548 已於 2026-10-12 發布：Workers Builds 成功；正式站含 `weekly-student__tiles`、`/student/notification-settings`、`account-security__title` 與新版導覽。學生畫面仍待擁有者實機確認。
+- 純前端：`StudentNavbar.jsx` 於 `features.assignments === true` 的有效會員顯示「作業」（底部與桌面），`/student/assignments` 不再點亮「我的進度」；圖示色塊 `is-homework`。權限仍由後端判斷，入口僅為顯示。
+- 驗證：`MainNavbar.test.jsx` 35 項通過（含四個入口順序、非英文班學生無「作業」）。未驗：實際畫面（預覽視窗為管理員登入）、窄螢幕四個按鈕的間距、iPhone Safari。
+
 ### 通知設定獨立、帳號與會員頁精簡、使用教學重寫（2026-10-12，分支 `feature/student-settings-pages`，待擁有者說「幫我合併」）
 
 - PR #547 已於 2026-10-12 發布：Workers Builds 成功；正式站含 `ae-growth-header__name`、`100dvh`（11 個 CSS 檔）、`overscroll-behavior-y`。iPhone 實機效果待擁有者回報。

@@ -14,6 +14,7 @@
     &.is-books { background: #dceff5; color: #215474; }
     &.is-adventure { background: #fff0bd; color: #79591d; }
     &.is-profile { background: #fff0bd; color: #17365d; }
+    &.is-homework { background: #dbe8ff; color: #1d4fa8; }
     > img, > .ae-student-avatar-image { width: 100%; height: 100%; object-fit: cover; }
     > svg { width: 21px; height: 21px; stroke-width: 2.5; }
 }

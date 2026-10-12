@@ -854,3 +854,6 @@ button.ae-student-account-link:focus-visible { outline: 3px solid #245fc5; outli
 // A page that fits on the screen should stay put: no rubber-band drag when there is nothing
 // below. Pages longer than the screen still scroll normally.
 html:has(.ae-student-navbar) { overscroll-behavior-y: none; }
+
+// Four entries (with 作業) still fit a narrow phone: the items share the width evenly.
+@media (max-width: 1279px) { .ae-student-bottom-nav > a, .ae-student-bottom-nav > button { min-width: 0; padding-inline: 4px; } }
