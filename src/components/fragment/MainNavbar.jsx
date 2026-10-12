@@ -14,6 +14,7 @@ import { FiAward, FiBarChart2, FiBell, FiBookOpen, FiCreditCard, FiGift, FiHelpC
 import { HiOutlineBars3 } from "react-icons/hi2";
 import Brand from "./Brand";
 import useStudentPageQuery from "../../hooks/useStudentPageQuery";
+import useStudentWarmup from "../../hooks/useStudentWarmup";
 import { useAuth } from "../../auth/AuthContext";
 import { getRoleHome } from "../../auth/RoleHomeRedirect";
 import { getAccessibleCatalog } from "../../services/contentAccessService";
@@ -87,6 +88,7 @@ function MainNavbar() {
     const classMaterialsPath = isAdmin ? "/admin/class-materials" : "/teacher/class-materials";
     const isStudent = role === "student";
     const catalogQuery = useStudentPageQuery("catalog", () => getAccessibleCatalog(firebaseUser), { enabled: Boolean(firebaseUser) });
+    useStudentWarmup(isStudent ? catalogQuery.data : null);
     const summaryQuery = useStudentPageQuery("summary", () => getGamificationSummary(firebaseUser), { enabled: Boolean(firebaseUser && isStudent) });
     const categories = catalogQuery.data?.categories || EMPTY_LIST;
     const loading = catalogQuery.loading;

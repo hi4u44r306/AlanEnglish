@@ -25,15 +25,14 @@ describe("speaking return and completion flow", () => {
         getSpeakingChallengeCatalog.mockResolvedValue({ challenges: [] });
     });
     afterEach(() => { window.matchMedia = originalMatchMedia; });
-    it("朗讀關卡從舊挑戰網址進入，回到單一練習與原通關紀錄", async () => {
+    it("朗讀關卡保留網址上的挑戰模式，並以照念方式練習", async () => {
         getSpeakingChallengeSet.mockResolvedValue({ challenge: { ...fixture, generation_metadata: { interaction_type: "standard_sentence" } } });
         mount("challenge");
         const practice = await screen.findByRole("button", { name: "通過本題" });
-        expect(practice).toHaveAttribute("data-mode", "easy");
+        expect(practice).toHaveAttribute("data-mode", "challenge");
         expect(practice).toHaveAttribute("data-reading", "true");
-        expect(practice).toHaveAttribute("data-answer", "false");
-        expect(screen.getByTestId("route")).toHaveTextContent("?mode=easy");
-        expect(getSpeakingChallengeSet).toHaveBeenLastCalledWith(mockUser, 7, "easy");
+        expect(screen.getByTestId("route")).toHaveTextContent("?mode=challenge");
+        expect(getSpeakingChallengeSet).toHaveBeenLastCalledWith(mockUser, 7, "challenge");
     });
     it.each([
         [[], false],
@@ -48,14 +47,14 @@ describe("speaking return and completion flow", () => {
         expect(practice).toHaveAttribute("data-mode", "challenge");
         expect(practice).toHaveAttribute("data-reading", String(reading));
     });
-    it.each(["letter_spelling", "standard_sentence"])("%s 摘要只顯示開始練習與完成進度", async type => {
+    it.each(["letter_spelling", "standard_sentence"])("%s 摘要提供自由練習與計入通關的挑戰", async type => {
         getSpeakingChallengeCatalog.mockResolvedValue({ challenges: [{ ...fixture, book: fixture.books,
             generation_metadata: { interaction_type: type }, source_pages: [11], question_count: 1, completed_count: 0, is_unlocked: true }] });
         render(<MemoryRouter initialEntries={["/student/speaking-challenges/book/book-1"]}><Routes><Route path="/student/speaking-challenges/book/:bookKey" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
         fireEvent.click(await screen.findByRole("button", { name: /P.11，/ }));
-        expect(screen.getByRole("button", { name: "開始練習" })).toBeInTheDocument();
-        expect(screen.getByRole("dialog")).toHaveTextContent("完成進度");
-        expect(screen.queryByRole("button", { name: /挑戰 ·/ })).not.toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "自由練習" })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: /挑戰 ·/ })).toBeInTheDocument();
+        expect(screen.getByRole("dialog")).toHaveTextContent("挑戰通過");
     });
     it("通關星星只是慶祝裝飾，完成文案與實際獎勵分開", async () => {
         completeSpeakingChallengeQuestion.mockResolvedValue({ challenge_completed: true, xp_awarded: 30, ae_points_awarded: 3 });
@@ -83,7 +82,7 @@ describe("speaking return and completion flow", () => {
         const practice = screen.getByRole("button", { name: "通過本題" });
         expect(practice.getAttribute("data-session")).not.toBe(oldSession);
         fireEvent.click(practice);
-        await screen.findByRole("dialog", { name: "闖關成功！" });
+        await screen.findByRole("dialog", { name: mode === "easy" ? "練習完成！" : "闖關成功！" });
         expect(completeSpeakingChallengeQuestion).toHaveBeenCalledTimes(1);
         expect(completeSpeakingChallengeQuestion.mock.calls[0][2]).toBe(9);
     });
@@ -96,12 +95,12 @@ describe("speaking return and completion flow", () => {
         expect(screen.getByTestId("route")).toHaveTextContent("|7");
         expect(completeSpeakingChallengeQuestion).not.toHaveBeenCalled();
     });
-    it.each(["easy", "challenge"])("%s completion uses the response awards", async mode => {
-        completeSpeakingChallengeQuestion.mockResolvedValue({ success: true, challenge_completed: true, xp_awarded: mode === "easy" ? 30 : 0, ae_points_awarded: mode === "easy" ? 3 : 0 });
+    it.each(["easy", "challenge"])("%s completion shows XP for the challenge only, and never AE Points", async mode => {
+        completeSpeakingChallengeQuestion.mockResolvedValue({ success: true, challenge_completed: true, xp_awarded: 30, ae_points_awarded: 3 });
         mount(mode); fireEvent.click(await screen.findByRole("button", { name: "通過本題" }));
-        await screen.findByRole("dialog", { name: "闖關成功！" });
-        expect(screen.getByLabelText(`本次獲得 ${mode === "easy" ? 30 : 0} XP`)).toBeInTheDocument();
-        expect(screen.getByLabelText(`本次獲得 ${mode === "easy" ? 3 : 0} AE Points`)).toBeInTheDocument();
+        await screen.findByRole("dialog", { name: mode === "easy" ? "練習完成！" : "闖關成功！" });
+        expect(screen.getByLabelText(`本次獲得 ${mode === "easy" ? 0 : 30} XP`)).toBeInTheDocument();
+        expect(screen.queryByLabelText(/AE Points/)).not.toBeInTheDocument();
         expect(completeSpeakingChallengeQuestion).toHaveBeenCalledTimes(1);
         expect(completeSpeakingChallengeQuestion.mock.calls[0][3]).toBe(mode);
     });
@@ -126,7 +125,7 @@ describe("speaking return and completion flow", () => {
         mount();
         const finish = await screen.findByRole("button", { name: type === "picture_gap_sentence" ? "完成圖片頁" : "完成字母頁" });
         await act(async () => fireEvent.click(finish));
-        expect(screen.getByRole("dialog", { name: "闖關成功！" })).toBeInTheDocument();
+        expect(screen.getByRole("dialog", { name: "練習完成！" })).toBeInTheDocument();
     });
     it("staff can preview the completion without recording or awarding rewards", async () => {
         mockRole = "teacher"; mount();
@@ -161,12 +160,12 @@ describe("speaking return and completion flow", () => {
         await screen.findByRole("heading", { name: "地圖已返回" });
         expect(screen.getByTestId("route")).toHaveTextContent("/student/speaking-challenges/book/book-1");
     });
-    it("next navigation uses the newly unlocked catalog and keeps the mode", async () => {
+    it("next navigation after a challenge pass uses the newly unlocked catalog", async () => {
         completeSpeakingChallengeQuestion.mockResolvedValue({ challenge_completed: true, xp_awarded: 30, ae_points_awarded: 3 });
         getSpeakingChallengeCatalog.mockResolvedValue({ challenges: [fixture, { id: 8, title: "P14", books: fixture.books, sequence_order: 2, is_unlocked: true }] });
-        mount(); fireEvent.click(await screen.findByRole("button", { name: "通過本題" }));
+        mount("challenge"); fireEvent.click(await screen.findByRole("button", { name: "通過本題" }));
         fireEvent.click(await screen.findByRole("button", { name: "前往下一關" }));
-        await waitFor(() => expect(screen.getByTestId("route")).toHaveTextContent("/student/speaking-challenges/8|?mode=easy"));
+        await waitFor(() => expect(screen.getByTestId("route")).toHaveTextContent("/student/speaking-challenges/8|?mode=challenge"));
         expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
 });

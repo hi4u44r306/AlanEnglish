@@ -1,5 +1,15 @@
 # Alan English 專案狀態
 
+### 三頁精簡、口說流程測試修復（2026-10-12，分支 `feature/daily-goal-and-tidy`，待擁有者說「幫我合併」）
+
+- 純前端，無後端變更。PR #536（頂端列頭貼）已於 2026-10-12 發布，Workers Builds 成功、正式站含 `ae-growth-header__mark has-avatar`。
+- 測試修復：`SpeakingChallengeFlow.test.jsx` 原 9 項（加上 AE Points 收起後共 10 項）失敗，原因是 `c58a8ab6`（僅挑戰模式計通關）之後測試未更新：朗讀關卡不再強制改為 easy、關卡摘要同時提供自由練習與挑戰、easy 完成標題為「練習完成！」、下一關僅在挑戰通過後提供。已改為現行行為，22 項通過；未改任何元件。
+- 每日小目標：曾實作「今天聽了 n / 3 首」，擁有者實看後認為用處不大，已於同分支移除（相關檔案還原為 main 版本）。
+- `SpeakingBookCard.jsx` 新增 `speaking-book-card__tally`，其餘以 `SpeakingMinimalLevel.scss` 隱藏；新增 `css/StudentPagesMinimal.scss`，以 `gamification-page--student`／`weekly-report-page--student` 限定學生視角精簡排行榜與每週報告。
+- 換頁速度：新增 `hooks/useStudentWarmup.js`（由 `MainNavbar` 以學生目錄呼叫）：閒置時預載 `StudentAssignments`／`TextbookSpeakingChallenge`／`WeeklyReport` 的 chunk，並以既有 `studentPageCache` 預抓 `leaderboard:{class|overall}:week` 與最多 8 本未鎖教材的 `book:{code}`（最近聆聽者優先、逐一請求、已有快取不重抓）。`LearningLeaderboard.jsx` 學生視角改為先顯示快取再強制更新。未改後端與權限：每個請求與頁面本身發出的相同。實測（本機、測試學生）：排行榜「載入中」由約 0.7–0.8 秒降為 0。
+- 驗證：相關測試通過（數字見對話回報）；本機測試學生實看 375 寬的口說教材卡片、排行榜、每週報告（週次切換原為白字白底，已修）。未驗：1440 桌面、iPhone Safari。
+- 未做：家長每週報告自動寄送的開關仍為關閉，需擁有者於管理後台先手動寄一封測試信再開啟。
+
 ### 頂端列顯示學生頭貼（2026-10-12，分支 `feature/header-avatar`，待擁有者說「幫我合併」）
 
 - 純前端：`StudentGrowthHeader.jsx` 的 `ae-growth-header__mark` 只在有 `avatarUrl` 時渲染 `StudentAvatarImage`（無頭貼不顯示圖案；1280px 以上隱藏，因桌面帳號區已有頭貼）。`StudentNavbar.jsx` 的「我的進度」按鈕圖示由頭貼改為 `FiTrendingUp`。
