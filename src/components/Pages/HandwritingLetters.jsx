@@ -24,7 +24,7 @@ const GLYPHS = {
     P: [10.75, "M0 20 V0 H5.5 A5.25 5.25 0 0 1 5.5 10.5 H0"],
     Q: [20.5, "M0 10 A10 10 0 1 0 20 10 A10 10 0 1 0 0 10 M12 13 L20.5 21"],
     R: [11.5, "M0 20 V0 H5.5 A5.25 5.25 0 0 1 5.5 10.5 H0 M5.5 10.5 L11.5 20"],
-    S: [12, "M10.8 3 A5.3 5 0 1 0 6 10 A5.5 5 0 1 1 1 17.2"],
+    S: [12, "M10.7 4.3 C10.1 1.7 8.2 0 6 0 C3.1 0 1.1 2 1.1 4.9 C1.1 8 3.6 9.2 6 10 C8.6 10.9 11.2 12 11.2 15.1 C11.2 18 9 20 6 20 C3.4 20 1.4 18.3 0.8 15.6"],
     T: [13, "M0 0 H13 M6.5 0 V20"],
     U: [12, "M0 0 V14 A6 6 0 0 0 12 14 V0"],
     V: [14, "M0 0 L7 20 L14 0"],
@@ -50,8 +50,8 @@ const GLYPHS = {
     p: [10, "M0 10 V30 M0 15 A5 5 0 1 0 10 15 A5 5 0 1 0 0 15"],
     q: [10, "M0 15 A5 5 0 1 0 10 15 A5 5 0 1 0 0 15 M10 10 V30"],
     r: [6.5, "M0 10 V20 M0 14.5 Q0.5 10.2 6.5 10.6"],
-    s: [7, "M6.3 11.5 A3.2 2.5 0 1 0 3.5 15 A3.2 2.5 0 1 1 0.7 18.5"],
-    t: [6.5, "M3 3.5 V20 M0 10 H6.5"],
+    s: [6.8, "M5.9 12.2 C5.6 10.9 4.6 10 3.4 10 C1.8 10 0.7 11 0.7 12.5 C0.7 14.1 2.1 14.6 3.4 15 C4.8 15.4 6.2 16 6.2 17.5 C6.2 19 5 20 3.4 20 C2 20 0.9 19.2 0.5 17.8"],
+    t: [7.4, "M3 3.5 V16.8 Q3 20 6 20 Q6.8 20 7.4 19.5 M0 10 H6.5"],
     u: [9, "M0 10 V15.5 A4.5 4.5 0 0 0 9 15.5 M9 10 V20"],
     v: [9, "M0 10 L4.5 20 L9 10"],
     w: [14, "M0 10 L3.5 20 L7 10 L10.5 20 L14 10"],
@@ -66,7 +66,7 @@ function Letter({ character }) {
     const [width, path, dots = []] = GLYPHS[character];
     return <svg className="handwriting-letter" viewBox={`${-PAD} -2 ${width + PAD * 2} 34`} aria-hidden="true" focusable="false">
         <path d={path} fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" />
-        {dots.map(([x, y]) => <circle key={`${x}-${y}`} cx={x} cy={y} r="1.05" fill="currentColor" />)}
+        {dots.map(([x, y]) => <circle key={`${x}-${y}`} cx={x} cy={y} r="1.35" fill="currentColor" />)}
     </svg>;
 }
 

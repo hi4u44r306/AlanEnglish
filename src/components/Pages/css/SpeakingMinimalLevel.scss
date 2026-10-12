@@ -265,7 +265,7 @@ body.speaking-challenge-active .speaking-practice-flow .speaking-help-toggle { j
 body.speaking-challenge-active .speaking-alphabet-list span { overflow: hidden; align-items: center !important; min-height: 0 !important; padding: 7px 0 !important; color: #17365d; }
 body.speaking-challenge-active .speaking-alphabet-list span.heard { color: #146c43; }
 body.speaking-challenge-active .speaking-alphabet-list .handwriting-paper {
-  --paper-line: #c5cfdb; --paper-base: #1fa58a;
+  --paper-line: #e3e9f0; --paper-base: #b5e2d6;
   display: flex; align-items: stretch; justify-content: center; gap: 5%; box-sizing: border-box; width: 100%; aspect-ratio: 46 / 34; max-height: 78px;
   background:
     linear-gradient(var(--paper-line), var(--paper-line)) 0 calc(100% * 2 / 34) / 100% 1.5px no-repeat,
@@ -274,4 +274,4 @@ body.speaking-challenge-active .speaking-alphabet-list .handwriting-paper {
     linear-gradient(var(--paper-line), var(--paper-line)) 0 calc(100% * 32 / 34) / 100% 1.5px no-repeat;
 }
 body.speaking-challenge-active .speaking-alphabet-list .handwriting-letter { flex: none; height: 100%; width: auto; overflow: visible; }
-body.speaking-challenge-active .speaking-alphabet-list .handwriting-letter path { stroke-width: 1.6; }
+body.speaking-challenge-active .speaking-alphabet-list .handwriting-letter path { stroke-width: 2.3; }
