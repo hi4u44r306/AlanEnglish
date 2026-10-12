@@ -24,7 +24,7 @@ test("shows the lesson, its three steps and no video request until asked", () =>
 test("speaking practice hides the answer until the learner has tried, then moves on", () => {
     renderPage();
     expect(screen.getByText("What color is the apple?")).toBeInTheDocument();
-    expect(document.querySelector(".trial-lesson__picture svg.trial-lesson__drawing")).toBeInTheDocument();
+    expect(document.querySelector(".trial-lesson__picture img.trial-lesson__drawing")).toHaveAttribute("src", "/trial/apple.png");
     expect(screen.queryByText("red")).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "看答案" }));
     expect(screen.getByText("red")).toHaveClass("is-shown");
