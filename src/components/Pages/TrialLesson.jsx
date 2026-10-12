@@ -3,6 +3,7 @@ import { Helmet } from "react-helmet";
 import { Link } from "react-router-dom";
 import { FiArrowRight, FiCheck, FiHeadphones, FiMic, FiPlayCircle, FiSquare, FiVolume2 } from "react-icons/fi";
 import useTrialSpeaking from "../../hooks/useTrialSpeaking";
+import TrialPicture from "./TrialPictures";
 import "./css/TrialLesson.scss";
 
 // One free lesson, open to anyone: Workbook 1, page 28, colours. Everything on this page is
@@ -12,17 +13,17 @@ const VIDEO_ID = "IgMCnPvCHyI";
 const VIDEO_START = 886;
 export const SAMPLE_AUDIO = "/samples/workbook-1-p28.mp3";
 
-// Each question shows the thing itself, so the child names the colour they can see. The tile
-// behind the picture is chosen so that pale things (a cloud, grey hair) still stand out.
+// Each question shows a drawing of the thing itself (TrialPictures), so the child names the
+// colour they can see.
 export const COLOUR_QUESTIONS = [
-    { id: "apple", thing: "apple", zh: "蘋果", answer: "red", picture: "🍎", tile: "#fdecea" },
-    { id: "banana", thing: "banana", zh: "香蕉", answer: "yellow", picture: "🍌", tile: "#eef4fb" },
-    { id: "forest", thing: "forest", zh: "森林", answer: "green", picture: "🌳", tile: "#eaf6ec" },
-    { id: "sky", thing: "sky", zh: "天空", answer: "blue", picture: "☀️", tile: "#4aa3f0" },
-    { id: "eggplant", thing: "eggplant", zh: "茄子", answer: "purple", picture: "🍆", tile: "#f3eaf7" },
-    { id: "cloud", thing: "cloud", zh: "雲", answer: "white", picture: "☁️", tile: "#6f9fd1" },
-    { id: "coffee", thing: "coffee", zh: "咖啡", answer: "brown", picture: "☕", tile: "#f4ece6" },
-    { id: "hair", thing: "old man's hair", zh: "老爺爺的頭髮", answer: "gray", picture: "👴", tile: "#eef4fb" }
+    { id: "apple", thing: "apple", zh: "蘋果", answer: "red" },
+    { id: "banana", thing: "banana", zh: "香蕉", answer: "yellow" },
+    { id: "forest", thing: "forest", zh: "森林", answer: "green" },
+    { id: "sky", thing: "sky", zh: "天空", answer: "blue" },
+    { id: "eggplant", thing: "eggplant", zh: "茄子", answer: "purple" },
+    { id: "cloud", thing: "cloud", zh: "雲", answer: "white" },
+    { id: "coffee", thing: "coffee", zh: "咖啡", answer: "brown" },
+    { id: "hair", thing: "old man's hair", zh: "老爺爺的頭髮", answer: "gray" }
 ];
 
 const questionText = item => `What color is the ${item.thing}?`;
@@ -115,7 +116,7 @@ export default function TrialLesson() {
                 <h2 id="trial-speak-title"><span>3</span>自己說</h2>
                 <div className="trial-lesson__card" ref={cardRef} tabIndex={-1} aria-live="polite">
                     <span className="trial-lesson__count">{index + 1} / {COLOUR_QUESTIONS.length}</span>
-                    <span className={`trial-lesson__picture${item.id === "sky" ? " is-sky" : ""}`} style={{ background: item.tile }} aria-hidden="true">{item.picture}</span>
+                    <span className="trial-lesson__picture"><TrialPicture id={item.id} /></span>
                     <p className="trial-lesson__question">{questionText(item)}</p>
                     <p className="trial-lesson__answer">
                         It&apos;s <b className={answered ? "is-shown" : ""}>{answered ? item.answer : "＿＿＿"}</b>.
