@@ -1,5 +1,15 @@
 # Alan English 專案狀態
 
+### 免費試聽一課 `/try`、家長介紹頁 `/parents` 草稿（2026-10-12，分支 `feature/free-trial-lesson`，草稿、未合併）
+
+- PR #540（後台選單）已合併至 `main`（merge `16526f16`），先與 #539 的文件衝突合併解決。
+- 背景：擁有者想對外開放、吸引非英文班家長；討論後先以「單一免費試聽單元」驗證需求，暫不改收費與權限模型。擁有者同意以 Workbook 1 P28「顏色」為試聽內容。
+- 純前端、無後端：`Pages/TrialLesson.jsx`、`css/TrialLesson.scss`、測試；`App.jsx` 新增公開路由 `/try`（lazy）。影片用 `youtube-nocookie` 嵌入、點擊後才載入；口說為自我練習（不錄音、不評分），題目文字取自已發布題組並內嵌於頁面。尚無任何入口連結。
+- 擁有者回覆（2026-10-12）：音檔「直接從我的電腦中找」→ 採用 `D:彬的檔案AlanEnglish 檔案Workbook 1-5 最新MP3 (2026-09-28)Workbook 1-p28.mp3`（與「單頁MP3草稿」資料夾的 `Workbook_1_P28.mp3` 內容相同，3,998,210 bytes），複製為 `public/samples/workbook-1-p28.mp3`。注意：正式站 R2 的同名音檔為 4,404,096 bytes、etag 不同，**不是同一個版本**，待擁有者確認內容。口說改為「可錄音評分、用本機辨識」；新增家長介紹頁。
+- 資料修正（已套用正式庫，擁有者同意）：`speaking_questions.id = 231`（Workbook 1「P28 顏色」第 7 題）的 `simple_answer`／`model_answer` 由 `pruple` 改為 `purple`；修正後全庫已無 `pruple`，既有 TTS 資產文字不含該錯字。第 6 題「African berry … blue」語意仍待擁有者確認。
+- 口說錄音：新增 `hooks/useTrialSpeaking.js`，沿用 `localSpeakingRecognizer`（whisper-tiny.en，於裝置上執行）與 `convertAudioBlobToWav`；最多錄 6 秒，辨識文字含目標單字即通過，不呼叫後端。新增 `Pages/ParentGuide.jsx`、`css/ParentGuide.scss`、路由 `/parents`。
+- 驗證：`TrialLesson.test.jsx`、`ParentGuide.test.jsx` 共 9 項通過；本機 375 寬實看兩頁首屏、試聽音檔可載入（約 167 秒）。**未驗**：實際錄音與辨識（需麥克風）、影片播放、桌面寬度、iPhone Safari。家長頁提到「每週一封 Email」——目前自動寄送仍為關閉，上線前需開啟或改文案。
+
 ### 後台選單整理（2026-10-12，分支 `feature/admin-nav-tidy`，待擁有者說「幫我合併」）
 
 - PR #538 已於 2026-10-12 發布：Workers Builds 成功，正式站 JS／CSS 含 `gamification-page--student`、`weekly-report-page--student`、`speaking-book-card__tally` 與排行榜快取鍵。
