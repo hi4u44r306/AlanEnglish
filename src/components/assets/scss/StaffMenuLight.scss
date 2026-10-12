@@ -1,0 +1,48 @@
+// The teacher / admin menu in the same calm, light style as the student settings menu:
+// pale sheet, white groups, readable group titles. Loaded after Navigation.scss and scoped to
+// the signed-in staff drawer, so the public menu is unaffected.
+.ae-mobile-offcanvas.is-staff {
+  background: #f7f9fc !important;
+  color: #17365d !important;
+
+  .offcanvas-header { background: #f7f9fc !important; border-bottom: 0 !important; color: #17365d !important; }
+  .ae-mobile-brand-mark { background: #ffd84d !important; color: #17365d !important; box-shadow: none !important; }
+  .ae-mobile-brand-copy strong { color: #17365d !important; }
+  .ae-mobile-brand-copy small { color: #526780 !important; font-size: 13px !important; font-weight: 700 !important; letter-spacing: 0 !important; }
+  .offcanvas-header .btn-close { filter: none !important; opacity: 1 !important; border-radius: 50% !important; background-color: #e6edf5 !important; }
+
+  .offcanvas-body { display: flex; flex-direction: column; gap: 14px; overflow-y: auto; padding: 4px 16px max(20px, env(safe-area-inset-bottom)) !important; background: #f7f9fc !important; }
+
+  // Who is signed in: one quiet line, not a banner.
+  .ae-mobile-profile { margin: 0 !important; padding: 10px 14px !important; border: 1px solid #d5e3f0 !important; border-radius: 16px !important; background: #fff !important; box-shadow: none !important; color: #17365d !important; }
+  .ae-mobile-profile strong { color: #17365d !important; font-size: 17px !important; }
+  .ae-mobile-profile span { color: #526780 !important; }
+  .ae-mobile-avatar { background: #dbe8ff !important; color: #1d4fa8 !important; box-shadow: none !important; }
+
+  // One white card per group.
+  .ae-mobile-profile, .ae-mobile-section, .ae-mobile-logout { flex: 0 0 auto; }
+  .ae-mobile-section { margin: 0 !important; padding: 0 !important; overflow: hidden; border: 1px solid #d5e3f0 !important; border-radius: 18px !important; background: #fff !important; box-shadow: none !important; }
+  .ae-mobile-section-title { display: block; margin: 0 !important; padding: 12px 16px 4px !important; color: #526780 !important; font-size: 14px !important; font-weight: 800 !important; letter-spacing: 0 !important; text-transform: none !important; }
+  .ae-mobile-section > a,
+  .ae-mobile-section > button { display: flex !important; align-items: center; gap: 14px; width: 100%; min-height: 56px; margin: 0 !important; padding: 8px 16px !important; border: 0 !important; border-radius: 0 !important; background: none !important; box-shadow: none !important; color: #17365d !important; font-size: 17px !important; font-weight: 700 !important; text-align: left; text-decoration: none; }
+  .ae-mobile-section > a + a,
+  .ae-mobile-section > a + button,
+  .ae-mobile-section > button + a,
+  .ae-mobile-section > button + button { border-top: 1px solid #e6edf5 !important; }
+  .ae-mobile-section > a > svg,
+  .ae-mobile-section > button > svg { flex-shrink: 0; width: 22px; height: 22px; color: #245fc5 !important; }
+  .ae-mobile-section > a > span,
+  .ae-mobile-section > button > span { color: inherit !important; }
+  .ae-mobile-section > a:hover,
+  .ae-mobile-section > button:hover { background: #f5f8fc !important; }
+  .ae-mobile-section > a.active { background: #fff6d6 !important; color: #17365d !important; }
+  .ae-mobile-section > a:focus-visible,
+  .ae-mobile-section > button:focus-visible { outline: 3px solid #245fc5 !important; outline-offset: -3px; }
+
+  // The book list keeps its own cards; it only needs room inside the group.
+  .ae-mobile-section.ae-staff-materials { padding: 0 12px 12px !important; }
+  .ae-mobile-section.ae-staff-materials .ae-mobile-section-title { padding-inline: 4px !important; }
+
+  .ae-mobile-logout { min-height: 56px; margin: 0 !important; border: 1px solid #f0c9c4 !important; border-radius: 18px !important; background: #fff !important; box-shadow: none !important; color: #b3261e !important; font-size: 17px !important; font-weight: 700 !important; }
+  .ae-mobile-logout svg { color: #b3261e !important; }
+}
