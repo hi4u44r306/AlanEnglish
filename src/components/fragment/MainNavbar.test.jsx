@@ -484,12 +484,13 @@ describe("MainNavbar student navigation", () => {
         getAccessibleCatalog.mockResolvedValue({ categories: [] });
         render(<MemoryRouter initialEntries={[`/${role}/dashboard`]}><MainNavbar /></MemoryRouter>);
         const coachName = "發音教練示範";
+        fireEvent.click(await screen.findByRole("button", { name: "教材" }));
         expect(screen.getByRole("link", { name: coachName })).toHaveAttribute("href", "/student/pronunciation");
         fireEvent.click(screen.getByRole("button", { name: "開啟全部功能選單" }));
         expect(await screen.findAllByRole("link", { name: coachName })).toHaveLength(2);
     });
 
-    it("shows one music-management link and the links admin entry to admins", async () => {
+    it("gives admins 學生／作業／教材／設定 and no entry for switched-off pages", async () => {
         useAuth.mockReturnValue({
             firebaseUser: { uid: "admin-test" },
             role: "admin",
@@ -500,23 +501,25 @@ describe("MainNavbar student navigation", () => {
         getAccessibleCatalog.mockResolvedValue({ categories: [] });
 
         render(<MemoryRouter initialEntries={["/admin/dashboard"]}><MainNavbar /></MemoryRouter>);
+        expect(screen.getByRole("link", { name: "作業" })).toHaveAttribute("href", "/teacher/assignments");
+        fireEvent.click(screen.getByRole("button", { name: "教材" }));
         expect(screen.getByRole("link", { name: "口說大挑戰預覽" })).toHaveAttribute("href", "/student/speaking-challenges");
-        fireEvent.click(screen.getByRole("button", { name: "音檔" }));
 
         const musicManagementLink = screen.getByRole("link", { name: "音檔管理" });
         expect(musicManagementLink).toHaveAttribute("href", "/teacher/music/manage");
         expect(screen.queryByRole("link", { name: "建立音檔" })).not.toBeInTheDocument();
 
-        const linksAdminEntry = screen.getByRole("link", { name: "新增連結" });
-        expect(linksAdminEntry).toHaveAttribute("href", "/admin/links");
-        fireEvent.click(screen.getByRole("button", { name: "系統" }));
-        expect(screen.getByRole("link", { name: "教材 AI 口說題庫" })).toHaveAttribute("href", "/admin/speaking-content");
+        expect(screen.getByRole("link", { name: "口說題庫" })).toHaveAttribute("href", "/admin/speaking-content");
+        fireEvent.click(screen.getByRole("button", { name: "設定" }));
+        expect(screen.getByRole("link", { name: "會員與啟用碼" })).toHaveAttribute("href", "/admin/membership");
+        fireEvent.click(screen.getByRole("button", { name: "學生" }));
+        expect(screen.getByRole("link", { name: "在校／離校管理" })).toHaveAttribute("href", "/admin/student-lifecycle");
 
         fireEvent.click(screen.getByRole("button", { name: "開啟全部功能選單" }));
 
         expect(await screen.findAllByRole("link", { name: "音檔管理" })).toHaveLength(2);
-        expect(screen.getAllByRole("link", { name: "新增連結" })).toHaveLength(2);
-        expect(screen.getAllByRole("link", { name: "教材 AI 口說題庫" })).toHaveLength(2);
+        expect(screen.getAllByRole("link", { name: "口說題庫" })).toHaveLength(2);
+        ["新增連結", "獎品與兌換管理", "教材商品包", "商城訂單與出貨", "等級與晉級測驗", "班級排行榜"].forEach(name => expect(screen.queryByRole("link", { name })).not.toBeInTheDocument());
         expect(screen.queryByRole("link", { name: "建立音檔" })).not.toBeInTheDocument();
     });
 
@@ -536,7 +539,7 @@ describe("MainNavbar student navigation", () => {
 
         render(<MemoryRouter initialEntries={[`/${role}/dashboard`]}><MainNavbar /></MemoryRouter>);
 
-        const materialsMenu = await screen.findByRole("button", { name: "我的教材" });
+        const materialsMenu = await screen.findByRole("button", { name: "教材" });
         fireEvent.click(materialsMenu);
         const materialsDropdown = materialsMenu.closest(".dropdown");
         expect(within(materialsDropdown).queryByText("聽力本")).not.toBeInTheDocument();
@@ -546,7 +549,7 @@ describe("MainNavbar student navigation", () => {
         expect(within(materialsDropdown).getByRole("link", { name: /Workbook 1/ })).toHaveAttribute("href", "/student/books/Workbook_1");
     });
 
-    it("does not show the links admin entry to teachers", async () => {
+    it("keeps admin-only entries out of the teacher menu", async () => {
         useAuth.mockReturnValue({
             firebaseUser: { uid: "teacher-test" },
             role: "teacher",
@@ -558,11 +561,11 @@ describe("MainNavbar student navigation", () => {
 
         render(<MemoryRouter initialEntries={["/teacher/dashboard"]}><MainNavbar /></MemoryRouter>);
         await waitFor(() => expect(screen.queryByText("教材載入中...")).not.toBeInTheDocument());
+        fireEvent.click(screen.getByRole("button", { name: "教材" }));
         expect(screen.getByRole("link", { name: "口說大挑戰預覽" })).toHaveAttribute("href", "/student/speaking-challenges");
-        fireEvent.click(screen.getByRole("button", { name: "音檔" }));
-
         expect(screen.getByRole("link", { name: "音檔管理" })).toHaveAttribute("href", "/teacher/music/manage");
-        expect(screen.queryByRole("link", { name: "新增連結" })).not.toBeInTheDocument();
+        expect(screen.queryByRole("link", { name: "口說題庫" })).not.toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: "設定" })).not.toBeInTheDocument();
     });
 
     it("uses the public nickname and clears the unread badge when notifications are marked read elsewhere", async () => {
@@ -615,7 +618,7 @@ describe("MainNavbar student navigation", () => {
     it.each([["admin", "/admin/class-materials"], ["teacher", "/teacher/class-materials"]])("links %s to the appropriate class materials page in both menus", async (role, path) => {
         useAuth.mockReturnValue({ firebaseUser: { uid: `${role}-test` }, role, isAuthenticated: true, logout: jest.fn(), studentProfile: { name: "教職員" } });
         render(<MemoryRouter><MainNavbar /></MemoryRouter>);
-        fireEvent.click(screen.getByRole("button", { name: "班級與學生" }));
+        fireEvent.click(screen.getByRole("button", { name: "教材" }));
         expect(screen.getByRole("link", { name: "班級教材設定" })).toHaveAttribute("href", path);
         fireEvent.click(screen.getByRole("button", { name: "開啟全部功能選單" }));
         const links = await screen.findAllByRole("link", { name: "班級教材設定" });

@@ -1,5 +1,13 @@
 # Alan English 專案狀態
 
+### 後台選單整理（2026-10-12，分支 `feature/admin-nav-tidy`，待擁有者說「幫我合併」）
+
+- PR #538 已於 2026-10-12 發布：Workers Builds 成功，正式站 JS／CSS 含 `gamification-page--student`、`weekly-report-page--student`、`speaking-book-card__tally` 與排行榜快取鍵。
+- 擁有者決定（2026-10-12）：後台選單改為「學生／作業／教材／設定」；獎品管理、等級與晉級測驗、Boss 預覽、後台排行榜、新增連結「先收起來只要隱藏」。擁有者另表示方向為「完全開放、免費使用，口說只用本機辨識不用付費 AI」——此為方案與權限的重大變更，**尚未實作**，待釐清範圍；據此一併把教材商品包、商城訂單與出貨的入口收起（僅隱藏）。
+- 純前端：只改 `MainNavbar.jsx` 的教職員桌面與手機選單及其測試；路由、頁面、後端與權限未動。教職員頂層不再顯示發音教練示範／口說預覽／AI 教材，改放入「教材」選單；新增「作業」入口。
+- 驗證：`MainNavbar.test.jsx` 35 項通過（含新增「已收起頁面無入口」「老師無設定選單」斷言）。**未做畫面實看**：本機預覽登入的是學生帳號，無法看教職員選單；需擁有者以管理員帳號確認。
+- 後續（未做）：管理首頁與各管理頁面的版面精簡，需擁有者逐頁確認用途後分批進行。
+
 ### 主網域掛載 Alan 工具箱公開頁（2026-10-12，分支 `feature/toolbox-proxy`，待擁有者說「幫我合併」）
 
 - 背景：AdSense 以「缺乏價值的內容」拒絕 `alanenglish.com.tw`；主網域可索引頁僅 `/` 與 `/links`。工具箱（另一個 repo `teacher-toolbox`，Astro 靜態站，Netlify 部署於 `tools.alanenglish.com.tw`）有約 90 個繁中工具頁與 24 篇文章。
@@ -8,6 +16,7 @@
 - 驗證：`node --test worker/index.test.mjs` 10 項通過（含 4 項新增）；`git diff --check` 通過。`scripts/seo-foundation.test.mjs` 有 2 項因本機沒有 `build/` 而失敗，與本次修改無關，未執行 Production build。
 - 未驗：Worker 實際對同一 Cloudflare zone 的子網域發出 subrequest 是否正常，須於正式站部署後以 `alanenglish.com.tw/zh-tw/` 實測。
 - 後續（工具箱 repo）：正式站驗收後，把工具箱的 canonical、sitemap 網址改為主網域。
+
 
 ### 三頁精簡、口說流程測試修復（2026-10-12，分支 `feature/daily-goal-and-tidy`，待擁有者說「幫我合併」）
 
