@@ -108,7 +108,7 @@ const ACADEMY_LOGIN_DOMAIN = "login.alanenglish.com.tw";
 export const normalizeLoginIdentifier = identifier => {
     const normalized = String(identifier || "").trim().toLowerCase();
     if (normalized.includes("@")) return normalized;
-    if (!/^[a-z][a-z0-9]{4,31}$/.test(normalized)) {
+    if (!/^[a-z][a-z0-9]{2,31}$/.test(normalized)) {
         const error = new Error("登入帳號格式不正確");
         error.code = "auth/invalid-login-identifier";
         throw error;
