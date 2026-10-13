@@ -19,6 +19,18 @@
   box-shadow: 0 14px 40px rgba(31, 45, 61, 0.06);
 }
 
+.management-edit-note {
+  margin: 14px 0 0;
+  color: #5b6785;
+  font-size: 14px;
+}
+
+.management-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
 .management-hero {
   display: flex;
   align-items: center;

@@ -5,6 +5,7 @@ import useStaffPageQuery from "../../hooks/useStaffPageQuery";
 import ReadRefreshStatus from "../fragment/ReadRefreshStatus";
 import QRCode from "qrcode";
 import AdminBirthDateDialog from "../fragment/AdminBirthDateDialog";
+import TeacherClassPermissions from "../fragment/TeacherClassPermissions";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -477,9 +478,14 @@ function AccountManagement() {
                     </p>
                 </div>
 
-                <Link to="/teacher/students" className="management-primary-link">
-                    快速建立學生
-                </Link>
+                <div className="management-hero-actions">
+                    <Link to="/teacher/students" className="management-primary-link">
+                        快速建立學生
+                    </Link>
+                    {isAdmin && <Link to="/admin/accounts/create-staff" className="management-primary-link">
+                        新增教師／管理員
+                    </Link>}
+                </div>
             </section>
 
             <section className="management-panel">
@@ -760,6 +766,10 @@ function AccountManagement() {
                                                                     </>
                                                                 )}
                                                             </div>
+
+                                                            {isAdmin && editForm.role === "teacher" && (editingAccount.role === "teacher"
+                                                                ? <TeacherClassPermissions teacherId={editingAccount.id} disabled={saving} />
+                                                                : <p className="management-edit-note">先按「儲存修改」把角色存成教師，再按一次「編輯」就能勾選可以管理的班級。</p>)}
 
                                                             <div className="management-edit-actions">
                                                                 <button type="submit" className="management-save-button" disabled={saving}>

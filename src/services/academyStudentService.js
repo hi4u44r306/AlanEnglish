@@ -74,7 +74,7 @@ const callAcademyStudentManager = async (
         );
     }
 
-    if (["create_student", "create_invitation", "batch_create_students", "delete_student_account", "delete_invitation", "reissue_student_login_card"].includes(body?.action)) invalidateStaffPageCache(firebaseUser?.uid);
+    if (["create_student", "create_staff_account", "create_invitation", "batch_create_students", "delete_student_account", "delete_invitation", "reissue_student_login_card"].includes(body?.action)) invalidateStaffPageCache(firebaseUser?.uid);
     return result;
 };
 
@@ -165,6 +165,26 @@ export const createAcademyStudent = async (
         }
     );
 };
+
+// Admin only. role is "teacher" or "admin"; classCodes only applies to teachers.
+export const createAcademyStaffAccount = async (firebaseUser, { role, chineseName, englishName, loginUsername, classCodes }) => (
+    callAcademyStudentManager(firebaseUser, {
+        action: "create_staff_account",
+        role,
+        chinese_name: String(chineseName || "").trim(),
+        english_name: String(englishName || "").trim(),
+        login_username: String(loginUsername || "").trim().toLowerCase(),
+        class_codes: role === "teacher" ? classCodes : []
+    })
+);
+
+// Admin only: the classes a teacher may take attendance and publish homework for.
+export const getTeacherClassCodes = async (firebaseUser, teacherId) => (
+    callAcademyStudentManager(firebaseUser, { action: "get_teacher_classes", teacher_id: teacherId })
+);
+export const setTeacherClassCodes = async (firebaseUser, teacherId, classCodes) => (
+    callAcademyStudentManager(firebaseUser, { action: "set_teacher_classes", teacher_id: teacherId, class_codes: classCodes })
+);
 
 export const reissueAcademyStudentLoginCard = async (firebaseUser, studentId) => (
     callAcademyStudentManager(
