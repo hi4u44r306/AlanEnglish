@@ -19,6 +19,12 @@
   box-shadow: 0 14px 40px rgba(31, 45, 61, 0.06);
 }
 
+.management-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
 .management-hero {
   display: flex;
   align-items: center;

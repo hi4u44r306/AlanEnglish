@@ -1355,6 +1355,123 @@ const createStudent = async (
     });
 };
 
+const STAFF_ACCOUNT_ROLES = new Set(["teacher", "admin"]);
+const STAFF_CLASS_CODES = new Set(["E1", "E3", "E5", "E7"]);
+
+// Admin-only: creates a teacher or admin account with the same username and
+// one-time activation card students use. The role and classes are checked here
+// and again inside create_academy_staff_login_record.
+const createStaffAccount = async (
+    req: Request,
+    admin: SupabaseClient,
+    caller: CallerProfile,
+    body: JsonObject
+): Promise<Response> => {
+    if (caller.role !== "admin") {
+        throw new HttpError(403, "ADMIN_REQUIRED", "只有管理員可以新增教師或管理員帳號");
+    }
+
+    const role = cleanText(body.role, 20);
+    const chineseName = cleanText(body.chinese_name, 100);
+    const englishName = cleanText(body.english_name, 100);
+    const loginUsername = normalizeLoginUsername(body.login_username ?? body.username)
+        || generatedLoginUsername(englishName);
+    const classCodes = role === "teacher" && Array.isArray(body.class_codes)
+        ? [...new Set(body.class_codes.map(code => cleanText(code, 10).toUpperCase()))]
+        : [];
+
+    if (!STAFF_ACCOUNT_ROLES.has(role)) {
+        throw new HttpError(400, "INVALID_STAFF_ROLE", "請選擇教師或管理員");
+    }
+    if (!chineseName) throw new HttpError(400, "CHINESE_NAME_REQUIRED", "請輸入中文姓名");
+    if (!englishName) throw new HttpError(400, "ENGLISH_NAME_REQUIRED", "請輸入英文姓名");
+    if (!/^[A-Za-z][A-Za-z .'-]*$/.test(englishName)) {
+        throw new HttpError(400, "INVALID_ENGLISH_NAME", "英文姓名請使用英文字母，可包含空格、句點、撇號或連字號");
+    }
+    if (!/^[a-z][a-z0-9]{2,31}$/.test(loginUsername)) {
+        throw new HttpError(400, "INVALID_LOGIN_USERNAME", "登入帳號需為 3～32 個小寫英文字母或數字，且第一個字必須是英文字母");
+    }
+    if (classCodes.some(code => !STAFF_CLASS_CODES.has(code))) {
+        throw new HttpError(400, "INVALID_CLASS_CODE", "班級只能選 E1、E3、E5 或 E7");
+    }
+    if (role === "teacher" && classCodes.length === 0) {
+        throw new HttpError(400, "CLASS_REQUIRED", "請至少選擇一個教師可以管理的班級");
+    }
+
+    const loginEmail = `${loginUsername}@${ACADEMY_LOGIN_DOMAIN}`;
+    const { data: existing, error: existingError } = await admin
+        .from("students").select("id").eq("email", loginEmail).maybeSingle();
+    if (existingError) throw new HttpError(500, "DUPLICATE_CHECK_FAILED", "無法檢查重複的登入帳號");
+    if (existing?.id) throw new HttpError(409, "LOGIN_USERNAME_EXISTS", "這個登入帳號已經存在，請換一個帳號名稱");
+
+    const hiddenBootstrapPassword = createTemporaryPassword();
+    const activationToken = createStudentActivationToken();
+    const recoveryCodes = createStudentRecoveryCodes();
+    const [activationTokenHash, ...recoveryCodeHashes] = await Promise.all([
+        hashInvitationToken(activationToken),
+        ...recoveryCodes.map(code => hashInvitationToken(normalizeRecoveryCode(code)))
+    ]);
+    const firebaseAccount = await createFirebaseAccount({
+        loginEmail, loginUsername, chineseName, englishName, classCode: "E1",
+        guardianName: null, guardianEmail: null, guardianPhone: null,
+        enrolledAt: taiwanToday(), accessEndsAt: null, notes: null
+    }, hiddenBootstrapPassword);
+    if (!firebaseAccount.localId || !firebaseAccount.idToken) {
+        throw new HttpError(502, "INVALID_FIREBASE_RESPONSE", "Firebase 未回傳完整帳號資料");
+    }
+
+    const activationExpiresAt = new Date(Date.now() + STUDENT_ACTIVATION_TTL_HOURS * 60 * 60 * 1000).toISOString();
+    const { data, error } = await admin.rpc("create_academy_staff_login_record", {
+        p_firebase_uid: firebaseAccount.localId,
+        p_internal_email: loginEmail,
+        p_login_username: loginUsername,
+        p_chinese_name: chineseName,
+        p_english_name: englishName,
+        p_role: role,
+        p_class_codes: classCodes,
+        p_created_by: caller.id,
+        p_activation_token_hash: activationTokenHash,
+        p_activation_token_hint: activationToken.slice(-8),
+        p_activation_expires_at: activationExpiresAt,
+        p_recovery_code_hashes: recoveryCodeHashes,
+        p_recovery_code_hints: recoveryCodes.map(code => code.slice(-4))
+    });
+
+    if (error) {
+        const rolledBack = await rollbackFirebaseAccount(firebaseAccount.idToken);
+        console.error("Academy staff database creation failed", {
+            code: error.code,
+            message: error.message,
+            firebaseRolledBack: rolledBack
+        });
+        if (error.code === "23505") throw new HttpError(409, "ACADEMY_STAFF_EXISTS", "這個登入帳號已經存在，請換一個帳號名稱");
+        if (error.code === "42501") throw new HttpError(403, "ADMIN_REQUIRED", "只有管理員可以新增教師或管理員帳號");
+        throw new HttpError(
+            500,
+            rolledBack ? "DATABASE_CREATE_FAILED" : "MANUAL_FIREBASE_CLEANUP_REQUIRED",
+            rolledBack
+                ? "帳號資料建立失敗，Firebase 帳號已自動回收"
+                : "帳號資料建立失敗，而且 Firebase 帳號回收失敗；請暫停重試並查看 Function Logs"
+        );
+    }
+
+    const origin = requestOrigin(req) && ALLOWED_ORIGINS.has(requestOrigin(req)!)
+        ? requestOrigin(req)!
+        : "https://alanenglish.com.tw";
+
+    return json(req, 201, {
+        success: true,
+        account: data,
+        credentials: {
+            username: loginUsername,
+            activation_url: `${origin}/academy/student-setup?token=${encodeURIComponent(activationToken)}`,
+            activation_expires_at: activationExpiresAt,
+            recovery_codes: recoveryCodes,
+            shown_once: true
+        }
+    });
+};
+
 const reissueStudentLoginCard = async (
     req: Request,
     admin: SupabaseClient,
@@ -2081,6 +2198,9 @@ Deno.serve(async (req: Request): Promise<Response> => {
         }
         if (action === "create_student") {
             return await createStudent(req, admin, caller, body);
+        }
+        if (action === "create_staff_account") {
+            return await createStaffAccount(req, admin, caller, body);
         }
         if (action === "reissue_student_login_card") {
             return await reissueStudentLoginCard(req, admin, caller, body);

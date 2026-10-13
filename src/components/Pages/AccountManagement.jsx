@@ -477,9 +477,14 @@ function AccountManagement() {
                     </p>
                 </div>
 
-                <Link to="/teacher/students" className="management-primary-link">
-                    快速建立學生
-                </Link>
+                <div className="management-hero-actions">
+                    <Link to="/teacher/students" className="management-primary-link">
+                        快速建立學生
+                    </Link>
+                    {isAdmin && <Link to="/admin/accounts/create-staff" className="management-primary-link">
+                        新增教師／管理員
+                    </Link>}
+                </div>
             </section>
 
             <section className="management-panel">
