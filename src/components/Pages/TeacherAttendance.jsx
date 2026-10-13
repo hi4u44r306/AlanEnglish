@@ -246,7 +246,7 @@ const TeacherAttendance = () => {
                                 <span>已建好時間的頁碼（點一下加入）</span>
                                 <ul>{bookSegments.map(segment => <li key={segment.id}>
                                     <button type="button" onClick={() => addItem({ item_type: "video", title: segment.title, book_id: segment.book_id, video_segment_id: segment.id, video_url: segment.video_url, start_seconds: segment.start_seconds, end_seconds: segment.end_seconds })}>
-                                        <FiPlus aria-hidden="true" />P.{segment.page_from}{segment.page_to > segment.page_from ? `–${segment.page_to}` : ""} · {formatVideoRange(segment.start_seconds, segment.end_seconds)}
+                                        <FiPlus aria-hidden="true" />{segment.title} · {formatVideoRange(segment.start_seconds, segment.end_seconds)}
                                     </button>
                                     {boot?.can_manage_segments && <button type="button" className="attendance-icon" aria-label={`停用 ${segment.title} 的對照`} onClick={() => removeSegment(segment)}><FiTrash2 aria-hidden="true" /></button>}
                                 </li>)}</ul>

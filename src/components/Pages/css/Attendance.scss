@@ -114,7 +114,8 @@ $muted: #5b6785;
 .attendance-segments {
     display: grid; gap: 8px;
     > span { font-size: 14px; font-weight: 700; color: $muted; }
-    ul { display: flex; flex-wrap: wrap; gap: 8px; }
+    // A whole workbook has 30–60 chapters; keep the list from pushing the form off screen.
+    ul { display: flex; flex-wrap: wrap; gap: 8px; max-height: 280px; padding: 2px; overflow-y: auto; }
     li { display: inline-flex; align-items: center; max-width: 100%; }
     li > button:first-child {
         display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border: 1px solid $brand; border-radius: 999px;
