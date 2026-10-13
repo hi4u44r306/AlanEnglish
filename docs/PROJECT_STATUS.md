@@ -10,7 +10,7 @@
 - 正式環境唯讀查核：正式 RPC 定義與 repo 一致；`subscription_plans.code` 有唯一鍵；RPC 僅 service_role 可執行；目前有效 grant 共 3 筆（academy_internal 2、all_access_monthly 1），沒有 textbook／90 天 grant；`redeem_activation_code` 會把 `access_model = textbook` 的兌換者設為 `textbook_customer`。
 - 發布（擁有者明確同意本批正式資料庫與後端）：migration 以正式版本 `20261013060041` 套用，方案 id 13 已建立（不公開、啟用）；套用後重新查詢既有 3 個有效帳號的權限結果與套用前一致，RPC 仍僅 service_role 可執行。PR #570 合併後由 main 部署 `notification-manager` v39（ACTIVE，未登入 401）；Cloudflare 建置 success，正式 `main.0491d60a.js` 與 CSS 含新方案代碼、啟用碼快捷鈕與 3,280 試算。PR #569（移除歷史學費金額）同時合併。
 - 未驗收：真實帳號兌換啟用碼後的教材清單、聽力與口說實測；到期通知實際送達；啟用碼快捷鈕桌面／412px／iPhone 畫面。
-- 已知事項：Workbook 6 目前沒有聽力音檔（僅口說關卡），販售前需補音檔或向家長說明。
+- 擁有者決定（2026-10-13）：Workbook 6 目前沒有聽力音檔（僅口說關卡），習作本平台方案暫不販售 Workbook 6；補齊音檔後再開放。系統未加限制，產生啟用碼時請勿選 Workbook 6。
 - 影響與回復：只新增一筆方案並替換一個 RPC（多一個輸出欄位）。回復＝將方案 `enabled` 設為 false（已發出的啟用碼即失效）並以前一版定義重建 RPC；不刪資料。
 - 第二階段（未動工）：線上刷卡販售、拆除三本＋90 天規則、寄送流程、前台教材頁、條款與退款頁。
 
