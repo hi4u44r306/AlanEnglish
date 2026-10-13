@@ -6,6 +6,7 @@
 - 目標／完成條件：老師點名並填當天教學進度（習作本影片時間段、聽力音檔、作業）；缺席／請假學生自動取得補課頁，按鈕直接跳到影片時間段、該聽力音檔及該份作業。
 - 擁有者決定：影片時間同時支援「頁碼→時間對照表」與老師手動填；只有缺席／請假學生看得到補課；影片由學生按「我看完了」，聽力與作業沿用既有 80% 有效聆聽與作業完成紀錄自動打勾。
 - 已完成（本機）：migration `20261013011500_attendance_and_makeup.sql`（5 張新表，RLS 開啟且撤銷 anon／authenticated，純新增）；Edge Function `attendance-manager`＋`_shared/attendance-makeup.ts`；前端 `/teacher/attendance`、`/student/makeup`、作業頁補課提示 `MakeupEntry`、老師選單「點名」；`PROJECT_LOGIC.md` 7.6、手冊 v4.30。
+- 課前登記與課程進度表（擁有者追加）：可提前 60 天登記內容與請假；老師頁新增週一至週日「課程進度表」（`class_schedule` action）；補課只在上課日當天起對學生顯示。ESLint、SCSS 編譯、後端規則測試 4/4 與日期工具斷言通過；畫面仍未實際操作。
 - 對照表：`20261013020000_seed_workbook_video_segments.sql` 由既有 `workbookVideoChapters.js` 產生 Workbook 1～4 共 194 段（每段結束於下一章開始；可重複執行）。Workbook 5 影片章節為「1~7、8~14…235~241」，與音檔頁碼（P2～P99）對不上，待擁有者確認數字意義後再建；Workbook 6 無影片連結。
 - 驗證：`scripts/attendance-makeup.test.mjs` 4/4；新增與修改的 8 個前端檔 ESLint 無錯誤；`makeupVideo` 斷言以 node 直接執行通過；`Attendance.scss` 編譯成功；`git diff --check` 通過。
 - 未驗證：CRA Jest 在 `.claude/` 路徑下找不到／無法轉譯測試檔，`makeupVideo.test.js`、`StudentAssignments.test.jsx`、`MainNavbar.test.jsx` 尚未以 Jest 執行；Production build 未執行；Edge Function 未經 Deno 型別檢查（本機無 Deno）；因資料表與 Function 尚未上線，老師／學生畫面未做實際操作與 412px 手機驗收。

@@ -28,6 +28,10 @@ const fail = (status: number, message: string, code: string | null = null) => (
 const CLASS_CODES = new Set(["E1", "E3", "E5", "E7"]);
 const MAX_ITEMS_PER_SESSION = 30;
 const MAKEUP_WINDOW_DAYS = 60;
+// 老師可以課前先登記進度與請假，最多提前這麼多天。
+const PLAN_AHEAD_DAYS = 60;
+
+const addDays = (date: string, days: number) => new Date(Date.parse(`${date}T00:00:00Z`) + days * 86400000).toISOString().slice(0, 10);
 
 const taiwanDate = (offsetDays = 0) => new Intl.DateTimeFormat("en-CA", {
     timeZone: "Asia/Taipei",
@@ -322,13 +326,13 @@ Deno.serve(async (req: Request) => {
         if (action === "teacher_bootstrap") {
             if (!isManager) throw fail(403, "只有老師與管理員可以點名");
             const classes = (await getManagedClassCodes(admin, caller)).sort();
-            return json(200, { success: true, classes, today: taiwanDate(), can_manage_segments: caller.role === "admin" });
+            return json(200, { success: true, classes, today: taiwanDate(), max_date: taiwanDate(PLAN_AHEAD_DAYS), can_manage_segments: caller.role === "admin" });
         }
 
         if (action === "teacher_session") {
             const klass = await requireManagedClass(admin, caller, body?.class_code);
             const sessionDate = cleanText(body?.session_date, 10) || taiwanDate();
-            if (!isValidSessionDate(sessionDate, taiwanDate())) throw fail(400, "上課日期不正確，不能選未來的日期");
+            if (!isValidSessionDate(sessionDate, taiwanDate(PLAN_AHEAD_DAYS))) throw fail(400, `上課日期不正確，最多只能提前 ${PLAN_AHEAD_DAYS} 天登記`);
             const [view, options] = await Promise.all([loadSessionView(admin, klass, sessionDate), loadClassOptions(admin, klass)]);
             return json(200, { success: true, class_code: klass.code, session_date: sessionDate, ...view, options });
         }
@@ -336,7 +340,7 @@ Deno.serve(async (req: Request) => {
         if (action === "save_session") {
             const klass = await requireManagedClass(admin, caller, body?.class_code);
             const sessionDate = cleanText(body?.session_date, 10);
-            if (!isValidSessionDate(sessionDate, taiwanDate())) throw fail(400, "上課日期不正確，不能選未來的日期");
+            if (!isValidSessionDate(sessionDate, taiwanDate(PLAN_AHEAD_DAYS))) throw fail(400, `上課日期不正確，最多只能提前 ${PLAN_AHEAD_DAYS} 天登記`);
 
             const roster = await getRoster(admin, Number(klass.id));
             const rosterIds = new Set(roster.map((student: any) => student.id));
@@ -364,6 +368,14 @@ Deno.serve(async (req: Request) => {
                     attendance.map((row: any) => ({ ...row, session_id: session.id, marked_by: caller.id, updated_at: now })),
                     { onConflict: "session_id,student_id" }
                 );
+                if (error) throw error;
+            }
+            // A current student left without a status is cleared, so a leave registered before class can be withdrawn.
+            const markedIds = new Set(attendance.map((row: any) => row.student_id));
+            const clearedIds = [...rosterIds].filter(id => !markedIds.has(id));
+            if (clearedIds.length) {
+                const { error } = await admin.from("class_session_attendance").delete()
+                    .eq("session_id", session.id).in("student_id", clearedIds);
                 if (error) throw error;
             }
 
@@ -394,10 +406,49 @@ Deno.serve(async (req: Request) => {
             return json(200, { success: true, class_code: klass.code, session_date: sessionDate, ...await loadSessionView(admin, klass, sessionDate) });
         }
 
+        if (action === "class_schedule") {
+            const klass = await requireManagedClass(admin, caller, body?.class_code);
+            const weekStart = cleanText(body?.week_start, 10);
+            if (!isValidSessionDate(weekStart, taiwanDate(PLAN_AHEAD_DAYS))) throw fail(400, "週次日期不正確");
+            const { data: sessions, error } = await admin.from("class_sessions").select("id,session_date,note")
+                .eq("class_id", klass.id).gte("session_date", weekStart).lte("session_date", addDays(weekStart, 6)).order("session_date");
+            if (error) throw error;
+            const sessionIds = (sessions || []).map((session: any) => Number(session.id));
+            const [attendanceRes, items, roster] = await Promise.all([
+                sessionIds.length
+                    ? admin.from("class_session_attendance").select("session_id,student_id,status").in("session_id", sessionIds)
+                    : Promise.resolve({ data: [], error: null }),
+                loadActiveItems(admin, sessionIds),
+                getRoster(admin, Number(klass.id))
+            ]);
+            if (attendanceRes.error) throw attendanceRes.error;
+            const names = new Map(roster.map((student: any) => [student.id, student.name]));
+            const attendance = (attendanceRes.data || []).filter((row: any) => names.has(Number(row.student_id)));
+            return json(200, {
+                success: true,
+                class_code: klass.code,
+                week_start: weekStart,
+                days: Array.from({ length: 7 }, (_, index) => {
+                    const date = addDays(weekStart, index);
+                    const session = (sessions || []).find((row: any) => row.session_date === date);
+                    const rows = session ? attendance.filter((row: any) => Number(row.session_id) === Number(session.id)) : [];
+                    const namesWith = (status: string) => rows.filter((row: any) => row.status === status).map((row: any) => names.get(Number(row.student_id)));
+                    return {
+                        date,
+                        items: session ? items.filter((item: any) => Number(item.session_id) === Number(session.id))
+                            .map((item: any) => ({ id: item.id, item_type: item.item_type, title: item.title })) : [],
+                        leave: namesWith("leave"),
+                        absent: namesWith("absent"),
+                        marked: rows.length
+                    };
+                })
+            });
+        }
+
         if (action === "teacher_makeup_overview") {
             const klass = await requireManagedClass(admin, caller, body?.class_code);
             const { data: sessions, error } = await admin.from("class_sessions").select("id,session_date")
-                .eq("class_id", klass.id).gte("session_date", taiwanDate(-MAKEUP_WINDOW_DAYS))
+                .eq("class_id", klass.id).gte("session_date", taiwanDate(-MAKEUP_WINDOW_DAYS)).lte("session_date", taiwanDate())
                 .order("session_date", { ascending: false });
             if (error) throw error;
             const sessionIds = (sessions || []).map((session: any) => Number(session.id));
@@ -483,7 +534,7 @@ Deno.serve(async (req: Request) => {
 
             // Only sessions of the class the student is in now, the same isolation homework uses.
             const { data: sessions, error } = await admin.from("class_sessions").select("id,session_date,note")
-                .eq("class_id", klass.id).gte("session_date", taiwanDate(-MAKEUP_WINDOW_DAYS))
+                .eq("class_id", klass.id).gte("session_date", taiwanDate(-MAKEUP_WINDOW_DAYS)).lte("session_date", taiwanDate())
                 .order("session_date", { ascending: false });
             if (error) throw error;
             const sessionIds = (sessions || []).map((session: any) => Number(session.id));

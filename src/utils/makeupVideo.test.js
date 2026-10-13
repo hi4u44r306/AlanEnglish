@@ -1,6 +1,13 @@
-import { formatSeconds, formatVideoRange, parseTimeInput, youtubeEmbedUrl, youtubeWatchUrl } from "./makeupVideo";
+import { addDays, formatSeconds, formatVideoRange, mondayOf, parseTimeInput, weekdayLabel, youtubeEmbedUrl, youtubeWatchUrl } from "./makeupVideo";
 
 describe("makeup video helpers", () => {
+    test("finds the week of a class day", () => {
+        expect(weekdayLabel("2026-10-13")).toBe("二");
+        expect(mondayOf("2026-10-13")).toBe("2026-10-12");
+        expect(mondayOf("2026-10-18")).toBe("2026-10-12");
+        expect(addDays("2026-10-28", 7)).toBe("2026-11-04");
+    });
+
     test("parses teacher time input", () => {
         expect(parseTimeInput("12:30")).toBe(750);
         expect(parseTimeInput("1:02:03")).toBe(3723);

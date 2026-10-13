@@ -21,7 +21,10 @@ export const saveClassSession = (firebaseUser, payload) => callAttendance(fireba
 export const getMakeupOverview = (firebaseUser, classCode) => (
     callAttendance(firebaseUser, "teacher_makeup_overview", { class_code: classCode })
 );
-export const saveVideoSegment = (firebaseUser, payload) => callAttendance(firebaseUser, "save_video_segment", payload);
+export const getClassSchedule = (firebaseUser, classCode, weekStart) => (
+    callAttendance(firebaseUser, "class_schedule", { class_code: classCode, week_start: weekStart })
+);
+export const saveVideoSegment =(firebaseUser, payload) => callAttendance(firebaseUser, "save_video_segment", payload);
 export const deleteVideoSegment = (firebaseUser, id) => callAttendance(firebaseUser, "delete_video_segment", { id });
 export const getStudentMakeups = firebaseUser => callAttendance(firebaseUser, "student_makeups");
 export const completeMakeupItem = (firebaseUser, itemId) => callAttendance(firebaseUser, "complete_makeup_item", { item_id: itemId });

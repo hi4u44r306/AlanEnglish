@@ -1,3 +1,8 @@
+// Calendar helpers for YYYY-MM-DD strings; UTC maths keeps them free of the browser's timezone.
+export const addDays = (date, days) => new Date(Date.parse(`${date}T00:00:00Z`) + days * 86400000).toISOString().slice(0, 10);
+export const mondayOf = date => addDays(date, -((new Date(`${date}T00:00:00Z`).getUTCDay() + 6) % 7));
+export const weekdayLabel = date => "日一二三四五六"[new Date(`${date}T00:00:00Z`).getUTCDay()];
+
 // "12:30" / "1:02:03" / "90" → seconds. Returns null when the text is empty or not a time.
 export const parseTimeInput = value => {
     const text = String(value ?? "").trim();

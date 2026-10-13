@@ -6,12 +6,13 @@ import {
     deleteVideoSegment,
     getAttendanceBootstrap,
     getClassSession,
+    getClassSchedule,
     getMakeupOverview,
     needsMakeup,
     saveClassSession,
     saveVideoSegment
 } from "../../services/attendanceService";
-import { formatVideoRange, parseTimeInput } from "../../utils/makeupVideo";
+import { addDays, formatVideoRange, mondayOf, parseTimeInput, weekdayLabel } from "../../utils/makeupVideo";
 import "./css/Attendance.scss";
 
 const ITEM_TYPES = [
@@ -34,6 +35,7 @@ const TeacherAttendance = () => {
     const [items, setItems] = useState([]);
     const [note, setNote] = useState("");
     const [overview, setOverview] = useState([]);
+    const [schedule, setSchedule] = useState([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [message, setMessage] = useState(null);
@@ -70,12 +72,14 @@ const TeacherAttendance = () => {
         if (!classCode || !sessionDate) return;
         setLoading(true);
         try {
-            const [session, makeup] = await Promise.all([
+            const [session, makeup, week] = await Promise.all([
                 getClassSession(firebaseUser, classCode, sessionDate),
-                getMakeupOverview(firebaseUser, classCode)
+                getMakeupOverview(firebaseUser, classCode),
+                getClassSchedule(firebaseUser, classCode, mondayOf(sessionDate))
             ]);
             applyView(session);
             setOverview(makeup.sessions || []);
+            setSchedule(week.days || []);
             setBookId(current => session.options.books.some(book => String(book.id) === current) ? current : String(session.options.books[0]?.id || ""));
         } catch (error) {
             setMessage({ type: "error", text: error.message });
@@ -91,6 +95,10 @@ const TeacherAttendance = () => {
     const bookSegments = useMemo(() => (options?.video_segments || []).filter(segment => String(segment.book_id) === bookId), [options, bookId]);
     const bookTracks = useMemo(() => (options?.tracks || []).filter(track => String(track.book_id) === bookId), [options, bookId]);
     const markedCount = roster.filter(student => attendance[student.id]).length;
+    // Before the class day only leave can be registered; real attendance is taken on the day.
+    const isFuture = Boolean(boot?.today) && sessionDate > boot.today;
+    const statusOptions = isFuture ? ATTENDANCE_STATUS_OPTIONS.filter(option => option.value === "leave") : ATTENDANCE_STATUS_OPTIONS;
+    const goToDate = date => setSessionDate(date > boot.max_date ? boot.max_date : date);
     const makeupStudents = roster.filter(student => needsMakeup(attendance[student.id]));
 
     const addItem = item => {
@@ -157,12 +165,18 @@ const TeacherAttendance = () => {
                 items
             });
             applyView(result);
-            const makeup = await getMakeupOverview(firebaseUser, classCode);
+            const [makeup, week] = await Promise.all([
+                getMakeupOverview(firebaseUser, classCode),
+                getClassSchedule(firebaseUser, classCode, mondayOf(sessionDate))
+            ]);
             setOverview(makeup.sessions || []);
+            setSchedule(week.days || []);
             const missed = (result.attendance || []).filter(row => needsMakeup(row.status)).length;
             setMessage({
                 type: "success",
-                text: missed && result.items.length
+                text: isFuture
+                    ? `已儲存課前登記。${missed ? `${missed} 位請假的學生會在上課當天看到補課按鈕。` : "上課當天再回來點名即可。"}`
+                    : missed && result.items.length
                     ? `已儲存。${missed} 位缺席／請假的學生已經看得到 ${result.items.length} 個補課按鈕。`
                     : missed ? "已儲存點名。加入今天的教學進度後，缺席／請假的學生才會看到補課按鈕。" : "已儲存點名與教學進度。"
             });
@@ -183,7 +197,7 @@ const TeacherAttendance = () => {
                 <div>
                     <span>CLASS ATTENDANCE</span>
                     <h1>點名與補課</h1>
-                    <p>點名後填上今天教到哪裡，缺席或請假的學生就會自動拿到補課按鈕。</p>
+                    <p>課前先登記要上的內容與請假，上課當天點名；缺席或請假的學生會自動拿到補課按鈕。</p>
                 </div>
                 <div className="attendance-controls">
                     <label>班級
@@ -192,7 +206,7 @@ const TeacherAttendance = () => {
                         </select>
                     </label>
                     <label>上課日期
-                        <input type="date" value={sessionDate} max={boot?.today} onChange={event => event.target.value && setSessionDate(event.target.value)} />
+                        <input type="date" value={sessionDate} max={boot?.max_date} onChange={event => event.target.value && setSessionDate(event.target.value)} />
                     </label>
                 </div>
             </header>
@@ -200,19 +214,44 @@ const TeacherAttendance = () => {
             {message && <p className={`attendance-message ${message.type}`} role={message.type === "error" ? "alert" : "status"}>{message.text}</p>}
 
             {loading ? <section className="attendance-card"><p>正在讀取班級資料…</p></section> : <>
+                <section className="attendance-card" aria-labelledby="attendance-schedule-title">
+                    <div className="attendance-card-heading">
+                        <h2 id="attendance-schedule-title">課程進度表 <small>{classCode}・{schedule[0]?.date} 起這一週</small></h2>
+                        <div className="attendance-week-nav">
+                            <button type="button" className="attendance-ghost" onClick={() => goToDate(addDays(sessionDate, -7))}>上一週</button>
+                            <button type="button" className="attendance-ghost" onClick={() => goToDate(boot.today)}>今天</button>
+                            <button type="button" className="attendance-ghost" disabled={addDays(mondayOf(sessionDate), 7) > boot.max_date} onClick={() => goToDate(addDays(sessionDate, 7))}>下一週</button>
+                        </div>
+                    </div>
+                    <ol className="attendance-schedule">
+                        {schedule.map(day => <li key={day.date} className={`${day.date === sessionDate ? "selected" : ""}${day.date === boot.today ? " today" : ""}`}>
+                            <button type="button" aria-pressed={day.date === sessionDate} disabled={day.date > boot.max_date} onClick={() => setSessionDate(day.date)}>
+                                <span className="attendance-schedule-day">週{weekdayLabel(day.date)}<small>{Number(day.date.slice(5, 7))}/{Number(day.date.slice(8))}{day.date === boot.today ? "・今天" : ""}</small></span>
+                                <span className="attendance-schedule-body">
+                                    {day.items.length === 0 ? <em>尚未登記</em> : day.items.map(item => <span key={item.id} className={`attendance-item-type ${item.item_type}`}>{item.title}</span>)}
+                                    {day.leave.length > 0 && <small>請假：{day.leave.join("、")}</small>}
+                                    {day.absent.length > 0 && <small>缺席：{day.absent.join("、")}</small>}
+                                </span>
+                            </button>
+                        </li>)}
+                    </ol>
+                    <p className="attendance-hint">點任一天就能登記或修改那天的內容；可以提前登記到 {boot.max_date}。</p>
+                </section>
+
                 <section className="attendance-card" aria-labelledby="attendance-roster-title">
                     <div className="attendance-card-heading">
-                        <h2 id="attendance-roster-title">1. 點名 <small>{markedCount}／{roster.length} 人</small></h2>
-                        <button type="button" className="attendance-ghost" onClick={() => setAttendance(Object.fromEntries(roster.map(student => [student.id, attendance[student.id] || "present"])))}>未點名的都設為出席</button>
+                        <h2 id="attendance-roster-title">{isFuture ? "1. 課前登記請假" : "1. 點名"} <small>{isFuture ? `${markedCount} 人請假` : `${markedCount}／${roster.length} 人`}</small></h2>
+                        {!isFuture && <button type="button" className="attendance-ghost" onClick={() => setAttendance(Object.fromEntries(roster.map(student => [student.id, attendance[student.id] || "present"])))}>未點名的都設為出席</button>}
                     </div>
+                    {isFuture && <p className="attendance-hint">這堂課還沒上。先把已經請假的學生按「請假」，上課當天再回來點名；再按一次可以取消。</p>}
                     {roster.length === 0 ? <p>這個班級目前沒有在學學生。</p> : <ul className="attendance-roster">
                         {roster.map(student => <li key={student.id}>
                             <strong>{student.name}{student.english_name && student.english_name !== student.name ? <small>{student.english_name}</small> : null}</strong>
                             <div role="group" aria-label={`${student.name} 的出席狀態`}>
-                                {ATTENDANCE_STATUS_OPTIONS.map(option => <button
+                                {statusOptions.map(option => <button
                                     type="button" key={option.value} className={`attendance-status ${option.value}`}
                                     aria-pressed={attendance[student.id] === option.value}
-                                    onClick={() => setAttendance(current => ({ ...current, [student.id]: option.value }))}
+                                    onClick={() => setAttendance(current => ({ ...current, [student.id]: current[student.id] === option.value ? undefined : option.value }))}
                                 >{option.label}</button>)}
                             </div>
                         </li>)}
@@ -220,8 +259,8 @@ const TeacherAttendance = () => {
                 </section>
 
                 <section className="attendance-card" aria-labelledby="attendance-progress-title">
-                    <div className="attendance-card-heading"><h2 id="attendance-progress-title">2. 今天的教學進度 <small>{items.length} 項</small></h2></div>
-                    {items.length === 0 ? <p className="attendance-hint">還沒有加入進度。請從下方加入今天教的影片段落、聽力音檔或作業。</p> : <ol className="attendance-items">
+                    <div className="attendance-card-heading"><h2 id="attendance-progress-title">2. {isFuture ? "這堂課要上的內容" : "這堂課的教學進度"} <small>{items.length} 項</small></h2></div>
+                    {items.length === 0 ? <p className="attendance-hint">還沒有登記內容。請從下方加入這堂課的影片段落、聽力音檔或作業。</p> : <ol className="attendance-items">
                         {items.map((item, index) => <li key={item.id || itemKey(item)}>
                             <span className={`attendance-item-type ${item.item_type}`}>{itemTypeLabel(item.item_type)}</span>
                             <strong>{item.title}</strong>
@@ -302,7 +341,7 @@ const TeacherAttendance = () => {
                     <p>{makeupStudents.length
                         ? `需要補課：${makeupStudents.map(student => student.name).join("、")}`
                         : "目前沒有缺席或請假的學生。"}</p>
-                    <button type="button" className="attendance-primary" disabled={saving || roster.length === 0} onClick={save}><FiCheck aria-hidden="true" />{saving ? "儲存中…" : "儲存點名與進度"}</button>
+                    <button type="button" className="attendance-primary" disabled={saving || roster.length === 0} onClick={save}><FiCheck aria-hidden="true" />{saving ? "儲存中…" : isFuture ? "儲存課前登記" : "儲存點名與進度"}</button>
                 </section>
 
                 <section className="attendance-card" aria-labelledby="attendance-overview-title">
