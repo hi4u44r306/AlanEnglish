@@ -5,9 +5,10 @@ import {
     ABSENT_STATUSES,
     ATTENDANCE_STATUSES,
     isValidSessionDate,
+    loadActiveItems,
+    loadCompletion,
     normalizeSeconds,
-    normalizeYouTubeUrl,
-    sessionStartIso
+    normalizeYouTubeUrl
 } from "../_shared/attendance-makeup.ts";
 
 const corsHeaders = {
@@ -121,81 +122,6 @@ const requireManagedClass = async (admin: any, caller: any, classCodeInput: unkn
     return klass;
 };
 
-const ITEM_COLUMNS = "id,session_id,item_type,sort_order,title,book_id,video_segment_id,video_url,start_seconds,end_seconds,track_id,assignment_id";
-
-const loadActiveItems = async (admin: any, sessionIds: number[]) => {
-    if (!sessionIds.length) return [];
-    const { data, error } = await admin.from("class_session_progress_items")
-        .select(ITEM_COLUMNS).in("session_id", sessionIds).eq("is_active", true)
-        .order("sort_order").order("id");
-    if (error) throw error;
-    return data || [];
-};
-
-// Which (item, student) pairs are finished, and which items the student may tick by hand.
-// Videos are self-reported; listening and listening homework reuse the records that
-// record-play already validated, so nothing here trusts a browser-reported completion.
-const loadCompletion = async (admin: any, items: any[], sessionDates: Map<number, string>, studentIds: number[]) => {
-    const done = new Set<string>();
-    const selfMarkable = new Set<number>();
-    if (!items.length || !studentIds.length) return { done, selfMarkable };
-
-    const assignmentIds = [...new Set(items.filter(item => item.item_type === "assignment" && item.assignment_id).map(item => Number(item.assignment_id)))];
-    const trackIds = [...new Set(items.filter(item => item.item_type === "listening" && item.track_id).map(item => Number(item.track_id)))];
-    const earliest = [...sessionDates.values()].sort()[0];
-
-    const [selfRes, listenRes, assignmentTrackRes, assignmentProgressRes] = await Promise.all([
-        admin.from("makeup_item_completions").select("progress_item_id,student_id")
-            .in("progress_item_id", items.map(item => item.id)).in("student_id", studentIds),
-        trackIds.length
-            ? admin.from("listening_coverage_sessions").select("student_id,track_id,completed_at")
-                .in("track_id", trackIds).in("student_id", studentIds).eq("count_recorded", true)
-                .gte("completed_at", sessionStartIso(earliest)).limit(5000)
-            : Promise.resolve({ data: [], error: null }),
-        assignmentIds.length
-            ? admin.from("assignment_track_items").select("assignment_id,track_id").in("assignment_id", assignmentIds)
-            : Promise.resolve({ data: [], error: null }),
-        assignmentIds.length
-            ? admin.from("assignment_listening_progress").select("assignment_id,student_id,track_id")
-                .in("assignment_id", assignmentIds).in("student_id", studentIds).eq("completed", true)
-            : Promise.resolve({ data: [], error: null })
-    ]);
-    for (const res of [selfRes, listenRes, assignmentTrackRes, assignmentProgressRes]) if (res.error) throw res.error;
-
-    const selfDone = new Set((selfRes.data || []).map((row: any) => `${row.progress_item_id}:${row.student_id}`));
-    const assignmentTrackCount = new Map<number, number>();
-    for (const row of assignmentTrackRes.data || []) {
-        assignmentTrackCount.set(Number(row.assignment_id), (assignmentTrackCount.get(Number(row.assignment_id)) || 0) + 1);
-    }
-    const assignmentDoneCount = new Map<string, number>();
-    for (const row of assignmentProgressRes.data || []) {
-        const key = `${row.assignment_id}:${row.student_id}`;
-        assignmentDoneCount.set(key, (assignmentDoneCount.get(key) || 0) + 1);
-    }
-
-    for (const item of items) {
-        const sessionStart = Date.parse(sessionStartIso(sessionDates.get(Number(item.session_id)) || earliest));
-        const requiredTracks = item.item_type === "assignment" ? assignmentTrackCount.get(Number(item.assignment_id)) || 0 : 0;
-        if (item.item_type === "video" || (item.item_type === "assignment" && requiredTracks === 0)) selfMarkable.add(Number(item.id));
-        for (const studentId of studentIds) {
-            const key = `${item.id}:${studentId}`;
-            if (selfMarkable.has(Number(item.id))) {
-                if (selfDone.has(key)) done.add(key);
-            } else if (item.item_type === "listening") {
-                const listened = (listenRes.data || []).some((row: any) => (
-                    Number(row.student_id) === studentId
-                    && Number(row.track_id) === Number(item.track_id)
-                    && Date.parse(row.completed_at) >= sessionStart
-                ));
-                if (listened) done.add(key);
-            } else if ((assignmentDoneCount.get(`${item.assignment_id}:${studentId}`) || 0) >= requiredTracks) {
-                done.add(key);
-            }
-        }
-    }
-    return { done, selfMarkable };
-};
-
 const loadClassOptions = async (admin: any, klass: any) => {
     const books = await getClassBooks(admin, Number(klass.id));
     const bookIds = books.map((book: any) => Number(book.id));
@@ -259,10 +185,10 @@ const buildItems = async (admin: any, klass: any, rawItems: unknown) => {
     const list = Array.isArray(rawItems) ? rawItems : [];
     if (list.length > MAX_ITEMS_PER_SESSION) throw fail(400, `一堂課最多 ${MAX_ITEMS_PER_SESSION} 個進度項目`);
     const options = await loadClassOptions(admin, klass);
-    const bookIds = new Set(options.books.map((book: any) => Number(book.id)));
-    const tracks = new Map(options.tracks.map((track: any) => [track.id, track]));
-    const segments = new Map(options.video_segments.map((segment: any) => [Number(segment.id), segment]));
-    const assignments = new Map(options.assignments.map((assignment: any) => [Number(assignment.id), assignment]));
+    const bookIds = new Set<number>(options.books.map((book: any) => Number(book.id)));
+    const tracks = new Map<number, any>(options.tracks.map((track: any) => [track.id, track]));
+    const segments = new Map<number, any>(options.video_segments.map((segment: any) => [Number(segment.id), segment]));
+    const assignments = new Map<number, any>(options.assignments.map((assignment: any) => [Number(assignment.id), assignment]));
 
     return list.map((raw: any, index: number) => {
         const type = cleanText(raw?.item_type, 20);
@@ -343,7 +269,7 @@ Deno.serve(async (req: Request) => {
             if (!isValidSessionDate(sessionDate, taiwanDate(PLAN_AHEAD_DAYS))) throw fail(400, `上課日期不正確，最多只能提前 ${PLAN_AHEAD_DAYS} 天登記`);
 
             const roster = await getRoster(admin, Number(klass.id));
-            const rosterIds = new Set(roster.map((student: any) => student.id));
+            const rosterIds = new Set<number>(roster.map((student: any) => student.id));
             const attendance = (Array.isArray(body?.attendance) ? body.attendance : []).map((row: any) => ({
                 student_id: positiveInteger(row?.student_id),
                 status: cleanText(row?.status, 12)
@@ -382,7 +308,7 @@ Deno.serve(async (req: Request) => {
             // Items keep their id when edited so a student's finished makeup is not lost;
             // removed items are switched off instead of deleted.
             const existing = await loadActiveItems(admin, [Number(session.id)]);
-            const existingIds = new Set(existing.map((item: any) => Number(item.id)));
+            const existingIds = new Set<number>(existing.map((item: any) => Number(item.id)));
             const keptIds = new Set<number>();
             for (const item of items) {
                 const { id, ...fields } = item;

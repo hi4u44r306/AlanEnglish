@@ -316,6 +316,25 @@ const WeeklyReport = () => {
                     </article>
                 </section>
 
+                {report.makeup?.length > 0 && <section className="weekly-report-panel weekly-report-makeup" aria-label="本週請假與補課">
+                    <h2>本週請假與補課</h2>
+                    <ul>
+                        {report.makeup.map(session => <li key={session.date}>
+                            <div className="weekly-report-makeup__day">
+                                <strong>{Number(session.date.slice(5, 7))}/{Number(session.date.slice(8))}・{session.status === "leave" ? "請假" : "缺席"}</strong>
+                                <span className={session.total > 0 && session.done >= session.total ? "is-done" : ""}>{session.total === 0 ? "老師尚未登記上課內容" : session.done >= session.total ? "補課已完成" : `補課完成 ${session.done}／${session.total}`}</span>
+                            </div>
+                            {session.items.length > 0 && <ol>
+                                {session.items.map((item, index) => <li key={`${item.title}-${index}`} className={item.done ? "is-done" : ""}>
+                                    <FiCheckCircle aria-hidden="true" />
+                                    <span>{item.item_type === "video" ? "影片" : item.item_type === "listening" ? "聽力" : "作業"}：{item.title}</span>
+                                    <small>{item.done ? "已完成" : "尚未完成"}</small>
+                                </li>)}
+                            </ol>}
+                        </li>)}
+                    </ul>
+                </section>}
+
                 <details className="weekly-report-extra">
                     <summary>更多進步與練習建議</summary>
                 <section className="weekly-report-insights">

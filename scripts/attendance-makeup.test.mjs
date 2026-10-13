@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import {
     ABSENT_STATUSES,
+    describeMakeupForFamily,
     isValidSessionDate,
     normalizeSeconds,
     normalizeYouTubeUrl,
@@ -35,6 +36,25 @@ test("seconds and session dates are validated", () => {
     assert.equal(isValidSessionDate("2026-10-14", "2026-10-13"), false);
     assert.equal(isValidSessionDate("2026-02-30", "2026-10-13"), false);
     assert.equal(sessionStartIso("2026-10-13"), "2026-10-12T16:00:00.000Z");
+});
+
+test("parents read what was taught on a missed day and how far the makeup has got", () => {
+    assert.deepEqual(describeMakeupForFamily([]), []);
+    assert.deepEqual(describeMakeupForFamily([
+        { date: "2026-10-13", status: "leave", total: 2, done: 1, items: [
+            { item_type: "video", title: "Workbook 2 P.24", done: true },
+            { item_type: "listening", title: "P24 Reading", done: false }
+        ] },
+        { date: "2026-10-15", status: "absent", total: 1, done: 1, items: [{ item_type: "assignment", title: "週四作業", done: true }] },
+        { date: "2026-10-16", status: "leave", total: 0, done: 0, items: [] }
+    ]), [
+        "10/13（請假）上課內容：影片「Workbook 2 P.24」、聽力「P24 Reading」。補課完成 1／2 項。",
+        "10/15（缺席）上課內容：作業「週四作業」。補課已全部完成。",
+        "10/16（請假）：老師尚未登記當天的上課內容。"
+    ]);
+    const report = read("supabase/functions/weekly-report/index.ts");
+    assert.match(report, /loadStudentMakeupSummary\(admin, Number\(target\.id\)/);
+    assert.match(report, /weekly-report makeup summary error/);
 });
 
 test("attendance tables are closed to the browser and the function re-checks the caller", () => {
