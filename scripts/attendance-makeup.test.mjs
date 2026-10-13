@@ -58,7 +58,7 @@ test("parents read what was taught on a missed day and how far the makeup has go
 });
 
 test("attendance tables are closed to the browser and the function re-checks the caller", () => {
-    const migration = read("supabase/migrations/20261013011500_attendance_and_makeup.sql");
+    const migration = read("supabase/migrations/20261013021601_attendance_and_makeup.sql");
     for (const table of ["book_video_segments", "class_sessions", "class_session_attendance", "class_session_progress_items", "makeup_item_completions"]) {
         assert.match(migration, new RegExp(`alter table public\\.${table} enable row level security`));
         assert.match(migration, new RegExp(`revoke all on table public\\.${table} from anon, authenticated`));

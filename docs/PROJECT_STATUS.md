@@ -5,13 +5,14 @@
 - 最後更新：2026-10-13 02:30（Asia/Taipei）。負責：Claude Code 聊天「點名系統與補課功能」；獨立 worktree `.claude/worktrees/attendance-makeup`，基準 main `31cf2d2d`。
 - 目標／完成條件：老師點名並填當天教學進度（習作本影片時間段、聽力音檔、作業）；缺席／請假學生自動取得補課頁，按鈕直接跳到影片時間段、該聽力音檔及該份作業。
 - 擁有者決定：影片時間同時支援「頁碼→時間對照表」與老師手動填；只有缺席／請假學生看得到補課；影片由學生按「我看完了」，聽力與作業沿用既有 80% 有效聆聽與作業完成紀錄自動打勾。
-- 已完成（本機）：migration `20261013011500_attendance_and_makeup.sql`（5 張新表，RLS 開啟且撤銷 anon／authenticated，純新增）；Edge Function `attendance-manager`＋`_shared/attendance-makeup.ts`；前端 `/teacher/attendance`、`/student/makeup`、作業頁補課提示 `MakeupEntry`、老師選單「點名」；`PROJECT_LOGIC.md` 7.6、手冊 v4.30。
+- 已完成（本機）：migration `20261013021601_attendance_and_makeup.sql`（5 張新表，RLS 開啟且撤銷 anon／authenticated，純新增）；Edge Function `attendance-manager`＋`_shared/attendance-makeup.ts`；前端 `/teacher/attendance`、`/student/makeup`、作業頁補課提示 `MakeupEntry`、老師選單「點名」；`PROJECT_LOGIC.md` 7.6、手冊 v4.30。
 - 課前登記與課程進度表（擁有者追加）：可提前 60 天登記內容與請假；老師頁新增週一至週日「課程進度表」（`class_schedule` action）；補課只在上課日當天起對學生顯示。ESLint、SCSS 編譯、後端規則測試 4/4 與日期工具斷言通過；畫面仍未實際操作。
 - 家長可見（擁有者追加）：`weekly-report` 回傳 `makeup` 並寫入家長文字摘要；`WeeklyReport.jsx` 新增「本週請假與補課」。完成判定移至 `_shared/attendance-makeup.ts` 共用。
 - 上線前驗證（2026-10-13）：Production build 成功；Jest 指定 5 組 48 項通過（`makeupVideo`、`StudentAssignments`、`MainNavbar`、`WeeklyReport*`）；`attendance-manager` Deno 型別檢查通過；`weekly-report` 仍有 5 個既有型別訊息（316–328 行，非本次修改）；`scripts/attendance-makeup.test.mjs` 5/5、`weekly-report-speaking` 3/3。擁有者已明確同意本批上線。
-- 受阻（2026-10-13）：擁有者已同意上線，但 Claude Code 的權限檢查擋下正式資料庫 migration（`apply_migration`），因此 migration 未套用、兩支 Function 未部署、PR 未合併；正式站完全沒有變動。需擁有者在權限設定允許該動作或自行執行後才能繼續。順序必須是 migration → `attendance-manager` 與 `weekly-report` → 合併 main。
+- 正式部署（2026-10-13，擁有者說「繼續上線」）：migration `20261013021601_attendance_and_makeup`、`20261013021627_seed_workbook_video_segments` 已套用（5 張表 RLS 開啟、anon／authenticated 無 select；對照 228 段：W1 33／W2 65／W3 48／W4 48／W5 34）。`attendance-manager`（新）與 `weekly-report` 已部署，未登入請求皆回 401。PR #561 合併後由 Cloudflare 建置。
+- 待驗收：正式站以老師／缺席學生帳號實際操作（桌面與 412px）、週報「本週請假與補課」、Workbook 5「看影片」抽查。
 - Workbook 5 對照（2026-10-13）：影片章節為題號，已用教師版 PDF（104 頁，逐頁題號）對出頁碼，34 段與 35 個音檔頁碼完全吻合（155–164 題跨 P.81–82）。已加入 `workbookVideoChapters.js`（教材頁「看影片」按鈕）與 seed migration，總計 Workbook 1–5 共 228 段；seed SQL 已在正式庫以唯讀查詢驗證邏輯。Workbook 6 無影片。
-- 對照表：`20261013020000_seed_workbook_video_segments.sql` 由既有 `workbookVideoChapters.js` 產生 Workbook 1～4 共 194 段（每段結束於下一章開始；可重複執行）。Workbook 5 影片章節為「1~7、8~14…235~241」，與音檔頁碼（P2～P99）對不上，待擁有者確認數字意義後再建；Workbook 6 無影片連結。
+- 對照表：`20261013021627_seed_workbook_video_segments.sql` 由既有 `workbookVideoChapters.js` 產生 Workbook 1～4 共 194 段（每段結束於下一章開始；可重複執行）。Workbook 5 影片章節為「1~7、8~14…235~241」，與音檔頁碼（P2～P99）對不上，待擁有者確認數字意義後再建；Workbook 6 無影片連結。
 - 驗證：`scripts/attendance-makeup.test.mjs` 4/4；新增與修改的 8 個前端檔 ESLint 無錯誤；`makeupVideo` 斷言以 node 直接執行通過；`Attendance.scss` 編譯成功；`git diff --check` 通過。
 - 未驗證：CRA Jest 在 `.claude/` 路徑下找不到／無法轉譯測試檔，`makeupVideo.test.js`、`StudentAssignments.test.jsx`、`MainNavbar.test.jsx` 尚未以 Jest 執行；Production build 未執行；Edge Function 未經 Deno 型別檢查（本機無 Deno）；因資料表與 Function 尚未上線，老師／學生畫面未做實際操作與 412px 手機驗收。
 - 部署：全部未部署。屬高風險（新 migration、新 Edge Function、作業隔離相關），須擁有者針對本批明確同意後才套用 migration 與部署 Function。回復方式：停用 Function 並移除前端入口；5 張新表不影響既有資料，可保留。
