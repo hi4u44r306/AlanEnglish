@@ -1,5 +1,17 @@
 # Alan English 專案狀態
 
+### 網站成本頁台幣白話改版與教材利潤試算（2026-10-13，分支 `feature/cost-page-plain-redesign`，本機完成／尚未部署，待擁有者說「幫我合併」）
+
+- 最後更新：2026-10-13 10:50（Asia/Taipei）。負責：Claude Code 聊天「教材定價與成本統整」；獨立 worktree `.claude/worktrees/cost-page-redesign`，基準 main `afebe348`。
+- 目標／完成條件：管理員一眼看到「這個月要付多少」（台幣）、哪些項目還沒填、錢花在哪，並可試算賣一套教材的利潤。
+- 範圍：只改前端 `ApiUsageAdmin.jsx`、新增 `CostPlainSummary.jsx`／`UnitProfitCalculator.jsx`／`costPlain.js`、`ApiUsageAdmin.scss` 與測試；手冊 v4.32、PROJECT_LOGIC 6.4。沒有 migration、Edge Function、Secret、價格或商品變更；補填金額沿用既有 `save_service`。
+- 已通過：成本相關 6 個測試檔 34 項、變更檔 ESLint、`git diff --check`；以假資料靜態預覽在 320／412／768／1024／1440px 量測無水平溢位、無元素超出畫面、按鈕與輸入高度皆 ≥44px。
+- 未執行／未驗收：Production build（交由 Cloudflare 合併後建置）；預覽視窗被隱藏無法截圖，實際畫面、正式管理員登入、補填儲存與 iPhone Safari 尚未目視驗收。此 worktree 路徑含 `.claude`，`react-scripts test` 的 testMatch 找不到檔案，改用同一份 CRA Jest 設定並以 testRegex 執行。
+- 正式資料唯讀查核（10 月）：Azure 約 US$0.036，OpenAI／Google TTS／Firebase／R2／GitHub 為 0；Supabase、網域、Netlify、其他沒有金額也沒有固定費，是總額不完整的主因。啟用學生帳號 1 人。
+- 待擁有者決定（另一批高風險工作，未動工）：教材改為「習作本＋平台（含口說大挑戰）」半年 NT$1,980／一年 NT$2,980、移除三本組合 NT$1,380；需實際印刷與運費報價。涉及商品規則、entitlement、Stripe Price、公開頁、FAQ、條款，須依第 13 節取得該批授權。
+- 正式設定更新（2026-10-13，擁有者提供數字後以既有 `save_cost_service_v1` 寫入）：「其他」改為計入並設每月固定 US$96.9697（NT$3,200 開發工具訂閱，9 月另登錄同額月總額）；月預算由 US$25 調為 US$136.36（約 NT$4,500），避免固定費一計入就觸發五分鐘 Email。寫入後 10 月已知總成本 US$99.71（約 NT$3,290、預算 73%），提醒 0 筆。更正：Supabase 固定費 0、網域 US$2.702／月、Netlify 與 Stripe 不計入原本就已設定，先前「未填」的判斷有誤。回復方式：成本頁將「開發工具訂閱與其他」取消計入並把預算改回。
+- Netlify PR 留言與失敗檢查（2026-10-13）：來源是 GitHub 上 Netlify App 對全部 repository 的授權，以及不在擁有者 Netlify 帳號內的舊專案 `iridescent-cheesecake-4ceaca`。擁有者已把 Netlify App 改為只限 6 個 repository（teacher-toolbox、TAS_ERP、membershipsystem、VictorProfile、ECW-Formal-、tyshcoolrollcallsystem），AlanEnglish 已排除；`tools.alanenglish.com.tw` 仍由 Netlify 提供，不受影響。repo 內 `netlify.toml` 尚未移除。
+- 下一步：擁有者說「幫我合併」後合併、等 Cloudflare 建置並在正式成本頁驗收。
 ### 直接新增教師／管理員（2026-10-13，分支 `feature/create-staff-accounts`，本機完成／尚未部署，等待擁有者同意上線）
 
 - 負責：Claude Code 聊天「點名系統與補課功能」；基準 main `efd85d4a`。

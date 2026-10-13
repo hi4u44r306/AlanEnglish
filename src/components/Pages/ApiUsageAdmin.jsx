@@ -1,31 +1,20 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { FiActivity, FiAlertTriangle, FiCheckCircle, FiRefreshCw, FiShield } from "react-icons/fi";
+import { FiActivity, FiAlertTriangle, FiRefreshCw, FiShield } from "react-icons/fi";
 import { toast } from "react-toastify";
 import { useAuth } from "../../auth/AuthContext";
 import { getAiCostDashboard, updateAiCostBudget } from "../../services/aiMaterialService";
 import CostAlertPanel from "./CostAlertPanel";
 import ServiceCostCard from "./ServiceCostCard";
 import CostScalePanel from "./CostScalePanel";
+import CostPlainSummary from "./CostPlainSummary";
+import UnitProfitCalculator from "./UnitProfitCalculator";
+import { plainSummary, toTwd, twdText } from "./costPlain";
 import { getServiceCostDashboard } from "../../services/costAlertService";
 import "./css/Platform.scss";
 import "./css/ApiUsageAdmin.scss";
 
 const currentTaiwanMonth = () => new Intl.DateTimeFormat("en-CA", { year: "numeric", month: "2-digit", timeZone: "Asia/Taipei" }).format(new Date());
 const money = value => Number(value || 0).toLocaleString("zh-TW", { minimumFractionDigits: 2, maximumFractionDigits: 4 });
-
-const alertIcon = level => level === "success" ? <FiCheckCircle /> : <FiAlertTriangle />;
-
-function BudgetProgress({ budget }) {
-    const usedPercent = Number(budget?.used_percent || 0);
-    const displayPercent = Math.min(100, Math.max(0, usedPercent));
-    const status = usedPercent >= 100 ? "critical" : usedPercent >= Number(budget?.warning_percent || 80) ? "warning" : "normal";
-
-    return <section className={`api-budget api-budget-${status}`} aria-labelledby="api-budget-title">
-        <div className="api-budget-copy"><span className="platform-eyebrow">MONTHLY CONTROL</span><h2 id="api-budget-title">本月預算使用 {money(usedPercent)}%</h2><p>警示門檻 {budget?.warning_percent || 80}%</p></div>
-        <div className="api-budget-track" role="progressbar" aria-label="本月網站預算使用率" aria-valuemin="0" aria-valuemax="100" aria-valuenow={Math.max(0, Math.min(100, Math.round(usedPercent)))}><span style={{ width: `${displayPercent}%` }} /></div>
-        <div className="api-budget-scale"><span>US$0</span><span>警示 {budget?.warning_percent || 80}%</span><span>預算 US${money(budget?.monthly_budget_usd)}</span></div>
-    </section>;
-}
 
 function DailyTrend({ rows = [] }) {
     const maxCost = Math.max(...rows.map(row => Number(row.cost_usd || 0)), 0.000001);
@@ -83,16 +72,19 @@ function ApiUsageAdmin() {
     }, [data, filter]);
     const criticalAlerts = (data?.alerts || []).filter(alert => alert.level !== "success").length;
 
-    return <main className="platform-page api-usage-page"><header className="platform-hero api-hero"><div><span className="platform-eyebrow">COST CONTROL CENTER</span><h1>網站成本與服務用量</h1><p>統整資料庫、登入、AI、語音、寄信、主機與交易費用。後端持續監測；頁面每分鐘刷新，供應商帳務依更新速度核對。</p></div><div className="api-hero-actions"><label><span className="sr-only">查詢月份</span><input className="platform-month" type="month" value={month} onChange={event => setMonth(event.target.value)} /></label><button type="button" className="api-refresh" onClick={() => load()} disabled={loading}><FiRefreshCw className={loading ? "is-spinning" : ""} />重新整理</button></div></header>{loadError && <p className="api-service-gap" role="alert">{loadError}{data ? "；目前顯示上次成功資料。" : "；尚無可用成本資料。"}</p>}{loading ? <div className="platform-loading">成本資料載入中…</div> : data && <>
+    return <main className="platform-page api-usage-page"><header className="platform-hero api-hero"><div><span className="platform-eyebrow">網站成本</span><h1>這個月要付多少錢？</h1><p>把資料庫、登入、AI、語音、寄信、主機這些服務的費用換成台幣，加在一起給你看。頁面每分鐘自動更新。</p></div><div className="api-hero-actions"><label><span className="sr-only">查詢月份</span><input className="platform-month" type="month" value={month} onChange={event => setMonth(event.target.value)} /></label><button type="button" className="api-refresh" onClick={() => load()} disabled={loading}><FiRefreshCw className={loading ? "is-spinning" : ""} />重新整理</button></div></header>{loadError && <p className="api-service-gap" role="alert">{loadError}{data ? "；目前顯示上次成功資料。" : "；尚無可用成本資料。"}</p>}{loading ? <div className="platform-loading">成本資料載入中…</div> : data && <>
         {data.monitoring_paused && <p className="api-service-gap" role="alert">背景服務帳務更新已暫停，目前顯示保留資料。</p>}
-        <CostScalePanel key={`${firebaseUser?.uid}-${month}`} providers={data.providers} population={data.population} month={month} rate={data.budget.usd_to_twd_rate} userId={firebaseUser?.uid} />
-        <div className="api-alert-cost-basis"><strong>提醒用已知成本：US$ {money(summary.total_cost_usd)}</strong><span>約 NT$ {money(summary.total_cost_twd)}；包含已取得帳務、網站估算與已設定固定費，未取得金額不當成免費。</span><span>目前 {criticalAlerts} 項成本或用量提醒。下方預算進度與 Email 警戒線使用這個金額。</span></div>
-        <BudgetProgress budget={data?.budget} />
+        <CostPlainSummary providers={data.providers} summary={summary} budget={data.budget} month={month} firebaseUser={firebaseUser} onSaved={load} />
         <CostAlertPanel key={alertRefresh} firebaseUser={firebaseUser} />
-        <section className="api-alert-section" aria-labelledby="api-alert-title"><div className="platform-section-title"><div><span className="platform-eyebrow">ALERTS</span><h2 id="api-alert-title">系統提醒</h2></div><FiShield /></div><div className="api-alert-list">{(data?.alerts || []).map(alert => <article className={`api-alert api-alert-${alert.level}`} key={alert.code}>{alertIcon(alert.level)}<div><strong>{alert.title}</strong><p>{alert.message}</p></div></article>)}</div></section>
-        <div className="api-dashboard-grid"><section className="platform-card api-trend-card"><div className="platform-section-title"><div><span className="platform-eyebrow">DAILY TREND</span><h2>AI／TTS 每日用量</h2></div><FiActivity /></div><DailyTrend rows={data?.daily || []} /><p className="api-chart-note">此圖只顯示網站已記錄的 AI／TTS 每日估算，未包含供應商帳單、月費與交易手續費。</p></section><section className="platform-card api-settings-card"><div className="platform-section-title"><div><span className="platform-eyebrow">BUDGET</span><h2>預算警示設定</h2></div></div><form className="api-budget-form" onSubmit={saveBudget}><label><span>每月總預算（USD）</span><input type="number" min="1" max="10000" step="0.01" value={budget.monthly_budget_usd} onChange={event => setBudget(current => ({ ...current, monthly_budget_usd: event.target.value }))} /></label><label><span>警示門檻（%）</span><input type="number" min="50" max="100" value={budget.warning_percent} onChange={event => setBudget(current => ({ ...current, warning_percent: Number(event.target.value) }))} /></label><label><span>美元換台幣</span><input type="number" min="20" max="50" step="0.01" value={budget.usd_to_twd_rate} onChange={event => setBudget(current => ({ ...current, usd_to_twd_rate: event.target.value }))} /></label><button className="platform-primary" disabled={saving}>{saving ? "儲存中…" : "儲存設定"}</button></form></section></div>
+        {criticalAlerts > 0 && <section className="api-alert-section" aria-labelledby="api-alert-title"><div className="platform-section-title"><div><h2 id="api-alert-title">要注意的事</h2></div><FiShield /></div><div className="api-alert-list">{(data?.alerts || []).filter(alert => alert.level !== "success").map(alert => <article className={`api-alert api-alert-${alert.level}`} key={alert.code}><FiAlertTriangle /><div><strong>{alert.title}</strong><p>{alert.message}</p></div></article>)}</div></section>}
+        <UnitProfitCalculator key={firebaseUser?.uid} userId={firebaseUser?.uid} fixedTwd={plainSummary(data.providers, data.budget.usd_to_twd_rate).fixedTwd} />
+        <details className="api-advanced"><summary>進階：預算設定、月底預估與各服務用量明細</summary>
+        <p className="api-chart-note">以下是原本的詳細資料，金額以美元顯示，平常不需要看。</p>
+        <CostScalePanel key={`${firebaseUser?.uid}-${month}`} providers={data.providers} population={data.population} month={month} rate={data.budget.usd_to_twd_rate} userId={firebaseUser?.uid} />
+        <div className="api-dashboard-grid"><section className="platform-card api-trend-card"><div className="platform-section-title"><div><span className="platform-eyebrow">DAILY TREND</span><h2>AI／TTS 每日用量</h2></div><FiActivity /></div><DailyTrend rows={data?.daily || []} /><p className="api-chart-note">此圖只顯示網站已記錄的 AI／TTS 每日估算，未包含供應商帳單、月費與交易手續費。</p></section><section className="platform-card api-settings-card"><div className="platform-section-title"><div><span className="platform-eyebrow">BUDGET</span><h2>預算警示設定</h2></div></div><form className="api-budget-form" onSubmit={saveBudget}><label><span>每月總預算（美元，約 {twdText(toTwd(Number(budget.monthly_budget_usd) || 0, Number(budget.usd_to_twd_rate) || 0))}）</span><input type="number" min="1" max="10000" step="0.01" value={budget.monthly_budget_usd} onChange={event => setBudget(current => ({ ...current, monthly_budget_usd: event.target.value }))} /></label><label><span>警示門檻（%）</span><input type="number" min="50" max="100" value={budget.warning_percent} onChange={event => setBudget(current => ({ ...current, warning_percent: Number(event.target.value) }))} /></label><label><span>美元換台幣</span><input type="number" min="20" max="50" step="0.01" value={budget.usd_to_twd_rate} onChange={event => setBudget(current => ({ ...current, usd_to_twd_rate: event.target.value }))} /></label><button className="platform-primary" disabled={saving}>{saving ? "儲存中…" : "儲存設定"}</button></form></section></div>
         <section className="platform-card api-provider-section"><div className="platform-section-title api-provider-section-title"><div><span className="platform-eyebrow">SERVICES</span><h2>可能產生費用的服務</h2><p>服務帳務與用量集中於此；未接通、更新失敗、過期或尚有超額費用缺口都會列出。</p></div><div className="platform-segment" aria-label="服務篩選">{[{ id: "all", label: "全部" }, { id: "tracked", label: "費用已取得" }, { id: "external", label: "需補資料" }].map(option => <button type="button" className={filter === option.id ? "active" : ""} onClick={() => setFilter(option.id)} key={option.id}>{option.label}</button>)}</div></div><div className="api-provider-grid">{providers.map(provider => <ServiceCostCard key={`${month}-${provider.id}`} provider={provider} firebaseUser={firebaseUser} month={month} onSaved={load} />)}</div></section>
         <section className="platform-card"><div className="platform-section-title"><div><span className="platform-eyebrow">RECENT OPENAI MATERIALS</span><h2>最近 AI 教材請求</h2></div></div><div className="platform-table-wrap"><table className="platform-table"><thead><tr><th>時間</th><th>使用者</th><th>模型</th><th>狀態</th><th>Token</th><th>成本</th></tr></thead><tbody>{(data?.recent || []).map(row => <tr key={row.id}><td>{new Date(row.created_at).toLocaleString("zh-TW", { timeZone: "Asia/Taipei" })}</td><td>{row.name}</td><td>{row.model}</td><td>{row.request_status}</td><td>{Number(row.total_tokens || 0).toLocaleString()}</td><td>US$ {money(row.estimated_cost_usd)}</td></tr>)}</tbody></table></div></section>
+        </details>
     </>}</main>;
 }
 

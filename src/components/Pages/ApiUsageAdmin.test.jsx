@@ -36,10 +36,12 @@ describe("ApiUsageAdmin", () => {
 
     it("shows budget progress, forecast warning and distinguishes external billing", async () => {
         render(<ApiUsageAdmin />);
-        expect(await screen.findByRole("heading", { name: "網站成本與服務用量" })).toBeInTheDocument();
+        expect(await screen.findByRole("heading", { name: "這個月要付多少錢？" })).toBeInTheDocument();
         expect(await screen.findByRole("progressbar", { name: "本月網站預算使用率" })).toHaveAttribute("aria-valuenow", "13");
         expect(screen.getByText("2 項服務")).toBeInTheDocument();
         expect(screen.queryByText("月底費用可能超標")).not.toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: "請補上這 1 項的金額" })).toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: "賣一套教材賺多少" })).toBeInTheDocument();
         const ledger = within(screen.getByRole('table', { name: '逐項成本總覽' }));
         expect(ledger.getByText("OpenAI · AI 教材")).toBeInTheDocument();
         expect(ledger.getByText("Supabase")).toBeInTheDocument();
@@ -72,6 +74,7 @@ describe("ApiUsageAdmin", () => {
         render(<ApiUsageAdmin />);
         expect(await screen.findByRole('alert')).toHaveTextContent('尚無可用成本資料');
         expect(screen.queryByText('目前已花費（已取得部分）')).not.toBeInTheDocument();
+        expect(screen.queryByText(/到目前為止的費用/)).not.toBeInTheDocument();
     });
 
     it('discards a previous month response that arrives after a month switch',async()=>{
