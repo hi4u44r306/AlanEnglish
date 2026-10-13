@@ -1,6 +1,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 import { createRemoteJWKSet, jwtVerify } from "npm:jose@5";
 import { summarizeWeeklySpeakingChallenge } from "../_shared/weekly-report-speaking.ts";
+import { describeMakeupForFamily, loadStudentMakeupSummary, type MakeupSummary } from "../_shared/attendance-makeup.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -486,8 +487,20 @@ const buildWeeklyReport = async (
             : previousTotalActions > 0
                 ? "和上週維持相同學習量"
                 : "這是第一週可比較的學習紀錄";
+    // Missed classes this week, what was taught and how far the makeup has got. Attendance is an
+    // extra section: if it cannot be read the rest of the report is still delivered.
+    let makeup: MakeupSummary = [];
+    try {
+        const today = toTaipeiDateKey(new Date().toISOString());
+        makeup = await loadStudentMakeupSummary(admin, Number(target.id), week.start_date, week.end_date < today ? week.end_date : today);
+    } catch (error) {
+        console.error("weekly-report makeup summary error", error);
+    }
+    const makeupLines = describeMakeupForFamily(makeup);
+    const makeupMessage = makeupLines.length ? `\n\n請假與補課：\n${makeupLines.join("\n")}` : "";
+
     const guardianName = guardian?.guardian_name ? `${guardian.guardian_name}您好：` : "家長您好：";
-    const familyMessage = `${guardianName}\n\n這是 ${target.name} 的 Alan English 每週學習報告（${week.start_date}～${week.end_date}）。\n\n本週學習 ${activeDays} 天，共完成 ${totalActions} 次學習活動，${comparisonText}。${answerAccuracy === null ? "" : `答題正確率 ${answerAccuracy}%。`}\n\n本週亮點：${highlights.slice(0, 3).join("；")}。\n下週建議：${nextFocus.slice(0, 2).join("；")}。\n\n鼓勵孩子保持短時間、固定頻率的練習，比一次學很久更容易持續。\n\n— Alan English`;
+    const familyMessage = `${guardianName}\n\n這是 ${target.name} 的 Alan English 每週學習報告（${week.start_date}～${week.end_date}）。\n\n本週學習 ${activeDays} 天，共完成 ${totalActions} 次學習活動，${comparisonText}。${answerAccuracy === null ? "" : `答題正確率 ${answerAccuracy}%。`}\n\n本週亮點：${highlights.slice(0, 3).join("；")}。\n下週建議：${nextFocus.slice(0, 2).join("；")}。${makeupMessage}\n\n鼓勵孩子保持短時間、固定頻率的練習，比一次學很久更容易持續。\n\n— Alan English`;
 
     return {
         student: {
@@ -573,6 +586,7 @@ const buildWeeklyReport = async (
         daily_breakdown: dailyBreakdown,
         highlights: highlights.slice(0, 4),
         next_focus: nextFocus.slice(0, 3),
+        makeup,
         family_message: familyMessage,
         generated_at: new Date().toISOString()
     };

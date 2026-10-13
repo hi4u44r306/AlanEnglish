@@ -486,3 +486,6 @@ verify_jwt = false
 
 [functions.student-social]
 verify_jwt = false
+
+[functions.attendance-manager]
+verify_jwt = false

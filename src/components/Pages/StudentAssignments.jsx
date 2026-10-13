@@ -22,6 +22,7 @@ import {
     submitAssignment
 } from "../../services/assignmentService";
 import ListeningTTSPlayer from "./ListeningTTSPlayer";
+import MakeupEntry from "../fragment/MakeupEntry";
 import { assignmentStateLabel, getAssignmentState } from "../../utils/studentLearning";
 import { assignmentDisplayTitle, normalizeListeningTracks } from "../../utils/assignmentListening";
 import "./css/Assignments.scss";
@@ -328,6 +329,8 @@ const StudentAssignments = () => {
                 {(message || assignmentsQuery.error) && <div className="assignment-message" role="alert">{message || (assignmentsQuery.data ? "目前顯示上次作業，最新資料暫時無法同步。" : assignmentsQuery.error.message)}<button type="button" onClick={() => load()}>重新讀取</button></div>}
                 {(assignmentsQuery.loading || v2Query.loading) && !loading && <p role="status">部分任務仍在讀取中…</p>}
                 {partialError && <div className="assignment-message" role="status">部分任務暫時無法讀取，清單可能不完整。<button type="button" onClick={() => load()}>重新讀取</button></div>}
+
+                <MakeupEntry />
 
                 <section className="student-homework-tasks">
                     <div className="student-homework-section-heading">
