@@ -64,8 +64,13 @@ async function createDueEvents(admin: any) {
     const events: DueEvent[] = [];
     for (const grant of material.data || []) {
         const plan = Array.isArray(grant.subscription_plans) ? grant.subscription_plans[0] : grant.subscription_plans;
-        if (plan?.code !== "material_bonus_90_day") continue;
-        events.push({ key: `material:${grant.id}:expires:${targetDay}`, studentId: grant.student_id, type: "material_access_expiring", title: "教材附贈網站權限即將到期", body: "教材擁有權與學習紀錄會保留；網站使用權將於三天後到期，可選擇基本月費會員繼續使用已擁有教材。", effectiveAt: grant.ends_at });
+        const notice = plan?.code === "material_bonus_90_day"
+            ? { title: "教材附贈網站權限即將到期", body: "教材擁有權與學習紀錄會保留；網站使用權將於三天後到期，可選擇基本月費會員繼續使用已擁有教材。" }
+            : plan?.code === "workbook_platform_access"
+                ? { title: "習作本平台方案即將到期", body: "習作本擁有權與學習紀錄會保留；聽力與口說大挑戰的使用權將於三天後到期。需要繼續使用，請聯絡 Alan English 延長。" }
+                : null;
+        if (!notice) continue;
+        events.push({ key: `material:${grant.id}:expires:${targetDay}`, studentId: grant.student_id, type: "material_access_expiring", ...notice, effectiveAt: grant.ends_at });
     }
     for (const grant of subscriptions.data || []) {
         const type = grant.cancel_at_period_end ? "subscription_cancelled" : "subscription_expiring";

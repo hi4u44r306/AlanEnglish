@@ -14,6 +14,13 @@ describe("getPrimaryAccessPlanLabel", () => {
         })).toBe("基本自主學習會員");
     });
 
+    it("labels a workbook platform grant by what it includes", () => {
+        expect(getPrimaryAccessPlanLabel({
+            effective_access: { plan_codes: ["workbook_platform_access"], grants: [{ plan_code: "workbook_platform_access" }] }
+        })).toBe("習作本平台方案（聽力＋口說）");
+        expect(hasAiPremiumAccess({ plan_codes: ["workbook_platform_access"], features: { pronunciation: true, ai_materials: false } })).toBe(false);
+    });
+
     it("keeps active academy access as the primary label", () => {
         expect(getPrimaryAccessPlanLabel({
             effective_access: {

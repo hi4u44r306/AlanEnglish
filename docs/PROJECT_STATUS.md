@@ -1,5 +1,17 @@
 # Alan English 專案狀態
 
+### 習作本平台方案第一階段（2026-10-13，分支 `feature/workbook-platform-plan`，本機與隔離驗證完成／尚未部署，等待擁有者核准正式資料庫與後端）
+
+- 最後更新：2026-10-13 14:10（Asia/Taipei）。負責：Claude Code 聊天「教材定價與成本統整」；worktree `.claude/worktrees/cost-page-redesign`，基準 main `2f9000c8`。
+- 擁有者決定：一本習作本＋平台（聽力＋口說大挑戰）半年 180 天 NT$1,980／一年 365 天 NT$3,280；只能用購買的那一本；先用啟用碼販售（線下收款寄送）；三本 NT$1,380 組合不再販售；習作本印刷每本 NT$300。
+- 已完成（本機）：migration `20261013053000_workbook_platform_access_plan.sql`（新增方案 `workbook_platform_access`；`get_student_effective_access` 多回傳 `features.pronunciation`，其餘彙總不變）；`notification-manager` 到期通知納入新方案；`MembershipAdmin` 啟用碼快捷鈕與必選習作本檢查；`membershipPlans.js` 方案名稱；成本試算預設 3,280／印刷 300；PROJECT_LOGIC、AGENTS 第 6 節、手冊 v4.34。
+- 已通過：PGlite 隔離執行 migration 與 `loadEffectiveAccess` 6 項（新方案只有聽力＋口說且逐本限制、既有方案結果不變、到期失效、與基本會員疊加、AI 加購無基本會員仍被移除、重跑 migration 不重複）；React 6 檔 37 項；變更檔 ESLint；口說權限／逐本 entitlement 既有契約測試；`git diff --check`。
+- 既有失敗（main 相同、與本批無關）：`material-commerce-contract` 第 15 項、`academy-assignment-v2-contract` 第 8、12 項，已用未修改的 main 副本確認同樣失敗。
+- 正式環境唯讀查核：正式 RPC 定義與 repo 一致；`subscription_plans.code` 有唯一鍵；RPC 僅 service_role 可執行；目前有效 grant 共 3 筆（academy_internal 2、all_access_monthly 1），沒有 textbook／90 天 grant；`redeem_activation_code` 會把 `access_model = textbook` 的兌換者設為 `textbook_customer`。
+- 未執行／未驗收：正式 migration、`notification-manager` 部署、Production build、真實帳號兌換啟用碼後的聽力與口說實測、桌面／412px／iPhone 畫面。
+- 影響與回復：只新增一筆方案並替換一個 RPC（多一個輸出欄位）。回復＝將方案 `enabled` 設為 false（已發出的啟用碼即失效）並以前一版定義重建 RPC；不刪資料。
+- 第二階段（未動工）：線上刷卡販售、拆除三本＋90 天規則、寄送流程、前台教材頁、條款與退款頁。
+
 ### 在校生平台使用費文件更新（2026-10-13，分支 `docs/academy-platform-fee`，純文件，待擁有者說「幫我合併」）
 
 - 最後更新：2026-10-13 12:50（Asia/Taipei）。負責：Claude Code 聊天「教材定價與成本統整」；worktree `.claude/worktrees/cost-page-redesign`，基準 main `15164c95`。
