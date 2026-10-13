@@ -1,5 +1,16 @@
 # Alan English 專案狀態
 
+### 點名與補課（2026-10-13，分支 `feature/attendance-makeup`，本機完成／尚未部署，等待擁有者核准資料庫與後端上線）
+
+- 最後更新：2026-10-13 02:30（Asia/Taipei）。負責：Claude Code 聊天「點名系統與補課功能」；獨立 worktree `.claude/worktrees/attendance-makeup`，基準 main `31cf2d2d`。
+- 目標／完成條件：老師點名並填當天教學進度（習作本影片時間段、聽力音檔、作業）；缺席／請假學生自動取得補課頁，按鈕直接跳到影片時間段、該聽力音檔及該份作業。
+- 擁有者決定：影片時間同時支援「頁碼→時間對照表」與老師手動填；只有缺席／請假學生看得到補課；影片由學生按「我看完了」，聽力與作業沿用既有 80% 有效聆聽與作業完成紀錄自動打勾。
+- 已完成（本機）：migration `20261013011500_attendance_and_makeup.sql`（5 張新表，RLS 開啟且撤銷 anon／authenticated，純新增）；Edge Function `attendance-manager`＋`_shared/attendance-makeup.ts`；前端 `/teacher/attendance`、`/student/makeup`、作業頁補課提示 `MakeupEntry`、老師選單「點名」；`PROJECT_LOGIC.md` 7.6、手冊 v4.30。
+- 驗證：`scripts/attendance-makeup.test.mjs` 4/4；新增與修改的 8 個前端檔 ESLint 無錯誤；`makeupVideo` 斷言以 node 直接執行通過；`Attendance.scss` 編譯成功；`git diff --check` 通過。
+- 未驗證：CRA Jest 在 `.claude/` 路徑下找不到／無法轉譯測試檔，`makeupVideo.test.js`、`StudentAssignments.test.jsx`、`MainNavbar.test.jsx` 尚未以 Jest 執行；Production build 未執行；Edge Function 未經 Deno 型別檢查（本機無 Deno）；因資料表與 Function 尚未上線，老師／學生畫面未做實際操作與 412px 手機驗收。
+- 部署：全部未部署。屬高風險（新 migration、新 Edge Function、作業隔離相關），須擁有者針對本批明確同意後才套用 migration 與部署 Function。回復方式：停用 Function 並移除前端入口；5 張新表不影響既有資料，可保留。
+- 下一步：擁有者同意 → 套用 migration → 部署 `attendance-manager` → 合併 main → 正式站以老師／缺席學生帳號驗收（桌面與 412px）。管理員需先為常用習作本建立頁碼→影片時間對照。
+
 ### A–Z 練習大小寫隨機、關卡摘要文字（2026-10-13，分支 `feature/speaking-level-dialog-practice-count`，待擁有者說「幫我合併」）
 
 - PR #559 已於 2026-10-13 發布：Workers Builds 成功；正式站 JS／CSS 含 `handwriting-paper`。PR #558（收尾）已合併，其建置結果未等待確認。

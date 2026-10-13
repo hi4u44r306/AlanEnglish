@@ -67,6 +67,8 @@ const PronunciationCoach = lazy(() => import("../components/Pages/PronunciationC
 const TextbookSpeakingChallenge = lazy(() => import("../components/Pages/TextbookSpeakingChallenge"));
 const TeacherAssignments = lazy(() => import("../components/Pages/TeacherAssignments"));
 const StudentAssignments = lazy(() => import("../components/Pages/StudentAssignments"));
+const TeacherAttendance = lazy(() => import("../components/Pages/TeacherAttendance"));
+const StudentMakeup = lazy(() => import("../components/Pages/StudentMakeup"));
 const ReviewCenter = lazy(() => import("../components/Pages/ReviewCenter"));
 const WeeklyReport = lazy(() => import("../components/Pages/WeeklyReport"));
 const MembershipCenter = lazy(() => import("../components/Pages/MembershipCenter"));
@@ -179,6 +181,7 @@ const App = () => {
                     <Route element={<AuthenticatedAppLayout />}>
                         <Route path="/student/dashboard" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><Navigate to="/student/settings" replace /></ProtectedRoute>} />
                         <Route path="/student/assignments" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><StudentAssignments /></ProtectedRoute>} />
+                        <Route path="/student/makeup" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><StudentMakeup /></ProtectedRoute>} />
                         <Route path="/student/review" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><ReviewCenter /></ProtectedRoute>} />
                         <Route path="/student/weekly-report" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><WeeklyReport /></ProtectedRoute>} />
                         <Route path="/student/membership" element={<ProtectedRoute allowedRoles={["student"]}><MembershipCenter /></ProtectedRoute>} />
@@ -205,6 +208,7 @@ const App = () => {
                         <Route path="/teacher/dashboard" element={<ProtectedRoute allowedRoles={["teacher", "admin"]}><ManagementDashboard /></ProtectedRoute>} />
                         <Route path="/teacher/reports" element={<ProtectedRoute allowedRoles={["teacher", "admin"]}><WeeklyReport /></ProtectedRoute>} />
                         <Route path="/teacher/assignments" element={<ProtectedRoute allowedRoles={["teacher", "admin"]}><TeacherAssignments /></ProtectedRoute>} />
+                        <Route path="/teacher/attendance" element={<ProtectedRoute allowedRoles={["teacher", "admin"]}><TeacherAttendance /></ProtectedRoute>} />
                         <Route path="/teacher/accounts" element={<ProtectedRoute allowedRoles={["teacher", "admin"]}><AccountManagement /></ProtectedRoute>} />
                         <Route path="/teacher/accounts/create" element={<ProtectedRoute allowedRoles={["teacher", "admin"]}><Signup /></ProtectedRoute>} />
                         <Route path="/teacher/music/create" element={<ProtectedRoute allowedRoles={["teacher", "admin"]}><AddMusic /></ProtectedRoute>} />
