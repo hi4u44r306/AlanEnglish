@@ -9,6 +9,7 @@
 - 課前登記與課程進度表（擁有者追加）：可提前 60 天登記內容與請假；老師頁新增週一至週日「課程進度表」（`class_schedule` action）；補課只在上課日當天起對學生顯示。ESLint、SCSS 編譯、後端規則測試 4/4 與日期工具斷言通過；畫面仍未實際操作。
 - 家長可見（擁有者追加）：`weekly-report` 回傳 `makeup` 並寫入家長文字摘要；`WeeklyReport.jsx` 新增「本週請假與補課」。完成判定移至 `_shared/attendance-makeup.ts` 共用。
 - 上線前驗證（2026-10-13）：Production build 成功；Jest 指定 5 組 48 項通過（`makeupVideo`、`StudentAssignments`、`MainNavbar`、`WeeklyReport*`）；`attendance-manager` Deno 型別檢查通過；`weekly-report` 仍有 5 個既有型別訊息（316–328 行，非本次修改）；`scripts/attendance-makeup.test.mjs` 5/5、`weekly-report-speaking` 3/3。擁有者已明確同意本批上線。
+- 受阻（2026-10-13）：擁有者已同意上線，但 Claude Code 的權限檢查擋下正式資料庫 migration（`apply_migration`），因此 migration 未套用、兩支 Function 未部署、PR 未合併；正式站完全沒有變動。需擁有者在權限設定允許該動作或自行執行後才能繼續。順序必須是 migration → `attendance-manager` 與 `weekly-report` → 合併 main。
 - 對照表：`20261013020000_seed_workbook_video_segments.sql` 由既有 `workbookVideoChapters.js` 產生 Workbook 1～4 共 194 段（每段結束於下一章開始；可重複執行）。Workbook 5 影片章節為「1~7、8~14…235~241」，與音檔頁碼（P2～P99）對不上，待擁有者確認數字意義後再建；Workbook 6 無影片連結。
 - 驗證：`scripts/attendance-makeup.test.mjs` 4/4；新增與修改的 8 個前端檔 ESLint 無錯誤；`makeupVideo` 斷言以 node 直接執行通過；`Attendance.scss` 編譯成功；`git diff --check` 通過。
 - 未驗證：CRA Jest 在 `.claude/` 路徑下找不到／無法轉譯測試檔，`makeupVideo.test.js`、`StudentAssignments.test.jsx`、`MainNavbar.test.jsx` 尚未以 Jest 執行；Production build 未執行；Edge Function 未經 Deno 型別檢查（本機無 Deno）；因資料表與 Function 尚未上線，老師／學生畫面未做實際操作與 412px 手機驗收。
