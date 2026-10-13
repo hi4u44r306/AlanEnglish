@@ -1,5 +1,16 @@
 # Alan English 專案狀態
 
+### 網站成本頁台幣白話改版與教材利潤試算（2026-10-13，分支 `feature/cost-page-plain-redesign`，本機完成／尚未部署，待擁有者說「幫我合併」）
+
+- 最後更新：2026-10-13 10:50（Asia/Taipei）。負責：Claude Code 聊天「教材定價與成本統整」；獨立 worktree `.claude/worktrees/cost-page-redesign`，基準 main `afebe348`。
+- 目標／完成條件：管理員一眼看到「這個月要付多少」（台幣）、哪些項目還沒填、錢花在哪，並可試算賣一套教材的利潤。
+- 範圍：只改前端 `ApiUsageAdmin.jsx`、新增 `CostPlainSummary.jsx`／`UnitProfitCalculator.jsx`／`costPlain.js`、`ApiUsageAdmin.scss` 與測試；手冊 v4.31、PROJECT_LOGIC 6.4。沒有 migration、Edge Function、Secret、價格或商品變更；補填金額沿用既有 `save_service`。
+- 已通過：成本相關 6 個測試檔 34 項、變更檔 ESLint、`git diff --check`；以假資料靜態預覽在 320／412／768／1024／1440px 量測無水平溢位、無元素超出畫面、按鈕與輸入高度皆 ≥44px。
+- 未執行／未驗收：Production build（交由 Cloudflare 合併後建置）；預覽視窗被隱藏無法截圖，實際畫面、正式管理員登入、補填儲存與 iPhone Safari 尚未目視驗收。此 worktree 路徑含 `.claude`，`react-scripts test` 的 testMatch 找不到檔案，改用同一份 CRA Jest 設定並以 testRegex 執行。
+- 正式資料唯讀查核（10 月）：Azure 約 US$0.036，OpenAI／Google TTS／Firebase／R2／GitHub 為 0；Supabase、網域、Netlify、其他沒有金額也沒有固定費，是總額不完整的主因。啟用學生帳號 1 人。
+- 待擁有者決定（另一批高風險工作，未動工）：教材改為「習作本＋平台（含口說大挑戰）」半年 NT$1,980／一年 NT$2,980、移除三本組合 NT$1,380；需實際印刷與運費報價。涉及商品規則、entitlement、Stripe Price、公開頁、FAQ、條款，須依第 13 節取得該批授權。
+- 下一步：擁有者說「幫我合併」後合併、等 Cloudflare 建置並在正式成本頁驗收；之後補填 Supabase 與網域月費。
+
 ### 點名與補課（2026-10-13，分支 `feature/attendance-makeup`，本機完成／尚未部署，等待擁有者核准資料庫與後端上線）
 
 - 最後更新：2026-10-13 02:30（Asia/Taipei）。負責：Claude Code 聊天「點名系統與補課功能」；獨立 worktree `.claude/worktrees/attendance-makeup`，基準 main `31cf2d2d`。
