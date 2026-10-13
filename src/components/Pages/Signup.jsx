@@ -181,8 +181,8 @@ function Signup() {
             return "英文姓名請使用英文字母，可包含空格、句點、撇號或連字號";
         }
 
-        if (form.loginUsername && !/^[a-z][a-z0-9]{4,31}$/.test(form.loginUsername.trim().toLowerCase())) {
-            return "登入帳號需為 5～32 個小寫英文字母或數字，且第一個字必須是英文字母";
+        if (form.loginUsername && !/^[a-z][a-z0-9]{2,31}$/.test(form.loginUsername.trim().toLowerCase())) {
+            return "登入帳號需為 3～32 個小寫英文字母或數字，且第一個字必須是英文字母";
         }
 
         if (!form.classCode) {

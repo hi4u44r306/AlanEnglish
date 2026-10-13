@@ -583,8 +583,8 @@ const normalizeStudentInput = (
         throw new HttpError(400, "UNRECEIVABLE_LOGIN_EMAIL", "請使用本人或家長可以正常收信的 Email，不可使用虛構或測試信箱");
     }
 
-    if (loginUsername && !/^[a-z][a-z0-9]{4,31}$/.test(loginUsername)) {
-        throw new HttpError(400, "INVALID_LOGIN_USERNAME", "登入帳號需為 5～32 個小寫英文字母或數字，且第一個字必須是英文字母");
+    if (loginUsername && !/^[a-z][a-z0-9]{2,31}$/.test(loginUsername)) {
+        throw new HttpError(400, "INVALID_LOGIN_USERNAME", "登入帳號需為 3～32 個小寫英文字母或數字，且第一個字必須是英文字母");
     }
 
     if (!chineseName) {
@@ -1877,7 +1877,7 @@ const recoverStudentLogin = async (
     const password = validateStudentPassword(body.password ?? body.pin);
     const isSixDigitCode = /^\d{6}$/.test(recoveryCode);
     const isLegacyCode = recoveryCode.length >= 10;
-    if (!/^[a-z][a-z0-9]{4,31}$/.test(username) || (!isSixDigitCode && !isLegacyCode)) {
+    if (!/^[a-z][a-z0-9]{2,31}$/.test(username) || (!isSixDigitCode && !isLegacyCode)) {
         throw new HttpError(400, "INVALID_RECOVERY_DETAILS", "帳號或復原碼不正確");
     }
     const codeHash = await hashInvitationToken(recoveryCode);
