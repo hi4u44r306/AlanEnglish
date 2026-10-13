@@ -61,6 +61,11 @@ describe("normalizeLoginIdentifier", () => {
 
     it("rejects malformed academy usernames before calling Firebase", () => {
         expect(() => normalizeLoginIdentifier("12")).toThrow("登入帳號格式不正確");
+        expect(() => normalizeLoginIdentifier("le")).toThrow("登入帳號格式不正確");
+    });
+
+    it("accepts academy usernames from three characters", () => {
+        expect(normalizeLoginIdentifier(" Leo ")).toBe("leo@login.alanenglish.com.tw");
     });
 });
 

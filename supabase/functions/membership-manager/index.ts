@@ -1332,15 +1332,13 @@ Deno.serve(async (req: Request) => {
 
             let membership = await loadMembership(admin, Number(updated.id));
             if (STAFF_ROLES.has(nextRole) && membership?.status !== "complimentary") {
-                const { error: staffMembershipError } = await admin
-                    .from("memberships")
-                    .update({
-                        status: "complimentary",
-                        source: "admin_grant",
-                        access_ends_at: null,
-                        updated_at: new Date().toISOString()
-                    })
-                    .eq("id", membership.id);
+                // Accounts created with an activation card have no membership row yet,
+                // so a promotion to staff creates the complimentary one instead of updating it.
+                const now = new Date().toISOString();
+                const staffMembership = { status: "complimentary", source: "admin_grant", access_ends_at: null, updated_at: now };
+                const { error: staffMembershipError } = membership
+                    ? await admin.from("memberships").update(staffMembership).eq("id", membership.id)
+                    : await admin.from("memberships").insert({ ...staffMembership, student_id: updated.id, access_started_at: now });
                 if (staffMembershipError) throw staffMembershipError;
                 membership = await loadMembership(admin, Number(updated.id));
             }
