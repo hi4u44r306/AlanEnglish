@@ -84,7 +84,9 @@ const getClassBooks = async (admin: any, classId: number) => {
 const getRoster = async (admin: any, classId: number) => {
     const today = taiwanDate();
     const { data, error } = await admin.from("academy_enrollments")
-        .select("student_id,scheduled_departure_at,students(id,name,chinese_name,english_name,role,account_status)")
+        // academy_enrollments points at students three times (student, departure scheduled by,
+        // departure completed by), so the student relationship has to be named.
+        .select("student_id,scheduled_departure_at,students!academy_enrollments_student_id_fkey(id,name,chinese_name,english_name,role,account_status)")
         .eq("class_id", classId).eq("status", "active");
     if (error) throw error;
     return (data || [])

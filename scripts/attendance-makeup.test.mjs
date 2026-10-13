@@ -68,6 +68,9 @@ test("attendance tables are closed to the browser and the function re-checks the
     const handler = read("supabase/functions/attendance-manager/index.ts");
     assert.match(handler, /verifyFirebaseRequest\(req, admin\)/);
     assert.match(handler, /requireManagedClass/);
+    // academy_enrollments has three foreign keys to students; an unnamed embed fails with PGRST201.
+    assert.match(handler, /students!academy_enrollments_student_id_fkey\(/);
+    assert.doesNotMatch(handler, /[ ,"]students\(id/);
     assert.match(handler, /loadEffectiveAccess/);
     assert.doesNotMatch(handler, /body\?\.(role|student_id|learner_type)\b/);
 });
