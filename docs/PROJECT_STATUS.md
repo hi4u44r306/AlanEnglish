@@ -1,6 +1,13 @@
 # Alan English 專案狀態
 
-### 網站成本頁台幣白話改版與教材利潤試算（2026-10-13，分支 `feature/cost-page-plain-redesign`，本機完成／尚未部署，待擁有者說「幫我合併」）
+### 在校生平台使用費文件更新（2026-10-13，分支 `docs/academy-platform-fee`，純文件，待擁有者說「幫我合併」）
+
+- 最後更新：2026-10-13 12:50（Asia/Taipei）。負責：Claude Code 聊天「教材定價與成本統整」；worktree `.claude/worktrees/cost-page-redesign`，基準 main `15164c95`。
+- 內容：擁有者指定在校生平台使用費 NT$150／月、不含於學費、線下收取，並移除學費金額。已改 `AGENTS.md` 第 6 節、`PROJECT_LOGIC.md` 方案表、手冊 v4.33。網站文案只寫「在校期間已包含」功能，未提免費或學費，本批不改程式；下方歷史紀錄中的舊學費數字保留為歷史。
+- 驗證：`git diff --check`；純文件，不跑測試與 build，不觸發 Cloudflare 建置。
+- 口說成本查核（正式題庫唯讀）：已發布 192 關／1,425 題，使用付費 Azure 的只有 Workbook 1 的 A–Z 1 關 26 題與拼字 4 關 46 題；Workbook 2–6 全為本機評分。
+
+### 網站成本頁台幣白話改版與教材利潤試算（2026-10-13，已發布：PR #564／main `15164c95`，Cloudflare 12:08 台灣時間 success）
 
 - 最後更新：2026-10-13 10:50（Asia/Taipei）。負責：Claude Code 聊天「教材定價與成本統整」；獨立 worktree `.claude/worktrees/cost-page-redesign`，基準 main `afebe348`。
 - 目標／完成條件：管理員一眼看到「這個月要付多少」（台幣）、哪些項目還沒填、錢花在哪，並可試算賣一套教材的利潤。
@@ -11,7 +18,8 @@
 - 待擁有者決定（另一批高風險工作，未動工）：教材改為「習作本＋平台（含口說大挑戰）」半年 NT$1,980／一年 NT$2,980、移除三本組合 NT$1,380；需實際印刷與運費報價。涉及商品規則、entitlement、Stripe Price、公開頁、FAQ、條款，須依第 13 節取得該批授權。
 - 正式設定更新（2026-10-13，擁有者提供數字後以既有 `save_cost_service_v1` 寫入）：「其他」改為計入並設每月固定 US$96.9697（NT$3,200 開發工具訂閱，9 月另登錄同額月總額）；月預算由 US$25 調為 US$136.36（約 NT$4,500），避免固定費一計入就觸發五分鐘 Email。寫入後 10 月已知總成本 US$99.71（約 NT$3,290、預算 73%），提醒 0 筆。更正：Supabase 固定費 0、網域 US$2.702／月、Netlify 與 Stripe 不計入原本就已設定，先前「未填」的判斷有誤。回復方式：成本頁將「開發工具訂閱與其他」取消計入並把預算改回。
 - Netlify PR 留言與失敗檢查（2026-10-13）：來源是 GitHub 上 Netlify App 對全部 repository 的授權，以及不在擁有者 Netlify 帳號內的舊專案 `iridescent-cheesecake-4ceaca`。擁有者已把 Netlify App 改為只限 6 個 repository（teacher-toolbox、TAS_ERP、membershipsystem、VictorProfile、ECW-Formal-、tyshcoolrollcallsystem），AlanEnglish 已排除；`tools.alanenglish.com.tw` 仍由 Netlify 提供，不受影響。repo 內 `netlify.toml` 尚未移除。
-- 下一步：擁有者說「幫我合併」後合併、等 Cloudflare 建置並在正式成本頁驗收。
+- 發布驗收：正式 `main.5d51681a.js` 與 main CSS 含新版成本頁識別字串；#567 建置在 clone 階段逾時失敗，其修正隨本次建置一併上線。管理員登入實際畫面、補填儲存與 iPhone Safari 待驗。
+- 下一步：擁有者提供印刷（已知每本 NT$300）與運費後，再規劃教材新定價批次。
 ### 直接新增教師／管理員（2026-10-13，分支 `feature/create-staff-accounts`，本機完成／尚未部署，等待擁有者同意上線）
 
 - 負責：Claude Code 聊天「點名系統與補課功能」；基準 main `efd85d4a`。
