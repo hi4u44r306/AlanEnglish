@@ -1472,6 +1472,87 @@ const createStaffAccount = async (
     });
 };
 
+const loadActiveTeacherClassRows = async (admin: SupabaseClient, teacherId: number, today: string) => {
+    const { data, error } = await admin.from("teacher_class_permissions")
+        .select("id,class_id,starts_at,ends_at,academy_classes(code)")
+        .eq("teacher_id", teacherId).eq("can_publish", true).lte("starts_at", today)
+        .or(`ends_at.is.null,ends_at.gte.${today}`);
+    if (error) throw new HttpError(500, "TEACHER_CLASSES_LOOKUP_FAILED", "目前無法讀取教師的班級授權");
+    return (data || []).map((row: any) => ({
+        id: Number(row.id),
+        startsAt: String(row.starts_at),
+        code: String((Array.isArray(row.academy_classes) ? row.academy_classes[0] : row.academy_classes)?.code || "")
+    })).filter(row => STAFF_CLASS_CODES.has(row.code));
+};
+
+// Admin-only: reads or replaces the classes a teacher may take attendance and publish homework for.
+// Removed classes are switched off, never deleted, so the history of who managed a class stays.
+const manageTeacherClasses = async (
+    req: Request,
+    admin: SupabaseClient,
+    caller: CallerProfile,
+    body: JsonObject,
+    write: boolean
+): Promise<Response> => {
+    if (caller.role !== "admin") {
+        throw new HttpError(403, "ADMIN_REQUIRED", "只有管理員可以設定教師的班級授權");
+    }
+    const teacherId = Number(body.teacher_id);
+    if (!Number.isSafeInteger(teacherId) || teacherId <= 0) {
+        throw new HttpError(400, "TEACHER_ID_REQUIRED", "缺少教師帳號");
+    }
+    const { data: teacher, error: teacherError } = await admin
+        .from("students").select("id,role,account_status").eq("id", teacherId).maybeSingle();
+    if (teacherError) throw new HttpError(500, "TEACHER_LOOKUP_FAILED", "目前無法確認教師帳號");
+    if (!teacher?.id || teacher.role !== "teacher") {
+        throw new HttpError(404, "TEACHER_NOT_FOUND", "這個帳號不是教師，請先把角色儲存為教師");
+    }
+
+    const today = taiwanToday();
+    let rows = await loadActiveTeacherClassRows(admin, teacherId, today);
+
+    if (write) {
+        const requested = Array.isArray(body.class_codes)
+            ? [...new Set(body.class_codes.map(code => cleanText(code, 10).toUpperCase()))]
+            : [];
+        if (requested.some(code => !STAFF_CLASS_CODES.has(code))) {
+            throw new HttpError(400, "INVALID_CLASS_CODE", "班級只能選 E1、E3、E5 或 E7");
+        }
+        const now = new Date().toISOString();
+        const removed = rows.filter(row => !requested.includes(row.code));
+        if (removed.length) {
+            const { error } = await admin.from("teacher_class_permissions")
+                .update({ can_publish: false, ends_at: today, updated_at: now })
+                .in("id", removed.map(row => row.id));
+            if (error) throw new HttpError(500, "TEACHER_CLASSES_SAVE_FAILED", "班級授權儲存失敗，請稍後再試");
+        }
+        const added = requested.filter(code => !rows.some(row => row.code === code));
+        if (added.length) {
+            const { data: classes, error: classError } = await admin.from("academy_classes")
+                .select("id,code").in("code", added).eq("is_active", true);
+            if (classError || (classes || []).length !== added.length) {
+                throw new HttpError(500, "TEACHER_CLASSES_SAVE_FAILED", "班級授權儲存失敗，請稍後再試");
+            }
+            // A class switched off earlier today is switched back on in place.
+            const { error } = await admin.from("teacher_class_permissions").upsert(
+                (classes || []).map((klass: any) => ({
+                    teacher_id: teacherId, class_id: klass.id, starts_at: today, ends_at: null,
+                    can_publish: true, created_by: caller.id, updated_at: now
+                })),
+                { onConflict: "teacher_id,class_id,starts_at" }
+            );
+            if (error) throw new HttpError(500, "TEACHER_CLASSES_SAVE_FAILED", "班級授權儲存失敗，請稍後再試");
+        }
+        rows = await loadActiveTeacherClassRows(admin, teacherId, today);
+    }
+
+    return json(req, 200, {
+        success: true,
+        teacher_id: teacherId,
+        class_codes: [...new Set(rows.map(row => row.code))].sort()
+    });
+};
+
 const reissueStudentLoginCard = async (
     req: Request,
     admin: SupabaseClient,
@@ -2198,6 +2279,9 @@ Deno.serve(async (req: Request): Promise<Response> => {
         }
         if (action === "create_student") {
             return await createStudent(req, admin, caller, body);
+        }
+        if (action === "get_teacher_classes" || action === "set_teacher_classes") {
+            return await manageTeacherClasses(req, admin, caller, body, action === "set_teacher_classes");
         }
         if (action === "create_staff_account") {
             return await createStaffAccount(req, admin, caller, body);

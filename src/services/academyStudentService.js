@@ -178,7 +178,15 @@ export const createAcademyStaffAccount = async (firebaseUser, { role, chineseNam
     })
 );
 
-export const reissueAcademyStudentLoginCard =async (firebaseUser, studentId) => (
+// Admin only: the classes a teacher may take attendance and publish homework for.
+export const getTeacherClassCodes = async (firebaseUser, teacherId) => (
+    callAcademyStudentManager(firebaseUser, { action: "get_teacher_classes", teacher_id: teacherId })
+);
+export const setTeacherClassCodes = async (firebaseUser, teacherId, classCodes) => (
+    callAcademyStudentManager(firebaseUser, { action: "set_teacher_classes", teacher_id: teacherId, class_codes: classCodes })
+);
+
+export const reissueAcademyStudentLoginCard = async (firebaseUser, studentId) => (
     callAcademyStudentManager(
         firebaseUser,
         {

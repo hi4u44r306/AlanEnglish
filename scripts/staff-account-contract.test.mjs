@@ -24,6 +24,16 @@ test("only admins can create staff, in the function and in the database", () => 
     assert.doesNotMatch(migration, /academy_enrollments/);
 });
 
+test("only admins can change a teacher's classes, and removed classes are switched off rather than deleted", () => {
+    const handler = read("supabase/functions/academy-student-manager/index.ts");
+    const action = handler.slice(handler.indexOf("const manageTeacherClasses"), handler.indexOf("const reissueStudentLoginCard"));
+    assert.match(action, /caller\.role !== "admin"/);
+    assert.match(action, /teacher\.role !== "teacher"/);
+    assert.match(action, /STAFF_CLASS_CODES\.has\(code\)/);
+    assert.match(action, /can_publish: false, ends_at: today/);
+    assert.doesNotMatch(action, /\.delete\(\)/);
+});
+
 test("the page is reachable by admins only", () => {
     const app = read("src/app/App.jsx");
     assert.match(app, /path="\/admin\/accounts\/create-staff" element=\{<ProtectedRoute allowedRoles=\{\["admin"\]\}>/);

@@ -9,7 +9,8 @@
 - 部署順序（未執行）：migration `…_create_academy_staff_login_record.sql` → 部署 `academy-student-manager` → 合併 main。屬高風險（角色與登入）。
 - 同日已發布紀錄：PR #561 點名／補課／課程進度表／家長週報補課區塊（main `afebe348`，migration `20261013021601`、`20261013021627`，`attendance-manager`、`weekly-report`）；PR #563 登入帳號下限 5→3（main `01e2b6f1`，migration `20261013023949`，`academy-student-manager`）；PR #565 啟用卡帳號改為教師時的錯誤修正（main `efd85d4a`，`membership-manager`）。三者 Cloudflare 建置皆 success；登入後畫面皆待擁有者實測。
 - 正式資料異動（擁有者指示）：教師帳號 id 39 已加上 E1／E3／E5／E7 班級授權。該帳號仍有一筆建立時產生的 E1 在學紀錄（id 31）；系統禁止修改非學生帳號的在學紀錄，擁有者同意刪除，但代理不代為執行永久刪除，待擁有者自行處理或保留。
-- 已知缺口：在帳號管理把學生改成教師仍會留下在學紀錄，且沒有畫面可編輯既有教師的班級授權。
+- 追加（擁有者要求補齊兩項限制）：① 既有教師班級授權編輯——`academy-student-manager` 新增 `get_teacher_classes`／`set_teacher_classes`（admin 專用、停用不刪除），帳號管理編輯表單新增 `TeacherClassPermissions`；② 教職員重新發啟用連結——確認既有「重新發登入卡」（後端與按鈕皆不限角色）已涵蓋尚未啟用的教職員帳號，不需新增程式，僅補手冊說明。驗證：規則測試 3/3、Jest 2 組 17 項、ESLint、Deno、Production build 通過；正式站未實測。
+- 已知缺口：在帳號管理把學生改成教師仍會留下在學紀錄；已啟用的教職員若復原碼遺失，沒有管理員重設密碼的畫面。
 
 ### 點名與補課（2026-10-13，分支 `feature/attendance-makeup`，本機完成／尚未部署，等待擁有者核准資料庫與後端上線）
 

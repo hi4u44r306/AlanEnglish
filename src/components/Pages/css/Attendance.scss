@@ -214,6 +214,14 @@ $muted: #5b6785;
     legend { margin-bottom: 8px; padding: 0; font-size: 14px; font-weight: 700; color: $muted; }
     div { display: grid; grid-template-columns: repeat(auto-fit, minmax(64px, 1fr)); gap: 8px; max-width: 460px; }
 }
+// Inside the account edit form, which has its own colours and no .attendance-page wrapper.
+.teacher-class-permissions {
+    margin: 14px 0 0;
+    button { min-height: 44px; font: inherit; cursor: pointer; }
+    button:disabled { cursor: not-allowed; opacity: .55; }
+    .attendance-message { margin: 10px 0 0; }
+}
+
 .staff-create-result {
     border-color: $yellow;
     dl { display: grid; gap: 10px; margin: 0 0 12px; }
