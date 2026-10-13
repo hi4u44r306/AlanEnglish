@@ -531,6 +531,10 @@ textarea { resize: vertical; }
 .platform-provider.pending { color: #b54708; background: #fffaeb; }
 
 .platform-two-column { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; }
+.platform-code-presets { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 16px; padding: 14px; border: 1px solid #d6e2f7; border-radius: 14px; background: #f4f8ff; font-size: 14px; }
+.platform-code-presets > span { flex: 1 1 100%; color: #13264b; font-weight: 700; }
+.platform-code-presets > button { min-height: 44px; }
+.platform-code-presets > small { flex: 1 1 100%; color: #667085; line-height: 1.6; }
 .platform-code-result { display: grid; gap: 7px; margin-top: 18px; padding: 16px; border-radius: 14px; background: #172033; color: #fff; }
 .platform-code-result code { color: #fbd1b9; font-size: 16px; user-select: all; }
 .platform-table-wrap { overflow-x: auto; }

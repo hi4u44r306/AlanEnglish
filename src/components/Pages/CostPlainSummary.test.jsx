@@ -37,7 +37,7 @@ test('keeps the form open and reports a failed save', async () => {
 });
 test('profit calculator shows cost, profit and break-even, and a loss is labelled', () => {
     render(<UnitProfitCalculator userId="a" fixedTwd={825} />);
-    expect(screen.getByText('NT$2,409')).toBeInTheDocument();
+    expect(screen.getByText('NT$2,550')).toBeInTheDocument();
     expect(screen.getByText('1 套')).toBeInTheDocument();
     fireEvent.change(screen.getByLabelText('售價'), { target: { value: '100' } });
     expect(screen.getByText('每套虧損')).toBeInTheDocument();

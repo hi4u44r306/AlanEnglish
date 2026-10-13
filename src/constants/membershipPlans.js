@@ -6,6 +6,8 @@ export const LEGACY_MEMBERSHIP_PLAN_CODES = [
     "all_access_monthly"
 ];
 
+export const WORKBOOK_PLATFORM_PLAN_CODE = "workbook_platform_access";
+
 export const AI_ADDON_PLAN_CODES = [
     ACADEMY_AI_ADDON_PLAN_CODE,
     GENERAL_AI_ADDON_PLAN_CODE
@@ -34,6 +36,7 @@ export const hasAiPremiumAccess = effectiveAccess => {
 const BASE_PLAN_LABELS = {
     [BASIC_MEMBERSHIP_PLAN_CODE]: "基本自主學習會員",
     trial_7_day: "七天免費試用",
+    workbook_platform_access: "習作本平台方案（聽力＋口說）",
     textbook_access: "網購教材聽力方案",
     material_bonus_90_day: "教材附贈 90 天網站使用權"
 };
@@ -41,6 +44,7 @@ const BASE_PLAN_LABELS = {
 const BASE_PLAN_PRIORITY = [
     BASIC_MEMBERSHIP_PLAN_CODE,
     "trial_7_day",
+    "workbook_platform_access",
     "material_bonus_90_day",
     "textbook_access"
 ];

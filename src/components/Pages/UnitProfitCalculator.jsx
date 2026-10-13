@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { twdText, unitProfit } from './costPlain';
 
 // Starting points only; the owner replaces them with real quotes.
-const defaults = { price: '2980', months: '12', printing: '150', shipping: '65', packaging: '15', feePercent: '3', platformPerMonth: '21' };
+const defaults = { price: '3280', months: '12', printing: '300', shipping: '65', packaging: '15', feePercent: '3', platformPerMonth: '21' };
 const fields = [
     { id: 'price', label: '售價', unit: '元' },
     { id: 'months', label: '附幾個月平台', unit: '個月' },
@@ -32,7 +32,7 @@ export default function UnitProfitCalculator({ userId, fixedTwd }) {
     return <section className="platform-card api-plain-card api-unit" aria-labelledby="api-unit-title">
         <h2 id="api-unit-title">賣一套教材賺多少</h2>
         <p>填入你的實際數字試算。預設值只是估計，印刷和運費請換成廠商給你的報價。這裡只是試算，不會改變網站上的售價。</p>
-        <div className="api-unit-presets"><button type="button" className="api-refresh" onClick={() => update({ ...input, price: '1980', months: '6' })}>套用半年方案 1,980</button><button type="button" className="api-refresh" onClick={() => update({ ...input, price: '2980', months: '12' })}>套用一年方案 2,980</button></div>
+        <div className="api-unit-presets"><button type="button" className="api-refresh" onClick={() => update({ ...input, price: '1980', months: '6' })}>套用半年方案 1,980</button><button type="button" className="api-refresh" onClick={() => update({ ...input, price: '3280', months: '12' })}>套用一年方案 3,280</button></div>
         <div className="api-unit-grid">{fields.map(field => <label key={field.id}><span>{field.label}（{field.unit}）</span><input aria-label={field.label} type="number" min="0" step="any" inputMode="decimal" value={input[field.id]} onChange={event => update({ ...input, [field.id]: event.target.value })} /></label>)}</div>
         {result ? <div className={`api-unit-result ${result.profit < 0 ? 'is-loss' : ''}`} role="status">
             <div><span>每套成本</span><strong>{twdText(result.cost)}</strong><small>手續費 {twdText(result.fee)}、平台用量 {twdText(result.platformTotal)}</small></div>
