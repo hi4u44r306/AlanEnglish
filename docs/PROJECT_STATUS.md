@@ -9,7 +9,8 @@
 - 未執行／未驗收：Production build（交由 Cloudflare 合併後建置）；預覽視窗被隱藏無法截圖，實際畫面、正式管理員登入、補填儲存與 iPhone Safari 尚未目視驗收。此 worktree 路徑含 `.claude`，`react-scripts test` 的 testMatch 找不到檔案，改用同一份 CRA Jest 設定並以 testRegex 執行。
 - 正式資料唯讀查核（10 月）：Azure 約 US$0.036，OpenAI／Google TTS／Firebase／R2／GitHub 為 0；Supabase、網域、Netlify、其他沒有金額也沒有固定費，是總額不完整的主因。啟用學生帳號 1 人。
 - 待擁有者決定（另一批高風險工作，未動工）：教材改為「習作本＋平台（含口說大挑戰）」半年 NT$1,980／一年 NT$2,980、移除三本組合 NT$1,380；需實際印刷與運費報價。涉及商品規則、entitlement、Stripe Price、公開頁、FAQ、條款，須依第 13 節取得該批授權。
-- 下一步：擁有者說「幫我合併」後合併、等 Cloudflare 建置並在正式成本頁驗收；之後補填 Supabase 與網域月費。
+- 正式設定更新（2026-10-13，擁有者提供數字後以既有 `save_cost_service_v1` 寫入）：「其他」改為計入並設每月固定 US$96.9697（NT$3,200 開發工具訂閱，9 月另登錄同額月總額）；月預算由 US$25 調為 US$136.36（約 NT$4,500），避免固定費一計入就觸發五分鐘 Email。寫入後 10 月已知總成本 US$99.71（約 NT$3,290、預算 73%），提醒 0 筆。更正：Supabase 固定費 0、網域 US$2.702／月、Netlify 與 Stripe 不計入原本就已設定，先前「未填」的判斷有誤。回復方式：成本頁將「開發工具訂閱與其他」取消計入並把預算改回。
+- 下一步：擁有者說「幫我合併」後合併、等 Cloudflare 建置並在正式成本頁驗收。
 
 ### 點名與補課（2026-10-13，分支 `feature/attendance-makeup`，本機完成／尚未部署，等待擁有者核准資料庫與後端上線）
 

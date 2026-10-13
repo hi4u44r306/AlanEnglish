@@ -15,8 +15,8 @@ export const plainNames = {
     stripe: { label: '刷卡手續費', vendor: 'Stripe' },
     github: { label: '程式碼存放', vendor: 'GitHub' },
     netlify: { label: '舊網站主機', vendor: 'Netlify' },
-    domain: { label: '網域與固定訂閱', vendor: '年費請除以 12' },
-    other: { label: '其他支出', vendor: '金流等' }
+    domain: { label: '網域', vendor: '年費請除以 12' },
+    other: { label: '開發工具訂閱與其他', vendor: 'ChatGPT／Claude Code 等' }
 };
 
 export const toTwd = (usd, rate) => usd === null || usd === undefined ? null : Number(usd) * Number(rate);
