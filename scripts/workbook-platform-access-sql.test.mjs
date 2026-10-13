@@ -8,7 +8,7 @@ import { baseBookEntitlementDecision } from "../supabase/functions/_shared/book-
 
 const { PGlite } = await import(process.env.PGLITE_MODULE ? pathToFileURL(process.env.PGLITE_MODULE).href : "@electric-sql/pglite");
 const db = new PGlite();
-const migration = readFileSync(new URL("../supabase/migrations/20261013053000_workbook_platform_access_plan.sql", import.meta.url), "utf8");
+const migration = readFileSync(new URL("../supabase/migrations/20261013060041_workbook_platform_access_plan.sql", import.meta.url), "utf8");
 const access = async id => (await db.query("select public.get_student_effective_access($1) result", [id])).rows[0].result;
 // Minimal stand-in for the service client: the RPC plus the plan lookup used when an add-on is stripped.
 const admin = {
