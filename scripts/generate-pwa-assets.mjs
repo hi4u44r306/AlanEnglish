@@ -48,12 +48,27 @@ const render = async (page, lion, width, height, lionHeight) => {
 };
 
 const lion = await loadLion();
+const wordmarkSvg = await readFile(path.join(root, "src", "components", "assets", "img", "alan-english-rounded.svg"));
+const wordmarkUri = `data:image/svg+xml;base64,${wordmarkSvg.toString("base64")}`;
 // 網頁內啟動畫面使用的獅子本體（透明底、已裁切），尺寸與 iOS 啟動圖的獅子比例一致。
 await mkdir(path.join(publicDir, "pwa"), { recursive: true });
 await writeFile(path.join(publicDir, "pwa", "lion.png"), Buffer.from(lion.dataUri.split(",")[1], "base64"));
 const browser = await chromium.launch({ executablePath: process.env.PWA_CHROMIUM || undefined });
-const page = await browser.newPage({ deviceScaleFactor: 1 });
 await mkdir(path.join(publicDir, "pwa", "splash"), { recursive: true });
+const page = await browser.newPage({ deviceScaleFactor: 1 });
+
+// 啟動畫面用的組合圖（獅子在上、Alan English 字樣在下，透明底）。三個階段都用這張，大小與位置才會一致。
+const LOGO_W = 1120, LION_H = 640, GAP = 76, WORD_H = Math.round(LOGO_W * 134 / 1328);
+const LOGO_H = LION_H + GAP + WORD_H;
+await page.setViewportSize({ width: LOGO_W, height: LOGO_H });
+await page.setContent(`<style>html,body{margin:0;background:transparent}div{width:${LOGO_W}px;height:${LOGO_H}px;display:flex;flex-direction:column;align-items:center}
+    .l{height:${LION_H}px;width:${Math.round(LION_H * lion.ratio)}px}.w{margin-top:${GAP}px;width:${LOGO_W}px;height:${WORD_H}px}</style>
+    <div><img class="l" src="${lion.dataUri}"><img class="w" src="${wordmarkUri}"></div>`);
+const launchLogoPng = await page.screenshot({ type: "png", omitBackground: true });
+await writeFile(path.join(publicDir, "pwa", "launch-logo.png"), launchLogoPng);
+const launchLogoUri = `data:image/png;base64,${launchLogoPng.toString("base64")}`;
+const LAUNCH_LOGO_VMIN = 56; // 組合圖寬度占短邊的百分比，須與 index.html 的 .ae-launch-logo 一致
+const LAUNCH_LOGO_RATIO = LOGO_W / LOGO_H;
 
 for (const size of [192, 512]) {
     // maskable 安全區是中央 80% 圓，獅子高度取 54% 以內。
@@ -64,7 +79,7 @@ const tags = [];
 for (const [w, h, ratio] of DEVICES) {
     const pxW = w * ratio, pxH = h * ratio;
     const name = `splash-${pxW}x${pxH}.png`;
-    await writeFile(path.join(publicDir, "pwa", "splash", name), await render(page, lion, pxW, pxH, Math.round(Math.min(pxW, pxH) * 0.34 / lion.ratio)));
+    await writeFile(path.join(publicDir, "pwa", "splash", name), await render(page, { dataUri: launchLogoUri, ratio: LAUNCH_LOGO_RATIO }, pxW, pxH, Math.round(Math.min(pxW, pxH) * LAUNCH_LOGO_VMIN / 100 / LAUNCH_LOGO_RATIO)));
     tags.push(`<link rel="apple-touch-startup-image" media="screen and (device-width: ${w}px) and (device-height: ${h}px) and (-webkit-device-pixel-ratio: ${ratio}) and (orientation: portrait)" href="%PUBLIC_URL%/pwa/splash/${name}" />`);
 }
 await browser.close();

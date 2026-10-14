@@ -95,7 +95,7 @@
       try { if (matchMedia("(display-mode: standalone)").matches) document.documentElement.style.setProperty("--ae-bar", Math.max(0, screen.height - innerHeight) + "px"); } catch (e) {}
     </script>
     <style>
-      .ae-launch-logo { display: block; width: 34vmin; height: auto; transform: translateY(calc(var(--ae-bar, 0px) / -2)); }
+      .ae-launch-logo { display: block; width: 56vmin; height: auto; transform: translateY(calc(var(--ae-bar, 0px) / -2)); }
       #boot-splash { display: none; }
       @media (display-mode: standalone) {
         html { background: #ffffff; }
@@ -241,7 +241,7 @@
       <a href="/zh-tw/blog/">教學文章</a>
     </noscript>
 
-    <div id="boot-splash" aria-hidden="true"><img class="ae-launch-logo" src="%PUBLIC_URL%/pwa/lion.png" alt="" /></div>
+    <div id="boot-splash" aria-hidden="true"><img class="ae-launch-logo" src="%PUBLIC_URL%/pwa/launch-logo.png" alt="" /></div>
     <div id="root"></div>
     <div id="portal"></div>
   </body>
