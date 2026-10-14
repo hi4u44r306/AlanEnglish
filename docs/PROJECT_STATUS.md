@@ -1,7 +1,9 @@
 # Alan English 專案狀態
 
-### 加入主畫面（PWA）（2026-10-14，分支 `feature/pwa-add-to-home`，進行中：本機完成、等待預覽版實機驗收；尚未 push／PR／部署）
+### 加入主畫面（PWA）（2026-10-15，已發布：PR #573／main `c86fbde9`，Cloudflare Workers Builds success；iPhone／Android 實機待驗）
 
+- 發布驗收（2026-10-15 00:2x，Asia/Taipei，擁有者說「幫我合併」後合併）：正式站 manifest（start_url `/userinfo?source=pwa`、any＋maskable 圖示、背景白）、`/pwa/*` 圖片（maskable、launch-logo、18 張 iOS 啟動圖）、`/web-push-sw.js`（含空 fetch 監聽、no-cache 標頭）、`/install`（iPhone 只有 Safari 5 步、Chrome 版顯示改用 Safari 提醒）、`/support`（返回在最上方、整頁一個畫面）皆回 200 且內容正確；Edge 載入正式站無 console 錯誤、worker 已註冊、未登入從 `/userinfo?source=pwa` 進入落在 `/`。合併後約數十秒內 `/pwa/launch-logo.png` 曾短暫回 HTML（節點同步），重查已正常。
+- 已知限制：iPhone 的 Chrome 加入主畫面時不保存啟動圖，開啟會先黑畫面兩三秒、圖示可能變替代圖（2026-10-14 實測），教學只留 Safari。學生首次設定頁為強制流程，只有「登出」出口。尚未實機驗證：各角色登入後導向、logo 交接是否仍閃動（啟動圖已依各機型狀態列高度位移，僅用 iPhone 17 Pro Max 錄影量測）。
 - 最後更新：2026-10-14（Asia/Taipei）。負責：Claude Code 聊天「PWA 加入主畫面」。基準：origin/main（原本在 `codex/hide-ai-review-entries-local` 的未提交變更已收進 git stash 3 筆，未丟失）。
 - 目標：手機「加入主畫面」後有 App 圖示；點開先看品牌啟動畫面，再依登入狀態與角色進首頁；全螢幕、無網址列；iPhone Safari／Android Chrome 皆可。
 - 作法：`manifest.json` 的 `start_url` 改為既有入口 `/userinfo?source=pwa`（沿用 `RoleHomeRedirect`：主畫面開啟且未登入→公開首頁 /，登入後回 /userinfo；學生→/student/dashboard、老師→/teacher/dashboard、管理員→/admin/dashboard）；啟動畫面與背景改白色（#ffffff）、主題色 #073763；Google 字型改為不擋畫面載入（加快第一次出現畫面）、啟動圖與開機畫面加「Alan English」字樣（同一張組合圖 public/pwa/launch-logo.png），index.html 加開機畫面（僅主畫面模式，React 接手後移除）；圖示拆成 any＋maskable（新圖 `public/pwa/maskable-*.png`）；`index.html` 加 iOS 全螢幕 meta 與 18 張 `apple-touch-startup-image`（`public/pwa/splash/`，由 `scripts/generate-pwa-assets.mjs` 產生）；`RoleHomeRedirect` 載入中改顯示品牌啟動畫面（`src/pwa/AppLaunchSplash.jsx`）；`web-push-sw.js` 加 install／activate／空的 fetch 監聽（不快取、不攔截請求），並在 `src/index.js` 啟動時註冊（與推播共用同一支 worker）；`_headers` 讓 worker 與 manifest 不被快取。
