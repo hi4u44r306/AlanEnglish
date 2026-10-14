@@ -19,42 +19,8 @@ const STEP_SECONDS = 3;
 
 const DEVICES = { ios: "iPhone／iPad", android: "Android 手機" };
 
-// iPhone／iPad 上 Safari 與 Google Chrome 都能加入主畫面，分享按鈕的位置不同。
-const CHROME_SECTOR = "M24 12H44.78A24 24 0 0 0 3.22 12L13.61 30A12 12 0 0 1 24 12Z";
-
-const SafariLogo = () => (
-    <svg className="install-guide__browserIcon" viewBox="0 0 48 48" aria-hidden="true">
-        <defs>
-            <linearGradient id="ig-safari-sky" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0" stopColor="#19d7ff" />
-                <stop offset="1" stopColor="#1e64f0" />
-            </linearGradient>
-        </defs>
-        <circle cx="24" cy="24" r="23" fill="#fff" stroke="#d0d5dd" />
-        <circle cx="24" cy="24" r="20.5" fill="url(#ig-safari-sky)" />
-        <circle cx="24" cy="24" r="17.5" fill="none" stroke="#fff" strokeWidth="3" strokeDasharray="0.7 2.354" />
-        <polygon points="35,13 26.1,26.1 21.9,21.9" fill="#ff3b30" />
-        <polygon points="13,35 26.1,26.1 21.9,21.9" fill="#fff" />
-    </svg>
-);
-
-const ChromeLogo = () => (
-    <svg className="install-guide__browserIcon" viewBox="0 0 48 48" aria-hidden="true">
-        <path d={CHROME_SECTOR} fill="#ea4335" />
-        <path d={CHROME_SECTOR} fill="#fbbc04" transform="rotate(120 24 24)" />
-        <path d={CHROME_SECTOR} fill="#34a853" transform="rotate(240 24 24)" />
-        <circle cx="24" cy="24" r="12" fill="#fff" />
-        <circle cx="24" cy="24" r="9.5" fill="#4285f4" />
-    </svg>
-);
-
-const IOS_BROWSERS = {
-    safari: { name: "Safari", Logo: SafariLogo },
-    chrome: { name: "Chrome", Logo: ChromeLogo }
-};
-
 const GUIDES = {
-    "ios-safari": {
+    ios: {
         label: "iPhone／iPad（Safari）",
         steps: [
             { scene: "ios-dots", title: "點右下角的「⋯」" },
@@ -62,16 +28,6 @@ const GUIDES = {
             { scene: "ios-sheet", title: "往下滑，點「加入主畫面」" },
             { scene: "ios-toggle", title: "把「以網頁 App 開啟」打開" },
             { scene: "ios-confirm", title: "點右上角的「加入」" }
-        ]
-    },
-    "ios-chrome": {
-        label: "iPhone／iPad（Google Chrome）",
-        steps: [
-            { scene: "ioschrome-share", title: "點右上角的「分享」" },
-            { scene: "ioschrome-viewmore", title: "點「檢視更多」" },
-            { scene: "ioschrome-sheet", title: "點「加入主畫面」" },
-            { scene: "ioschrome-toggle", title: "把「以網頁 App 開啟」打開" },
-            { scene: "ioschrome-confirm", title: "點右上角的「加入」" }
         ]
     },
     android: {
@@ -108,18 +64,15 @@ const FakePage = () => (
 );
 
 const IosScreen = ({ scene }) => {
-    const isChrome = scene.startsWith("ioschrome");
-    const shareButton = <b className={scene.endsWith("-share") ? "ig-target" : ""}><ShareIcon /></b>;
     const showForm = scene.endsWith("-toggle") || scene.endsWith("-confirm");
 
     return (
     <>
-        <div className="ig-bar ig-bar--address"><span>alanenglish.com.tw</span>{isChrome && shareButton}</div>
+        <div className="ig-bar ig-bar--address"><span>alanenglish.com.tw</span></div>
         <FakePage />
         <div className="ig-bar ig-bar--ios">
             <i>‹</i>
             <i>›</i>
-            {isChrome && <i>＋</i>}
             <i>▢</i>
             <b className={scene.endsWith("-dots") ? "ig-target" : ""}>⋯</b>
         </div>
@@ -129,14 +82,6 @@ const IosScreen = ({ scene }) => {
                 <div className="ig-row ig-target"><span>分享</span><ShareIcon /></div>
                 <div className="ig-row">新增書籤</div>
                 <div className="ig-row">在網頁中尋找</div>
-            </div>
-        )}
-        {scene.endsWith("-viewmore") && (
-            <div className="ig-sheet">
-                <span className="ig-sheet__grip" />
-                <div className="ig-row">拷貝</div>
-                <div className="ig-row ig-target"><span>檢視更多</span><b>⋯</b></div>
-                <div className="ig-row">列印</div>
             </div>
         )}
         {scene.endsWith("-sheet") && (
@@ -210,14 +155,13 @@ function InstallGuide() {
     const looksLikeAndroid = environment.platform === "android"
         || (environment.platform === "desktop" && !isDesktop && /Linux/.test(window.navigator.userAgent));
     const [device, setDevice] = useState(looksLikeAndroid ? "android" : "ios");
-    const [iosBrowser, setIosBrowser] = useState(environment.browser === "ios-chrome" ? "chrome" : "safari");
     const [activeIndex, setActiveIndex] = useState(0);
     const [playing, setPlaying] = useState(() => !prefersReducedMotion());
     const [installPrompt, setInstallPrompt] = useState(getInstallPrompt);
     const [qrImage, setQrImage] = useState("");
     const [copied, setCopied] = useState(false);
 
-    const guide = GUIDES[device === "ios" ? `ios-${iosBrowser}` : device];
+    const guide = GUIDES[device];
     const { steps } = guide;
     const pageUrl = `${window.location.origin}${INSTALL_GUIDE_PATH}`;
     const inApp = environment.inAppName;
@@ -241,10 +185,6 @@ function InstallGuide() {
 
     const chooseDevice = next => {
         setDevice(next);
-        setActiveIndex(0);
-    };
-    const chooseIosBrowser = next => {
-        setIosBrowser(next);
         setActiveIndex(0);
     };
     const chooseStep = index => {
@@ -316,21 +256,11 @@ function InstallGuide() {
                     ))}
                 </div>
 
-                {device === "ios" && (
-                    <div className="install-guide__browsers" role="group" aria-label="選擇瀏覽器">
-                        {Object.entries(IOS_BROWSERS).map(([key, item]) => (
-                            <button key={key} type="button" aria-pressed={iosBrowser === key} onClick={() => chooseIosBrowser(key)}>
-                                <item.Logo />
-                                <strong>{item.name}</strong>
-                            </button>
-                        ))}
-                    </div>
-                )}
-
-                {device === "ios" && iosBrowser === "chrome" && (
+                {device === "ios" && environment.browser === "ios-chrome" && (
                     <section className="install-guide__notice install-guide__notice--warn" aria-labelledby="install-chrome-heading">
-                        <h2 id="install-chrome-heading">建議用 Safari 加入</h2>
-                        <p>iPhone 的 Chrome 加入後，開啟時會先黑畫面兩三秒，桌面圖示有時也會變成藍底「A」的替代圖。想要一點開就看到 Alan English 的畫面，請改用 Safari 加入。</p>
+                        <h2 id="install-chrome-heading">請改用 Safari 加入</h2>
+                        <p>從 Chrome 加入的 App，開啟時會先黑畫面兩三秒，桌面圖示也可能變成替代圖。請複製網址，用 Safari 開啟後再照下面的步驟加入。</p>
+                        <button className="install-guide__primary" type="button" onClick={copyUrl}>{copied ? "已複製網址" : "複製網址"}</button>
                     </section>
                 )}
 

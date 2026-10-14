@@ -50,24 +50,22 @@ describe("InstallGuide", () => {
         expect(screen.queryByText("請用手機相機掃這個 QR Code")).not.toBeInTheDocument();
     });
 
-    it("teaches both Safari and Chrome on iPhone and iPad", () => {
+    it("teaches only Safari on iPhone and iPad", () => {
         useUserAgent(IPHONE_SAFARI);
         renderGuide();
 
-        expect(screen.getByRole("button", { name: /Safari/ })).toHaveAttribute("aria-pressed", "true");
-        fireEvent.click(screen.getByRole("button", { name: "Chrome" }));
-        expect(screen.getByRole("button", { name: /點右上角的「分享」/ })).toBeInTheDocument();
-        expect(screen.getByText("點「檢視更多」")).toBeInTheDocument();
-        expect(screen.getByText("點「加入主畫面」")).toBeInTheDocument();
-        expect(screen.getByText("把「以網頁 App 開啟」打開")).toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: "Chrome" })).not.toBeInTheDocument();
+        expect(screen.queryByText(/檢視更多/)).not.toBeInTheDocument();
+        expect(screen.queryByText("請改用 Safari 加入")).not.toBeInTheDocument();
     });
 
-    it("opens on the Google Chrome steps when the parent is already in Chrome on iPhone", () => {
+    it("tells a parent who opened the guide in Chrome on iPhone to switch to Safari", () => {
         useUserAgent(IPHONE_CHROME);
         renderGuide();
 
-        expect(screen.getByRole("button", { name: "Chrome" })).toHaveAttribute("aria-pressed", "true");
-        expect(screen.getByRole("button", { name: /點右上角的「分享」/ })).toBeInTheDocument();
+        expect(screen.getByText("請改用 Safari 加入")).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "複製網址" })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: /點右下角的「⋯」/ })).toBeInTheDocument();
     });
 
     it("shows Android steps on Android and lets the parent switch device", () => {
