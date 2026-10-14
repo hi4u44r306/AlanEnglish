@@ -13,11 +13,13 @@ const publicDir = path.join(root, "public");
 const BRAND_BG = "#ffffff";
 
 // [裝置寬, 裝置高, 倍率]（直向，CSS 像素）
+// [裝置寬, 裝置高, 倍率, 狀態列高度(pt)]（直向，CSS 像素）。主畫面 App 的網頁內容從狀態列下方開始，
+// 所以網頁的 logo 置中於「螢幕扣掉狀態列」的區域；啟動圖要把 logo 往下移相同距離，兩者才會重疊。
 const DEVICES = [
-    [440, 956, 3], [402, 874, 3], [430, 932, 3], [393, 852, 3], [428, 926, 3],
-    [390, 844, 3], [375, 812, 3], [414, 896, 3], [414, 896, 2], [414, 736, 3],
-    [375, 667, 2], [320, 568, 2],
-    [1024, 1366, 2], [834, 1194, 2], [820, 1180, 2], [810, 1080, 2], [768, 1024, 2], [744, 1133, 2]
+    [440, 956, 3, 62], [402, 874, 3, 62], [430, 932, 3, 59], [393, 852, 3, 59], [428, 926, 3, 47],
+    [390, 844, 3, 47], [375, 812, 3, 47], [414, 896, 3, 44], [414, 896, 2, 48], [414, 736, 3, 20],
+    [375, 667, 2, 20], [320, 568, 2, 20],
+    [1024, 1366, 2, 24], [834, 1194, 2, 24], [820, 1180, 2, 24], [810, 1080, 2, 24], [768, 1024, 2, 24], [744, 1133, 2, 24]
 ];
 
 // 把白底獅子轉成透明底，並裁到獅子本體的範圍。
@@ -40,9 +42,9 @@ const loadLion = async () => {
     return { dataUri: `data:image/png;base64,${PNG.sync.write(cropped).toString("base64")}`, ratio: width / height };
 };
 
-const render = async (page, lion, width, height, lionHeight) => {
+const render = async (page, lion, width, height, lionHeight, topInset = 0) => {
     await page.setViewportSize({ width, height });
-    await page.setContent(`<style>html,body{margin:0;width:${width}px;height:${height}px;background:${BRAND_BG};display:flex;align-items:center;justify-content:center}
+    await page.setContent(`<style>html{margin:0;width:${width}px;height:${height}px;background:${BRAND_BG}}body{box-sizing:border-box;padding-top:${topInset}px;margin:0;width:${width}px;height:${height}px;background:${BRAND_BG};display:flex;align-items:center;justify-content:center}
         img{height:${lionHeight}px;width:${lionHeight * lion.ratio}px}</style><img src="${lion.dataUri}">`);
     return page.screenshot({ type: "png" });
 };
@@ -76,10 +78,10 @@ for (const size of [192, 512]) {
 }
 
 const tags = [];
-for (const [w, h, ratio] of DEVICES) {
+for (const [w, h, ratio, bar] of DEVICES) {
     const pxW = w * ratio, pxH = h * ratio;
     const name = `splash-${pxW}x${pxH}.png`;
-    await writeFile(path.join(publicDir, "pwa", "splash", name), await render(page, { dataUri: launchLogoUri, ratio: LAUNCH_LOGO_RATIO }, pxW, pxH, Math.round(Math.min(pxW, pxH) * LAUNCH_LOGO_VMIN / 100 / LAUNCH_LOGO_RATIO)));
+    await writeFile(path.join(publicDir, "pwa", "splash", name), await render(page, { dataUri: launchLogoUri, ratio: LAUNCH_LOGO_RATIO }, pxW, pxH, Math.round(Math.min(pxW, pxH) * LAUNCH_LOGO_VMIN / 100 / LAUNCH_LOGO_RATIO), bar * ratio));
     tags.push(`<link rel="apple-touch-startup-image" media="screen and (device-width: ${w}px) and (device-height: ${h}px) and (-webkit-device-pixel-ratio: ${ratio}) and (orientation: portrait)" href="%PUBLIC_URL%/pwa/splash/${name}" />`);
 }
 await browser.close();
