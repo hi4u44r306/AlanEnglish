@@ -290,7 +290,7 @@ export default function TextbookSpeakingChallenge() {
         const returnedId = Number(location.state?.speakingReturn?.questionSetId);
         if (mapGestureRef.current.key !== location.key) mapGestureRef.current = { key: location.key, moved: false };
         return centerOnLevel(() => findLevelToFocus(document, returnedId), { state: mapGestureRef.current });
-    }, [bookKey, questionSetId, catalog, catalogLoading, location.state]);
+    }, [bookKey, questionSetId, catalog, catalogLoading, location.state, location.key]);
 
     useEffect(() => {
         if (!selectedLesson) return undefined;
