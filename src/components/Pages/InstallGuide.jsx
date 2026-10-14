@@ -330,7 +330,7 @@ function InstallGuide() {
                 {device === "ios" && iosBrowser === "chrome" && (
                     <section className="install-guide__notice install-guide__notice--warn" aria-labelledby="install-chrome-heading">
                         <h2 id="install-chrome-heading">建議用 Safari 加入</h2>
-                        <p>用 Chrome 加入時，桌面圖示有時會先變成藍底「A」的替代圖。若發生了，請刪掉圖示，等網頁完全載入後再加入一次，或改用 Safari。</p>
+                        <p>iPhone 的 Chrome 加入後，開啟時會先黑畫面兩三秒，桌面圖示有時也會變成藍底「A」的替代圖。想要一點開就看到 Alan English 的畫面，請改用 Safari 加入。</p>
                     </section>
                 )}
 
