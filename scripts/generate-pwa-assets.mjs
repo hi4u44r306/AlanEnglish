@@ -48,6 +48,9 @@ const render = async (page, lion, width, height, lionHeight) => {
 };
 
 const lion = await loadLion();
+// 網頁內啟動畫面使用的獅子本體（透明底、已裁切），尺寸與 iOS 啟動圖的獅子比例一致。
+await mkdir(path.join(publicDir, "pwa"), { recursive: true });
+await writeFile(path.join(publicDir, "pwa", "lion.png"), Buffer.from(lion.dataUri.split(",")[1], "base64"));
 const browser = await chromium.launch({ executablePath: process.env.PWA_CHROMIUM || undefined });
 const page = await browser.newPage({ deviceScaleFactor: 1 });
 await mkdir(path.join(publicDir, "pwa", "splash"), { recursive: true });
