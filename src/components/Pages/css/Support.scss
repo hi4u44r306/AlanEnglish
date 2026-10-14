@@ -1,0 +1,62 @@
+// 客服頁：返回鈕放最上面、版面縮短（只影響這一頁，不動共用的 Platform 樣式）。
+.support-page {
+  .platform-public-card {
+    padding: clamp(14px, 4vw, 28px);
+  }
+
+  .support-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    min-height: 44px;
+    margin: 0 0 4px -6px;
+    padding: 0 16px 0 10px;
+    border: 1px solid rgba(7, 55, 99, 0.14);
+    border-radius: 999px;
+    background: #fff;
+    color: #073763;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1;
+
+    span {
+      font-size: 22px;
+      line-height: 1;
+    }
+
+    &:focus-visible {
+      outline: 3px solid #f6b800;
+      outline-offset: 2px;
+    }
+  }
+
+  h1 {
+    margin: 4px 0 6px;
+    font-size: clamp(24px, 5vw, 32px);
+  }
+
+  .platform-public-card > p {
+    margin: 0 0 8px;
+    line-height: 1.6;
+  }
+
+  .platform-form {
+    gap: 10px;
+  }
+
+  .platform-form small {
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  .platform-form textarea {
+    min-height: 96px;
+  }
+
+  @media (max-width: 560px) {
+    .platform-form-grid {
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+  }
+}
