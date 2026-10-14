@@ -5,6 +5,11 @@
     <meta http-equiv="content-type" content="text/html; charset=utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
+    <!-- 加入主畫面的圖示放在最前面並預先載入，避免使用者太快按「加入主畫面」時拿到手機自己畫的替代圖 -->
+    <link rel="preload" as="image" href="%PUBLIC_URL%/apple-touch-icon-v3.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="%PUBLIC_URL%/apple-touch-icon-v3.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="%PUBLIC_URL%/android-chrome-192x192-v3.png" />
+
     <!-- =========================================================
          Alan English - Basic SEO
     ========================================================== -->
@@ -55,11 +60,6 @@
       href="%PUBLIC_URL%/favicon.ico?v=lion1"
     />
 
-    <link
-      rel="apple-touch-icon"
-      sizes="180x180"
-      href="%PUBLIC_URL%/apple-touch-icon-v3.png"
-    />
 
     <!-- =========================================================
          Theme
