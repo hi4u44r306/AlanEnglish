@@ -462,6 +462,47 @@
   }
 }
 
+.ig-toggle-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
+  padding: 10px;
+  border-radius: 12px;
+  background: #f3f5f9;
+  font-weight: 700;
+}
+
+.ig-switch {
+  position: relative;
+  width: 38px;
+  height: 22px;
+  border-radius: 999px;
+  background: #c7ccd6;
+
+  &::after {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 1px 3px rgba(16, 24, 40, 0.3);
+    transition: transform 0.2s ease;
+  }
+
+  &.is-on {
+    background: #34c759;
+
+    &::after {
+      transform: translateX(16px);
+    }
+  }
+}
+
 .ig-menu {
   top: 50px;
   right: 8px;

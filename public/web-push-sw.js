@@ -1,4 +1,9 @@
-/* Web Push only. This worker deliberately does not intercept page or audio requests. */
+/* Web Push and installability only. This worker deliberately does not cache or intercept page, API or audio requests. */
+self.addEventListener("install", () => self.skipWaiting());
+self.addEventListener("activate", event => event.waitUntil(self.clients.claim()));
+// Intentionally empty fetch listener: the browser handles every request normally.
+self.addEventListener("fetch", () => {});
+
 const DESTINATIONS = new Set(["/student/assignments", "/student/membership"]);
 
 self.addEventListener("push", event => {

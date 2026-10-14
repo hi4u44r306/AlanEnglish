@@ -2,6 +2,7 @@ import React from "react";
 // import ReactDom from 'react-dom';
 import App from './app/App';
 import './index.scss';
+import { registerServiceWorker } from './pwa/registerServiceWorker';
 // import { createStore } from "redux";
 import reducers from "./reducers/reducer";
 import { Provider } from 'react-redux';
@@ -31,3 +32,8 @@ root.render(
         <App />
     </Provider>
 );
+
+registerServiceWorker();
+
+// 移除 index.html 的開機畫面（React 已接手顯示自己的讀取畫面）。
+requestAnimationFrame(() => requestAnimationFrame(() => document.getElementById('boot-splash')?.remove()));

@@ -1,5 +1,15 @@
 # Alan English 專案狀態
 
+### 加入主畫面（PWA）（2026-10-14，分支 `feature/pwa-add-to-home`，進行中：本機完成、等待預覽版實機驗收；尚未 push／PR／部署）
+
+- 最後更新：2026-10-14（Asia/Taipei）。負責：Claude Code 聊天「PWA 加入主畫面」。基準：origin/main（原本在 `codex/hide-ai-review-entries-local` 的未提交變更已收進 git stash 3 筆，未丟失）。
+- 目標：手機「加入主畫面」後有 App 圖示；點開先看品牌啟動畫面，再依登入狀態與角色進首頁；全螢幕、無網址列；iPhone Safari／Android Chrome 皆可。
+- 作法：`manifest.json` 的 `start_url` 改為既有入口 `/userinfo?source=pwa`（沿用 `RoleHomeRedirect`：主畫面開啟且未登入→公開首頁 /，登入後回 /userinfo；學生→/student/dashboard、老師→/teacher/dashboard、管理員→/admin/dashboard）；啟動畫面與背景改白色（#ffffff）、主題色 #073763；Google 字型改為不擋畫面載入（加快第一次出現畫面）、啟動圖與開機畫面加「Alan English」字樣（同一張組合圖 public/pwa/launch-logo.png），index.html 加開機畫面（僅主畫面模式，React 接手後移除）；圖示拆成 any＋maskable（新圖 `public/pwa/maskable-*.png`）；`index.html` 加 iOS 全螢幕 meta 與 18 張 `apple-touch-startup-image`（`public/pwa/splash/`，由 `scripts/generate-pwa-assets.mjs` 產生）；`RoleHomeRedirect` 載入中改顯示品牌啟動畫面（`src/pwa/AppLaunchSplash.jsx`）；`web-push-sw.js` 加 install／activate／空的 fetch 監聽（不快取、不攔截請求），並在 `src/index.js` 啟動時註冊（與推播共用同一支 worker）；`_headers` 讓 worker 與 manifest 不被快取。
+- 已通過：`src/pwa` 3 項與 `RoleHomeRedirect` 5 項新測試（`src/auth`、`src/pwa` 共 23 項通過）；本機 3000 以 Edge 做 Chrome 可安裝性檢查：manifest 無錯誤、service worker 已註冊、無 console 錯誤，僅剩測試無痕視窗造成的 in-incognito；未登入開 /userinfo?source=pwa 會進 /login。
+- 返回路徑檢查（2026-10-15，唯讀子代理＋抽查）：學生／老師／管理員登入後頁面都有導覽列，只有口說大挑戰關卡內頁、Boss 預覽、學生首次設定刻意不顯示導覽列（各自有返回／離開）；已補：登入／免費試聽／給家長頁在主畫面模式的「回首頁」鈕（src/pwa/StandaloneBackLink.jsx）、404「尋找教材」連結、Boss 預覽離開的備援頁。未動：首次設定強制流程（只能登出）、口說關卡只回教材地圖。尚未實機驗證。
+- 未驗收：Cloudflare 預覽版、iPhone／Android 實機（已登入、未登入、三種角色）；正式部署（需擁有者同意 merge）。不影響一般瀏覽器開網站；iOS 啟動圖只在從主畫面圖示開啟時使用。
+- 風險與回復：改動僅前端靜態檔與一支 worker；若異常，移除 `registerServiceWorker()` 呼叫並把 `start_url` 改回 `/` 即可回復；使用者端可刪除主畫面圖示。
+
 ### 習作本平台方案第一階段（2026-10-13，已發布：PR #570／main `fdb3bda9`；真實帳號兌換待驗）
 
 - 最後更新：2026-10-13 14:10（Asia/Taipei）。負責：Claude Code 聊天「教材定價與成本統整」；worktree `.claude/worktrees/cost-page-redesign`，基準 main `2f9000c8`。
