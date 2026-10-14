@@ -1,0 +1,53 @@
+// 同時寫兩次 class，避免被頁面自己的 a / button 樣式（寬度、陰影、圓角）蓋掉。
+.ae-back-button.ae-back-button {
+  display: inline-flex;
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  min-height: 44px;
+  margin: 0;
+  padding: 0;
+  border: 1px solid rgba(7, 55, 99, 0.12);
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(7, 55, 99, 0.14);
+  color: #073763;
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+
+  svg {
+    width: 26px;
+    height: 26px;
+    stroke-width: 2.6;
+    flex: none;
+  }
+
+  &.ae-back-button--labeled {
+    width: auto;
+    padding: 0 18px 0 8px;
+  }
+
+  &:hover,
+  &:focus-visible {
+    color: #073763;
+    text-decoration: none;
+  }
+
+  &:active {
+    transform: scale(0.96);
+  }
+
+  &:focus-visible {
+    outline: 3px solid #f6b800;
+    outline-offset: 2px;
+  }
+}

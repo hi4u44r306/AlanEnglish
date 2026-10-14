@@ -12,6 +12,7 @@ import {
     runInstallPrompt,
     subscribeInstallPrompt
 } from "../../utils/installGuide";
+import BackButton from "../fragment/BackButton";
 import "./css/InstallGuide.scss";
 
 const APP_ICON = "/apple-touch-icon-v3.png";
@@ -209,7 +210,7 @@ function InstallGuide() {
             <Helmet><title>把 Alan English 加到手機桌面｜Alan English</title></Helmet>
 
             <div className="install-guide__shell">
-                <Link className="install-guide__back" to="/">‹ 回首頁</Link>
+                <BackButton className="install-guide__back" to="/" ariaLabel="回首頁" />
 
                 <header className="install-guide__header">
                     <img src={APP_ICON} alt="" width="72" height="72" />

@@ -5,29 +5,7 @@
   }
 
   .support-back {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    min-height: 44px;
-    margin: 0 0 4px -6px;
-    padding: 0 16px 0 10px;
-    border: 1px solid rgba(7, 55, 99, 0.14);
-    border-radius: 999px;
-    background: #fff;
-    color: #073763;
-    font-size: 15px;
-    font-weight: 700;
-    line-height: 1;
-
-    span {
-      font-size: 22px;
-      line-height: 1;
-    }
-
-    &:focus-visible {
-      outline: 3px solid #f6b800;
-      outline-offset: 2px;
-    }
+    margin: 0 0 6px;
   }
 
   h1 {

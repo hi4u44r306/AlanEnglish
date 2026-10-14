@@ -1,44 +1,11 @@
-// 頁面自己的 a 樣式（寬度、陰影等）不能蓋掉返回鈕，所以重複寫一次 class 提高優先度。
-// 用 sticky 放在頁面最上方：不遮住頁面內容，往下捲時仍然看得到。
+// 只負責位置；外觀統一用 BackButton。sticky 放在頁面最上方不遮住內容，往下捲時仍然看得到。
 .standalone-back-link.standalone-back-link {
   position: sticky;
   top: calc(env(safe-area-inset-top, 0px) + 8px);
   z-index: 40;
-  display: flex;
-  box-sizing: border-box;
   width: max-content;
   max-width: calc(100% - 24px);
   margin: calc(env(safe-area-inset-top, 0px) + 8px) 0 4px max(12px, env(safe-area-inset-left, 0px));
-  align-items: center;
-  white-space: nowrap;
-  gap: 4px;
-  min-height: 44px;
-  padding: 0 16px 0 12px;
-  border: 1px solid rgba(7, 55, 99, 0.14);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.94);
-  box-shadow: 0 4px 14px rgba(7, 55, 99, 0.12);
-  color: #073763;
-  font-size: 15px;
-  font-weight: 700;
-  line-height: 1;
-  text-decoration: none;
-
-  span {
-    font-size: 22px;
-    line-height: 1;
-  }
-
-  &:hover,
-  &:focus-visible {
-    color: #073763;
-    text-decoration: none;
-  }
-
-  &:focus-visible {
-    outline: 3px solid #f6b800;
-    outline-offset: 2px;
-  }
 }
 
 .standalone-back-link.standalone-back-link--floating {
@@ -46,5 +13,4 @@
   top: calc(env(safe-area-inset-top, 0px) + 8px);
   left: max(12px, env(safe-area-inset-left, 0px));
   margin: 0;
-  white-space: nowrap;
 }

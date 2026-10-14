@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import { submitSupportTicket } from "../../services/supportService";
 import { isReceivableEmail, RECEIVABLE_EMAIL_HELP } from "../../utils/emailValidation";
+import BackButton from "../fragment/BackButton";
 import "./css/Platform.scss";
 import "./css/Support.scss";
 
@@ -56,7 +57,7 @@ function Support() {
     return (
         <main className="platform-public support-page">
             <section className="platform-public-card">
-                <button className="support-back" type="button" onClick={goBack}><span aria-hidden="true">‹</span> 返回</button>
+                <BackButton className="support-back" onClick={goBack} ariaLabel="返回" />
                 <h1>聯絡客服</h1>
                 <p>遇到問題請在這裡留言。請勿填寫密碼或信用卡完整號碼。</p>
                 <form className="platform-form" onSubmit={submit}>

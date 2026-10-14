@@ -25,6 +25,7 @@ import StudentAvatarImage from "./StudentAvatarImage";
 import { getStudentAvatarDisplayUrl } from "../../constants/defaultStudentAvatars";
 import { getStudentNotificationDestination } from "../../constants/studentNotificationRoutes";
 import { useCachedStudentAvatarUrl } from "../../hooks/useCachedStudentAvatarUrl";
+import { warmAdventureAssets } from "../../utils/adventureAssetWarmup";
 import "../assets/scss/StudentNavbar.scss";
 import "../assets/scss/StudentAdventureNavigation.scss";
 import "../assets/scss/StudentGrowthHeader.scss";
@@ -130,6 +131,11 @@ const StudentNavbar = ({
     useEffect(() => {
         closeDrawer();
     }, [location.pathname]);
+
+    // 冒險地圖的圖片很大：登入後趁閒置先放進快取，第一次進冒險頁就不用等。
+    useEffect(() => {
+        warmAdventureAssets();
+    }, []);
 
     // The menu is the settings place: who I am, notifications, account, help. Everything about
     // learning lives on 我的進度 and the bottom bar, so nothing is listed twice.
