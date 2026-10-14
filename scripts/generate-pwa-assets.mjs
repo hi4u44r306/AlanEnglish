@@ -67,7 +67,25 @@ await page.setContent(`<style>html,body{margin:0;background:transparent}div{widt
     .l{height:${LION_H}px;width:${Math.round(LION_H * lion.ratio)}px}.w{margin-top:${GAP}px;width:${LOGO_W}px;height:${WORD_H}px}</style>
     <div><img class="l" src="${lion.dataUri}"><img class="w" src="${wordmarkUri}"></div>`);
 const launchLogoPng = await page.screenshot({ type: "png", omitBackground: true });
-await writeFile(path.join(publicDir, "pwa", "launch-logo.png"), launchLogoPng);
+// 網頁開機畫面用的小圖：直接內嵌在 index.html（不用等下載，避免啟動圖與網頁畫面交接時 logo 空白一瞬間）。
+await page.setViewportSize({ width: 640, height: Math.round(640 * LOGO_H / LOGO_W) });
+await page.setContent(`<style>html,body{margin:0;background:transparent}img{display:block;width:640px}</style><img src="data:image/png;base64,${launchLogoPng.toString("base64")}">`);
+const smallLogoPng = await page.screenshot({ type: "png", omitBackground: true });
+await writeFile(path.join(publicDir, "pwa", "launch-logo.png"), smallLogoPng);
+{
+    // 內嵌用 WebP（透明底、檔案小；iOS 14 以上的 Safari 都支援），避免 index.html 變得太大。
+    const webpBase64 = await page.evaluate(async src => {
+        const img = new Image(); img.src = src; await img.decode();
+        const canvas = document.createElement("canvas"); canvas.width = img.naturalWidth; canvas.height = img.naturalHeight;
+        canvas.getContext("2d").drawImage(img, 0, 0);
+        return canvas.toDataURL("image/webp", 0.8).split(",")[1];
+    }, `data:image/png;base64,${smallLogoPng.toString("base64")}`);
+    const indexPath = path.join(root, "public", "index.html");
+    const html = await readFile(indexPath, "utf8");
+    const embedded = html.replace(/(<div id="boot-splash"[^>]*><img class="ae-launch-logo" src=")[^"]*(")/, `$1data:image/webp;base64,${webpBase64}$2`);
+    if (!embedded.includes(webpBase64)) throw new Error("index.html 找不到 #boot-splash 圖片，無法內嵌 logo");
+    await writeFile(indexPath, embedded);
+}
 const launchLogoUri = `data:image/png;base64,${launchLogoPng.toString("base64")}`;
 const LAUNCH_LOGO_VMIN = 56; // 組合圖寬度占短邊的百分比，須與 index.html 的 .ae-launch-logo 一致
 const LAUNCH_LOGO_RATIO = LOGO_W / LOGO_H;

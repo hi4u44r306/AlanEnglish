@@ -35,5 +35,8 @@ root.render(
 
 registerServiceWorker();
 
-// 移除 index.html 的開機畫面（React 已接手顯示自己的讀取畫面）。
-requestAnimationFrame(() => requestAnimationFrame(() => document.getElementById('boot-splash')?.remove()));
+// index.html 的開機畫面（#boot-splash）：從主畫面圖示開啟時，進入 /userinfo 的讀取畫面（AppLaunchSplash）會一路撐著它，
+// 等確認登入、離開 /userinfo 才移除，中間不換畫面，logo 才不會閃。其他路徑在畫面畫好後就移除；最久 8 秒一定移除。
+const removeBootSplash = () => document.getElementById('boot-splash')?.remove();
+if (window.location.pathname !== '/userinfo') requestAnimationFrame(() => requestAnimationFrame(removeBootSplash));
+window.setTimeout(removeBootSplash, 8000);
