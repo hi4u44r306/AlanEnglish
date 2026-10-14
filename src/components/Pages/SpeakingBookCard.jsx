@@ -2,7 +2,7 @@ import React from "react";
 import { REWARD_SHOP_ENABLED } from "../../constants/rewardShop";
 import { FiChevronRight } from "react-icons/fi";
 import { getSpeakingBookTheme } from "../../utils/speakingCartoonMap";
-import { UNIFIED_MAP_ASSETS } from "./speakingUnifiedAssets";
+import { SPEAKING_BOOK_THUMBS } from "./speakingBookThumbs";
 
 const SpeakingBookCard = ({ group, index, onOpen, rewardPolicy }) => {
     const theme = getSpeakingBookTheme(group.id);
@@ -30,7 +30,7 @@ const SpeakingBookCard = ({ group, index, onOpen, rewardPolicy }) => {
         aria-label={`開啟 ${group.label}，共 ${group.itemCount} 關，已完成 ${completedCount} 關${rewardLabel}`}
     >
         <span className="speaking-book-card__scene" aria-hidden="true">
-            <img src={UNIFIED_MAP_ASSETS[`unified-${theme.id}-a`]} alt="" width="1536" height="1024" loading={index < 2 ? "eager" : "lazy"} decoding="async" />
+            <img src={SPEAKING_BOOK_THUMBS[theme.id]} alt="" width="640" height="427" loading={index < 2 ? "eager" : "lazy"} decoding="async" />
             <span className="speaking-book-card__chapter">{String(index + 1).padStart(2, "0")}</span>
         </span>
         <span className="speaking-book-card__content">
