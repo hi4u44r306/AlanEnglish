@@ -32,13 +32,26 @@ describe("RoleHomeRedirect (PWA entry /userinfo)", () => {
         return <div data-testid="where">{require("react-router-dom").useLocation().pathname}</div>;
     }
 
+    test("logged out outside the PWA launch still goes to /login", () => {
+        useAuth.mockReturnValue({ authLoading: false, isAuthenticated: false });
+        render(
+            <MemoryRouter initialEntries={["/userinfo"]}>
+                <Routes>
+                    <Route path="/userinfo" element={<RoleHomeRedirect />} />
+                    <Route path="*" element={<LocationProbe />} />
+                </Routes>
+            </MemoryRouter>
+        );
+        expect(screen.getByTestId("where").textContent).toBe("/login");
+    });
+
     test("shows the branded splash while auth loads", () => {
         open({ authLoading: true });
         expect(screen.getByRole("status")).toBeTruthy();
     });
 
     test.each([
-        ["logged out", { authLoading: false, isAuthenticated: false }, "/login"],
+        ["logged out (PWA launch)", { authLoading: false, isAuthenticated: false }, "/"],
         ["student", { authLoading: false, isAuthenticated: true, role: "student", studentProfile: { membership: { is_active: true } } }, "/student/dashboard"],
         ["teacher", { authLoading: false, isAuthenticated: true, role: "teacher" }, "/teacher/dashboard"],
         ["admin", { authLoading: false, isAuthenticated: true, role: "admin" }, "/admin/dashboard"]
