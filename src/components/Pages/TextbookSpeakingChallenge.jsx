@@ -8,6 +8,7 @@ import { completeAlphabetIntroListen, completeSpeakingChallengeQuestion, getSpea
 import SpeakingPracticeSteps from "./SpeakingPracticeSteps";
 import SpeakingReviewPractice from "./SpeakingReviewPractice";
 import SpeakingVisualAid from "./SpeakingVisualAid";
+import { centerOnLevel, findLevelToFocus } from "../../utils/centerOnLevel";
 import SpeakingChallengeLoading from "./SpeakingChallengeLoading";
 import SpeakingChallengeRules from "./SpeakingChallengeRules";
 import { ChallengePreviewDialog, SpeakingMapGoal, speakingLessonTopic } from "./SpeakingMapEntry";
@@ -128,6 +129,7 @@ export default function TextbookSpeakingChallenge() {
     const [activeQuestionIndex, setActiveQuestionIndex] = useState(0);
     const [completionNotice, setCompletionNotice] = useState(null);
     const [returnTransition, setReturnTransition] = useState(null);
+    const mapGestureRef = useRef({ key: null, moved: false });
     const [completionCatalog, setCompletionCatalog] = useState([]);
     const [retryNotice, setRetryNotice] = useState(false);
     const [challengeSessionId, setChallengeSessionId] = useState("");
@@ -282,15 +284,12 @@ export default function TextbookSpeakingChallenge() {
 
     useLayoutEffect(() => {
         // Runs again whenever a level is left and once the refreshed progress has drawn the map, so the
-        // map opens on the level in play, not at the top.
-        if (!bookKey || questionSetId || catalogLoading || !catalog.length || process.env.NODE_ENV === "test") return;
+        // map opens on the level in play, not at the top (= the last level). The position is re-applied for
+        // a short while because page changes, data refreshes and layout shifts can scroll it away again.
+        if (!bookKey || questionSetId || catalogLoading || !catalog.length || process.env.NODE_ENV === "test") return undefined;
         const returnedId = Number(location.state?.speakingReturn?.questionSetId);
-        const node = (returnedId && document.querySelector(`[data-question-set-id="${returnedId}"]`))
-            || document.querySelector(".speaking-challenge-lesson.is-next-target")
-            || document.querySelector(".speaking-challenge-lesson.is-current")
-            || document.querySelector(".speaking-challenge-lesson");
-        node?.scrollIntoView?.({ block: "center", behavior: "auto" });
-        if (returnedId) node?.focus?.({ preventScroll: true });
+        if (mapGestureRef.current.key !== location.key) mapGestureRef.current = { key: location.key, moved: false };
+        return centerOnLevel(() => findLevelToFocus(document, returnedId), { state: mapGestureRef.current });
     }, [bookKey, questionSetId, catalog, catalogLoading, location.state]);
 
     useEffect(() => {
