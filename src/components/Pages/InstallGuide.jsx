@@ -57,8 +57,10 @@ const GUIDES = {
     "ios-safari": {
         label: "iPhone／iPad（Safari）",
         steps: [
-            { scene: "ios-share", title: "點下方的「分享」" },
+            { scene: "ios-dots", title: "點右下角的「⋯」" },
+            { scene: "ios-menu", title: "點「分享」" },
             { scene: "ios-sheet", title: "往下滑，點「加入主畫面」" },
+            { scene: "ios-toggle", title: "把「以網頁 App 開啟」打開" },
             { scene: "ios-confirm", title: "點右上角的「加入」" }
         ]
     },
@@ -66,7 +68,9 @@ const GUIDES = {
         label: "iPhone／iPad（Google Chrome）",
         steps: [
             { scene: "ioschrome-share", title: "點右上角的「分享」" },
-            { scene: "ioschrome-sheet", title: "往下滑，點「加入主畫面」" },
+            { scene: "ioschrome-viewmore", title: "點「檢視更多」" },
+            { scene: "ioschrome-sheet", title: "點「加入主畫面」" },
+            { scene: "ioschrome-toggle", title: "把「以網頁 App 開啟」打開" },
             { scene: "ioschrome-confirm", title: "點右上角的「加入」" }
         ]
     },
@@ -106,6 +110,7 @@ const FakePage = () => (
 const IosScreen = ({ scene }) => {
     const isChrome = scene.startsWith("ioschrome");
     const shareButton = <b className={scene.endsWith("-share") ? "ig-target" : ""}><ShareIcon /></b>;
+    const showForm = scene.endsWith("-toggle") || scene.endsWith("-confirm");
 
     return (
     <>
@@ -114,10 +119,26 @@ const IosScreen = ({ scene }) => {
         <div className="ig-bar ig-bar--ios">
             <i>‹</i>
             <i>›</i>
-            {isChrome ? <i>＋</i> : shareButton}
+            {isChrome && <i>＋</i>}
             <i>▢</i>
-            <i>⋯</i>
+            <b className={scene.endsWith("-dots") ? "ig-target" : ""}>⋯</b>
         </div>
+        {scene.endsWith("-menu") && (
+            <div className="ig-sheet">
+                <span className="ig-sheet__grip" />
+                <div className="ig-row ig-target"><span>分享</span><ShareIcon /></div>
+                <div className="ig-row">新增書籤</div>
+                <div className="ig-row">在網頁中尋找</div>
+            </div>
+        )}
+        {scene.endsWith("-viewmore") && (
+            <div className="ig-sheet">
+                <span className="ig-sheet__grip" />
+                <div className="ig-row">拷貝</div>
+                <div className="ig-row ig-target"><span>檢視更多</span><b>⋯</b></div>
+                <div className="ig-row">列印</div>
+            </div>
+        )}
         {scene.endsWith("-sheet") && (
             <div className="ig-sheet">
                 <span className="ig-sheet__grip" />
@@ -127,14 +148,18 @@ const IosScreen = ({ scene }) => {
                 <div className="ig-row">在網頁中尋找</div>
             </div>
         )}
-        {scene.endsWith("-confirm") && (
+        {showForm && (
             <div className="ig-sheet ig-sheet--tall">
                 <div className="ig-sheet__head">
                     <span>取消</span>
                     <strong>加入主畫面</strong>
-                    <b className="ig-target">加入</b>
+                    <b className={scene.endsWith("-confirm") ? "ig-target" : ""}>加入</b>
                 </div>
                 <div className="ig-app-row"><img src={APP_ICON} alt="" width="40" height="40" decoding="sync" /><span>Alan English</span></div>
+                <div className={`ig-toggle-row${scene.endsWith("-toggle") ? " ig-target" : ""}`}>
+                    <span>以網頁 App 開啟</span>
+                    <i className={`ig-switch${scene.endsWith("-confirm") ? " is-on" : ""}`} />
+                </div>
             </div>
         )}
     </>
@@ -249,7 +274,7 @@ function InstallGuide() {
                 <header className="install-guide__header">
                     <img src={APP_ICON} alt="" width="72" height="72" />
                     <h1>把 Alan English 加到手機桌面</h1>
-                    <p>3 步完成，不用下載。</p>
+                    <p>{steps.length} 步完成，不用下載。</p>
                 </header>
 
                 {installed && (
