@@ -10,7 +10,7 @@ describe("PWA install contract", () => {
         expect(manifest.display).toBe("standalone");
         expect(manifest.start_url).toBe("/userinfo?source=pwa");
         expect(manifest.theme_color).toBe("#073763");
-        expect(manifest.background_color).toBe("#073763");
+        expect(manifest.background_color).toBe("#ffffff");
         const purposes = manifest.icons.map(icon => `${icon.sizes}:${icon.purpose}`);
         expect(purposes).toEqual(expect.arrayContaining(["192x192:any", "512x512:any", "192x192:maskable", "512x512:maskable"]));
         manifest.icons.forEach(icon => expect(fs.existsSync(path.join(publicDir, icon.src))).toBe(true));

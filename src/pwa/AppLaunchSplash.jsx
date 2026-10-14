@@ -12,8 +12,8 @@ const AppLaunchSplash = () => (
             alignItems: "center",
             justifyContent: "center",
             gap: "18px",
-            background: "#073763",
-            color: "#ffffff"
+            background: "#ffffff",
+            color: "#073763"
         }}
     >
         <img src="/pwa/maskable-512.png" alt="" width="144" height="144" style={{ display: "block" }} />

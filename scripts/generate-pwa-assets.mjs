@@ -1,5 +1,5 @@
 // 產生「加入主畫面」用的圖片：maskable 圖示與 iOS 啟動畫面（apple-touch-startup-image）。
-// 母圖：public/android-chrome-512x512-v3.png（金色獅子、白底）。只在圖片需要重做時手動執行：
+// 底色白色（與金色獅子搭配）。母圖：public/android-chrome-512x512-v3.png（金色獅子、白底）。只在圖片需要重做時手動執行：
 //   node scripts/generate-pwa-assets.mjs          產生圖片
 //   node scripts/generate-pwa-assets.mjs --tags   另外印出 index.html 要用的 <link> 標籤
 import { mkdir, readFile, writeFile } from "node:fs/promises";
@@ -10,7 +10,7 @@ import { chromium } from "playwright";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const publicDir = path.join(root, "public");
-const BRAND_BG = "#073763";
+const BRAND_BG = "#ffffff";
 
 // [裝置寬, 裝置高, 倍率]（直向，CSS 像素）
 const DEVICES = [
