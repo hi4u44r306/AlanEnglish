@@ -1,6 +1,7 @@
 import React from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "./AuthContext";
+import AppLaunchSplash from "../pwa/AppLaunchSplash";
 
 const getRoleHome = (role) => {
     if (role === "admin") return "/admin/dashboard";
@@ -11,19 +12,7 @@ const getRoleHome = (role) => {
 const RoleHomeRedirect = () => {
     const { authLoading, isAuthenticated, role, studentProfile } = useAuth();
 
-    if (authLoading) {
-        return (
-            <div style={{
-                minHeight: "100vh",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: "18px"
-            }}>
-                正在確認登入狀態...
-            </div>
-        );
-    }
+    if (authLoading) return <AppLaunchSplash />;
 
     if (!isAuthenticated) return <Navigate to="/login" replace />;
 

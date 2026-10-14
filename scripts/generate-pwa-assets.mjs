@@ -1,0 +1,69 @@
+// 產生「加入主畫面」用的圖片：maskable 圖示與 iOS 啟動畫面（apple-touch-startup-image）。
+// 母圖：public/android-chrome-512x512-v3.png（金色獅子、白底）。只在圖片需要重做時手動執行：
+//   node scripts/generate-pwa-assets.mjs          產生圖片
+//   node scripts/generate-pwa-assets.mjs --tags   另外印出 index.html 要用的 <link> 標籤
+import { mkdir, readFile, writeFile } from "node:fs/promises";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { PNG } from "pngjs";
+import { chromium } from "playwright";
+
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const publicDir = path.join(root, "public");
+const BRAND_BG = "#073763";
+
+// [裝置寬, 裝置高, 倍率]（直向，CSS 像素）
+const DEVICES = [
+    [440, 956, 3], [402, 874, 3], [430, 932, 3], [393, 852, 3], [428, 926, 3],
+    [390, 844, 3], [375, 812, 3], [414, 896, 3], [414, 896, 2], [414, 736, 3],
+    [375, 667, 2], [320, 568, 2],
+    [1024, 1366, 2], [834, 1194, 2], [820, 1180, 2], [810, 1080, 2], [768, 1024, 2], [744, 1133, 2]
+];
+
+// 把白底獅子轉成透明底，並裁到獅子本體的範圍。
+const loadLion = async () => {
+    const png = PNG.sync.read(await readFile(path.join(publicDir, "android-chrome-512x512-v3.png")));
+    const gold = [184, 134, 11];
+    let minX = png.width, minY = png.height, maxX = 0, maxY = 0;
+    for (let y = 0; y < png.height; y++) {
+        for (let x = 0; x < png.width; x++) {
+            const i = (y * png.width + x) * 4;
+            const darkest = Math.min(png.data[i], png.data[i + 1], png.data[i + 2]);
+            const alpha = Math.max(0, Math.min(255, Math.round(((255 - darkest) / (255 - gold[2])) * 255)));
+            png.data[i] = gold[0]; png.data[i + 1] = gold[1]; png.data[i + 2] = gold[2]; png.data[i + 3] = alpha;
+            if (alpha > 40) { minX = Math.min(minX, x); maxX = Math.max(maxX, x); minY = Math.min(minY, y); maxY = Math.max(maxY, y); }
+        }
+    }
+    const width = maxX - minX + 1, height = maxY - minY + 1;
+    const cropped = new PNG({ width, height });
+    PNG.bitblt(png, cropped, minX, minY, width, height, 0, 0);
+    return { dataUri: `data:image/png;base64,${PNG.sync.write(cropped).toString("base64")}`, ratio: width / height };
+};
+
+const render = async (page, lion, width, height, lionHeight) => {
+    await page.setViewportSize({ width, height });
+    await page.setContent(`<style>html,body{margin:0;width:${width}px;height:${height}px;background:${BRAND_BG};display:flex;align-items:center;justify-content:center}
+        img{height:${lionHeight}px;width:${lionHeight * lion.ratio}px}</style><img src="${lion.dataUri}">`);
+    return page.screenshot({ type: "png" });
+};
+
+const lion = await loadLion();
+const browser = await chromium.launch({ executablePath: process.env.PWA_CHROMIUM || undefined });
+const page = await browser.newPage({ deviceScaleFactor: 1 });
+await mkdir(path.join(publicDir, "pwa", "splash"), { recursive: true });
+
+for (const size of [192, 512]) {
+    // maskable 安全區是中央 80% 圓，獅子高度取 54% 以內。
+    await writeFile(path.join(publicDir, "pwa", `maskable-${size}.png`), await render(page, lion, size, size, Math.round(size * 0.54)));
+}
+
+const tags = [];
+for (const [w, h, ratio] of DEVICES) {
+    const pxW = w * ratio, pxH = h * ratio;
+    const name = `splash-${pxW}x${pxH}.png`;
+    await writeFile(path.join(publicDir, "pwa", "splash", name), await render(page, lion, pxW, pxH, Math.round(Math.min(pxW, pxH) * 0.34 / lion.ratio)));
+    tags.push(`<link rel="apple-touch-startup-image" media="screen and (device-width: ${w}px) and (device-height: ${h}px) and (-webkit-device-pixel-ratio: ${ratio}) and (orientation: portrait)" href="%PUBLIC_URL%/pwa/splash/${name}" />`);
+}
+await browser.close();
+console.log(`已產生 maskable 圖示與 ${DEVICES.length} 張 iOS 啟動畫面。`);
+if (process.argv.includes("--tags")) console.log(tags.join("\n"));
