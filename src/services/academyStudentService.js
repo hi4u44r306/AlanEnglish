@@ -1,4 +1,5 @@
 import { invalidateStaffPageCache } from "./staffPageCache";
+import { callEdgeFunction } from "./edgeFunctionClient";
 import {
     supabaseKey,
     supabaseUrl
@@ -196,12 +197,13 @@ export const reissueAcademyStudentLoginCard = async (firebaseUser, studentId) =>
     )
 );
 
-// 管理員調整單一學生的班級（升班／降班）。後端會重新確認管理員身分，並保留舊班級的歷史。
+// 管理員調整單一學生的班級（升班／降班）。獨立的 academy-class-change 函式會重新確認管理員身分，
+// 資料庫保留舊班級的歷史。
 export const changeAcademyStudentClass = async (firebaseUser, { studentId, classCode, effectiveOn, reason }) => (
-    callAcademyStudentManager(
+    callEdgeFunction(
+        "academy-class-change",
         firebaseUser,
         {
-            action: "change_student_class",
             student_id: Number(studentId),
             class_code: String(classCode || "").trim().toUpperCase(),
             effective_on: String(effectiveOn || "").trim(),
