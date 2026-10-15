@@ -47,7 +47,7 @@
 .student-onboarding-progress > div {
     height: 100%;
     border-radius: inherit;
-    background: var(--ae-surface-muted, #ffd45c);
+    background: var(--ae-warning-bg, #ffd45c);
     transition: width .25s ease;
 }
 
@@ -111,7 +111,7 @@
     font-weight: 850;
 }
 
-.student-onboarding-status.complete { display: inline-flex; align-items: center; gap: 4px; color: var(--ae-success, #176542); background: var(--ae-surface-muted, #e5f7ee); }
+.student-onboarding-status.complete { display: inline-flex; align-items: center; gap: 4px; color: var(--ae-success, #176542); background: var(--ae-success-bg, #e5f7ee); }
 
 .student-onboarding-card form { display: grid; gap: 13px; margin-top: 20px; }
 .student-onboarding-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -175,7 +175,7 @@
 .student-onboarding-card button.secondary { border: 1px solid var(--ae-border, #c9d6e8); color: var(--ae-accent, #31568f); background: var(--ae-surface, #fff); }
 .student-onboarding-card button:disabled { opacity: .6; cursor: wait; }
 .student-onboarding-logout { justify-self: center; color: var(--ae-accent, #245fc5); background: var(--ae-surface-muted, #eef5fc); border: 1px solid #adc5e3; }
-.student-onboarding-logout:hover { background: var(--ae-surface-muted, #e1ecfb); border-color: #245fc5; }
+.student-onboarding-logout:hover { background: var(--ae-info-bg, #e1ecfb); border-color: #245fc5; }
 
 @media (max-width: 560px) {
     .student-onboarding-page { padding: 14px 12px calc(34px + env(safe-area-inset-bottom)); }
@@ -197,7 +197,7 @@
     li { display: flex; align-items: center; gap: 6px; }
     li > span { display: grid; place-items: center; width: 28px; height: 28px; flex-shrink: 0; border: 1px solid var(--ae-border, #cad7e8); border-radius: 50%; }
     li[aria-current="step"] { color: var(--ae-text, #17365d); font-weight: 800; }
-    li[aria-current="step"] > span { background: var(--ae-surface-muted, #ffdf78); border-color: #ffdf78; }
+    li[aria-current="step"] > span { background: var(--ae-warning-bg, #ffdf78); border-color: #ffdf78; }
     .is-complete { color: var(--ae-success, #176542); }
 }
 .student-onboarding-hero { box-shadow: none; }

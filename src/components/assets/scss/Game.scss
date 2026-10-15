@@ -49,7 +49,7 @@
   cursor: pointer;
 
   &:hover {
-    background-color: var(--ae-surface-muted, #e6c69d);
+    background-color: var(--ae-warning-bg, #e6c69d);
   }
 }
 
@@ -124,7 +124,7 @@
   font-weight: 800;
 }
 .questionindex {
-  background-color: var(--ae-surface-muted, #ffaaaa);
+  background-color: var(--ae-danger-bg, #ffaaaa);
   font-size: var(--small-font);
   padding: 10px 20px;
   color: var(--ae-text, #000000);
@@ -195,7 +195,7 @@
 }
 .stoprecordbtn {
   box-shadow: -4px 10px 35px -1px rgba(176, 176, 176, 0.682);
-  background-color: var(--ae-surface-muted, #ffb5b5);
+  background-color: var(--ae-danger-bg, #ffb5b5);
   color: var(--ae-text, #000000);
   border-radius: 20px;
   margin: 10px;
@@ -206,7 +206,7 @@
 }
 .nextquestionbtn {
   box-shadow: -4px 10px 35px -1px rgba(176, 176, 176, 0.682);
-  background-color: var(--ae-surface-muted, #ff894e);
+  background-color: var(--ae-warning-bg, #ff894e);
   color: var(--ae-text, #000000);
   border-radius: 20px;
   margin: 10px;
@@ -237,7 +237,7 @@
   display: flex;
   align-items: center;
   flex-direction: column;
-  // background-color: rgb(252, 228, 255);
+  // background-color: var(--ae-surface-glass, rgb(252, 228, 255));
   border-radius: 20px;
   padding: 20px;
 }
@@ -384,7 +384,7 @@
   width: 100%;
   font-size: 18px;
   color: var(--ae-text, #000000);
-  background-color: var(--ae-surface-muted, #ffe3c8);
+  background-color: var(--ae-warning-bg, #ffe3c8);
   border-radius: 15px;
   display: flex;
   padding: 5px;
@@ -403,7 +403,7 @@
 }
 
 .gamebtn:hover {
-  background-color: var(--ae-surface-muted, #e6c69d);
+  background-color: var(--ae-warning-bg, #e6c69d);
 }
 
 .gamebtn:focus {

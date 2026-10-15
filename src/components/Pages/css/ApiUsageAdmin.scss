@@ -46,7 +46,7 @@
 .api-trend-day { display: grid; grid-template-rows: 18px 1fr 20px; align-items: end; justify-items: center; flex: 1 0 24px; min-width: 24px; height: 100%; }
 .api-trend-value { color: var(--ae-text-muted, #667085); font-size: 10px; }
 .api-trend-bar { width: min(100%, 22px); min-height: 5px; border-radius: 7px 7px 2px 2px; background: linear-gradient(180deg, #6e9cff, #2f6fed); transition: height .35s ease; }
-.api-trend-day:hover .api-trend-bar { background: var(--ae-surface-muted, #ff8a4c); }
+.api-trend-day:hover .api-trend-bar { background: var(--ae-warning-bg, #ff8a4c); }
 .api-trend-day small { color: var(--ae-text-muted, #7b8496); font-size: 10px; }
 .api-chart-note, .api-empty { margin: 12px 0 0; color: var(--ae-text-muted, #667085); font-size: 12px; }
 .api-empty { align-self: center; width: 100%; text-align: center; }
@@ -175,7 +175,7 @@
     h3 { margin: 0 0 6px; font-size: 18px; } small { color: var(--ae-text-muted, #60718b); } strong { font-size: 21px; overflow-wrap: anywhere; }
 }
 .api-service-basis, .api-service-gap { color: var(--ae-warning, #8b5412); }
-.api-service-gap { padding: 10px 14px; background: var(--ae-surface-muted, #fff6df); border-radius: 10px; }
+.api-service-gap { padding: 10px 14px; background: var(--ae-warning-bg, #fff6df); border-radius: 10px; }
 .api-service-metric { display: grid; gap: 5px; padding: 10px 0; border-top: 1px solid var(--ae-border, #e6edf5); font-size: 14px; small { color: var(--ae-text-muted, #60718b); } &.has-gap strong { color: var(--ae-danger, #a9491a); } }
 .api-service-form { display: grid; gap: 14px; margin-top: 18px;
     label { display: grid; gap: 6px; font-size: 14px; } input { box-sizing: border-box; width: 100%; min-width: 0; min-height: 44px; padding: 10px; border: 1px solid #b9c8da; border-radius: 9px; }
@@ -193,7 +193,7 @@
     p { margin: 0; color: var(--ae-text-muted, #475467); font-size: 14px; line-height: 1.6; }
 }
 .api-plain-facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 0;
-    div { min-width: 0; padding: 12px 14px; border: 1px solid var(--ae-border, #e0e5ee); border-radius: 13px; background: rgba(255,255,255,.75); }
+    div { min-width: 0; padding: 12px 14px; border: 1px solid var(--ae-border, #e0e5ee); border-radius: 13px; background: var(--ae-surface-glass, rgba(255,255,255,.75)); }
     dt { color: var(--ae-text-muted, #667085); font-size: 12px; }
     dd { margin: 4px 0 0; color: var(--ae-text, #13264b); font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 }

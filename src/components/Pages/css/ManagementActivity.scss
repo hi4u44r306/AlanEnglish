@@ -177,12 +177,12 @@
 }
 
 .activity-warning {
-    background: var(--ae-surface-muted, #fff6dc);
+    background: var(--ae-warning-bg, #fff6dc);
     color: var(--ae-warning, #9b6b05);
 }
 
 .activity-concern {
-    background: var(--ae-surface-muted, #fff0dd);
+    background: var(--ae-warning-bg, #fff0dd);
     color: var(--ae-warning, #b15d08);
 }
 

@@ -187,7 +187,7 @@
       font-weight: 600;
       border: 3.5px solid #2d7dd2;
       color: rgb(0, 0, 0);
-      background-color: rgb(255, 255, 255);
+      background-color: var(--ae-surface-glass, rgb(255, 255, 255));
     }
   }
 }

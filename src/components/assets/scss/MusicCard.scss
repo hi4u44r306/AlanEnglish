@@ -39,7 +39,7 @@
 
 .music-card--theme-1 { --quest-color: #eb6d73; --quest-soft: var(--ae-surface-muted, #fff0f1); }
 .music-card--theme-2 { --quest-color: #16a886; --quest-soft: var(--ae-surface-muted, #e8fbf6); }
-.music-card--theme-3 { --quest-color: #e99b22; --quest-soft: var(--ae-surface-muted, #fff6df); }
+.music-card--theme-3 { --quest-color: #e99b22; --quest-soft: var(--ae-warning-bg, #fff6df); }
 .music-card--theme-4 { --quest-color: #9a64dc; --quest-soft: var(--ae-surface-muted, #f5edff); }
 
 .music-card:hover {
@@ -106,13 +106,13 @@
 .music-card__page { color: var(--ae-text, #162a4d); font-size: 21px; font-weight: 950; line-height: 1.25; }
 
 .music-card__status { position: relative; z-index: 1; flex: 0 0 auto; display: flex; align-items: center; gap: 10px; }
-.music-card__plays { display: flex; align-items: center; gap: 7px; min-width: 84px; padding: 8px 12px; border: 1px solid rgba(255, 255, 255, .9); border-radius: 15px; background: rgba(255, 255, 255, .78); color: var(--ae-text-muted, #52627b); box-shadow: 0 5px 12px rgba(35, 55, 93, .06); }
+.music-card__plays { display: flex; align-items: center; gap: 7px; min-width: 84px; padding: 8px 12px; border: 1px solid rgba(255, 255, 255, .9); border-radius: 15px; background: var(--ae-surface-glass, rgba(255, 255, 255, .78)); color: var(--ae-text-muted, #52627b); box-shadow: 0 5px 12px rgba(35, 55, 93, .06); }
 .music-card__plays svg { flex: 0 0 auto; color: var(--quest-color); font-size: 19px; }
 .music-card__plays span { display: grid; line-height: 1.05; }
 .music-card__plays small { color: var(--ae-text-muted, #8a96a8); font-size: 9px; font-weight: 800; }
 .music-card__plays strong { color: var(--ae-accent, #344763); font-size: 14px; }
 
-.music-card__check { display: grid; width: 52px; height: 52px; place-items: center; border-radius: 17px; background: var(--ae-surface-muted, #dff7e7); color: var(--ae-success, #247a45); font-size: 18px; font-weight: 900; box-shadow: 0 6px 14px rgba(36, 122, 69, .1); }
+.music-card__check { display: grid; width: 52px; height: 52px; place-items: center; border-radius: 17px; background: var(--ae-success-bg, #dff7e7); color: var(--ae-success, #247a45); font-size: 18px; font-weight: 900; box-shadow: 0 6px 14px rgba(36, 122, 69, .1); }
 .music-card__check span { font-size: 9px; line-height: 1; }
 
 @media (max-width: 600px) {

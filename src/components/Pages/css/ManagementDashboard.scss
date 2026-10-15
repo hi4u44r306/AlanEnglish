@@ -223,7 +223,7 @@
   background: var(--ae-surface-muted, #fff8e8);
 
   &:hover:not(:disabled) {
-    background: var(--ae-surface-muted, #ffefc4);
+    background: var(--ae-warning-bg, #ffefc4);
   }
 
   &:disabled {
@@ -572,7 +572,7 @@
   background: var(--ae-surface-muted, #fff0ef);
 
   &:hover:not(:disabled) {
-    background: var(--ae-surface-muted, #ffe0dd);
+    background: var(--ae-danger-bg, #ffe0dd);
   }
 }
 
@@ -581,7 +581,7 @@
   background: var(--ae-surface-muted, #eafbf2);
 
   &:hover:not(:disabled) {
-    background: var(--ae-surface-muted, #d8f7e7);
+    background: var(--ae-success-bg, #d8f7e7);
   }
 }
 
@@ -621,7 +621,7 @@
   color: var(--ae-accent, #2563eb);
 
   &:hover {
-    background: var(--ae-surface-muted, #deebff);
+    background: var(--ae-info-bg, #deebff);
   }
 }
 

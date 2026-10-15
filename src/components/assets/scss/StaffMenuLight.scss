@@ -6,7 +6,7 @@
   color: var(--ae-text, #17365d) !important;
 
   .offcanvas-header { background: var(--ae-surface-muted, #f7f9fc) !important; border-bottom: 0 !important; color: var(--ae-text, #17365d) !important; }
-  .ae-mobile-brand-mark { background: var(--ae-surface-muted, #ffd84d) !important; color: var(--ae-text, #17365d) !important; box-shadow: none !important; }
+  .ae-mobile-brand-mark { background: var(--ae-warning-bg, #ffd84d) !important; color: var(--ae-text, #17365d) !important; box-shadow: none !important; }
   .ae-mobile-brand-copy strong { color: var(--ae-text, #17365d) !important; }
   .ae-mobile-brand-copy small { color: var(--ae-text-muted, #526780) !important; font-size: 13px !important; font-weight: 700 !important; letter-spacing: 0 !important; }
   .offcanvas-header .btn-close { filter: none !important; opacity: 1 !important; border-radius: 50% !important; background-color: var(--ae-surface-muted, #e6edf5) !important; }
@@ -17,7 +17,7 @@
   .ae-mobile-profile { margin: 0 !important; padding: 10px 14px !important; border: 1px solid var(--ae-border, #d5e3f0) !important; border-radius: 16px !important; background: var(--ae-surface, #fff) !important; box-shadow: none !important; color: var(--ae-text, #17365d) !important; }
   .ae-mobile-profile strong { color: var(--ae-text, #17365d) !important; font-size: 17px !important; }
   .ae-mobile-profile span { color: var(--ae-text-muted, #526780) !important; }
-  .ae-mobile-avatar { background: var(--ae-surface-muted, #dbe8ff) !important; color: var(--ae-accent, #1d4fa8) !important; box-shadow: none !important; }
+  .ae-mobile-avatar { background: var(--ae-info-bg, #dbe8ff) !important; color: var(--ae-accent, #1d4fa8) !important; box-shadow: none !important; }
 
   // One white card per group.
   .ae-mobile-profile, .ae-mobile-section, .ae-mobile-logout { flex: 0 0 auto; }
@@ -35,7 +35,7 @@
   .ae-mobile-section > button > span { color: inherit !important; }
   .ae-mobile-section > a:hover,
   .ae-mobile-section > button:hover { background: var(--ae-surface-muted, #f5f8fc) !important; }
-  .ae-mobile-section > a.active { background: var(--ae-surface-muted, #fff6d6) !important; color: var(--ae-text, #17365d) !important; }
+  .ae-mobile-section > a.active { background: var(--ae-warning-bg, #fff6d6) !important; color: var(--ae-text, #17365d) !important; }
   .ae-mobile-section > a:focus-visible,
   .ae-mobile-section > button:focus-visible { outline: 3px solid #245fc5 !important; outline-offset: -3px; }
 
