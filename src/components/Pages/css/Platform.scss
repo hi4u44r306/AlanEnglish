@@ -663,3 +663,7 @@ textarea { resize: vertical; }
 .account-security { padding-top: 20px; }
 .account-security__title { margin: 0 0 16px; font-size: 28px; font-weight: 800; color: var(--ae-text, #17365d); }
 .account-security .platform-form-grid { grid-template-columns: minmax(0, 1fr); }
+
+.platform-support-tabs { display: flex; gap: 8px; margin: 0 0 14px; }
+.platform-support-tabs button[aria-pressed="true"] { background: var(--ae-solid, #17365d); color: #fff; border-color: var(--ae-solid, #17365d); }
+.platform-support-urgent { color: var(--ae-danger, #b42318); }

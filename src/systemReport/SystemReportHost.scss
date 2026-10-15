@@ -1,0 +1,104 @@
+.ae-report-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  display: grid;
+  place-items: center;
+  padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
+  background: rgba(10, 18, 30, 0.55);
+}
+
+.ae-report-dialog {
+  box-sizing: border-box;
+  width: min(440px, 100%);
+  max-height: 100%;
+  overflow: auto;
+  padding: 22px 20px 18px;
+  border: 1px solid var(--ae-border, #d9e2ef);
+  border-radius: 20px;
+  background: var(--ae-surface, #fff);
+  color: var(--ae-text, #17365d);
+  font-family: "Nunito", sans-serif;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.3);
+
+  h2 { margin: 0 0 8px; font-size: 22px; font-weight: 800; }
+  p { margin: 0 0 12px; line-height: 1.6; }
+}
+
+.ae-report-note,
+.ae-report-warn {
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: 14px;
+  background: var(--ae-surface-muted, #eef4ff);
+}
+
+.ae-report-warn { color: var(--ae-warning, #7a5a08); }
+
+.ae-report-field {
+  display: grid;
+  gap: 6px;
+  margin: 4px 0 14px;
+  font-size: 14px;
+  font-weight: 700;
+
+  textarea {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--ae-border, #c9d6e8);
+    border-radius: 12px;
+    background: var(--ae-surface-muted, #f7f9fc);
+    color: inherit;
+    font: inherit;
+    font-weight: 500;
+    resize: vertical;
+  }
+
+  small { color: var(--ae-text-muted, #526780); font-weight: 500; }
+}
+
+.ae-report-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+
+  button,
+  a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 0 18px;
+    border-radius: 12px;
+    font: inherit;
+    font-weight: 800;
+    text-decoration: none;
+    cursor: pointer;
+  }
+}
+
+.ae-report-primary {
+  flex: 1 1 180px;
+  border: 0;
+  background: var(--ae-solid, #17365d);
+  color: #fff;
+
+  &:disabled { opacity: 0.6; cursor: wait; }
+}
+
+.ae-report-secondary {
+  border: 1px solid var(--ae-border, #c9d6e8);
+  background: transparent;
+  color: inherit;
+
+  &:disabled { opacity: 0.6; }
+}
+
+.ae-report-link {
+  border: 0;
+  background: transparent;
+  color: var(--ae-text-muted, #526780);
+  text-decoration: underline;
+}

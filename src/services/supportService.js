@@ -24,5 +24,5 @@ const callSupport = async (firebaseUser, body) => {
 };
 
 export const submitSupportTicket = (firebaseUser, ticket) => callSupport(firebaseUser, { action: "submit", ...ticket });
-export const listSupportTickets = firebaseUser => callSupport(firebaseUser, { action: "list" });
+export const listSupportTickets = (firebaseUser, kind = "all") => callSupport(firebaseUser, { action: "list", kind });
 export const updateSupportTicket = (firebaseUser, ticket) => callSupport(firebaseUser, { action: "update", ...ticket });
