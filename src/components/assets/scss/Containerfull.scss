@@ -276,3 +276,16 @@ body {
     right: 10px;
   }
 }
+
+/* 手機／窄螢幕的作業迷你播放器：「展開播放器」按鈕獨立一排，不壓到播放鍵。 */
+@media only screen and (max-width: 900px) {
+  .app-player.mini .footer-player {
+    padding-top: 34px;
+  }
+
+  .app-player.mini .app-player-toggle {
+    top: 6px;
+    right: 8px;
+    padding: 5px 11px;
+  }
+}
