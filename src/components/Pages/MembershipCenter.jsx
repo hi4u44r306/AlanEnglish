@@ -9,6 +9,7 @@ import { getAccessibleCatalog } from "../../services/contentAccessService";
 import { sendBrandedVerificationEmail } from "../../services/authEmailService";
 import { getPrimaryAccessPlanLabel, hasAiAddonPlan, hasAiPremiumAccess, isAiAddonPlanCode } from "../../constants/membershipPlans";
 import { PUBLIC_SELF_SERVICE_BILLING_ENABLED } from "../../constants/commerceAvailability";
+import DepartedStudentNotice from "./DepartedStudentNotice";
 import "./css/Platform.scss";
 import "./css/MembershipMinimal.scss";
 
@@ -118,6 +119,11 @@ function MembershipCenter() {
                     : learnerType === "trial_user"
                         ? "七天試用會員"
                         : "一般會員";
+    // 已離校、而且目前沒有使用中的自主學習會員：顯示「帳號保留、保留什麼、怎麼續用」說明。
+    const isDepartedWithoutActiveMembership = profile?.role === "student"
+        && learnerType === "academy_student"
+        && !isActiveAcademyStudent
+        && membership?.is_active !== true;
     const effectiveGrants = useMemo(() => membership?.effective_access?.grants || [], [membership]);
     const baseAccessGrants = useMemo(() => effectiveGrants.filter(grant => !isAiAddonPlanCode(grant?.plan_code)), [effectiveGrants]);
     const hasUnlimitedBaseAccess = baseAccessGrants.some(grant => !grant?.ends_at);
@@ -287,6 +293,8 @@ function MembershipCenter() {
                     <div><dt>{isActiveAcademyStudent ? "使用期間" : "可使用至"}</dt><dd>{displayedAccessEnd}<small>{displayedDaysRemaining}</small></dd></div>
                 </dl>
             </header>
+
+            {isDepartedWithoutActiveMembership && <DepartedStudentNotice />}
 
             <section className="platform-card membership-feature-overview" aria-labelledby="feature-access-heading">
                 <div className="platform-section-title membership-section-title"><div><span className="platform-eyebrow">YOUR ACCESS</span><h2 id="feature-access-heading">目前可用功能</h2><p>已開通 {availableFeatureItems.length} 項，點一下就能開始使用。</p></div><strong className="membership-feature-count">{availableFeatureItems.length}／{FEATURE_OVERVIEW.length}</strong></div>

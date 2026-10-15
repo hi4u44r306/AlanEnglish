@@ -8,12 +8,20 @@
 - 驗證：`npm run test:departed-activity` 4 項、元件測試 3 項通過，`CI=true npm run build` 成功。正式庫目前 0 位離校生，所以畫面會顯示空狀態；未用真實管理員帳號實測。
 - 回復：停用前端區塊即可；函式唯讀，可直接保留。手冊 v4.40（尚未部署）。
 
-### 管理員調整單一學生班級（升班／降班）（2026-10-15，分支 `feat/academy-class-change`，PR #582：migration 與 Edge Function 已於 2026-10-15 經擁有者同意套用／部署到正式環境，前端待合併；正式站實際調班尚未操作過）
+### 離校生登入說明卡（2026-10-15，分支 `feat/departed-student-landing`，進行中：本機完成、待 PR 合併）
+
+- 背景：擁有者詢問畢業／離校後帳號會不會被刪除，以及能否讓離校生自己決定要不要每月 NT$299 續用。查證（唯讀）：離校只把 `academy_enrollments` 改為 `withdrawn` 並保存班級教材（`process_academy_departure_with_materials`），專案資料庫排程只有 API 成本警示一個、沒有任何自動刪除或停用帳號；管理員手動刪帳號會被付款／兌換紀錄擋下。程式裡**沒有藍新／綠界金流**，只有 Stripe（`billing-manager`、`stripe-webhook`），且 `PUBLIC_SELF_SERVICE_BILLING_ENABLED = false`。
+- 修改：`DepartedStudentNotice.jsx`＋樣式（顏色用 `--ae-*` 變數並附淺色預設值）；`MembershipCenter.jsx` 對「role=student、learner_type=academy_student、非在校、且 membership.is_active 不為 true」顯示。線上扣款關閉時按鈕為「聯絡客服」。
+- 驗證：`DepartedStudentNotice`＋`MembershipCenter` 測試 14 項通過；`CI=true npm run build` 成功；本機假登入（未提交）390px 檢視版面正常（新手導覽彈窗為假資料造成）。尚未部署。
+- 建議（尚未做）：先用現有啟用碼＋轉帳／LINE 販售 NT$299，觀察需求再決定是否接金流；金流若選藍新需向藍新確認是否開通定期定額，且要新做整合與先在測試環境驗證。
+
+### 管理員調整單一學生班級（升班／降班）（2026-10-15，已發布：PR #582／main `9eba515c`，Cloudflare Workers Builds success；migration 與 Edge Function 已先經擁有者同意套用／部署；正式站實際調班尚未操作過）
 
 - 擁有者決定（2026-10-15）：只有管理員可調整；生效日預設今天、可改過去日期（不支援未來日期）；同意先在隔離環境（本機 PGlite）做，正式資料庫套用與函式部署須另行同意。MCP 只能看到一個 Supabase 專案（`alan-english`，即正式庫），沒有獨立測試庫，因此未對任何遠端資料庫寫入。
 - 設計：不改舊班級紀錄的 `class_id`（`apply_academy_placement_cycle` 的做法會讓離校教材推算與舊點名失準，且選畢業不走 `process_academy_departure_with_materials`）。改為關閉舊視窗並新增新視窗：舊 `academy_enrollments` 列改狀態 `transferred`（新增，非離校；`withdrawn`／`graduated` 會被 phase 02 權限同步與離校教材邏輯當成離校）、`access_ends_at = 生效日 − 1`；新列 `active`、`enrolled_at = 生效日`，承接原本的 `access_ends_at`／`scheduled_departure_at`。入班當天調整則直接更正班級。權限同步觸發器對舊視窗寫 `revoked`＋「withdrawn」字樣，函式內改寫成 `Academy class changed.`。歷史存於新表 `academy_class_changes`（RLS 開、一般角色無權限）。
 - 檔案：`supabase/migrations/20261015120000_academy_class_change.sql`（additive：放寬狀態檢查、新表、`change_academy_student_class()` 僅 `service_role` 可執行）；獨立的 Edge Function `academy-class-change`（`verify_jwt=false`、自己驗證 Firebase 身分並從資料庫確認 `admin`、重新驗證學生與班級、白話錯誤對照；不放進 2,376 行的 `academy-student-manager`，因為這台電腦沒有 Supabase CLI，只能用 MCP 貼上整檔部署，改小函式可避免誤動建立學生帳號與登入卡）；前端 `ClassChangeDialog.jsx`＋`AdminStudentLifecycle.jsx` 的「調整班級」按鈕＋`changeAcademyStudentClass` 服務。
 - 驗證：`scripts/academy-class-change-sql.test.mjs` 13 項在 PGlite 通過（載入真正的 phase 01 資料表／同步觸發器與擷取自 phase 02 的權限同步，涵蓋升班、降班、同日更正、連續調整視窗相接、不被當成離校、權限視窗與原因、離校排程搬移、各種錯誤不留半套資料、只影響指定學生、函式與資料表權限）；前端 `ClassChangeDialog`＋`AdminStudentLifecycle` 12 項通過；`node --experimental-strip-types --check` 通過。PGlite 以 `npm install --prefix` 暫存資料夾安裝（專案 package／lockfile 未變）。
+- 正式站驗收（2026-10-15）：建置 success；正式站程式內含 `academy-class-change`、`調整班級`、`調整原因`、`升班`、`降班`（中文為編碼形式）；首頁 200。登入後畫面（管理員「在校生／離校生管理」的按鈕與視窗）、實際調班尚待擁有者操作確認。
 - 正式環境操作紀錄（擁有者說「同意套用」後）：先唯讀確認正式庫結構與假設一致（狀態檢查原本四種、無同名物件、需要的欄位齊全、僅 2 筆 active 班級紀錄）→ `apply_migration` 名稱 `academy_class_change`（MCP 版本號由工具產生，與 repo 檔名 `20261015120000` 不同，之後若用 CLI `db push` 需 `migration repair`）→ 唯讀驗證：狀態檢查含 `transferred`、函式僅 `service_role` 可執行、新表 RLS 開且 `anon`／`authenticated` 無權限、班級紀錄筆數未變 → 部署 `academy-class-change` v1（`verify_jwt=false`）→ 以無憑證／假憑證／不明來源／GET／預檢對線上函式冒煙測試（401、401、403、405、204）。**尚未用真實管理員實際調班**（會改到真實學生，建議擁有者先拿確定要調的學生試一次）。
 - 未做／待辦：①（已完成）正式套用 migration 與部署函式；②先前報告提到的 `academy-student-manager` 新增 action 已撤回（該檔與主線完全相同，線上 v59 未更動）；②未來日期調班（需排程）；③整批升班精靈與 `attendance-manager` 依日期還原名單（舊點名在升班後會被「目前名單」過濾而看不到）；④既有 `apply_academy_placement_cycle` 仍是舊做法且沒有任何程式呼叫它，之後應改用新方式；⑤老師不可調整（依決定）。
 - 回復方式：此 migration 只新增不改舊資料；回復＝停用前端按鈕即可；若已有調班紀錄，舊視窗仍以 `transferred` 保存，不需刪除。
