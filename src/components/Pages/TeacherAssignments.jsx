@@ -24,6 +24,7 @@ import {
     mergeTrackIds,
     removeTrackIds
 } from "./assignmentTrackSelection";
+import { buildAssignmentTitle } from "./assignmentTitle";
 import "./css/Assignments.scss";
 import ManagementWorkspace from "../fragment/ManagementWorkspace";
 import AssignmentCopyEditor, { copyItemProblems } from "./AssignmentCopyEditor";
@@ -148,9 +149,11 @@ const TeacherAssignmentsEditor = () => {
         required_listens: 3
     });
 
-    const draft = useMemo(() => ({ form, bookId, trackIds, rangeStart, rangeEnd, mixedMode,
+    const [titleTouched, setTitleTouched] = useState(false);
+    // 自動帶入的名稱不算「老師寫過的草稿」，所以只有手動改過才存進草稿。
+    const draft = useMemo(() => ({ form: titleTouched ? form : { ...form, title: "" }, bookId, trackIds, rangeStart, rangeEnd, mixedMode,
         includeAiQuiz, includePronunciation, sourceBookId, selectedPageContentIds,
-        selectedAiMaterialId, selectedPromptKeys, sourceForm, copiedItems }), [form, bookId, trackIds,
+        selectedAiMaterialId, selectedPromptKeys, sourceForm, copiedItems }), [form, titleTouched, bookId, trackIds,
         rangeStart, rangeEnd, mixedMode, includeAiQuiz, includePronunciation, sourceBookId,
         selectedPageContentIds, selectedAiMaterialId, selectedPromptKeys, sourceForm, copiedItems]);
 
@@ -169,6 +172,7 @@ const TeacherAssignmentsEditor = () => {
         setSourceBookId(saved.sourceBookId); setSelectedPageContentIds(saved.selectedPageContentIds);
         setSelectedAiMaterialId(saved.selectedAiMaterialId); setSelectedPromptKeys(saved.selectedPromptKeys);
         setSourceForm(saved.sourceForm); setCopiedItems(saved.copiedItems); setPreview(null);
+        setTitleTouched(Boolean(String(saved.form?.title || "").trim()));
         setPendingDraft(null);
     };
 
@@ -190,7 +194,8 @@ const TeacherAssignmentsEditor = () => {
         resetDraft();
         setWorkspace("create");
         const template = assignment.copy_template;
-        setForm({ title: (assignment.title + "（副本）").slice(0, 200), description: assignment.description || "",
+        setTitleTouched(true);
+        setForm({ title: (assignment.title + "（副本）").slice(0, 200), description: "",
             source_type: "music_track", target_class: assignment.target_class,
             assigned_date: todayTaiwan(), due_date: todayTaiwan(), required_listens: template.required_listens || 3 });
         if (template.source_type === "multi_activity_v2") { setCopiedItems(sanitizeCopyItems(template.items)); setMixedMode(true); }
@@ -271,6 +276,13 @@ const TeacherAssignmentsEditor = () => {
     const updateForm = (field, value) => {
         setForm(current => ({ ...current, [field]: value }));
     };
+
+    // 作業名稱預設自動帶入「日期 班級 教材頁碼」；老師自己改過名稱後就不再覆蓋，清空則恢復自動帶入。
+    useEffect(() => {
+        if (titleTouched) return;
+        const suggested = buildAssignmentTitle({ assignedDate: form.assigned_date, classCode: form.target_class, groups: selectedTrackGroups });
+        setForm(current => (current.title === suggested ? current : { ...current, title: suggested }));
+    }, [titleTouched, form.assigned_date, form.target_class, selectedTrackGroups]);
 
     const togglePageContent = id => {
         setSelectedPageContentIds(current => (
@@ -668,7 +680,7 @@ const TeacherAssignmentsEditor = () => {
                             <span>1</span>
                             <div>
                                 <strong>作業基本資料</strong>
-                                <small>學生會先看到名稱與說明</small>
+                                <small>學生會看到作業名稱</small>
                             </div>
                         </div>
                         <label>
@@ -676,17 +688,8 @@ const TeacherAssignmentsEditor = () => {
                             <input
                                 id="assignment-draft-title"
                                 value={form.title}
-                                onChange={event => updateForm("title", event.target.value)}
-                                placeholder="例如：Workbook 1 P22～P32 課後任務"
-                            />
-                        </label>
-                        <label>
-                            <span>作業說明（選填）</span>
-                            <textarea
-                                rows="3"
-                                value={form.description}
-                                onChange={event => updateForm("description", event.target.value)}
-                                placeholder="例如：請完成 Workbook 1 P22～P32，每個音檔聆聽 3 次。"
+                                onChange={event => { setTitleTouched(event.target.value.trim() !== ""); updateForm("title", event.target.value); }}
+                                placeholder="選好班級與教材後會自動帶入，例如：10/15 E1 Workbook 1 P22～P32"
                             />
                         </label>
                         <label>
