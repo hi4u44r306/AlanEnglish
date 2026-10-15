@@ -1,5 +1,12 @@
 # Alan English 專案狀態
 
+### 建立作業：名稱自動帶入、拿掉說明欄（2026-10-15，分支 `feat/assignment-auto-title`，尚未部署）
+
+- 擁有者要求：作業名稱沿用「日期＋班級＋功課」，說明欄不需要。
+- 修改：新增 `assignmentTitle.js`（含測試）；`TeacherAssignments.jsx` 自動帶入名稱（老師改過就不覆蓋、清空恢復），自動名稱不存進草稿；移除「作業說明」輸入欄（複製作業時說明清空）。後端與資料表不動（`description` 欄位仍可為空）。
+- 驗證：`TeacherAssignments`／`assignmentTitle`／services 測試 100＋9 項通過；`CI=true npm run build` 成功。
+- 待擁有者決定：教材可選範圍。目前前端與 `assignment-manager`（Edge Function，三處檢查）都限制為「班級目前生效的教材」；若要讓建立作業時可選任何教材，必須改後端並處理學生是否有該教材使用權，屬權限變更，需另批准。
+
 ### 作業頁迷你播放器：展開按鈕不再壓住播放鍵（2026-10-15，分支 `fix/mini-player-toggle-overlap`，尚未部署）
 
 - 擁有者回報：在作業頁點開音檔再縮小，迷你播放器看起來怪。原因：窄螢幕（≤900px）下，絕對定位在右上角的「🎧 展開播放器」按鈕疊在播放鍵上。
