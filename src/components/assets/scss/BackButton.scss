@@ -51,3 +51,11 @@
     outline-offset: 2px;
   }
 }
+
+// 卡片最上方靠左放返回鈕（卡片本身置中時也維持靠左）。
+.ae-back-row {
+  display: flex;
+  justify-content: flex-start;
+  margin: 0 0 8px -6px;
+  text-align: left;
+}

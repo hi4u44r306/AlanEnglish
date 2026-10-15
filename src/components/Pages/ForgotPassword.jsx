@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { sendBrandedPasswordResetEmail } from "../../services/authEmailService";
 import { isReceivableEmail, RECEIVABLE_EMAIL_HELP } from "../../utils/emailValidation";
+import BackButton from "../fragment/BackButton";
 import "./css/Platform.scss";
 
 function ForgotPassword() {
@@ -33,6 +34,7 @@ function ForgotPassword() {
     return (
         <main className="platform-public">
             <section className="platform-public-card platform-center">
+                <div className="ae-back-row"><BackButton to="/login" ariaLabel="返回登入" /></div>
                 <div className="platform-icon">🔐</div>
                 <span className="platform-eyebrow">PASSWORD RESET</span>
                 <h1>忘記密碼</h1>
