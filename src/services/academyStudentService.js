@@ -196,6 +196,20 @@ export const reissueAcademyStudentLoginCard = async (firebaseUser, studentId) =>
     )
 );
 
+// 管理員調整單一學生的班級（升班／降班）。後端會重新確認管理員身分，並保留舊班級的歷史。
+export const changeAcademyStudentClass = async (firebaseUser, { studentId, classCode, effectiveOn, reason }) => (
+    callAcademyStudentManager(
+        firebaseUser,
+        {
+            action: "change_student_class",
+            student_id: Number(studentId),
+            class_code: String(classCode || "").trim().toUpperCase(),
+            effective_on: String(effectiveOn || "").trim(),
+            reason: String(reason || "").trim()
+        }
+    )
+);
+
 export const createAcademyInvitation = async (
     firebaseUser,
     student
@@ -386,7 +400,8 @@ const academyStudentService = {
     deleteAcademyStudentAccount,
     deleteAcademyInvitation,
     sendAcademyPasswordReset,
-    markAcademyPasswordChanged
+    markAcademyPasswordChanged,
+    changeAcademyStudentClass
 };
 
 export default academyStudentService;

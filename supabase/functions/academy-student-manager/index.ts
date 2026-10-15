@@ -1644,6 +1644,73 @@ const reissueStudentLoginCard = async (
     });
 };
 
+const CLASS_CHANGE_ERRORS: Record<string, [number, string]> = {
+    ACADEMY_CHANGE_INVALID_INPUT: [400, "請選擇學生與生效日期"],
+    ACADEMY_CHANGE_REASON_INVALID: [400, "請填寫 2 到 300 字的調整原因"],
+    ACADEMY_ENROLLMENT_NOT_FOUND: [404, "這位學生目前沒有在英文班"],
+    ACADEMY_ENROLLMENT_NOT_ACTIVE: [409, "這位學生目前是暫停狀態，請先恢復再調整班級"],
+    ACADEMY_CLASS_INVALID: [400, "班級只能選擇 E1、E3、E5 或 E7"],
+    ACADEMY_CLASS_UNCHANGED: [409, "學生已經在這個班級，不需要調整"],
+    ACADEMY_CHANGE_DATE_IN_FUTURE: [400, "目前只能設定今天或過去的日期，不能預先安排未來的日期"],
+    ACADEMY_CHANGE_DATE_BEFORE_ENROLLMENT: [400, "生效日期不能早於學生進入目前班級的日期"],
+    ACADEMY_CHANGE_DATE_AFTER_ACCESS_END: [400, "生效日期晚於這位學生的權限截止日"],
+    ACADEMY_CHANGE_DATE_AFTER_DEPARTURE: [400, "生效日期晚於這位學生已排定的離校日"]
+};
+
+const changeStudentClass = async (
+    req: Request,
+    admin: SupabaseClient,
+    caller: CallerProfile,
+    body: JsonObject
+): Promise<Response> => {
+    // Only admins may move a student between classes; the role comes from the database
+    // (getCallerProfile), never from the request body.
+    requireAdmin(caller);
+
+    const studentId = Number(body.student_id);
+    if (!Number.isSafeInteger(studentId) || studentId <= 0) {
+        throw new HttpError(400, "STUDENT_ID_REQUIRED", "缺少要調整班級的學生");
+    }
+    const classCode = cleanText(body.class_code, 8).toUpperCase();
+    if (!CLASS_CODES.has(classCode)) {
+        throw new HttpError(400, "INVALID_CLASS", "班級只能選擇 E1、E3、E5 或 E7");
+    }
+    const effectiveOn = cleanText(body.effective_on, 10);
+    if (!isIsoDate(effectiveOn)) {
+        throw new HttpError(400, "INVALID_EFFECTIVE_DATE", "生效日期格式必須是 YYYY-MM-DD");
+    }
+    const reason = cleanText(body.reason, 300);
+    if (reason.length < 2) {
+        throw new HttpError(400, "CLASS_CHANGE_REASON_REQUIRED", "請填寫調整原因（至少 2 個字）");
+    }
+
+    const { data: student, error: studentError } = await admin
+        .from("students")
+        .select("id,role,account_status")
+        .eq("id", studentId)
+        .maybeSingle();
+    if (studentError) throw new HttpError(500, "STUDENT_LOOKUP_FAILED", "目前無法確認學生帳號");
+    if (!student?.id || student.role !== "student") {
+        throw new HttpError(404, "STUDENT_NOT_FOUND", "找不到這位學生");
+    }
+
+    const { data, error } = await admin.rpc("change_academy_student_class", {
+        p_student_id: studentId,
+        p_to_class_code: classCode,
+        p_effective_on: effectiveOn,
+        p_reason: reason,
+        p_changed_by: caller.id
+    });
+    if (error) {
+        const known = CLASS_CHANGE_ERRORS[cleanText(error.message, 80)];
+        if (known) throw new HttpError(known[0], cleanText(error.message, 80), known[1]);
+        console.error("change_academy_student_class failed", error.code);
+        throw new HttpError(500, "CLASS_CHANGE_FAILED", "調整班級失敗，請稍後再試；若持續發生請聯絡管理員檢查");
+    }
+
+    return json(req, 200, { success: true, change: data });
+};
+
 const listClasses = async (
     req: Request,
     admin: SupabaseClient,
@@ -2291,6 +2358,9 @@ Deno.serve(async (req: Request): Promise<Response> => {
         }
         if (action === "batch_create_students") {
             return await batchCreateStudents(req, admin, caller, body);
+        }
+        if (action === "change_student_class") {
+            return await changeStudentClass(req, admin, caller, body);
         }
         if (action === "create_invitation") {
             return await createInvitation(req, admin, caller, body);
