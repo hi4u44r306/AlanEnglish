@@ -81,3 +81,23 @@
 :root[data-theme='dark'] .ae-mobile-brand-mark { background: #ffd84d !important; color: #17233f !important; }
 :root[data-theme='dark'] .ae-mobile-avatar { background: rgba(110, 168, 254, 0.18) !important; color: #7db4ff !important; }
 :root[data-theme='dark'] .ae-mobile-section > a.active { background: rgba(255, 216, 77, 0.14) !important; }
+
+/* 導覽列按鈕圖示保留顏色。 */
+:root[data-theme='dark'] .ae-student-nav-icon { background: rgba(110, 168, 254, 0.18); color: #7db4ff; }
+:root[data-theme='dark'] .ae-student-nav-icon.is-books { background: rgba(80, 196, 230, 0.18); color: #5fc9e8; }
+:root[data-theme='dark'] .ae-student-nav-icon.is-adventure { background: rgba(255, 216, 77, 0.18); color: #ffd84d; }
+:root[data-theme='dark'] .ae-student-nav-icon.is-profile { background: rgba(255, 216, 77, 0.18); color: #ffd84d; }
+:root[data-theme='dark'] .ae-student-bottom-nav .active .ae-student-nav-icon,
+:root[data-theme='dark'] .ae-student-desktop-nav .active .ae-student-nav-icon { background: #ffd84d; color: #17233f; }
+:root[data-theme='dark'] .ae-nav-inline svg,
+:root[data-theme='dark'] .ae-desktop-help svg,
+:root[data-theme='dark'] .ae-dropdown-item svg,
+:root[data-theme='dark'] .ae-mobile-section > a svg,
+:root[data-theme='dark'] .ae-mobile-section > button svg { color: #6ea8fe; }
+:root[data-theme='dark'] .ae-dropdown-item.logout svg,
+:root[data-theme='dark'] .ae-mobile-logout svg { color: #ff8a80; }
+
+/* 「接下來」橫幅右側的地圖插圖：深色時用深色漸層淡出，讓插圖保留。 */
+:root[data-theme='dark'] .student-progress__next::after {
+  background: linear-gradient(90deg, #262628 0%, #262628 44%, rgba(38, 38, 40, 0.9) 62%, rgba(38, 38, 40, 0.35) 100%);
+}
