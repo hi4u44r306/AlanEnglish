@@ -1,0 +1,34 @@
+.departed-activity {
+    margin: 0 0 16px;
+    padding: 16px;
+    border: 1px solid var(--ae-border, #d9e2ef);
+    border-radius: 14px;
+    background: var(--ae-surface, #fff);
+    color: var(--ae-text, #12263f);
+
+    h2 { margin: 0 0 6px; font-size: 1.05rem; }
+    p { margin: 0; }
+
+    &__hint { color: var(--ae-text-muted, #5b6b80); font-size: 0.9rem; margin-bottom: 12px !important; }
+
+    &__stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+        gap: 10px;
+        margin: 0 0 14px;
+        padding: 0;
+        list-style: none;
+
+        li {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            background: var(--ae-surface-muted, #f1f5fb);
+        }
+
+        strong { font-size: 1.4rem; }
+        span { font-size: 0.82rem; color: var(--ae-text-muted, #5b6b80); }
+    }
+}
