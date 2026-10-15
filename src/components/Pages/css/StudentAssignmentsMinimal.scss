@@ -9,9 +9,9 @@
     .student-homework-shell { display: grid !important; grid-template-columns: minmax(0, 1fr) !important; gap: 16px; width: 100%; max-width: 720px !important; margin: 0 auto !important; }
 
     // Title only: no date strip, no description, no stats row.
-    .student-homework-hero { display: block !important; margin: 0 !important; padding: 0 !important; border: 0 !important; border-radius: 0 !important; background: none !important; box-shadow: none !important; color: #17365d !important; }
+    .student-homework-hero { display: block !important; margin: 0 !important; padding: 0 !important; border: 0 !important; border-radius: 0 !important; background: none !important; box-shadow: none !important; color: var(--ae-text, #17365d) !important; }
     .student-homework-hero::before, .student-homework-hero::after { display: none !important; }
-    .student-homework-hero h1 { margin: 0 !important; font-size: 28px !important; font-weight: 800 !important; line-height: 1.3 !important; color: #17365d !important; }
+    .student-homework-hero h1 { margin: 0 !important; font-size: 28px !important; font-weight: 800 !important; line-height: 1.3 !important; color: var(--ae-text, #17365d) !important; }
     .student-homework-eyebrow,
     .student-homework-hero__copy > p,
     .student-homework-hero > :not(.student-homework-hero__copy),
@@ -26,25 +26,25 @@
 
     // Filters on one scrollable line.
     .student-homework-filters { display: flex !important; flex-wrap: nowrap !important; gap: 8px !important; margin: 0 0 12px !important; padding: 0 0 4px !important; overflow-x: auto; border: 0 !important; scrollbar-width: none; &::-webkit-scrollbar { display: none; } }
-    .student-homework-filters button { flex: 0 0 auto; min-height: 44px; padding: 8px 16px !important; border: 1px solid #c5d6e8 !important; border-radius: 22px !important; background: #fff !important; color: #39526e !important; font-size: 15px !important; font-weight: 700 !important; white-space: nowrap; }
+    .student-homework-filters button { flex: 0 0 auto; min-height: 44px; padding: 8px 16px !important; border: 1px solid var(--ae-border, #c5d6e8) !important; border-radius: 22px !important; background: var(--ae-surface, #fff) !important; color: var(--ae-accent, #39526e) !important; font-size: 15px !important; font-weight: 700 !important; white-space: nowrap; }
     .student-homework-filters button[aria-pressed="true"] { border-color: #17365d !important; background: #17365d !important; color: #fff !important; }
 
     // One card per assignment.
     .student-homework-task-list { display: grid !important; grid-template-columns: minmax(0, 1fr) !important; gap: 12px; }
-    .student-homework-task { display: block !important; width: auto !important; padding: 20px !important; border: 1px solid #d5e3f0 !important; border-radius: 20px !important; background: #fff !important; box-shadow: none !important; }
+    .student-homework-task { display: block !important; width: auto !important; padding: 20px !important; border: 1px solid var(--ae-border, #d5e3f0) !important; border-radius: 20px !important; background: var(--ae-surface, #fff) !important; box-shadow: none !important; }
     .student-homework-task__rail { display: none !important; }
     .student-homework-task__body { display: grid !important; grid-template-columns: minmax(0, 1fr) !important; gap: 12px; width: auto !important; padding: 0 !important; }
     .student-homework-task__top { display: flex; justify-content: flex-start; margin: 0 !important; }
-    .student-homework-task__title { margin: 0 !important; font-size: 24px !important; font-weight: 800 !important; line-height: 1.3 !important; color: #17365d !important; overflow-wrap: anywhere; }
-    .student-homework-task__meta { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 0 !important; font-size: 15px !important; color: #526780 !important; }
-    .student-homework-overdue { margin: 0 !important; padding: 10px 12px !important; border: 0 !important; border-left: 4px solid #c88416 !important; border-radius: 8px !important; background: #fff6e3 !important; color: #5c3d06 !important; font-size: 14px !important; line-height: 1.5 !important; }
+    .student-homework-task__title { margin: 0 !important; font-size: 24px !important; font-weight: 800 !important; line-height: 1.3 !important; color: var(--ae-text, #17365d) !important; overflow-wrap: anywhere; }
+    .student-homework-task__meta { display: flex; flex-wrap: wrap; gap: 4px 12px; margin: 0 !important; font-size: 15px !important; color: var(--ae-text-muted, #526780) !important; }
+    .student-homework-overdue { margin: 0 !important; padding: 10px 12px !important; border: 0 !important; border-left: 4px solid #c88416 !important; border-radius: 8px !important; background: var(--ae-surface-muted, #fff6e3) !important; color: var(--ae-warning, #5c3d06) !important; font-size: 14px !important; line-height: 1.5 !important; }
 
     .student-homework-listening { margin: 0 !important; padding: 0 !important; border: 0 !important; background: none !important; box-shadow: none !important; }
-    .student-homework-listening__heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 0 0 6px !important; font-size: 15px; color: #17365d; }
+    .student-homework-listening__heading { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 0 0 6px !important; font-size: 15px; color: var(--ae-text, #17365d); }
     .student-homework-listening__heading > div { display: grid; gap: 2px; }
-    .student-homework-listening__heading > div > strong { font-size: 20px !important; font-weight: 800 !important; color: #17365d !important; }
-    .student-homework-listening__heading span { font-size: 15px !important; font-weight: 700; color: #526780 !important; }
-    .student-homework-listening__bar { height: 10px !important; margin: 0 !important; border-radius: 10px !important; overflow: hidden; background: #e8f1eb !important; > span { display: block; height: 100%; border-radius: 10px; background: #247a56 !important; } }
+    .student-homework-listening__heading > div > strong { font-size: 20px !important; font-weight: 800 !important; color: var(--ae-text, #17365d) !important; }
+    .student-homework-listening__heading span { font-size: 15px !important; font-weight: 700; color: var(--ae-text-muted, #526780) !important; }
+    .student-homework-listening__bar { height: 10px !important; margin: 0 !important; border-radius: 10px !important; overflow: hidden; background: var(--ae-surface-muted, #e8f1eb) !important; > span { display: block; height: 100%; border-radius: 10px; background: #247a56 !important; } }
 
     .student-homework-task__footer { margin: 0 !important; padding: 0 !important; border: 0 !important; }
     .student-homework-details { margin: 0 !important; }
@@ -52,26 +52,26 @@
 
 // Opening an assignment: the listening page keeps the title, the progress and the track list.
 .playlist-page {
-    .playlist-homework-banner { display: grid !important; grid-template-columns: 1fr !important; gap: 12px !important; padding: 18px !important; border: 1px solid #d5e3f0 !important; border-radius: 20px !important; background: #fff !important; box-shadow: none !important; }
+    .playlist-homework-banner { display: grid !important; grid-template-columns: 1fr !important; gap: 12px !important; padding: 18px !important; border: 1px solid var(--ae-border, #d5e3f0) !important; border-radius: 20px !important; background: var(--ae-surface, #fff) !important; box-shadow: none !important; }
     .playlist-homework-banner__icon,
     .playlist-homework-banner__copy > span,
     .playlist-homework-banner__copy > p:not([class]):not([role]),
     .playlist-homework-chips,
     .playlist-homework-rules,
     .playlist-homework-progress > span { display: none !important; }
-    .playlist-homework-banner__copy h2 { margin: 0 0 4px !important; font-size: 24px !important; font-weight: 800 !important; line-height: 1.3 !important; color: #17365d !important; }
-    .playlist-homework-summary { margin: 0 !important; font-size: 16px !important; font-weight: 700 !important; color: #17365d !important; }
-    .playlist-homework-deadline { margin: 8px 0 0 !important; padding: 10px 12px !important; border-left: 4px solid #c88416; border-radius: 8px; background: #fff6e3 !important; color: #5c3d06 !important; font-size: 14px !important; line-height: 1.5 !important; }
+    .playlist-homework-banner__copy h2 { margin: 0 0 4px !important; font-size: 24px !important; font-weight: 800 !important; line-height: 1.3 !important; color: var(--ae-text, #17365d) !important; }
+    .playlist-homework-summary { margin: 0 !important; font-size: 16px !important; font-weight: 700 !important; color: var(--ae-text, #17365d) !important; }
+    .playlist-homework-deadline { margin: 8px 0 0 !important; padding: 10px 12px !important; border-left: 4px solid #c88416; border-radius: 8px; background: var(--ae-surface-muted, #fff6e3) !important; color: var(--ae-warning, #5c3d06) !important; font-size: 14px !important; line-height: 1.5 !important; }
     .playlist-homework-progress { display: flex !important; align-items: center; gap: 12px; margin: 0 !important; padding: 0 !important; border: 0 !important; background: none !important; }
-    .playlist-homework-progress > strong { flex: 0 0 auto; font-size: 18px !important; font-weight: 800 !important; color: #247a56 !important; }
-    .playlist-homework-progress > div { flex: 1; height: 10px !important; margin: 0 !important; border-radius: 10px !important; overflow: hidden; background: #e8f1eb !important; > span { display: block; height: 100%; background: #247a56 !important; } }
+    .playlist-homework-progress > strong { flex: 0 0 auto; font-size: 18px !important; font-weight: 800 !important; color: var(--ae-success, #247a56) !important; }
+    .playlist-homework-progress > div { flex: 1; height: 10px !important; margin: 0 !important; border-radius: 10px !important; overflow: hidden; background: var(--ae-surface-muted, #e8f1eb) !important; > span { display: block; height: 100%; background: #247a56 !important; } }
 
     // In an assignment each track shows only how many listens are left.
     .music-card--assignment .music-card__assignment small,
     .music-card--assignment .music-card__assignment strong,
     .music-card--assignment .music-card__plays,
     .music-card--assignment .music-card__check { display: none !important; }
-    .music-card--assignment .music-card__assignment span { font-size: 16px !important; font-weight: 800 !important; color: #17365d !important; }
+    .music-card--assignment .music-card__assignment span { font-size: 16px !important; font-weight: 800 !important; color: var(--ae-text, #17365d) !important; }
 }
 
 // In an assignment the book name leads the track list, since the cards show only the page.
@@ -82,7 +82,7 @@
 // Book title with finished / total on the same line.
 .playlist-page .playlist-header__title { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
 .playlist-page .playlist-header__title h1 { min-width: 0; margin: 0; }
-.playlist-page .playlist-header__count { flex: 0 0 auto; font-size: 22px; font-weight: 800; color: #17365d; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.playlist-page .playlist-header__count { flex: 0 0 auto; font-size: 22px; font-weight: 800; color: var(--ae-text, #17365d); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .playlist-page .playlist-header__copy { flex: 1 1 auto; width: 100%; }
 
 // Where the student stopped last time. The frame is the card's own border, so it lines up
@@ -90,8 +90,8 @@
 .playlist-page .playlist-list > [id^="listening-track-"] { scroll-margin-top: 96px; }
 .playlist-page .playlist-list > [id^="listening-track-"]:focus { outline: none; }
 .playlist-page .playlist-track--last-heard { position: relative; }
-.playlist-page .playlist-track--last-heard .music-card.music-card { border-color: #f2b61c !important; background: #fffaf0 !important; box-shadow: inset 0 0 0 2px #f2b61c !important; }
-.playlist-page .playlist-track__last-heard { position: absolute; top: -10px; left: 14px; z-index: 2; padding: 0 10px; border-radius: 10px; background: #f2b61c; color: #3d2c00; font-size: 13px; font-weight: 800; line-height: 20px; }
+.playlist-page .playlist-track--last-heard .music-card.music-card { border-color: #f2b61c !important; background: var(--ae-surface-muted, #fffaf0) !important; box-shadow: inset 0 0 0 2px #f2b61c !important; }
+.playlist-page .playlist-track__last-heard { position: absolute; top: -10px; left: 14px; z-index: 2; padding: 0 10px; border-radius: 10px; background: #f2b61c; color: var(--ae-warning, #3d2c00); font-size: 13px; font-weight: 800; line-height: 20px; }
 .playlist-page .playlist-track--last-heard:target .music-card { animation: playlist-last-heard-flash 1.2s ease-out 2; }
 @keyframes playlist-last-heard-flash { 0% { box-shadow: inset 0 0 0 2px #f2b61c, 0 0 0 0 rgba(242, 182, 28, .75); } 100% { box-shadow: inset 0 0 0 2px #f2b61c, 0 0 0 14px rgba(242, 182, 28, 0); } }
 @media (prefers-reduced-motion: reduce) { .playlist-page .playlist-track--last-heard:target .music-card { animation: none; } }

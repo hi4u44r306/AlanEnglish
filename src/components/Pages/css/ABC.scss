@@ -1,6 +1,6 @@
 .gallery-container {
   padding: 20px;
-  background: #f7f7f7;
+  background: var(--ae-surface-muted, #f7f7f7);
   min-height: 100vh; min-height: 100dvh;
   text-align: center;
 
@@ -8,7 +8,7 @@
     font-size: 1.5rem;
     margin-bottom: 20px;
     font-weight: 600;
-    color: #333;
+    color: var(--ae-text, #333);
   }
 
   .gallery-grid {
@@ -24,7 +24,7 @@
     overflow: hidden;
     border-radius: 10px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-    background: white;
+    background: var(--ae-surface, white);
     transition: transform 0.2s ease;
 
     &:hover {

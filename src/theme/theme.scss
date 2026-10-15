@@ -1,0 +1,39 @@
+/* 淺色／深色主題色票。淺色值與原本畫面相同；深色值只在 data-theme="dark" 時生效。 */
+/* 淺色不定義任何變數：各處 var(--ae-xxx, 原色碼) 會自動使用原本的色碼，所以淺色畫面與以前完全相同。 */
+:root {
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  --ae-page: #0b1626;
+  --ae-surface: #12233a;
+  --ae-surface-muted: #182d48;
+  --ae-surface-glass: rgba(18, 35, 58, 0.94);
+  --ae-text: #e6edf7;
+  --ae-text-muted: #9fb2cb;
+  --ae-accent: #8db8ff;
+  --ae-success: #5fd3a0;
+  --ae-danger: #ff8f84;
+  --ae-warning: #f0c75e;
+  --ae-border: #2a4568;
+  color-scheme: dark;
+}
+
+:root[data-theme='dark'] body {
+  background: var(--ae-page);
+  color: var(--ae-text);
+}
+
+/* 深色時，圖片與影片不變暗；表單元素跟隨主題。 */
+:root[data-theme='dark'] input,
+:root[data-theme='dark'] select,
+:root[data-theme='dark'] textarea {
+  background-color: var(--ae-surface-muted);
+  color: var(--ae-text);
+  border-color: var(--ae-border);
+}
+
+:root[data-theme='dark'] input::placeholder,
+:root[data-theme='dark'] textarea::placeholder {
+  color: var(--ae-text-muted);
+}

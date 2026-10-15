@@ -20,6 +20,7 @@ import { validatePublicNickname } from "../../utils/nicknameValidation";
 import StudentProgressOverview from "./StudentProgressOverview";
 import StudentAvatarImage from "../fragment/StudentAvatarImage";
 import StudentSettingsGroup from "../fragment/StudentSettingsGroup";
+import ThemeSelect from "../../theme/ThemeSelect";
 import "./css/StudentSettings.scss";
 
 const initial = name => String(name || "A").trim().charAt(0).toUpperCase() || "A";
@@ -525,6 +526,8 @@ function StudentSettings({ view = "progress" }) {
             <section className="student-settings-hero">
                 <h1>{profileView ? "個人資料" : notificationsView ? "通知設定" : "我的進度"}</h1>
             </section>
+
+            {profileView && <section className="student-settings-appearance" aria-labelledby="student-settings-appearance-heading"><h2 id="student-settings-appearance-heading">外觀</h2><p>選擇淺色、深色，或跟著手機／電腦的設定。這台裝置會記住你的選擇。</p><ThemeSelect /></section>}
 
             {!profileView && !notificationsView && <StudentProgressOverview />}
 

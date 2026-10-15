@@ -3,7 +3,7 @@
   -webkit-user-select: none;
   -ms-user-select: none;
   user-select: none;
-  background-color: #fcf8ec;
+  background-color: var(--ae-surface-muted, #fcf8ec);
   // background-image: url("../banner/banner02.svg");
   height: 77vh;
   overflow-y: auto;
