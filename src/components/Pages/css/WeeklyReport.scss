@@ -197,7 +197,7 @@
 
   > a:hover,
   button:hover {
-    color: var(--weekly-blue);
+    color: var(--ae-accent, #2f70d0);
     border-color: #a9c5eb;
   }
 }
@@ -225,7 +225,7 @@
   }
 
   span {
-    color: var(--weekly-blue);
+    color: var(--ae-accent, #2f70d0);
     font-size: .57rem;
     font-weight: 950;
     letter-spacing: .14em;
@@ -280,8 +280,8 @@
   box-sizing: border-box;
   color: #fff;
   background:
-    radial-gradient(circle at 85% 16%, rgba(255, 220, 132, .28), transparent 24%),
-    linear-gradient(135deg, #17385d 0%, #245a8c 57%, #3174ab 100%);
+    var(--ae-solid, radial-gradient(circle at 85% 16%, rgba(255, 220, 132, .28), transparent 24%),
+    linear-gradient(135deg, #17385d 0%, #245a8c 57%, #3174ab 100%));
   border-radius: 16px;
   box-shadow: none;
 
@@ -550,7 +550,7 @@
   gap: 20px;
 
   > div > span {
-    color: var(--weekly-blue);
+    color: var(--ae-accent, #2f70d0);
     font-size: .57rem;
     font-weight: 950;
     letter-spacing: .15em;
@@ -619,7 +619,7 @@
       display: flex;
       flex-direction: column-reverse;
       overflow: hidden;
-      background: #d7dee8;
+      background: var(--ae-surface-muted, #d7dee8);
       border-radius: inherit;
       transition: height .25s ease;
     }
@@ -974,7 +974,7 @@
   gap: 20px;
 
   > div:first-child > span {
-    color: var(--weekly-blue);
+    color: var(--ae-accent, #2f70d0);
     font-size: .57rem;
     font-weight: 950;
     letter-spacing: .15em;
@@ -1015,7 +1015,7 @@
 
     &.primary {
       color: #fff;
-      background: #2f70ca;
+      background: var(--ae-solid, #2f70ca);
     }
 
     &:disabled {
@@ -1088,7 +1088,7 @@
 
   > svg {
     flex-shrink: 0;
-    color: var(--weekly-blue);
+    color: var(--ae-accent, #2f70d0);
     font-size: 1.35rem;
   }
 
@@ -1169,7 +1169,7 @@
   box-shadow: 0 28px 75px rgba(8, 18, 36, .25);
 
   > span {
-    color: var(--weekly-blue);
+    color: var(--ae-accent, #2f70d0);
     font-size: .58rem;
     font-weight: 950;
     letter-spacing: .14em;

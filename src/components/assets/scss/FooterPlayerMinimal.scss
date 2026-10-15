@@ -56,11 +56,11 @@ body:has(.ae-student-bottom-nav) .mobile-player-overlay { padding-bottom: calc(9
 .mobile-overlay-progress > div { color: var(--ae-text-muted, #526780) !important; }
 .mobile-overlay-controls { margin-top: clamp(12px, 2.5dvh, 24px); }
 .mobile-overlay-controls button { color: var(--ae-text, #17365d) !important; background: var(--ae-surface-muted, #e6edf5) !important; }
-.mobile-overlay-controls .mobile-overlay-play { width: 96px !important; height: 96px !important; background: #ffd84d !important; color: var(--ae-text, #17365d) !important; box-shadow: none !important; }
+.mobile-overlay-controls .mobile-overlay-play { width: 96px !important; height: 96px !important; background: var(--ae-surface-muted, #ffd84d) !important; color: var(--ae-text, #17365d) !important; box-shadow: none !important; }
 .mobile-overlay-controls .mobile-overlay-play svg { width: 56px !important; height: 56px !important; }
 .mobile-overlay-actions { margin-top: 16px; }
 .mobile-overlay-actions > button, .mobile-player-options > button { border-color: var(--ae-border, #c5d6e8) !important; background: var(--ae-surface, #fff) !important; color: var(--ae-text, #17365d) !important; }
-.mobile-overlay-actions > button.is-active { border-color: #17365d !important; background: #17365d !important; color: #ffd84d !important; }
+.mobile-overlay-actions > button.is-active { border-color: #17365d !important; background: var(--ae-solid, #17365d) !important; color: #ffd84d !important; }
 .mobile-overlay-controls { gap: 24px !important; }
 // With the rating buttons gone the settings button sits in the middle, so its menu centres on it.
 .mobile-player-options .player-options-menu { right: auto !important; left: 50% !important; transform: translateX(-50%) !important; max-width: calc(100vw - 32px); }
@@ -81,13 +81,13 @@ body:has(.ae-student-bottom-nav) .mobile-player-overlay { padding-bottom: calc(9
 // ---- paused / still-there dialogs, in the same light style as the full-screen player
 .playback-paused-overlay, .listening-attention-overlay { background: rgba(23, 54, 93, .45) !important; backdrop-filter: none !important; }
 .playback-paused-dialog, .listening-attention-card { width: min(380px, 100%) !important; padding: 28px 24px 24px !important; border: 1px solid var(--ae-border, #d5e3f0) !important; border-radius: 24px !important; background: var(--ae-surface, #fff) !important; box-shadow: none !important; color: var(--ae-text, #17365d) !important; }
-.playback-paused-icon { display: flex !important; align-items: center; justify-content: center; gap: 12px; width: 88px; height: 88px; margin: 0 auto; border-radius: 50%; background: #ffd84d; > i { width: 14px; height: 38px; border-radius: 5px; background: #17365d; } }
+.playback-paused-icon { display: flex !important; align-items: center; justify-content: center; gap: 12px; width: 88px; height: 88px; margin: 0 auto; border-radius: 50%; background: var(--ae-surface-muted, #ffd84d); > i { width: 14px; height: 38px; border-radius: 5px; background: var(--ae-solid, #17365d); } }
 .listening-attention-card > span { display: grid; place-items: center; width: 88px; height: 88px; margin: 0 auto; border-radius: 50%; background: var(--ae-surface-muted, #dbe8ff); font-size: 44px !important; line-height: 1; }
 .playback-paused-dialog h2, .listening-attention-card h2 { margin: 16px 0 8px !important; font-size: 28px !important; font-weight: 900 !important; color: var(--ae-text, #17365d) !important; }
 .playback-paused-dialog p, .listening-attention-card p { font-size: 17px !important; line-height: 1.6 !important; color: var(--ae-accent, #39526e) !important; }
 .playback-paused-dialog .playback-paused-note { margin-top: 4px !important; font-size: 15px !important; color: var(--ae-text-muted, #526780) !important; }
 .playback-paused-dialog p[role="alert"] { margin-top: 12px !important; padding: 10px 12px; border-left: 4px solid #c88416; border-radius: 8px; background: var(--ae-surface-muted, #fff6e3); color: var(--ae-warning, #5c3d06) !important; font-size: 15px !important; text-align: left; }
 .listening-attention-card p strong { color: var(--ae-warning, #b54708); font-size: 20px; }
-.playback-paused-dialog button, .listening-attention-card button { min-height: 60px !important; margin-top: 20px !important; border-radius: 18px !important; background: #ffd84d !important; color: var(--ae-text, #17365d) !important; font-size: 20px !important; font-weight: 900 !important; }
+.playback-paused-dialog button, .listening-attention-card button { min-height: 60px !important; margin-top: 20px !important; border-radius: 18px !important; background: var(--ae-surface-muted, #ffd84d) !important; color: var(--ae-text, #17365d) !important; font-size: 20px !important; font-weight: 900 !important; }
 .playback-paused-dialog button:focus-visible, .listening-attention-card button:focus-visible { outline: 3px solid #17365d !important; outline-offset: 3px; }
 .playback-paused-dialog button[aria-disabled="true"] { opacity: .7; }

@@ -47,7 +47,7 @@
 .student-onboarding-progress > div {
     height: 100%;
     border-radius: inherit;
-    background: #ffd45c;
+    background: var(--ae-surface-muted, #ffd45c);
     transition: width .25s ease;
 }
 
@@ -166,7 +166,7 @@
     border-radius: 12px;
     padding: 0 18px;
     color: #fff;
-    background: #2b67c8;
+    background: var(--ae-solid, #2b67c8);
     font: inherit;
     font-weight: 850;
     cursor: pointer;
@@ -197,7 +197,7 @@
     li { display: flex; align-items: center; gap: 6px; }
     li > span { display: grid; place-items: center; width: 28px; height: 28px; flex-shrink: 0; border: 1px solid var(--ae-border, #cad7e8); border-radius: 50%; }
     li[aria-current="step"] { color: var(--ae-text, #17365d); font-weight: 800; }
-    li[aria-current="step"] > span { background: #ffdf78; border-color: #ffdf78; }
+    li[aria-current="step"] > span { background: var(--ae-surface-muted, #ffdf78); border-color: #ffdf78; }
     .is-complete { color: var(--ae-success, #176542); }
 }
 .student-onboarding-hero { box-shadow: none; }

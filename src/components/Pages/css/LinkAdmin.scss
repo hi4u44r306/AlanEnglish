@@ -182,7 +182,7 @@
     gap: 7px;
     border: 0;
     border-radius: 12px;
-    background: #315bc8;
+    background: var(--ae-solid, #315bc8);
     color: #fff;
     cursor: pointer;
     font: inherit;
@@ -396,7 +396,7 @@
     border: 0;
     border-radius: 10px;
     padding: 0 14px;
-    background: #315bc8;
+    background: var(--ae-solid, #315bc8);
     color: #fff;
     cursor: pointer;
     font-size: 12px;

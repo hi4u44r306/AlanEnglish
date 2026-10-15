@@ -30,7 +30,7 @@
     font-weight: 800;
 
     &:hover {
-      background: linear-gradient(90deg, #0056b3, #003d7a);
+      background: var(--ae-solid, linear-gradient(90deg, #0056b3, #003d7a));
     }
   }
 
@@ -58,7 +58,7 @@
 
   .buy-button:disabled,
   .sell-button:disabled {
-    background-color: #ccc; /* Light gray background */
+    background-color: var(--ae-surface-muted, #ccc); /* Light gray background */
     color: #ffffff; /* Gray text */
     cursor: not-allowed; /* Show a not-allowed cursor */
     opacity: 0.7; /* Slightly transparent */

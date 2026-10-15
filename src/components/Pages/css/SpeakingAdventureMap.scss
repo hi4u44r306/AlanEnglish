@@ -14,7 +14,7 @@
   height: 46px;
   border: 7px solid var(--ae-surface, #fff);
   border-radius: 50%;
-  background: #ffd35c;
+  background: var(--ae-surface-muted, #ffd35c);
   box-shadow: 0 6px 0 rgba(20, 47, 91, 0.18);
 }
 .speaking-book-card__route i:nth-child(1) { bottom: -8%; left: -47px; }
@@ -55,11 +55,11 @@
   z-index: 2;
   padding: 16px 22px;
   border: 0;
-  background: #17366f;
+  background: var(--ae-solid, #17366f);
   color: #fff;
 }
 .speaking-adventure-map .speaking-catalog-section.is-preparation > header { background: #82601b; }
-.speaking-adventure-map .speaking-catalog-section.is-topic > header { background: #53428e; }
+.speaking-adventure-map .speaking-catalog-section.is-topic > header { background: var(--ae-solid, #53428e); }
 .speaking-adventure-map .speaking-catalog-section > header h2,
 .speaking-adventure-map .speaking-catalog-section > header small,
 .speaking-adventure-map .speaking-catalog-section > header > span { color: #fff; }
@@ -69,9 +69,9 @@
   height: var(--map-height);
   overflow: hidden;
   background:
-    radial-gradient(ellipse at 18% 78%, rgba(255, 255, 255, 0.78) 0 7%, transparent 8%),
+    var(--ae-surface, radial-gradient(ellipse at 18% 78%, rgba(255, 255, 255, 0.78) 0 7%, transparent 8%),
     radial-gradient(ellipse at 81% 34%, rgba(255, 255, 255, 0.62) 0 8%, transparent 9%),
-    linear-gradient(180deg, #cbe9fc 0%, #e8f5ff 44%, #c6e5d7 100%);
+    linear-gradient(180deg, #cbe9fc 0%, #e8f5ff 44%, #c6e5d7 100%));
 }
 .speaking-map-route {
   position: absolute;
@@ -116,7 +116,7 @@
   padding: 7px;
   border: 6px solid var(--ae-surface, #fff);
   border-radius: 50%;
-  background: #2c69bd;
+  background: var(--ae-solid, #2c69bd);
   color: #fff;
   font-size: 12px;
   letter-spacing: -0.04em;
@@ -238,13 +238,13 @@
   font-weight: 900;
   cursor: pointer;
 }
-.speaking-level-dialog__actions button.primary { border-color: #245eb3; background: #245eb3; color: #fff; }
+.speaking-level-dialog__actions button.primary { border-color: #245eb3; background: var(--ae-solid, #245eb3); color: #fff; }
 .speaking-level-dialog button:focus-visible { outline: 3px solid #ffc73d; outline-offset: 2px; }
 
 // A shared game stage for standard, A-Z and picture speaking questions.
 .speaking-challenge-detail .speaking-lesson-header {
   border-color: #17366f;
-  background: linear-gradient(120deg, #17366f, #245eb3);
+  background: var(--ae-solid, linear-gradient(120deg, #17366f, #245eb3));
   color: #fff;
 }
 .speaking-challenge-detail .speaking-lesson-heading h1,
@@ -271,7 +271,7 @@
   background: transparent;
   box-shadow: none;
 }
-.speaking-challenge-detail .speaking-question-number { border-radius: 50%; background: #245eb3; }
+.speaking-challenge-detail .speaking-question-number { border-radius: 50%; background: var(--ae-solid, #245eb3); }
 .speaking-challenge-detail .speaking-practice-flow { width: min(680px, 100%); margin-inline: auto; }
 .speaking-challenge-detail .speaking-direct-prompt {
   padding: 12px 15px;

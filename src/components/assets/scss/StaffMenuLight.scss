@@ -6,7 +6,7 @@
   color: var(--ae-text, #17365d) !important;
 
   .offcanvas-header { background: var(--ae-surface-muted, #f7f9fc) !important; border-bottom: 0 !important; color: var(--ae-text, #17365d) !important; }
-  .ae-mobile-brand-mark { background: #ffd84d !important; color: var(--ae-text, #17365d) !important; box-shadow: none !important; }
+  .ae-mobile-brand-mark { background: var(--ae-surface-muted, #ffd84d) !important; color: var(--ae-text, #17365d) !important; box-shadow: none !important; }
   .ae-mobile-brand-copy strong { color: var(--ae-text, #17365d) !important; }
   .ae-mobile-brand-copy small { color: var(--ae-text-muted, #526780) !important; font-size: 13px !important; font-weight: 700 !important; letter-spacing: 0 !important; }
   .offcanvas-header .btn-close { filter: none !important; opacity: 1 !important; border-radius: 50% !important; background-color: var(--ae-surface-muted, #e6edf5) !important; }

@@ -51,6 +51,6 @@ textarea {
 
 /* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
-  // background: #a2d5f2;
-  background: #b6b6b6;
+  // background: var(--ae-surface-muted, #a2d5f2);
+  background: var(--ae-surface-muted, #b6b6b6);
 }

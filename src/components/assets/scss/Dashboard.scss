@@ -61,7 +61,7 @@
   margin: 20px;
 }
 .editstudentbtn {
-  background-color: #2384cd;
+  background-color: var(--ae-solid, #2384cd);
   color: rgb(255, 255, 255);
   border-radius: 5px;
   font-weight: 500;
@@ -81,7 +81,7 @@
   }
 }
 .updatebtn {
-  background-color: #103755;
+  background-color: var(--ae-solid, #103755);
   color: white;
   padding: 3px 14px;
   border-radius: 4px;

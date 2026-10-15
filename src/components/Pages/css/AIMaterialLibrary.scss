@@ -38,7 +38,7 @@
 }
 
 .ai-workspace-tabs button.active {
-    background: #14213d;
+    background: var(--ae-solid, #14213d);
     color: #fff;
     box-shadow: 0 10px 24px rgba(20, 33, 61, .16);
 }
@@ -234,7 +234,7 @@
     min-height: 44px;
     border: 0;
     border-radius: 13px;
-    background: #14213d;
+    background: var(--ae-solid, #14213d);
     color: #fff;
     font-weight: 800;
 }

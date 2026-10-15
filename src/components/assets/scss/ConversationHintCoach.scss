@@ -54,7 +54,7 @@
     }
     50% {
         transform: translateY(-2px);
-        background: #fff4c9;
+        background: var(--ae-surface-muted, #fff4c9);
     }
 }
 

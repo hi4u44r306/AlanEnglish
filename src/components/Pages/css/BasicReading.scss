@@ -59,7 +59,7 @@
     &:hover,
     &:focus-visible {
       background: var(--ae-surface-muted, #eef3ff);
-      color: var(--br-blue-dark);
+      color: var(--ae-accent, #2449a9);
     }
   }
 
@@ -87,7 +87,7 @@
     display: inline-flex;
     align-items: center;
     gap: 7px;
-    color: var(--br-blue);
+    color: var(--ae-accent, #315bc8);
     font-size: 12px;
     font-weight: 800;
     letter-spacing: 0.12em;
@@ -184,7 +184,7 @@
       place-items: center;
       border-radius: 8px;
       background: var(--ae-surface-muted, #e5ecff);
-      color: var(--br-blue);
+      color: var(--ae-accent, #315bc8);
       font-size: 15px;
       font-weight: 800;
     }
@@ -194,7 +194,7 @@
     &.is-active {
       border-color: var(--br-blue);
       background: var(--ae-surface-muted, #edf2ff);
-      color: var(--br-blue-dark);
+      color: var(--ae-accent, #2449a9);
 
       .basic-reading-page__book-arrow {
         background: var(--br-blue);
@@ -228,7 +228,7 @@
   }
 
   > strong {
-    color: var(--br-blue);
+    color: var(--ae-accent, #315bc8);
     font-size: 13px;
     white-space: nowrap;
   }
@@ -260,7 +260,7 @@
 
     svg {
       flex: 0 0 auto;
-      color: var(--br-blue);
+      color: var(--ae-accent, #315bc8);
       font-size: 18px;
     }
 
@@ -347,7 +347,7 @@
     border: 0;
     border-radius: 50%;
     background: var(--ae-surface-muted, #edf2ff);
-    color: var(--br-blue-dark);
+    color: var(--ae-accent, #2449a9);
     cursor: pointer;
 
     &:disabled {

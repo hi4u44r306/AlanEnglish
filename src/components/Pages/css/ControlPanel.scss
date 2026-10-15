@@ -38,7 +38,7 @@
   border: none;
   cursor: pointer;
   &:hover {
-    background-color: #0056b3;
+    background-color: var(--ae-solid, #0056b3);
   }
 }
 .controlpaneldeletebutton {
@@ -62,7 +62,7 @@
   border: none;
   cursor: pointer;
   &:hover {
-    background-color: #0056b3;
+    background-color: var(--ae-solid, #0056b3);
   }
 }
 .controlpanelcancelbutton {

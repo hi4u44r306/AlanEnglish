@@ -311,7 +311,7 @@
     display: grid;
     place-items: center;
     border-radius: 50%;
-    background: #14213d;
+    background: var(--ae-solid, #14213d);
     color: #fff;
     font-weight: 900;
 }
@@ -656,7 +656,7 @@
     min-width: 82px;
     border: 0;
     border-radius: 13px;
-    background: #14213d;
+    background: var(--ae-solid, #14213d);
     color: #fff;
     font-size: 11px;
     font-weight: 800;
@@ -702,7 +702,7 @@
 }
 
 .conversation-feedback.correct > span {
-    background: #cceee4;
+    background: var(--ae-surface-muted, #cceee4);
 }
 
 .conversation-feedback.retry {
@@ -783,7 +783,7 @@
     min-height: 46px;
     border: 0;
     border-radius: 14px;
-    background: #14213d;
+    background: var(--ae-solid, #14213d);
     color: #fff;
     font-size: 11px;
     font-weight: 900;

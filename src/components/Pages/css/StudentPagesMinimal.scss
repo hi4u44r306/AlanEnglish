@@ -46,7 +46,7 @@
     strong { font-size: clamp(34px, 11vw, 48px); font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums; }
     strong small { margin-left: 2px; font-size: 16px; font-weight: 800; }
     .is-blue svg, li.is-blue svg { background: var(--ae-surface-muted, #dbe8ff); color: var(--ae-accent, #1d4fa8); }
-    li.is-yellow svg { background: #ffe9a8; color: var(--ae-warning, #8a5a00); }
+    li.is-yellow svg { background: var(--ae-surface-muted, #ffe9a8); color: var(--ae-warning, #8a5a00); }
     li.is-orange svg { background: var(--ae-surface-muted, #ffe1cc); color: var(--ae-warning, #b54708); }
 }
 .weekly-student__days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; margin: 0; padding: 14px 12px; border: 1px solid var(--ae-border, #d5e3f0); border-radius: 20px; background: var(--ae-surface, #fff); list-style: none;

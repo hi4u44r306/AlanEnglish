@@ -13,7 +13,7 @@
 }
 .content.heart-active {
   border-color: var(--ae-border, #f9b9c4);
-  background: #fbd0d8;
+  background: var(--ae-surface-muted, #fbd0d8);
 }
 .heart {
   position: absolute;
@@ -93,7 +93,7 @@
   font-size: 18px;
   color: #fff;
   font-weight: 700;
-  background-color: #f6518a;
+  background-color: var(--ae-surface-muted, #f6518a);
   border-radius: 5px;
   padding: 5px 15px 5px 15px;
   box-shadow: 2px 2px 5px #888;
@@ -333,7 +333,7 @@
 // }
 
 // .expand-btn:hover {
-//   background-color: #ccc;
+//   background-color: var(--ae-surface-muted, #ccc);
 // }
 
 // .expand-btn::before {
