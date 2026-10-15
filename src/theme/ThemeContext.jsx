@@ -2,7 +2,7 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useS
 
 export const THEME_STORAGE_KEY = "ae-theme";
 export const THEME_CHOICES = ["light", "dark", "system"];
-const THEME_COLORS = { light: "#073763", dark: "#0b1626" };
+const THEME_COLORS = { light: "#073763", dark: "#121212" };
 
 const readStoredChoice = () => {
     try {
