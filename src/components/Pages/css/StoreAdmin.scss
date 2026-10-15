@@ -1,9 +1,9 @@
 .store-admin-shipping {
     margin-bottom: 22px;
     padding: 20px;
-    border: 1px solid #e0e7f2;
+    border: 1px solid var(--ae-border, #e0e7f2);
     border-radius: 20px;
-    background: #fff;
+    background: var(--ae-surface, #fff);
 }
 
 .store-admin-shipping h2 {
@@ -20,7 +20,7 @@
 .store-admin-shipping label {
     display: grid;
     gap: 6px;
-    color: #53627a;
+    color: var(--ae-text-muted, #53627a);
     font-size: 12px;
     font-weight: 850;
 }
@@ -35,7 +35,7 @@
 .store-admin-shipping input:not([type="checkbox"]) {
     min-height: 46px;
     padding: 10px 12px;
-    border: 1px solid #d5deeb;
+    border: 1px solid var(--ae-border, #d5deeb);
     border-radius: 11px;
     font: inherit;
 }

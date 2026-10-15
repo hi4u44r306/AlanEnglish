@@ -3,16 +3,16 @@
     --homework-blue: #4f67f6;
     --homework-purple: #7c5ce6;
     --homework-mint: #35a789;
-    --homework-text: #17233f;
-    --homework-muted: #758198;
-    --homework-border: #e4e9f2;
+    --homework-text: var(--ae-text, #17233f);
+    --homework-muted: var(--ae-text-muted, #758198);
+    --homework-border: var(--ae-border, #e4e9f2);
     min-width: 0;
     padding: 112px 20px 96px;
     overflow-x: hidden;
     background:
-        radial-gradient(circle at 88% 2%, rgba(79, 103, 246, 0.10), transparent 26rem),
+        var(--ae-surface, radial-gradient(circle at 88% 2%, rgba(79, 103, 246, 0.10), transparent 26rem),
         radial-gradient(circle at 8% 34%, rgba(53, 167, 137, 0.07), transparent 22rem),
-        #f7f9fc;
+        #f7f9fc);
 }
 
 .student-homework-shell {
@@ -186,7 +186,7 @@
     align-items: center;
     border: 1px solid var(--homework-border);
     border-radius: 18px;
-    background: rgba(255, 255, 255, 0.88);
+    background: var(--ae-surface-glass, rgba(255, 255, 255, 0.88));
     box-shadow: 0 8px 28px rgba(35, 51, 83, 0.05);
 }
 
@@ -282,19 +282,19 @@
     overflow: hidden;
     border: 1px solid var(--homework-border);
     border-radius: 24px;
-    background: rgba(255, 255, 255, 0.96);
+    background: var(--ae-surface-glass, rgba(255, 255, 255, 0.96));
     box-shadow: 0 12px 40px rgba(35, 51, 83, 0.06);
     transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
 }
 
 .student-homework-task:hover {
     transform: translateY(-2px);
-    border-color: #d5dded;
+    border-color: var(--ae-border, #d5dded);
     box-shadow: 0 18px 48px rgba(35, 51, 83, 0.1);
 }
 
 .student-homework-task.completed {
-    border-color: #cfe9e1;
+    border-color: var(--ae-border, #cfe9e1);
 }
 
 .student-homework-task__rail {
@@ -302,20 +302,20 @@
     align-items: flex-start;
     justify-content: center;
     padding-top: 29px;
-    border-right: 1px solid #edf0f5;
-    background: linear-gradient(180deg, #f8f9ff 0%, #f3f5fb 100%);
+    border-right: 1px solid var(--ae-border, #edf0f5);
+    background: var(--ae-surface-muted, linear-gradient(180deg, #f8f9ff 0%, #f3f5fb 100%));
 }
 
 .student-homework-task.listening .student-homework-task__rail {
-    background: linear-gradient(180deg, #f0fbf8 0%, #f7fbfa 100%);
+    background: var(--ae-surface-muted, linear-gradient(180deg, #f0fbf8 0%, #f7fbfa 100%));
 }
 
 .student-homework-task.completed .student-homework-task__rail {
-    background: linear-gradient(180deg, #eaf8f4 0%, #f5fbf9 100%);
+    background: var(--ae-surface-muted, linear-gradient(180deg, #eaf8f4 0%, #f5fbf9 100%));
 }
 
 .student-homework-task__rail span {
-    color: #8b96ab;
+    color: var(--ae-text-muted, #8b96ab);
     font-size: 13px;
     font-weight: 950;
     letter-spacing: 0.08em;
@@ -348,13 +348,13 @@
     flex: 0 0 auto;
     place-items: center;
     border-radius: 13px;
-    background: #eef0ff;
+    background: var(--ae-surface-muted, #eef0ff);
     color: var(--homework-blue);
 }
 
 .student-homework-task.listening .student-homework-task__type > span {
-    background: #eaf8f4;
-    color: #27866f;
+    background: var(--ae-surface-muted, #eaf8f4);
+    color: var(--ae-success, #27866f);
 }
 
 .student-homework-task__type small,
@@ -371,7 +371,7 @@
 }
 
 .student-homework-task__type strong {
-    color: #38445e;
+    color: var(--ae-accent, #38445e);
     font-size: 13px;
     font-weight: 900;
 }
@@ -388,13 +388,13 @@
 }
 
 .student-homework-status.pending {
-    background: #fff5e9;
-    color: #b66a24;
+    background: var(--ae-surface-muted, #fff5e9);
+    color: var(--ae-warning, #b66a24);
 }
 
 .student-homework-status.completed {
-    background: #eaf8f4;
-    color: #26755f;
+    background: var(--ae-surface-muted, #eaf8f4);
+    color: var(--ae-success, #26755f);
 }
 
 .student-homework-task__title {
@@ -429,7 +429,7 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    color: #8a94a8;
+    color: var(--ae-text-muted, #8a94a8);
     font-size: 12px;
     font-weight: 700;
 }
@@ -448,14 +448,14 @@
 .student-homework-ai__metric {
     min-width: 0;
     padding: 15px 16px;
-    border: 1px solid #edf0f5;
+    border: 1px solid var(--ae-border, #edf0f5);
     border-radius: 16px;
-    background: #f8f9fc;
+    background: var(--ae-surface-muted, #f8f9fc);
 }
 
 .student-homework-ai__metric.highlight {
-    border-color: #dfe3ff;
-    background: #f1f3ff;
+    border-color: var(--ae-border, #dfe3ff);
+    background: var(--ae-surface-muted, #f1f3ff);
 }
 
 .student-homework-ai__metric > span,
@@ -465,7 +465,7 @@
 
 .student-homework-ai__metric > span {
     margin-bottom: 5px;
-    color: #8b95aa;
+    color: var(--ae-text-muted, #8b95aa);
     font-size: 11px;
     font-weight: 800;
 }
@@ -478,7 +478,7 @@
 
 .student-homework-ai__metric > strong small {
     margin-left: 3px;
-    color: #7d879b;
+    color: var(--ae-text-muted, #7d879b);
     font-size: 11px;
     font-weight: 800;
 }
@@ -486,9 +486,9 @@
 .student-homework-listening {
     margin-bottom: 20px;
     padding: 17px;
-    border: 1px solid #e4ecea;
+    border: 1px solid var(--ae-border, #e4ecea);
     border-radius: 18px;
-    background: #f7fbfa;
+    background: var(--ae-surface-muted, #f7fbfa);
 }
 
 .student-homework-listening__heading {
@@ -505,20 +505,20 @@
 }
 
 .student-homework-listening__heading > div > strong {
-    color: #273c49;
+    color: var(--ae-text, #273c49);
     font-size: 13px;
     font-weight: 950;
 }
 
 .student-homework-listening__heading > div > span {
     margin-top: 2px;
-    color: #869399;
+    color: var(--ae-text-muted, #869399);
     font-size: 11px;
     font-weight: 700;
 }
 
 .student-homework-listening__heading > strong {
-    color: #27866f;
+    color: var(--ae-success, #27866f);
     font-size: 15px;
     font-weight: 950;
 }
@@ -552,20 +552,20 @@
     align-items: center;
     gap: 7px;
     padding: 10px 11px;
-    border: 1px solid #e2eae8;
+    border: 1px solid var(--ae-border, #e2eae8);
     border-radius: 12px;
-    background: #ffffff;
+    background: var(--ae-surface, #ffffff);
 }
 
 .student-homework-track.completed {
-    border-color: #c9e5dc;
-    background: #edf9f5;
+    border-color: var(--ae-border, #c9e5dc);
+    background: var(--ae-surface-muted, #edf9f5);
 }
 
 .student-homework-track.syncing {
     display: block;
     grid-column: 1 / -1;
-    color: #7f8c94;
+    color: var(--ae-text-muted, #7f8c94);
     text-align: center;
 }
 
@@ -575,14 +575,14 @@
     height: 24px;
     place-items: center;
     border-radius: 8px;
-    background: #e9f6f2;
-    color: #27866f;
+    background: var(--ae-surface-muted, #e9f6f2);
+    color: var(--ae-success, #27866f);
 }
 
 .student-homework-track > strong {
     min-width: 0;
     overflow: hidden;
-    color: #2a3a46;
+    color: var(--ae-text, #2a3a46);
     font-size: 12px;
     font-weight: 900;
     text-overflow: ellipsis;
@@ -590,7 +590,7 @@
 }
 
 .student-homework-track > span:last-child {
-    color: #7c898f;
+    color: var(--ae-text-muted, #7c898f);
     font-size: 11px;
     font-weight: 800;
     white-space: nowrap;
@@ -603,12 +603,12 @@
     justify-content: space-between;
     gap: 18px;
     padding-top: 18px;
-    border-top: 1px solid #edf0f5;
+    border-top: 1px solid var(--ae-border, #edf0f5);
 }
 
 .student-homework-task__footer > span {
     min-width: 0;
-    color: #8993a6;
+    color: var(--ae-text-muted, #8993a6);
     font-size: 12px;
     font-weight: 700;
     line-height: 1.5;
@@ -661,7 +661,7 @@
     padding: 38px 20px;
     border: 1px solid var(--homework-border);
     border-radius: 24px;
-    background: #ffffff;
+    background: var(--ae-surface, #ffffff);
     color: var(--homework-muted);
     text-align: center;
 }
@@ -673,7 +673,7 @@
     margin-bottom: 16px;
     place-items: center;
     border-radius: 20px;
-    background: #eaf8f4;
+    background: var(--ae-surface-muted, #eaf8f4);
     color: var(--homework-mint);
 }
 
@@ -694,7 +694,7 @@
     width: 34px;
     height: 34px;
     margin-bottom: 18px;
-    border: 3px solid #e2e6f0;
+    border: 3px solid var(--ae-border, #e2e6f0);
     border-top-color: var(--homework-blue);
     border-radius: 50%;
     animation: studentHomeworkSpin 750ms linear infinite;
@@ -738,7 +738,7 @@
 @media (max-width: 640px) {
     .student-homework-page {
         padding: 84px 12px 78px;
-        background: #f7f9fc;
+        background: var(--ae-surface-muted, #f7f9fc);
     }
 
     .student-homework-hero {
@@ -904,27 +904,27 @@
 }
 
 .student-homework-task.mission-pack {
-    border-color: #dedcf2;
+    border-color: var(--ae-border, #dedcf2);
     background:
         radial-gradient(circle at 96% 0%, rgba(124, 92, 230, 0.07), transparent 18rem),
         rgba(255, 255, 255, 0.98);
 }
 
 .student-homework-task.mission-pack .student-homework-task__rail {
-    background: linear-gradient(180deg, #f0edff 0%, #f8f7ff 100%);
+    background: var(--ae-surface-muted, linear-gradient(180deg, #f0edff 0%, #f8f7ff 100%));
 }
 
 .student-homework-task.mission-pack .student-homework-task__type > span {
-    background: #f0edff;
+    background: var(--ae-surface-muted, #f0edff);
     color: var(--homework-purple);
 }
 
 .student-homework-pack-progress {
     margin-bottom: 16px;
     padding: 14px 16px;
-    border: 1px solid #e5e2f3;
+    border: 1px solid var(--ae-border, #e5e2f3);
     border-radius: 16px;
-    background: #faf9ff;
+    background: var(--ae-surface-muted, #faf9ff);
 }
 
 .student-homework-pack-progress > div:first-child {
@@ -937,7 +937,7 @@
 
 .student-homework-pack-progress span,
 .student-homework-pack-progress strong {
-    color: #67617d;
+    color: var(--ae-text-muted, #67617d);
     font-size: 12px;
     font-weight: 850;
 }
@@ -946,7 +946,7 @@
     height: 8px;
     overflow: hidden;
     border-radius: 999px;
-    background: #e9e6f4;
+    background: var(--ae-surface-muted, #e9e6f4);
 }
 
 .student-homework-pack-progress > div:last-child span {
@@ -968,19 +968,19 @@
     min-width: 0;
     flex-direction: column;
     padding: 17px;
-    border: 1px solid #e6e9f0;
+    border: 1px solid var(--ae-border, #e6e9f0);
     border-radius: 19px;
-    background: #fbfcfe;
+    background: var(--ae-surface-muted, #fbfcfe);
 }
 
 .student-homework-pack-step.listening-step {
-    border-color: #dcebe7;
-    background: #f7fbfa;
+    border-color: var(--ae-border, #dcebe7);
+    background: var(--ae-surface-muted, #f7fbfa);
 }
 
 .student-homework-pack-step.ai-step {
-    border-color: #e5e1f4;
-    background: #faf9ff;
+    border-color: var(--ae-border, #e5e1f4);
+    background: var(--ae-surface-muted, #faf9ff);
 }
 
 .student-homework-pack-step.completed {
@@ -1002,18 +1002,18 @@
     flex: 0 0 auto;
     place-items: center;
     border-radius: 11px;
-    background: #e8f5f1;
-    color: #27866f;
+    background: var(--ae-surface-muted, #e8f5f1);
+    color: var(--ae-success, #27866f);
 }
 
 .student-homework-pack-step.ai-step .student-homework-pack-step__heading > span {
-    background: #eeeafd;
-    color: #7253d5;
+    background: var(--ae-surface-muted, #eeeafd);
+    color: var(--ae-accent, #7253d5);
 }
 
 .student-homework-pack-step.completed .student-homework-pack-step__heading > span {
-    background: #dff3ed;
-    color: #26755f;
+    background: var(--ae-surface-muted, #dff3ed);
+    color: var(--ae-success, #26755f);
 }
 
 .student-homework-pack-step__heading > div {
@@ -1036,7 +1036,7 @@
 
 .student-homework-pack-step__heading strong {
     overflow: hidden;
-    color: #33405a;
+    color: var(--ae-accent, #33405a);
     font-size: 13px;
     font-weight: 950;
     text-overflow: ellipsis;
@@ -1045,7 +1045,7 @@
 
 .student-homework-pack-step__heading em {
     flex: 0 0 auto;
-    color: #6f798d;
+    color: var(--ae-text-muted, #6f798d);
     font-size: 12px;
     font-style: normal;
     font-weight: 950;
@@ -1070,9 +1070,9 @@
 .student-homework-pack-ai > div {
     min-width: 0;
     padding: 11px 8px;
-    border: 1px solid #e8e5f2;
+    border: 1px solid var(--ae-border, #e8e5f2);
     border-radius: 12px;
-    background: #fff;
+    background: var(--ae-surface, #fff);
     text-align: center;
 }
 
@@ -1082,14 +1082,14 @@
 }
 
 .student-homework-pack-ai span {
-    color: #9690a7;
+    color: var(--ae-text-muted, #9690a7);
     font-size: 9px;
     font-weight: 800;
 }
 
 .student-homework-pack-ai strong {
     margin-top: 3px;
-    color: #3e3852;
+    color: var(--ae-text, #3e3852);
     font-size: 17px;
     font-weight: 950;
 }

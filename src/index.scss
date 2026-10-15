@@ -40,7 +40,7 @@ textarea {
 
 /* Track */
 ::-webkit-scrollbar-track {
-  background: #fafafa;
+  background: var(--ae-surface-muted, #fafafa);
 }
 
 /* Handle */

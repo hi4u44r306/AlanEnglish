@@ -42,7 +42,7 @@
     &.is-first { -webkit-mask-image: none; mask-image: none; }
     img { display: block; width: 100%; height: 100%; object-fit: fill; }
   }
-  .speaking-scene-retry { position: absolute; right: 4%; top: 50%; min-height: 44px; border: 1px solid #b1bdc5; border-radius: 10px; background: #fff; color: #17345e; font-size: 12px; pointer-events: auto; }
+  .speaking-scene-retry { position: absolute; right: 4%; top: 50%; min-height: 44px; border: 1px solid #b1bdc5; border-radius: 10px; background: var(--ae-surface, #fff); color: var(--ae-text, #17345e); font-size: 12px; pointer-events: auto; }
 
   .speaking-adventure-route .speaking-challenge-lesson {
     position: absolute;
@@ -65,7 +65,7 @@
       outline: 0;
       border-radius: 50%;
       background: #a1a9ad;
-      color: #17345e;
+      color: var(--ae-text, #17345e);
       box-shadow: inset 0 0 0 .55cqw #efbe7b, 0 3px 0 #714723, 0 5px 8px #243c3426;
       padding: .5cqw;
       font-family: "Fredoka", "Nunito", "Noto Sans TC", sans-serif;
@@ -77,9 +77,9 @@
       transform: none;
     }
     &.is-multiline-label .speaking-challenge-lesson__number { white-space: pre-line; font-size: 3.65cqw; }
-    &.is-current .speaking-challenge-lesson__number { background: #ffda4b; color: #17345e; }
-    &.is-completed .speaking-challenge-lesson__number { background: #58e347; color: #123b23; }
-    &:focus-visible { outline: 3px solid #fff; outline-offset: 5px; border-radius: 50%; }
+    &.is-current .speaking-challenge-lesson__number { background: #ffda4b; color: var(--ae-text, #17345e); }
+    &.is-completed .speaking-challenge-lesson__number { background: #58e347; color: var(--ae-success, #123b23); }
+    &:focus-visible { outline: 3px solid var(--ae-surface, #fff); outline-offset: 5px; border-radius: 50%; }
     &:hover .speaking-challenge-lesson__number { transform: none; filter: brightness(1.04); }
   }
 }
@@ -159,7 +159,7 @@
       font-size: 4.8cqw;
       font-weight: 900;
       padding: 0;
-      color: #183450;
+      color: var(--ae-text, #183450);
       -webkit-text-stroke: 0;
       -webkit-text-fill-color: #183450;
       text-shadow: none;

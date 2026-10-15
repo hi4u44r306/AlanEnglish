@@ -30,8 +30,8 @@
   transform: translateX(50%);
   border: 3px solid #c49053;
   border-radius: 20px;
-  background: #fff8e9;
-  color: #17345e;
+  background: var(--ae-surface-muted, #fff8e9);
+  color: var(--ae-text, #17345e);
   box-shadow: 0 5px 0 #754521, 0 12px 30px rgba(8, 25, 45, .3);
 }
 
@@ -40,7 +40,7 @@
   gap: 4px;
   min-width: 0;
 
-  small { color: #805224; font-size: 12px; font-weight: 800; }
+  small { color: var(--ae-warning, #805224); font-size: 12px; font-weight: 800; }
   strong { font-size: 18px; line-height: 1.4; overflow-wrap: anywhere; }
   span { font-size: 12px; line-height: 1.5; }
 }
@@ -55,7 +55,7 @@
   border: 2px solid #e1a31d;
   border-radius: 13px;
   background: #ffcf4f;
-  color: #17345e;
+  color: var(--ae-text, #17345e);
   font-weight: 800;
   white-space: nowrap;
   cursor: pointer;
@@ -76,7 +76,7 @@
 }
 
 .speaking-level-dialog__actions button.primary.is-challenge {
-  border-color: #9bc5ff;
+  border-color: var(--ae-border, #9bc5ff);
   background: #315bc8;
   color: #fff;
   box-shadow: 0 4px 0 #183c84;

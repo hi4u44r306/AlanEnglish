@@ -3,7 +3,7 @@
   -webkit-user-select: none;
   -ms-user-select: none;
   user-select: none;
-  background-color: #fcf8ec;
+  background-color: var(--ae-surface-muted, #fcf8ec);
   height: 100vh;
   overflow-y: auto;
 }

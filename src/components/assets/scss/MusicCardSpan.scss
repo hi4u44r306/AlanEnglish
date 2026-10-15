@@ -5,7 +5,7 @@
   margin: 5px;
   display: flex;
   align-items: center;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid var(--ae-border, #e0e0e0);
   text-align: justify;
   .d1{
     display: flex;
@@ -28,6 +28,6 @@
   color: #fafafa;
 }
 .MusicCardSpan:active{
-  background-color: #fafafa;
-  color: #07689f;
+  background-color: var(--ae-surface-muted, #fafafa);
+  color: var(--ae-accent, #07689f);
 }

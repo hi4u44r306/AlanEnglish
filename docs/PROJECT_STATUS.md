@@ -1,5 +1,14 @@
 # Alan English 專案狀態
 
+### 深色模式第一階段（2026-10-15，分支 `feat/dark-mode-phase1`，PR 待合併，尚未部署）
+
+- 做法：`src/theme/`（`theme.scss` 深色色票、`ThemeContext.jsx`、`ThemeSelect.jsx`）；選擇存 localStorage 鍵 `ae-theme`（light／dark／system，預設 system）；`public/index.html` 開機前小腳本先設定 `data-theme`／`data-bs-theme` 與 `theme-color`，避免白閃；Toast 跟隨主題。
+- 全站樣式以腳本批次改成 `var(--ae-xxx, 原色碼)`（背景、文字、邊框、淺色漸層、頁面自訂變數）。**淺色模式不定義任何變數，所以一律落到原色碼**；已用腳本把所有 109 個變動樣式檔還原回原色碼，與 main 逐字相同，確認淺色不變。
+- 切換入口：MainNavbar（桌面帳號選單、手機側邊）、StudentNavbar 抽屜、個人資料頁、首頁（ShowcaseNavbar）。
+- 驗證：`CI=true npm run build` 成功；相關測試 16 檔 137 項通過；本機假登入截圖檢查深色的學生會員頁、個人資料頁、公開首頁。
+- 未完成：老師／管理員各頁、口說大挑戰、圖表／SVG 色、地圖、播放器等僅靠批次替換，尚未逐頁看過；網站內寫死的行內樣式（style=）與非 # 色碼（rgb、hsl、顏色名稱）未處理。PWA 啟動畫面、manifest 維持白底。
+- 回復：還原此 PR 即可，淺色不受影響。
+
 ### 離校生回訪統計（2026-10-15，分支 `feat/departed-activity-report`，PR 待合併；函式已部署）
 
 - 目的：擁有者要保留離校帳號，讓畢業生決定是否付 NT$299；先看離校生有沒有回來登入。

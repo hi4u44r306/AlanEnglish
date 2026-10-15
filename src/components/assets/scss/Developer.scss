@@ -1,6 +1,6 @@
 .Developer {
   font-family: "Nunito", sans-serif;
-  background-color: #fcf8ec;
+  background-color: var(--ae-surface-muted, #fcf8ec);
   display: flex;
   justify-content: center;
   position: absolute;
@@ -10,7 +10,7 @@
   overflow-y: auto;
   .Developer-profile {
     display: flex;
-    background-color: #fcf8ec;
+    background-color: var(--ae-surface-muted, #fcf8ec);
     align-items: center;
     .Developer-profileCard {
       display: flex;
@@ -18,7 +18,7 @@
       align-items: center;
       padding: 5vh;
       .Developer-title {
-        color: #0d5d82;
+        color: var(--ae-accent, #0d5d82);
         font-size: 20px;
         font-weight: 600;
         padding: 15px;
@@ -31,7 +31,7 @@
       }
     }
     .Developer-profileDetails {
-      background-color: #d2e2ff;
+      background-color: var(--ae-surface-muted, #d2e2ff);
       font-weight: 600;
       font-size: 20px;
       padding: 15px;
@@ -39,7 +39,7 @@
       display: flex;
       flex-direction: column;
       .Developer-title {
-        color: #0d5d82;
+        color: var(--ae-accent, #0d5d82);
         font-size: 20px;
         font-weight: 800;
       }

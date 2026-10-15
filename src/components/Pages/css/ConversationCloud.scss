@@ -4,9 +4,9 @@
     padding: 28px;
     border: 1px solid rgba(20, 33, 61, .08);
     border-radius: 22px;
-    background: #fff;
+    background: var(--ae-surface, #fff);
     box-shadow: 0 18px 48px rgba(25, 43, 84, .08);
-    color: #5f6b82;
+    color: var(--ae-text-muted, #5f6b82);
     text-align: center;
     font-size: 14px;
     font-weight: 800;
@@ -22,8 +22,8 @@
     padding: 14px 18px;
     border: 1px solid rgba(82, 103, 232, .18);
     border-radius: 18px;
-    background: #f1f3ff;
-    color: #31405f;
+    background: var(--ae-surface-muted, #f1f3ff);
+    color: var(--ae-accent, #31405f);
 }
 
 .conversation-cloud-banner > div {
@@ -42,24 +42,24 @@
 }
 
 .conversation-cloud-banner span {
-    color: #6f7b94;
+    color: var(--ae-text-muted, #6f7b94);
     font-size: 11px;
     line-height: 1.5;
 }
 
 .conversation-cloud-banner.saving {
     border-color: rgba(229, 159, 44, .28);
-    background: #fff9ed;
+    background: var(--ae-surface-muted, #fff9ed);
 }
 
 .conversation-cloud-banner.error {
     border-color: rgba(204, 73, 73, .25);
-    background: #fff2f2;
+    background: var(--ae-surface-muted, #fff2f2);
 }
 
 .conversation-cloud-banner.demo {
     border-color: rgba(43, 151, 116, .24);
-    background: #ecfaf5;
+    background: var(--ae-surface-muted, #ecfaf5);
 }
 
 .conversation-cloud-banner button {

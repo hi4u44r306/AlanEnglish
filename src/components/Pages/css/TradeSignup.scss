@@ -72,7 +72,7 @@
 th,
 td {
   padding: 10px; /* Add padding to cells */
-  border: 1px solid #ddd; /* Add borders to cells */
+  border: 1px solid var(--ae-border, #ddd); /* Add borders to cells */
 }
 
 @media screen and (max-width: 768px) {
