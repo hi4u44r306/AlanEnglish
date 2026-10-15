@@ -347,6 +347,8 @@ Supabase PostgreSQL、RLS 與 Edge Functions 負責資料、授權、學習紀�
 
 英文班班級固定為 E1、E3、E5、E7。升班、留班或降級由老師或管理員決定，不可依年份自動改班，也不可建立 E2、E4、E6、E8 作為年度升班結果。
 
+單一學生調班（升班／降班）只有管理員可做（獨立的 Edge Function `academy-class-change`，呼叫 `change_academy_student_class()`，僅 `service_role` 可執行；部署狀態以 `docs/PROJECT_STATUS.md` 為準）：不得直接改舊 `academy_enrollments.class_id`。必須關閉舊視窗（狀態 `transferred`，`access_ends_at = 生效日 − 1`）並新增新視窗（`enrolled_at = 生效日`），因為離校教材保存、英文班權限與點名名單都以「哪個班、從哪天到哪天」的視窗計算；`transferred` 不是離校，不可用 `withdrawn`／`graduated` 表示調班。生效日只能是今天或過去、且不早於目前視窗的入班日；歷史記錄於 `academy_class_changes`。
+
 ### 2.3 停用帳號
 
 當 `account_status = archived`：
