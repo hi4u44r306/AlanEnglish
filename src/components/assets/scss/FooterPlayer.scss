@@ -212,7 +212,7 @@
   padding: max(20px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
 }
 .playback-paused-dialog { box-sizing: border-box; width: min(500px, 100%); }
-.playback-paused-icon { display: block; color: var(--ae-accent, #1f67b9); font-size: 3rem; font-weight: 900; }
+.playback-paused-icon { display: block; color: var(--ae-icon, #1f67b9); font-size: 3rem; font-weight: 900; }
 .playback-paused-dialog .playback-paused-note { margin-top: 12px; font-size: 0.9rem; }
 .playback-paused-dialog button { font-size: 1.1rem; cursor: pointer; }
 .playback-paused-dialog button:focus-visible { outline: 3px solid #f4c34f; outline-offset: 4px; }

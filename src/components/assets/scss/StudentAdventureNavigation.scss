@@ -42,7 +42,7 @@
     > span { color: var(--ae-text, #17365d); font-size: 14px; letter-spacing: normal; }
     > a, > button { box-sizing: border-box; min-width: 0; min-height: 48px; border: 1px solid transparent; background: transparent; color: var(--ae-text, #17365d); }
     > a.active { border-color: #d8b747; background: var(--ae-surface-muted, #ffdf78); color: var(--ae-text, #17365d); }
-    > a > svg, > button > svg { box-sizing: content-box; width: 19px; height: 19px; padding: 5px; border-radius: 9px; color: var(--ae-accent, #245fc5); background: var(--ae-surface-muted, #e4efff); }
+    > a > svg, > button > svg { box-sizing: content-box; width: 19px; height: 19px; padding: 5px; border-radius: 9px; color: var(--ae-icon, #245fc5); background: var(--ae-surface-muted, #e4efff); }
 }
 .ae-student-drawer .offcanvas-header {
     border-top: 5px solid #ffd45a; border-bottom: 1px solid var(--ae-border, #c9d9ed); background: var(--ae-surface-muted, #eef5fc); color: var(--ae-text, #17365d);

@@ -71,7 +71,7 @@
   padding: 9px;
   border-radius: 12px;
   background: var(--ae-surface-muted, #eaf3ff);
-  color: var(--ae-accent, #2b66bd);
+  color: var(--ae-icon, #2b66bd);
 }
 .speaking-book-toolbar__title h1 {
   margin: 0;
@@ -326,7 +326,7 @@
   height: 42px;
   border-radius: 14px;
   background: var(--ae-surface-muted, #ffd45f);
-  color: var(--ae-accent, #17366f);
+  color: var(--ae-icon, #17366f);
   font-size: 23px;
   font-weight: 950;
 }
@@ -472,7 +472,7 @@
 }
 .speaking-challenge-grid svg,
 .speaking-challenge-empty > svg {
-  color: var(--ae-accent, #2b66bd);
+  color: var(--ae-icon, #2b66bd);
   font-size: 28px;
 }
 .speaking-challenge-grid strong {
@@ -1362,7 +1362,7 @@
   padding: 9px;
   border-radius: 50%;
   background: var(--ae-surface-muted, #eaf2ff);
-  color: var(--ae-accent, #2b66bd);
+  color: var(--ae-icon, #2b66bd);
 }
 .speaking-direct-prompt > div {
   display: grid;

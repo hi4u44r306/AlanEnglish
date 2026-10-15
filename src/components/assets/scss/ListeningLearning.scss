@@ -39,7 +39,7 @@
   .music-card__plays { background: var(--ae-surface-muted, #f5f8fd); border-color: var(--ae-border, #e2eaf5); box-shadow: none; min-width: 84px; padding: 8px; }
   .music-card__plays span { gap: 4px; }
   .music-card__plays small { display: block; color: var(--ae-accent, #516781); font-size: 11px; }
-  .music-card__plays svg { color: var(--ae-accent, #2455b8); }
+  .music-card__plays svg { color: var(--ae-icon, #2455b8); }
   .music-card__check { display: flex; width: auto; height: auto; padding: 4px 8px; border-radius: 8px; gap: 4px; box-shadow: none; font-size: 14px; }
   .music-card__check span { display: inline; font-size: 11px; }
 

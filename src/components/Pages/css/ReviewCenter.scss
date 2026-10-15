@@ -154,7 +154,7 @@
     height: 37px;
     flex-shrink: 0;
     padding: 10px;
-    color: var(--ae-accent, #396fd4);
+    color: var(--ae-icon, #396fd4);
     background: var(--ae-surface-muted, #edf4ff);
     border-radius: 11px;
   }
@@ -671,7 +671,7 @@
   border-radius: 18px;
 
   > svg {
-    color: var(--ae-accent, #396fd4);
+    color: var(--ae-icon, #396fd4);
     font-size: 1.4rem;
     animation: reviewSpin 0.75s linear infinite;
   }

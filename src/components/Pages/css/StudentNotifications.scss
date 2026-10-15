@@ -27,7 +27,7 @@
 
 .student-notifications-list { display: grid; gap: 11px; }
 .student-notifications-empty { display: flex; align-items: center; gap: 10px; min-height: 108px; margin: 0; padding: 24px; border: 1px solid var(--ae-border, #e2e8f2); border-radius: 21px; color: var(--ae-text-muted, #667590); background: var(--ae-surface, #fff); line-height: 1.6; box-shadow: 0 11px 27px rgba(31, 52, 91, .06); }
-.student-notifications-empty svg { flex: 0 0 auto; color: var(--ae-accent, #4266bc); font-size: 22px; }
+.student-notifications-empty svg { flex: 0 0 auto; color: var(--ae-icon, #4266bc); font-size: 22px; }
 .student-notification-card { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 14px; padding: 17px; border: 1px solid var(--ae-border, #d9e5fe); border-radius: 20px; background: var(--ae-surface-muted, #f8faff); box-shadow: 0 9px 23px rgba(31, 52, 91, .05); }
 .student-notification-card.is-actionable { cursor: pointer; transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease; }
 .student-notification-card.is-actionable:hover { border-color: #9bb3e5; box-shadow: 0 13px 29px rgba(31, 52, 91, .1); transform: translateY(-1px); }

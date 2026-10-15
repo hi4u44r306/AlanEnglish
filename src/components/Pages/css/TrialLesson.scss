@@ -24,7 +24,7 @@
 .trial-lesson__tag { padding: 4px 12px; border-radius: 10px; background: var(--ae-surface-muted, #ffd84d); font-size: 14px; font-weight: 800; }
 .trial-lesson__path { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; width: 100%; margin-top: 12px;
     a { display: grid; justify-items: center; gap: 6px; min-height: 76px; padding: 12px 6px; border: 1px solid var(--trial-line); border-radius: 16px; background: var(--ae-surface, #fff); color: var(--ae-text, #17365d); font-size: 15px; font-weight: 800; text-align: center; text-decoration: none; }
-    svg { width: 24px; height: 24px; color: var(--ae-accent, #245fc5); }
+    svg { width: 24px; height: 24px; color: var(--ae-icon, #245fc5); }
 }
 
 .trial-lesson__step { display: grid; gap: 12px; margin-bottom: 24px; scroll-margin-top: 16px;

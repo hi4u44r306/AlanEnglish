@@ -905,7 +905,7 @@
 
 .weekly-report-focus {
   .weekly-report-heading > svg {
-    color: var(--ae-accent, #7253bb);
+    color: var(--ae-icon, #7253bb);
     background: var(--ae-surface-muted, #f1ecfb);
   }
 
@@ -1088,7 +1088,7 @@
 
   > svg {
     flex-shrink: 0;
-    color: var(--ae-accent, #2f70d0);
+    color: var(--ae-icon, #2f70d0);
     font-size: 1.35rem;
   }
 

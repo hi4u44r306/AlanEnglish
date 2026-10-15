@@ -86,7 +86,7 @@ body.speaking-challenge-active {
 .speaking-challenge-hero:has(.speaking-catalog-help) .speaking-challenge-hero__copy { display: block; min-height: 44px; padding-right: 0; pointer-events: none; }
 .speaking-challenge-hero:has(.speaking-catalog-help) .speaking-challenge-hero__copy h1 { margin: 0 !important; font-size: clamp(22px, 6.4vw, 28px) !important; line-height: 44px !important; }
 .speaking-challenge-hero .speaking-catalog-help { margin: 0 !important; padding: 0 !important; border: 0 !important; border-radius: 0 !important; background: none !important; }
-.speaking-challenge-hero .speaking-catalog-help > summary { position: absolute; z-index: 3; top: 16px; right: 16px; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 12px !important; border: 1px solid var(--ae-border, #c5d6e8); border-radius: 22px !important; background: var(--ae-surface-muted, #edf5ff) !important; box-shadow: none !important; color: var(--ae-text, #17365d) !important; list-style: none; cursor: pointer; > svg { width: 20px; height: 20px; color: var(--ae-accent, #245fc5); } > b { font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; } }
+.speaking-challenge-hero .speaking-catalog-help > summary { position: absolute; z-index: 3; top: 16px; right: 16px; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 12px !important; border: 1px solid var(--ae-border, #c5d6e8); border-radius: 22px !important; background: var(--ae-surface-muted, #edf5ff) !important; box-shadow: none !important; color: var(--ae-text, #17365d) !important; list-style: none; cursor: pointer; > svg { width: 20px; height: 20px; color: var(--ae-icon, #245fc5); } > b { font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; } }
 .speaking-challenge-hero .speaking-catalog-help > summary::-webkit-details-marker { display: none; }
 .speaking-challenge-hero .speaking-catalog-help[open] > summary { border-color: #17365d; background: var(--ae-solid, #17365d) !important; color: #fff !important; > svg { color: #ffd84d; } }
 .speaking-challenge-hero .speaking-catalog-help[open] { padding-top: 12px !important; }
@@ -171,7 +171,7 @@ body.speaking-challenge-active .speaking-challenge-page { background: var(--ae-s
 body.speaking-challenge-active .speaking-foundation-intro { border: 1px solid var(--ae-border, #d5e3f0) !important; border-radius: 24px !important; background: var(--ae-surface, #fff) !important; background-image: none !important; box-shadow: none !important; color: var(--ae-text, #17365d) !important; }
 body.speaking-challenge-active .speaking-foundation-intro > svg,
 body.speaking-challenge-active .speaking-foundation-intro > span:first-child,
-body.speaking-challenge-active .speaking-foundation-intro [class*="icon"] { background: var(--ae-surface-muted, #dbe8ff) !important; background-image: none !important; box-shadow: none !important; color: var(--ae-accent, #1d4fa8) !important; }
+body.speaking-challenge-active .speaking-foundation-intro [class*="icon"] { background: var(--ae-surface-muted, #dbe8ff) !important; background-image: none !important; box-shadow: none !important; color: var(--ae-icon, #1d4fa8) !important; }
 
 // ---- A friendlier finish on top of the flat base: a soft sky behind the card, the sentence as
 // the hero, a blank that looks like a slot to fill, and a microphone with a gentle halo.

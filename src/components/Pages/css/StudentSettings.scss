@@ -176,7 +176,7 @@
 }
 .student-settings-panel { padding: 23px; }
 .student-settings-panel > header { display: flex; align-items: center; gap: 11px; margin-bottom: 19px; }
-.student-settings-panel > header > svg { width: 28px; height: 28px; padding: 6px; border-radius: 10px; color: var(--ae-accent, #3655ad); background: var(--ae-surface-muted, #edf2ff); }
+.student-settings-panel > header > svg { width: 28px; height: 28px; padding: 6px; border-radius: 10px; color: var(--ae-icon, #3655ad); background: var(--ae-surface-muted, #edf2ff); }
 .student-settings-panel h2 { margin: 2px 0 0; font-size: 21px; font-weight: 900; }
 .student-settings-panel > p { margin: 0; color: var(--ae-text-muted, #687690); line-height: 1.65; font-size: 14px; }
 
@@ -287,7 +287,7 @@
 .student-settings-list { margin: 0 0 24px; border-radius: 16px; background: var(--ae-surface, #fff); border: 1px solid var(--ae-border, #d5e3f0); overflow: hidden; color: var(--ae-text, #17365d); }
 .student-settings-list > h2 { margin: 0; padding: 14px 20px 6px; font-size: 14px; font-weight: 700; color: var(--ae-text-muted, #526780); }
 .student-settings-row { display: flex; align-items: center; gap: 14px; min-height: 60px; padding: 10px 20px; color: inherit; text-decoration: none; cursor: default;
-    > svg { flex-shrink: 0; width: 22px; height: 22px; color: var(--ae-accent, #39526e); }
+    > svg { flex-shrink: 0; width: 22px; height: 22px; color: var(--ae-icon, #39526e); }
     > div { flex: 1; min-width: 0; display: grid; gap: 2px; }
     strong { font-size: 17px; font-weight: 700; overflow-wrap: anywhere; }
     small { font-size: 13px; color: var(--ae-text-muted, #526780); overflow-wrap: anywhere; }
@@ -341,7 +341,7 @@ a.student-settings-row:focus-visible, summary.student-settings-row:focus-visible
 .student-progress__listen:active .student-progress__listen-play { transform: translateY(2px); box-shadow: 0 2px 0 #0c2140; }
 // Row icons sit on a soft coloured tile: colour for the eye, white rows for reading.
 .student-progress__tile { flex-shrink: 0; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 14px; > svg { width: 24px; height: 24px; } }
-.student-progress__tile--blue { background: var(--ae-surface-muted, #dbe8ff); color: var(--ae-accent, #1d4fa8); }
+.student-progress__tile--blue { background: var(--ae-surface-muted, #dbe8ff); color: var(--ae-icon, #1d4fa8); }
 .student-progress__tile--orange { background: var(--ae-surface-muted, #ffe1cc); color: var(--ae-warning, #b54708); }
 .student-progress__tile--green { background: var(--ae-surface-muted, #d6f2e1); color: var(--ae-success, #17694a); }
 .student-progress__tile--yellow { background: var(--ae-surface-muted, #ffe9a8); color: var(--ae-warning, #8a5a00); }

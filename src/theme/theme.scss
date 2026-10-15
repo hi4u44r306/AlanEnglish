@@ -17,6 +17,7 @@
   --ae-warning: #f0c75e;
   --ae-border: #3a3a3d;
   --ae-solid: #2e2e31;
+  --ae-icon: #6ea8fe;
   color-scheme: dark;
 }
 
@@ -69,3 +70,14 @@
   filter: none !important;
   background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23fff'%3e%3cpath d='M.293.293a1 1 0 0 1 1.414 0L8 6.586 14.293.293a1 1 0 1 1 1.414 1.414L9.414 8l6.293 6.293a1 1 0 0 1-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 0 1-1.414-1.414L6.586 8 .293 1.707a1 1 0 0 1 0-1.414z'/%3e%3c/svg%3e") !important;
 }
+
+/* 圖示保留顏色（像 iPhone 的深色模式）：色塊用同色系的半透明底，圖示用亮一階的同色。 */
+:root[data-theme='dark'] .ae-student-menu-tile.is-blue { background: rgba(110, 168, 254, 0.18); color: #7db4ff; }
+:root[data-theme='dark'] .ae-student-menu-tile.is-yellow { background: rgba(255, 216, 77, 0.18); color: #ffd84d; }
+:root[data-theme='dark'] .ae-student-menu-tile.is-navy { background: rgba(159, 178, 203, 0.18); color: #b9c7da; }
+:root[data-theme='dark'] .ae-student-menu-tile.is-green { background: rgba(95, 211, 160, 0.18); color: #5fd3a0; }
+:root[data-theme='dark'] .ae-student-menu-tile.is-orange { background: rgba(255, 159, 107, 0.18); color: #ff9f6b; }
+:root[data-theme='dark'] .ae-student-menu-tile.is-purple { background: rgba(183, 156, 245, 0.18); color: #b79cf5; }
+:root[data-theme='dark'] .ae-mobile-brand-mark { background: #ffd84d !important; color: #17233f !important; }
+:root[data-theme='dark'] .ae-mobile-avatar { background: rgba(110, 168, 254, 0.18) !important; color: #7db4ff !important; }
+:root[data-theme='dark'] .ae-mobile-section > a.active { background: rgba(255, 216, 77, 0.14) !important; }

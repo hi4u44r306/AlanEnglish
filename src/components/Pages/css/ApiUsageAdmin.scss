@@ -41,7 +41,7 @@
 .api-alert-critical { color: var(--ae-danger, #b42318); background: var(--ae-surface-muted, #fff1f0); }
 .api-dashboard-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(300px, .5fr); gap: 18px; }
 .api-trend-card, .api-settings-card { min-width: 0; }
-.api-trend-card .platform-section-title > svg { color: var(--ae-accent, #2f6fed); font-size: 23px; }
+.api-trend-card .platform-section-title > svg { color: var(--ae-icon, #2f6fed); font-size: 23px; }
 .api-trend { display: flex; align-items: end; gap: 7px; height: 210px; padding: 22px 7px 0; overflow-x: auto; border-bottom: 1px solid var(--ae-border, #dfe4ec); background: repeating-linear-gradient(to top, transparent 0, transparent 49px, var(--ae-surface-muted, #edf0f5) 50px); }
 .api-trend-day { display: grid; grid-template-rows: 18px 1fr 20px; align-items: end; justify-items: center; flex: 1 0 24px; min-width: 24px; height: 100%; }
 .api-trend-value { color: var(--ae-text-muted, #667085); font-size: 10px; }
