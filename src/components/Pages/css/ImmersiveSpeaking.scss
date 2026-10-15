@@ -966,7 +966,7 @@ body.speaking-game-world-active .speaking-challenge-page.is-book-open { width: 1
   border: 7px solid transparent;
   border-radius: 27px;
   background:
-    var(--ae-surface-muted, linear-gradient(180deg, #fffdf5, #fff8e8) padding-box,)
+    linear-gradient(180deg, #fffdf5, #fff8e8) padding-box,
     repeating-linear-gradient(5deg, #d79a55 0 8px, #b96f34 8px 14px, #cb8748 14px 21px) border-box;
   color: var(--ae-text, #17345e);
   box-shadow: 0 18px 48px rgba(14, 35, 61, .28);
