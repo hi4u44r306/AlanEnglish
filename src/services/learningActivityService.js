@@ -30,6 +30,13 @@ export const recordHeartbeat = firebaseUser => callLearningActivity(firebaseUser
     action: "heartbeat"
 });
 
+// 播放器記錄「放著不動沒回應」(idle)、「切換頁面暫停」(hidden)，每週報告用來算專注度。只記學生本人，失敗不影響播放。
+export const recordListeningPause = (firebaseUser, { reason, track_id: trackId } = {}) => callLearningActivity(firebaseUser, {
+    action: "listening_pause",
+    reason,
+    track_id: trackId
+});
+
 export const getConversationProgress = (firebaseUser, scenarioKey = "meet-a-foreigner") => callLearningActivity(firebaseUser, {
     action: "conversation_get",
     scenario_key: scenarioKey
