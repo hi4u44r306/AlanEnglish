@@ -1,5 +1,12 @@
 # Alan English 專案狀態
 
+### 離校生登入說明卡（2026-10-15，分支 `feat/departed-student-landing`，進行中：本機完成、待 PR 合併）
+
+- 背景：擁有者詢問畢業／離校後帳號會不會被刪除，以及能否讓離校生自己決定要不要每月 NT$299 續用。查證（唯讀）：離校只把 `academy_enrollments` 改為 `withdrawn` 並保存班級教材（`process_academy_departure_with_materials`），專案資料庫排程只有 API 成本警示一個、沒有任何自動刪除或停用帳號；管理員手動刪帳號會被付款／兌換紀錄擋下。程式裡**沒有藍新／綠界金流**，只有 Stripe（`billing-manager`、`stripe-webhook`），且 `PUBLIC_SELF_SERVICE_BILLING_ENABLED = false`。
+- 修改：`DepartedStudentNotice.jsx`＋樣式（顏色用 `--ae-*` 變數並附淺色預設值）；`MembershipCenter.jsx` 對「role=student、learner_type=academy_student、非在校、且 membership.is_active 不為 true」顯示。線上扣款關閉時按鈕為「聯絡客服」。
+- 驗證：`DepartedStudentNotice`＋`MembershipCenter` 測試 14 項通過；`CI=true npm run build` 成功；本機假登入（未提交）390px 檢視版面正常（新手導覽彈窗為假資料造成）。尚未部署。
+- 建議（尚未做）：先用現有啟用碼＋轉帳／LINE 販售 NT$299，觀察需求再決定是否接金流；金流若選藍新需向藍新確認是否開通定期定額，且要新做整合與先在測試環境驗證。
+
 ### 管理員調整單一學生班級（升班／降班）（2026-10-15，分支 `feat/academy-class-change`，PR #582：migration 與 Edge Function 已於 2026-10-15 經擁有者同意套用／部署到正式環境，前端待合併；正式站實際調班尚未操作過）
 
 - 擁有者決定（2026-10-15）：只有管理員可調整；生效日預設今天、可改過去日期（不支援未來日期）；同意先在隔離環境（本機 PGlite）做，正式資料庫套用與函式部署須另行同意。MCP 只能看到一個 Supabase 專案（`alan-english`，即正式庫），沒有獨立測試庫，因此未對任何遠端資料庫寫入。
