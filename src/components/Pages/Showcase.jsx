@@ -1,4 +1,5 @@
 import React from "react";
+import { useForcedLightTheme } from "../../theme/ThemeContext";
 import { Link } from "react-router-dom";
 import {
     BiBarChartAlt2,
@@ -52,6 +53,7 @@ const faqs = [
 ];
 
 const Showcase = () => {
+    useForcedLightTheme();
     return (
         <div className="showcase">
             <SeoHead path="/" />

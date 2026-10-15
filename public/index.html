@@ -70,7 +70,8 @@
       (function () {
         try {
           var choice = localStorage.getItem("ae-theme");
-          var dark = choice === "dark" || ((choice !== "light") && window.matchMedia("(prefers-color-scheme: dark)").matches);
+          var path = location.pathname; var landing = path === "/" || path === "/showcase";
+          var dark = !landing && (choice === "dark" || ((choice !== "light") && window.matchMedia("(prefers-color-scheme: dark)").matches));
           var theme = dark ? "dark" : "light";
           document.documentElement.setAttribute("data-theme", theme);
           document.documentElement.setAttribute("data-bs-theme", theme);
