@@ -6,7 +6,7 @@
 - 修正：色票改為黑色系（頁面 #121212、卡片 #1c1c1e、文字 #ececec），`.app-shell`／`.management-page` 底色比卡片更深；`theme-color` 同步。只改 `theme.scss`、`ThemeContext.jsx`、`index.html`，淺色不受影響。
 - 提醒：日後若再跑批次腳本，必須排除 `src/theme/`。
 
-### 深色模式第一階段（2026-10-15，分支 `feat/dark-mode-phase1`，PR 待合併，尚未部署）
+### 深色模式第一階段（2026-10-15，分支 `feat/dark-mode-phase1`，PR #586，已發布；#588 已改為黑底，Cloudflare build success）
 
 - 做法：`src/theme/`（`theme.scss` 深色色票、`ThemeContext.jsx`、`ThemeSelect.jsx`）；選擇存 localStorage 鍵 `ae-theme`（light／dark／system，預設 system）；`public/index.html` 開機前小腳本先設定 `data-theme`／`data-bs-theme` 與 `theme-color`，避免白閃；Toast 跟隨主題。
 - 全站樣式以腳本批次改成 `var(--ae-xxx, 原色碼)`（背景、文字、邊框、淺色漸層、頁面自訂變數）。**淺色模式不定義任何變數，所以一律落到原色碼**；已用腳本把所有 109 個變動樣式檔還原回原色碼，與 main 逐字相同，確認淺色不變。
@@ -15,7 +15,7 @@
 - 未完成：老師／管理員各頁、口說大挑戰、圖表／SVG 色、地圖、播放器等僅靠批次替換，尚未逐頁看過；網站內寫死的行內樣式（style=）與非 # 色碼（rgb、hsl、顏色名稱）未處理。PWA 啟動畫面、manifest 維持白底。
 - 回復：還原此 PR 即可，淺色不受影響。
 
-### 離校生回訪統計（2026-10-15，分支 `feat/departed-activity-report`，PR 待合併；函式已部署）
+### 離校生回訪統計（2026-10-15，分支 `feat/departed-activity-report`，PR #585，已發布；函式已部署）
 
 - 目的：擁有者要保留離校帳號，讓畢業生決定是否付 NT$299；先看離校生有沒有回來登入。
 - 後端：新增唯讀 Edge Function `departed-student-activity`（已於 2026-10-15 經 MCP 部署 v1，verify_jwt=false 並自行驗 Firebase token、由資料庫確認 admin；不寫入任何資料、不需 migration）。未登入 401、非允許來源 403 已實測。計算邏輯在 `summarize.ts`（純函式）。
