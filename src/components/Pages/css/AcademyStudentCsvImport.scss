@@ -23,16 +23,16 @@
     justify-content: center;
     padding: 8px 12px;
     border-radius: 10px;
-    background: #f1f4f8;
-    color: #7a8494;
+    background: var(--ae-surface-muted, #f1f4f8);
+    color: var(--ae-text-muted, #7a8494);
     font-size: 0.9rem;
     font-weight: 600;
     text-align: center;
   }
 
   span.active {
-    background: #eaf2ff;
-    color: #245da9;
+    background: var(--ae-surface-muted, #eaf2ff);
+    color: var(--ae-accent, #245da9);
   }
 }
 
@@ -44,14 +44,14 @@
 
   article {
     padding: 20px;
-    border: 1px solid #e1e7ef;
+    border: 1px solid var(--ae-border, #e1e7ef);
     border-radius: 14px;
-    background: #fbfcfe;
+    background: var(--ae-surface-muted, #fbfcfe);
   }
 
   h2 {
     margin: 0 0 7px;
-    color: #172033;
+    color: var(--ae-text, #172033);
     font-size: 1.08rem;
     font-weight: 700;
   }
@@ -59,7 +59,7 @@
   p {
     min-height: 48px;
     margin: 0 0 14px;
-    color: #667085;
+    color: var(--ae-text-muted, #667085);
     font-size: 0.92rem;
     line-height: 1.55;
   }
@@ -67,7 +67,7 @@
   small {
     display: block;
     margin-top: 9px;
-    color: #667085;
+    color: var(--ae-text-muted, #667085);
     font-size: 0.86rem;
     overflow-wrap: anywhere;
   }
@@ -92,8 +92,8 @@
 .academy-csv-secondary,
 .academy-csv-file-button,
 .academy-csv-reset {
-  background: #eaf2ff;
-  color: #245da9;
+  background: var(--ae-surface-muted, #eaf2ff);
+  color: var(--ae-accent, #245da9);
 }
 
 .academy-csv-download-actions {
@@ -103,21 +103,21 @@
 }
 
 .academy-csv-secondary.academy-csv-secondary--quiet {
-  border: 1px solid #c9d8ee;
-  background: #fff;
+  border: 1px solid var(--ae-border, #c9d8ee);
+  background: var(--ae-surface, #fff);
 }
 
 // 「每一欄怎麼填」：電腦兩欄、手機一欄。
 .academy-csv-fields {
   margin-bottom: 18px;
   padding: 18px 20px;
-  border: 1px solid #e1e7ef;
+  border: 1px solid var(--ae-border, #e1e7ef);
   border-radius: 14px;
-  background: #fff;
+  background: var(--ae-surface, #fff);
 
   h2 {
     margin: 0 0 12px;
-    color: #172033;
+    color: var(--ae-text, #172033);
     font-size: 1.02rem;
     font-weight: 700;
   }
@@ -132,14 +132,14 @@
   dl > div {
     padding: 10px 12px;
     border-radius: 10px;
-    background: #f7f9fc;
+    background: var(--ae-surface-muted, #f7f9fc);
   }
 
   dt {
     display: flex;
     align-items: center;
     gap: 8px;
-    color: #172033;
+    color: var(--ae-text, #172033);
     font-size: 0.95rem;
     font-weight: 700;
   }
@@ -147,20 +147,20 @@
   dt span {
     padding: 1px 8px;
     border-radius: 999px;
-    background: #eef1f5;
-    color: #667085;
+    background: var(--ae-surface-muted, #eef1f5);
+    color: var(--ae-text-muted, #667085);
     font-size: 0.74rem;
     font-weight: 700;
   }
 
   dt span.is-required {
-    background: #fff3d6;
-    color: #8a5a00;
+    background: var(--ae-surface-muted, #fff3d6);
+    color: var(--ae-warning, #8a5a00);
   }
 
   dd {
     margin: 4px 0 0;
-    color: #4b5565;
+    color: var(--ae-text-muted, #4b5565);
     font-size: 0.88rem;
     line-height: 1.55;
     overflow-wrap: anywhere;
@@ -182,19 +182,19 @@
   margin: 14px 0;
   padding: 12px 14px;
   border-radius: 10px;
-  background: #fff5e7;
-  color: #805b16;
+  background: var(--ae-surface-muted, #fff5e7);
+  color: var(--ae-warning, #805b16);
   font-size: 0.92rem;
 }
 
 .academy-csv-message.success {
-  background: #edf9f2;
-  color: #176c48;
+  background: var(--ae-surface-muted, #edf9f2);
+  color: var(--ae-success, #176c48);
 }
 
 .academy-csv-audit-warning {
-  background: #fff0ef;
-  color: #a23931;
+  background: var(--ae-surface-muted, #fff0ef);
+  color: var(--ae-danger, #a23931);
 }
 
 .academy-csv-summary {
@@ -207,20 +207,20 @@
   strong {
     padding: 7px 11px;
     border-radius: 999px;
-    background: #f1f4f8;
-    color: #4d596c;
+    background: var(--ae-surface-muted, #f1f4f8);
+    color: var(--ae-text-muted, #4d596c);
     font-size: 0.88rem;
     font-weight: 600;
   }
 
   strong {
-    background: #edf9f2;
-    color: #176c48;
+    background: var(--ae-surface-muted, #edf9f2);
+    color: var(--ae-success, #176c48);
   }
 
   .error {
-    background: #fff0ef;
-    color: #a23931;
+    background: var(--ae-surface-muted, #fff0ef);
+    color: var(--ae-danger, #a23931);
   }
 }
 
@@ -234,13 +234,13 @@
 
   td small {
     margin-top: 3px;
-    color: #7a8494;
+    color: var(--ae-text-muted, #7a8494);
     font-size: 0.84rem;
   }
 }
 
 .academy-csv-invalid-row {
-  background: #fffafa;
+  background: var(--ae-surface-muted, #fffafa);
 }
 
 .academy-csv-valid,
@@ -249,12 +249,12 @@
 }
 
 .academy-csv-valid {
-  color: #168156;
+  color: var(--ae-success, #168156);
 }
 
 .academy-csv-invalid {
   max-width: 280px;
-  color: #b42318;
+  color: var(--ae-danger, #b42318);
 }
 
 .academy-csv-create-bar {
@@ -265,7 +265,7 @@
   margin-top: 18px;
   padding: 16px 18px;
   border-radius: 14px;
-  background: #f5f8fc;
+  background: var(--ae-surface-muted, #f5f8fc);
 
   strong,
   span {
@@ -278,7 +278,7 @@
   }
 
   span {
-    color: #667085;
+    color: var(--ae-text-muted, #667085);
     font-size: 0.88rem;
   }
 
@@ -297,7 +297,7 @@
 .academy-csv-results {
   margin-top: 24px;
   padding-top: 22px;
-  border-top: 1px solid #e5eaf1;
+  border-top: 1px solid var(--ae-border, #e5eaf1);
 }
 
 .academy-csv-results-heading {
@@ -315,7 +315,7 @@
 
   p {
     margin: 0;
-    color: #667085;
+    color: var(--ae-text-muted, #667085);
     font-size: 0.9rem;
   }
 
@@ -344,7 +344,7 @@
 .academy-login-cards-section {
   margin-top: 28px;
   padding-top: 24px;
-  border-top: 1px solid #e5eaf1;
+  border-top: 1px solid var(--ae-border, #e5eaf1);
 }
 
 .academy-login-card-actions {
@@ -362,9 +362,9 @@
 
 .academy-login-card {
   overflow: hidden;
-  border: 1px solid #ccd6e5;
+  border: 1px solid var(--ae-border, #ccd6e5);
   border-radius: 16px;
-  background: #fff;
+  background: var(--ae-surface, #fff);
   break-inside: avoid;
 
   header {
@@ -391,18 +391,18 @@
     display: grid;
     gap: 5px;
     padding: 12px 16px;
-    border-top: 1px dashed #cbd5e3;
-    background: #f7f9fc;
+    border-top: 1px dashed var(--ae-border, #cbd5e3);
+    background: var(--ae-surface-muted, #f7f9fc);
   }
 
   footer span,
   footer small {
-    color: #596579;
+    color: var(--ae-text-muted, #596579);
     font-size: 0.75rem;
   }
 
   footer strong {
-    color: #142443;
+    color: var(--ae-text, #142443);
     font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
     font-size: 0.9rem;
     letter-spacing: 0.04em;
@@ -418,20 +418,20 @@
 
   span {
     display: block;
-    color: #6a7484;
+    color: var(--ae-text-muted, #6a7484);
     font-size: 0.75rem;
   }
 
   h3 {
     margin: 3px 0 13px;
-    color: #172033;
+    color: var(--ae-text, #172033);
     font-size: 1.05rem;
   }
 
   ol {
     margin: 13px 0 0;
     padding-left: 20px;
-    color: #4d596c;
+    color: var(--ae-text-muted, #4d596c);
     font-size: 0.76rem;
     line-height: 1.65;
   }
@@ -440,7 +440,7 @@
 .academy-login-card-username {
   display: block;
   margin-top: 3px;
-  color: #245da9;
+  color: var(--ae-accent, #245da9);
   font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
   font-size: 1.15rem;
 }
@@ -457,7 +457,7 @@
   small {
     display: block;
     margin-top: 4px;
-    color: #667085;
+    color: var(--ae-text-muted, #667085);
     font-size: 0.72rem;
   }
 }
@@ -520,7 +520,7 @@
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8mm;
-    background: #fff;
+    background: var(--ae-surface, #fff);
   }
 
   .academy-login-card {

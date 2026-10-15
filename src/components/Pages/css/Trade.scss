@@ -24,7 +24,7 @@
   .info {
     font-weight: 800;
     margin: 10px;
-    color: #356cb0;
+    color: var(--ae-accent, #356cb0);
   }
 }
 
@@ -36,7 +36,7 @@
   font-size: 20px;
   font-weight: 800;
   text-align: center;
-  color: #333;
+  color: var(--ae-text, #333);
   gap: 20px;
 }
 
@@ -45,7 +45,7 @@
   justify-content: space-evenly;
   flex-direction: column;
   flex-wrap: wrap;
-  background-color: #fff;
+  background-color: var(--ae-surface, #fff);
   margin-top: 10px;
   padding-top: 10px;
   padding-bottom: 10px;
@@ -62,7 +62,7 @@
   font-weight: bold;
   text-align: center;
   margin: 10px;
-  color: #333;
+  color: var(--ae-text, #333);
 }
 
 .trade-img {
@@ -78,7 +78,7 @@
   font-size: 18px;
   font-weight: bold;
   margin-bottom: 10px;
-  color: #444;
+  color: var(--ae-text, #444);
 }
 
 .trade-item {
@@ -136,7 +136,7 @@
   align-items: center;
   font-size: 16px;
   font-weight: 800;
-  color: #000000;
+  color: var(--ae-text, #000000);
 }
 
 .editbutton {
@@ -200,7 +200,7 @@
 //     font-weight: 800;
 //     margin-bottom: 10px;
 //     text-align: center;
-//     color: #333;
+//     color: var(--ae-text, #333);
 //   }
 
 //   .input-group {
@@ -211,13 +211,13 @@
 //     label {
 //       font-size: 16px;
 //       font-weight: 700;
-//       color: #555;
+//       color: var(--ae-text-muted, #555);
 //       margin-bottom: 5px;
 //     }
 
 //     input {
 //       padding: 8px;
-//       border: 1px solid #ddd;
+//       border: 1px solid var(--ae-border, #ddd);
 //       border-radius: 4px;
 //       font-size: 16px;
 //     }
@@ -232,7 +232,7 @@
 //     div {
 //       font-size: 18px;
 //       font-weight: 700;
-//       color: #333;
+//       color: var(--ae-text, #333);
 //       margin-bottom: 5px;
 //     }
 //   }
@@ -241,7 +241,7 @@
 //     font-size: 20px;
 //     font-weight: bold;
 //     text-align: center;
-//     color: #2a9d8f;
+//     color: var(--ae-accent, #2a9d8f);
 //   }
 // }
 
@@ -249,7 +249,7 @@
   display: flex;
   flex-direction: column;
   justify-content: space-around;
-  background-color: #ffffff;
+  background-color: var(--ae-surface, #ffffff);
   border-radius: 10px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   margin-top: 10px;
@@ -260,12 +260,12 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    background-color: #fff;
+    background-color: var(--ae-surface, #fff);
 
     .stock-name {
       font-size: 18px;
       font-weight: 800;
-      color: #000000;
+      color: var(--ae-text, #000000);
     }
 
     .stock-quantity {

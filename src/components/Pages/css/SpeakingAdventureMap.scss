@@ -12,7 +12,7 @@
   left: -32px;
   width: 46px;
   height: 46px;
-  border: 7px solid #fff;
+  border: 7px solid var(--ae-surface, #fff);
   border-radius: 50%;
   background: #ffd35c;
   box-shadow: 0 6px 0 rgba(20, 47, 91, 0.18);
@@ -27,8 +27,8 @@
   bottom: 12px;
   padding: 6px 9px;
   border-radius: 999px;
-  background: #fff;
-  color: #17437f;
+  background: var(--ae-surface, #fff);
+  color: var(--ae-accent, #17437f);
   font-size: 11px;
   font-weight: 900;
 }
@@ -42,13 +42,13 @@
 .speaking-adventure-map > .speaking-catalog-section {
   overflow: hidden;
   margin-bottom: 18px;
-  border: 1px solid #cbdcf2;
+  border: 1px solid var(--ae-border, #cbdcf2);
   border-radius: 26px;
-  background: #dcecfb;
+  background: var(--ae-surface-muted, #dcecfb);
   box-shadow: 0 14px 32px rgba(20, 47, 91, 0.1);
 }
 .speaking-adventure-map .speaking-catalog-section + .speaking-catalog-section {
-  border-top: 1px solid #cbdcf2;
+  border-top: 1px solid var(--ae-border, #cbdcf2);
 }
 .speaking-adventure-map .speaking-catalog-section > header {
   position: relative;
@@ -114,7 +114,7 @@
   min-height: 82px;
   max-width: none;
   padding: 7px;
-  border: 6px solid #fff;
+  border: 6px solid var(--ae-surface, #fff);
   border-radius: 50%;
   background: #2c69bd;
   color: #fff;
@@ -125,7 +125,7 @@
 }
 .speaking-adventure-map .speaking-challenge-lesson.is-current .speaking-challenge-lesson__number {
   background: #ffc73d;
-  color: #17366f;
+  color: var(--ae-accent, #17366f);
   box-shadow: 0 8px 0 #b27810, 0 0 0 7px rgba(255, 206, 71, 0.38);
 }
 .speaking-adventure-map .speaking-challenge-lesson.is-completed .speaking-challenge-lesson__number {
@@ -144,8 +144,8 @@
   width: 100%;
   padding: 4px 8px;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.92);
-  color: #17366f;
+  background: var(--ae-surface-glass, rgba(255, 255, 255, 0.92));
+  color: var(--ae-accent, #17366f);
   text-align: center;
   white-space: normal;
 }
@@ -190,8 +190,8 @@
   overflow-y: auto;
   padding: 30px;
   border-radius: 26px;
-  background: #fff;
-  color: #173052;
+  background: var(--ae-surface, #fff);
+  color: var(--ae-text, #173052);
   box-shadow: 0 25px 65px rgba(8, 25, 55, 0.34);
 }
 .speaking-level-dialog__close {
@@ -202,12 +202,12 @@
   height: 44px;
   border: 0;
   border-radius: 50%;
-  background: #eaf2fd;
-  color: #17366f;
+  background: var(--ae-surface-muted, #eaf2fd);
+  color: var(--ae-accent, #17366f);
   font-size: 25px;
   cursor: pointer;
 }
-.speaking-level-dialog__eyebrow { color: #2b66bd; font-weight: 900; }
+.speaking-level-dialog__eyebrow { color: var(--ae-accent, #2b66bd); font-weight: 900; }
 .speaking-level-dialog h2 { margin: 0; padding-right: 28px; font-size: clamp(23px, 5vw, 31px); }
 .speaking-level-dialog p { margin: 0; line-height: 1.6; }
 .speaking-level-dialog__facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
@@ -217,12 +217,12 @@
   min-width: 0;
   padding: 12px 8px;
   border-radius: 12px;
-  background: #eff5ff;
+  background: var(--ae-surface-muted, #eff5ff);
   text-align: center;
 }
-.speaking-level-dialog__facts small { color: #5b6d85; }
+.speaking-level-dialog__facts small { color: var(--ae-text-muted, #5b6d85); }
 .speaking-level-dialog__facts strong { overflow-wrap: anywhere; }
-.speaking-level-dialog__goal { padding: 11px 13px; border-radius: 12px; background: #fff5d9; }
+.speaking-level-dialog__goal { padding: 11px 13px; border-radius: 12px; background: var(--ae-surface-muted, #fff5d9); }
 .speaking-level-dialog__actions { display: flex; flex-wrap: wrap; gap: 9px; justify-content: flex-end; }
 .speaking-level-dialog__actions button {
   display: inline-flex;
@@ -233,8 +233,8 @@
   padding: 9px 15px;
   border: 1px solid #aec4e3;
   border-radius: 12px;
-  background: #fff;
-  color: #2459a2;
+  background: var(--ae-surface, #fff);
+  color: var(--ae-accent, #2459a2);
   font-weight: 900;
   cursor: pointer;
 }
@@ -252,21 +252,21 @@
 .speaking-challenge-detail .speaking-lesson-heading p,
 .speaking-challenge-detail .speaking-lesson-progress > div:first-child,
 .speaking-challenge-detail .speaking-lesson-progress strong { color: #fff; }
-.speaking-challenge-detail .speaking-lesson-header .speaking-back { background: #fff; color: #17437f; }
+.speaking-challenge-detail .speaking-lesson-header .speaking-back { background: var(--ae-surface, #fff); color: var(--ae-accent, #17437f); }
 .speaking-challenge-detail .speaking-focus-card {
   width: min(940px, 100%);
   min-height: 400px;
   margin-inline: auto;
   padding: clamp(18px, 4vw, 36px);
-  border: 2px solid #cbdcf2;
+  border: 2px solid var(--ae-border, #cbdcf2);
   border-radius: 28px;
-  background: linear-gradient(180deg, #f2f8ff, #fff 55%);
+  background: linear-gradient(180deg, #f2f8ff, var(--ae-surface, #fff) 55%);
   box-shadow: 0 18px 42px rgba(20, 47, 91, 0.1);
 }
 .speaking-challenge-detail .speaking-question-heading {
   padding: 0 0 15px;
   border: 0;
-  border-bottom: 1px solid #d8e5f4;
+  border-bottom: 1px solid var(--ae-border, #d8e5f4);
   border-radius: 0;
   background: transparent;
   box-shadow: none;
@@ -276,7 +276,7 @@
 .speaking-challenge-detail .speaking-direct-prompt {
   padding: 12px 15px;
   border-radius: 16px;
-  background: #eaf3ff;
+  background: var(--ae-surface-muted, #eaf3ff);
 }
 .speaking-challenge-detail .speaking-pronunciation {
   padding: 14px 6px;
@@ -285,23 +285,23 @@
 }
 .speaking-challenge-detail .speaking-pronunciation.is-recording {
   border-radius: 18px;
-  background: #fff3ee;
+  background: var(--ae-surface-muted, #fff3ee);
 }
 .speaking-challenge-detail .speaking-pronunciation-mic {
-  border-color: #c9def8;
+  border-color: var(--ae-border, #c9def8);
   box-shadow: 0 9px 0 #173f79, 0 18px 28px rgba(23, 63, 121, 0.18);
 }
 .speaking-challenge-detail .speaking-foundation-letter,
 .speaking-challenge-detail .speaking-foundation-word {
   border-color: #a9c9ee;
-  background: #fff;
+  background: var(--ae-surface, #fff);
   box-shadow: 0 9px 0 #d8e9fa;
 }
 .speaking-challenge-detail .speaking-foundation-intro,
 .speaking-challenge-detail .speaking-foundation-result {
-  border: 2px solid #cbdcf2;
+  border: 2px solid var(--ae-border, #cbdcf2);
   border-radius: 26px;
-  background: linear-gradient(180deg, #f2f8ff, #fff);
+  background: linear-gradient(180deg, #f2f8ff, var(--ae-surface, #fff));
 }
 .speaking-challenge-detail .speaking-question-navigation { width: min(940px, 100%); margin-inline: auto; }
 

@@ -23,7 +23,7 @@
 }
 
 .inputcontainer {
-  color: #103755;
+  color: var(--ae-text, #103755);
   display: flex;
   font-size: 20px;
   font-weight: 600;

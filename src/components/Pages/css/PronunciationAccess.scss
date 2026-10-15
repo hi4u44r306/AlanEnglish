@@ -5,9 +5,9 @@
     gap: 13px;
     margin: 8vh auto 0;
     padding: clamp(28px, 6vw, 52px);
-    border: 1px solid #d7e2f2;
+    border: 1px solid var(--ae-border, #d7e2f2);
     border-radius: 26px;
-    background: #fff;
+    background: var(--ae-surface, #fff);
     box-shadow: 0 18px 48px rgba(23, 48, 91, .1);
     text-align: center;
 
@@ -18,7 +18,7 @@
 
     p {
         max-width: 500px;
-        color: #61708a;
+        color: var(--ae-text-muted, #61708a);
         line-height: 1.75;
     }
 

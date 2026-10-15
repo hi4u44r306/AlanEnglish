@@ -3,14 +3,14 @@
 .basic-reading-page {
   --br-blue: #315bc8;
   --br-blue-dark: #2449a9;
-  --br-ink: #172033;
-  --br-muted: #667085;
-  --br-line: #dfe5f0;
+  --br-ink: var(--ae-text, #172033);
+  --br-muted: var(--ae-text-muted, #667085);
+  --br-line: var(--ae-border, #dfe5f0);
   min-height: 100vh; min-height: 100dvh;
   padding-bottom: calc(156px + env(safe-area-inset-bottom));
   background:
-    radial-gradient(circle at 90% 8%, rgba(49, 91, 200, 0.1), transparent 28%),
-    #f7f9fd;
+    var(--ae-surface, radial-gradient(circle at 90% 8%, rgba(49, 91, 200, 0.1), transparent 28%),
+    #f7f9fd);
   color: var(--br-ink);
   font-family: "Inter", "Noto Sans TC", sans-serif;
 
@@ -36,7 +36,7 @@
   padding: 0 18px;
   border: 1px solid rgba(216, 222, 234, 0.9);
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.94);
+  background: var(--ae-surface-glass, rgba(255, 255, 255, 0.94));
   box-shadow: 0 14px 36px rgba(16, 24, 40, 0.09);
 
   nav {
@@ -51,14 +51,14 @@
     gap: 4px;
     padding: 0 12px;
     border-radius: 12px;
-    color: #475467;
+    color: var(--ae-text-muted, #475467);
     font-size: 13px;
     font-weight: 700;
     white-space: nowrap;
 
     &:hover,
     &:focus-visible {
-      background: #eef3ff;
+      background: var(--ae-surface-muted, #eef3ff);
       color: var(--br-blue-dark);
     }
   }
@@ -95,7 +95,7 @@
 
   h1 {
     margin: 9px 0 8px;
-    color: #101828;
+    color: var(--ae-text, #101828);
     font-size: clamp(28px, 5vw, 44px);
     line-height: 1.15;
     letter-spacing: -0.04em;
@@ -113,14 +113,14 @@
   padding: 28px;
   border: 1px solid var(--br-line);
   border-radius: 18px;
-  background: #fff;
+  background: var(--ae-surface, #fff);
   color: var(--br-muted);
   text-align: center;
 }
 
 .basic-reading-page__state--error {
-  border-color: #fecaca;
-  color: #b42318;
+  border-color: var(--ae-border, #fecaca);
+  color: var(--ae-danger, #b42318);
 }
 
 .basic-reading-page__levels {
@@ -137,7 +137,7 @@
 .basic-reading-page__track-section {
   border: 1px solid var(--br-line);
   border-radius: 20px;
-  background: #fff;
+  background: var(--ae-surface, #fff);
   box-shadow: 0 12px 32px rgba(16, 24, 40, 0.06);
 }
 
@@ -161,10 +161,10 @@
     align-items: center;
     gap: 7px;
     padding: 0 12px;
-    border: 1px solid #d9e0ef;
+    border: 1px solid var(--ae-border, #d9e0ef);
     border-radius: 12px;
-    background: #f9faff;
-    color: #344054;
+    background: var(--ae-surface-muted, #f9faff);
+    color: var(--ae-text-muted, #344054);
     font: inherit;
     font-size: 13px;
     font-weight: 700;
@@ -172,7 +172,7 @@
     cursor: pointer;
 
     small {
-      color: #7a8699;
+      color: var(--ae-text-muted, #7a8699);
       font-size: 11px;
       font-weight: 600;
     }
@@ -183,7 +183,7 @@
       height: 26px;
       place-items: center;
       border-radius: 8px;
-      background: #e5ecff;
+      background: var(--ae-surface-muted, #e5ecff);
       color: var(--br-blue);
       font-size: 15px;
       font-weight: 800;
@@ -193,7 +193,7 @@
     &:focus-visible,
     &.is-active {
       border-color: var(--br-blue);
-      background: #edf2ff;
+      background: var(--ae-surface-muted, #edf2ff);
       color: var(--br-blue-dark);
 
       .basic-reading-page__book-arrow {
@@ -248,10 +248,10 @@
     justify-content: center;
     gap: 6px;
     padding: 0 12px;
-    border: 1px solid #e0e5ef;
+    border: 1px solid var(--ae-border, #e0e5ef);
     border-radius: 11px;
-    background: #fbfcff;
-    color: #344054;
+    background: var(--ae-surface-muted, #fbfcff);
+    color: var(--ae-text-muted, #344054);
     font: inherit;
     font-size: 13px;
     font-weight: 700;
@@ -298,7 +298,7 @@
   padding: 13px 16px;
   border: 1px solid rgba(202, 211, 229, 0.95);
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.97);
+  background: var(--ae-surface-glass, rgba(255, 255, 255, 0.97));
   box-shadow: 0 20px 52px rgba(16, 24, 40, 0.2);
   backdrop-filter: blur(16px);
 
@@ -346,7 +346,7 @@
     padding: 0;
     border: 0;
     border-radius: 50%;
-    background: #edf2ff;
+    background: var(--ae-surface-muted, #edf2ff);
     color: var(--br-blue-dark);
     cursor: pointer;
 
@@ -368,7 +368,7 @@
 }
 
 .basic-reading-player__error {
-  color: #b42318 !important;
+  color: var(--ae-danger, #b42318) !important;
 }
 
 @media (max-width: 800px) {

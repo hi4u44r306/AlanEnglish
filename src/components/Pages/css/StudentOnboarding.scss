@@ -1,8 +1,8 @@
 .student-onboarding-page {
     min-height: 100vh; min-height: 100dvh;
     padding: clamp(24px, 5vw, 56px) 18px 72px;
-    color: #142443;
-    background: linear-gradient(145deg, #eef5ff 0%, #f8fbff 52%, #fff9e8 100%);
+    color: var(--ae-text, #142443);
+    background: var(--ae-surface-muted, linear-gradient(145deg, #eef5ff 0%, #f8fbff 52%, #fff9e8 100%));
 }
 
 .student-onboarding-shell {
@@ -53,25 +53,25 @@
 
 .student-onboarding-message {
     padding: 14px 16px;
-    border: 1px solid #b9d5ff;
+    border: 1px solid var(--ae-border, #b9d5ff);
     border-radius: 14px;
-    color: #1f4b86;
-    background: #eaf3ff;
+    color: var(--ae-accent, #1f4b86);
+    background: var(--ae-surface-muted, #eaf3ff);
     font-weight: 750;
 }
 
-.student-onboarding-message.error { border-color: #f2b9b5; color: #96352f; background: #fff0ef; }
-.student-onboarding-message.success { border-color: #a8ddc3; color: #176542; background: #edf9f3; }
+.student-onboarding-message.error { border-color: var(--ae-border, #f2b9b5); color: var(--ae-danger, #96352f); background: var(--ae-surface-muted, #fff0ef); }
+.student-onboarding-message.success { border-color: #a8ddc3; color: var(--ae-success, #176542); background: var(--ae-surface-muted, #edf9f3); }
 
 .student-onboarding-card {
     padding: clamp(20px, 4vw, 30px);
-    border: 1px solid #dbe5f3;
+    border: 1px solid var(--ae-border, #dbe5f3);
     border-radius: 20px;
-    background: #fff;
+    background: var(--ae-surface, #fff);
     box-shadow: 0 12px 34px rgba(37, 65, 106, .09);
 }
 
-.student-onboarding-card.complete { border-color: #b9e1cc; background: #fbfffd; }
+.student-onboarding-card.complete { border-color: var(--ae-border, #b9e1cc); background: var(--ae-surface-muted, #fbfffd); }
 
 .student-onboarding-card > header {
     display: flex;
@@ -93,29 +93,29 @@
     height: 42px;
     padding: 10px;
     border-radius: 13px;
-    color: #2558a5;
-    background: #eaf2ff;
+    color: var(--ae-accent, #2558a5);
+    background: var(--ae-surface-muted, #eaf2ff);
 }
 
-.student-onboarding-card > header span { color: #667894; font-size: 12px; font-weight: 850; }
+.student-onboarding-card > header span { color: var(--ae-text-muted, #667894); font-size: 12px; font-weight: 850; }
 .student-onboarding-card h2 { margin: 1px 0 0; font-size: clamp(20px, 4vw, 27px); }
-.student-onboarding-card > p { margin: 18px 0 0; color: #53627a; line-height: 1.7; }
+.student-onboarding-card > p { margin: 18px 0 0; color: var(--ae-text-muted, #53627a); line-height: 1.7; }
 
 .student-onboarding-status {
     flex: 0 0 auto;
     padding: 7px 10px;
     border-radius: 999px;
-    color: #61718a;
-    background: #eef2f7;
+    color: var(--ae-text-muted, #61718a);
+    background: var(--ae-surface-muted, #eef2f7);
     font-size: 12px;
     font-weight: 850;
 }
 
-.student-onboarding-status.complete { display: inline-flex; align-items: center; gap: 4px; color: #176542; background: #e5f7ee; }
+.student-onboarding-status.complete { display: inline-flex; align-items: center; gap: 4px; color: var(--ae-success, #176542); background: var(--ae-surface-muted, #e5f7ee); }
 
 .student-onboarding-card form { display: grid; gap: 13px; margin-top: 20px; }
 .student-onboarding-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.student-onboarding-card label { display: grid; gap: 6px; color: #4b5b74; font-weight: 800; }
+.student-onboarding-card label { display: grid; gap: 6px; color: var(--ae-accent, #4b5b74); font-weight: 800; }
 .student-onboarding-card label > span { font-size: 13px; }
 
 .student-onboarding-card input,
@@ -123,11 +123,11 @@
     box-sizing: border-box;
     width: 100%;
     min-height: 48px;
-    border: 1px solid #cbd7e7;
+    border: 1px solid var(--ae-border, #cbd7e7);
     border-radius: 12px;
     padding: 10px 12px;
-    color: #172846;
-    background: #fff;
+    color: var(--ae-text, #172846);
+    background: var(--ae-surface, #fff);
     font: inherit;
     font-size: 16px;
 }
@@ -140,7 +140,7 @@
     outline-offset: 2px;
 }
 
-.student-onboarding-card small { color: #69778d; line-height: 1.6; }
+.student-onboarding-card small { color: var(--ae-text-muted, #69778d); line-height: 1.6; }
 
 .student-onboarding-push > small {
     display: block;
@@ -155,7 +155,7 @@
 }
 
 .student-onboarding-push-skipped {
-    color: #31568f !important;
+    color: var(--ae-accent, #31568f) !important;
     font-weight: 800;
 }
 
@@ -172,10 +172,10 @@
     cursor: pointer;
 }
 
-.student-onboarding-card button.secondary { border: 1px solid #c9d6e8; color: #31568f; background: #fff; }
+.student-onboarding-card button.secondary { border: 1px solid var(--ae-border, #c9d6e8); color: var(--ae-accent, #31568f); background: var(--ae-surface, #fff); }
 .student-onboarding-card button:disabled { opacity: .6; cursor: wait; }
-.student-onboarding-logout { justify-self: center; color: #245fc5; background: #eef5fc; border: 1px solid #adc5e3; }
-.student-onboarding-logout:hover { background: #e1ecfb; border-color: #245fc5; }
+.student-onboarding-logout { justify-self: center; color: var(--ae-accent, #245fc5); background: var(--ae-surface-muted, #eef5fc); border: 1px solid #adc5e3; }
+.student-onboarding-logout:hover { background: var(--ae-surface-muted, #e1ecfb); border-color: #245fc5; }
 
 @media (max-width: 560px) {
     .student-onboarding-page { padding: 14px 12px calc(34px + env(safe-area-inset-bottom)); }
@@ -193,12 +193,12 @@
 
 .student-onboarding-card[hidden] { display: none; }
 .student-onboarding-steps {
-    list-style: none; display: flex; gap: 12px; justify-content: space-between; padding: 4px 0; margin: 0; color: #52647e; font-size: 14px;
+    list-style: none; display: flex; gap: 12px; justify-content: space-between; padding: 4px 0; margin: 0; color: var(--ae-accent, #52647e); font-size: 14px;
     li { display: flex; align-items: center; gap: 6px; }
-    li > span { display: grid; place-items: center; width: 28px; height: 28px; flex-shrink: 0; border: 1px solid #cad7e8; border-radius: 50%; }
-    li[aria-current="step"] { color: #17365d; font-weight: 800; }
+    li > span { display: grid; place-items: center; width: 28px; height: 28px; flex-shrink: 0; border: 1px solid var(--ae-border, #cad7e8); border-radius: 50%; }
+    li[aria-current="step"] { color: var(--ae-text, #17365d); font-weight: 800; }
     li[aria-current="step"] > span { background: #ffdf78; border-color: #ffdf78; }
-    .is-complete { color: #176542; }
+    .is-complete { color: var(--ae-success, #176542); }
 }
 .student-onboarding-hero { box-shadow: none; }
 .student-onboarding-card { box-shadow: none; border-radius: 16px; }

@@ -9,7 +9,7 @@
   padding: max(24px, env(safe-area-inset-top, 0px)) 24px max(24px, env(safe-area-inset-bottom, 0px));
   overflow: hidden;
   background: #19364c;
-  color: #17345e;
+  color: var(--ae-text, #17345e);
 
   &::before {
     content: "";
@@ -43,14 +43,14 @@
   border: 7px solid transparent;
   border-radius: 28px;
   background:
-    linear-gradient(180deg, #fffdf5, #fff8e8) padding-box,
+    var(--ae-surface-muted, linear-gradient(180deg, #fffdf5, #fff8e8) padding-box,)
     repeating-linear-gradient(5deg, #d79a55 0 8px, #b96f34 8px 14px, #cb8748 14px 21px) border-box;
   box-shadow: 0 18px 48px rgba(14, 35, 61, .28);
   text-align: center;
 
   h1 {
     margin: 0;
-    color: #17345e;
+    color: var(--ae-text, #17345e);
     font-family: "Fredoka", "Nunito", "Noto Sans TC", sans-serif;
     font-size: clamp(27px, 6.5vw, 34px);
     font-weight: 900;
@@ -73,7 +73,7 @@
 
 .speaking-mode-loading-card__reference {
   margin: -10px 0 -10px;
-  color: #6f5946;
+  color: var(--ae-warning, #6f5946);
   font-size: 14px;
   line-height: 1.4;
   overflow-wrap: anywhere;
@@ -113,8 +113,8 @@
 }
 
 .speaking-mode-loading-card__copy {
-  p { margin: 0 0 7px; color: #644b35; font-size: 17px; font-weight: 800; line-height: 1.5; }
-  small { color: #85817b; font-size: 14px; }
+  p { margin: 0 0 7px; color: var(--ae-warning, #644b35); font-size: 17px; font-weight: 800; line-height: 1.5; }
+  small { color: var(--ae-text-muted, #85817b); font-size: 14px; }
 }
 
 .speaking-mode-loading-card__return {
@@ -123,7 +123,7 @@
   border: 0;
   border-radius: 10px;
   background: transparent;
-  color: #17345e;
+  color: var(--ae-text, #17345e);
   font: inherit;
   font-size: 16px;
   font-weight: 800;
@@ -161,7 +161,7 @@
     font-size: clamp(23px, 5.5vw, 29px);
     overflow-wrap: anywhere;
 
-    span { color: #2f6ba6; }
+    span { color: var(--ae-accent, #2f6ba6); }
   }
 }
 

@@ -14,12 +14,12 @@
     td {
       padding: 10px;
       text-align: center;
-      border: 1px solid #ddd;
+      border: 1px solid var(--ae-border, #ddd);
     }
   }
 }
 .edit-row {
-  background-color: #f9f9f9;
+  background-color: var(--ae-surface-muted, #f9f9f9);
   .edit-form {
     padding: 10px;
     input {

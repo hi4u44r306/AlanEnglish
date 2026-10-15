@@ -14,4 +14,4 @@
 }
 .team-boss-page .tb-class-adventure .tb-native-battle .tb-native-fighter-name .tb-class-name-button {background:transparent;border:0;padding:0;min-height:44px;width:max-content;max-width:150px;color:inherit;cursor:pointer;box-shadow:none;strong{display:block;box-sizing:border-box;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;} &:focus-visible{outline:3px solid #f0ce78;outline-offset:2px;border-radius:8px;}}
 .tb-native-battle .tb-class-portrait-button {position:absolute;inset:28% 5% 14%;z-index:2;background:transparent;border:0;border-radius:20px;box-shadow:none;cursor:pointer; &:focus-visible{outline:3px solid #f0ce78;}}
-.tb-class-adventure .tb-class-roster-name {min-height:44px;padding:5px 8px;border:1px solid #c4d8e5;border-radius:9px;background:#eef4fa;color:#102338;overflow-wrap:anywhere;cursor:pointer;}
+.tb-class-adventure .tb-class-roster-name {min-height:44px;padding:5px 8px;border:1px solid var(--ae-border, #c4d8e5);border-radius:9px;background:var(--ae-surface-muted, #eef4fa);color:#102338;overflow-wrap:anywhere;cursor:pointer;}

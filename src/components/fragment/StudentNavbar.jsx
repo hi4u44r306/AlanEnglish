@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
+import ThemeSelect from "../../theme/ThemeSelect";
 import { createPortal } from "react-dom";
 import Container from "react-bootstrap/Container";
 import Nav from "react-bootstrap/Nav";
@@ -230,6 +231,7 @@ const StudentNavbar = ({
                     {drawer === "menu" && (
                         <>
                             {settingsLinks}
+                            <div className="ae-theme-menu-row"><span>外觀</span><ThemeSelect /></div>
                             <button type="button" className="ae-student-drawer-logout" onClick={onLogout} disabled={loggingOut}><FiLogOut />{loggingOut ? "登出中..." : "登出"}</button>
                         </>
                     )}

@@ -2,6 +2,8 @@ import React from "react";
 // import ReactDom from 'react-dom';
 import App from './app/App';
 import './index.scss';
+import './theme/theme.scss';
+import { ThemeProvider } from './theme/ThemeContext';
 import { registerServiceWorker } from './pwa/registerServiceWorker';
 // import { createStore } from "redux";
 import reducers from "./reducers/reducer";
@@ -29,7 +31,9 @@ const store = configureStore({
 const root = createRoot(document.getElementById('root'));
 root.render(
     <Provider store={store}>
-        <App />
+        <ThemeProvider>
+            <App />
+        </ThemeProvider>
     </Provider>
 );
 

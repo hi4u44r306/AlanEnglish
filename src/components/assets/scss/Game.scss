@@ -6,7 +6,7 @@
 }
 // Hover word //
 .paragraph-container {
-  background-color: #f0f0f0;
+  background-color: var(--ae-surface-muted, #f0f0f0);
   border-radius: 5px;
   padding: 5px;
   height: 50vh;
@@ -56,8 +56,8 @@
 .wordbox {
   border-radius: 20px;
   padding: 10px;
-  background-color: #fff;
-  border: 1px solid #ccc;
+  background-color: var(--ae-surface, #fff);
+  border: 1px solid var(--ae-border, #ccc);
   box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
   z-index: 99;
 
@@ -118,7 +118,7 @@
   justify-content: center;
   align-items: center;
   align-content: center;
-  color: #000000;
+  color: var(--ae-text, #000000);
   margin: 5px;
   font-family: "Nunito", sans-serif;
   font-weight: 800;
@@ -127,13 +127,13 @@
   background-color: #ffaaaa;
   font-size: var(--small-font);
   padding: 10px 20px;
-  color: #000000;
+  color: var(--ae-text, #000000);
   border-radius: 20px;
   font-family: "Nunito", sans-serif;
   font-weight: 700;
 }
 .題目 {
-  color: #005b7f;
+  color: var(--ae-text, #005b7f);
   display: flex;
   justify-content: center;
   font-family: "Nunito", sans-serif;
@@ -169,7 +169,7 @@
   align-items: center;
   box-shadow: -4px 10px 35px -1px rgba(176, 176, 176, 0.682);
   background-color: #69b469;
-  color: #000000;
+  color: var(--ae-text, #000000);
   border-radius: 20px;
   margin: 10px;
   height: 50px;
@@ -180,8 +180,8 @@
 .recordingbtn {
   box-shadow: -4px 10px 35px -1px rgba(176, 176, 176, 0.682);
   // background-color: #39acff;
-  background-color: #e9f6ff;
-  color: #000000;
+  background-color: var(--ae-surface-muted, #e9f6ff);
+  color: var(--ae-text, #000000);
   border-radius: 20px;
   margin: 10px;
   height: 50px;
@@ -196,7 +196,7 @@
 .stoprecordbtn {
   box-shadow: -4px 10px 35px -1px rgba(176, 176, 176, 0.682);
   background-color: #ffb5b5;
-  color: #000000;
+  color: var(--ae-text, #000000);
   border-radius: 20px;
   margin: 10px;
   height: 50px;
@@ -207,7 +207,7 @@
 .nextquestionbtn {
   box-shadow: -4px 10px 35px -1px rgba(176, 176, 176, 0.682);
   background-color: #ff894e;
-  color: #000000;
+  color: var(--ae-text, #000000);
   border-radius: 20px;
   margin: 10px;
   height: 50px;
@@ -229,7 +229,7 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  // background-color: #edf7ff;
+  // background-color: var(--ae-surface-muted, #edf7ff);
   padding: 20px;
   z-index: 1000;
 }
@@ -246,7 +246,7 @@
   font-size: 30px;
   font-weight: 700;
   padding: 5px;
-  color: #005b7f;
+  color: var(--ae-text, #005b7f);
   text-align: center;
   font-family: "Nunito", sans-serif;
 }
@@ -267,7 +267,7 @@
   font-family: "Nunito", sans-serif;
 }
 .notes {
-  color: #ff0000;
+  color: var(--ae-danger, #ff0000);
   font-weight: 600;
   font-size: var(--small-font);
 }
@@ -291,7 +291,7 @@
   z-index: 1000;
 }
 .gamecontainer {
-  background-color: #ffffff;
+  background-color: var(--ae-surface, #ffffff);
   color: rgb(0, 0, 0);
   width: 80vw;
   min-height: 200px;
@@ -314,7 +314,7 @@
 .deck {
   cursor: pointer;
   border-radius: 20px;
-  background-color: #ffffff;
+  background-color: var(--ae-surface, #ffffff);
   color: black;
   display: flex;
   flex-wrap: wrap;
@@ -383,7 +383,7 @@
 .gamebtn {
   width: 100%;
   font-size: 18px;
-  color: #000000;
+  color: var(--ae-text, #000000);
   background-color: #ffe3c8;
   border-radius: 15px;
   display: flex;

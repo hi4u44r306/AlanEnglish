@@ -13,9 +13,9 @@
   padding: 0;
   border: 1px solid rgba(7, 55, 99, 0.12);
   border-radius: 999px;
-  background: #fff;
+  background: var(--ae-surface, #fff);
   box-shadow: 0 2px 8px rgba(7, 55, 99, 0.14);
-  color: #073763;
+  color: var(--ae-text, #073763);
   font-size: 15px;
   font-weight: 800;
   line-height: 1;
@@ -38,7 +38,7 @@
 
   &:hover,
   &:focus-visible {
-    color: #073763;
+    color: var(--ae-text, #073763);
     text-decoration: none;
   }
 

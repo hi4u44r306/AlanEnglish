@@ -51,6 +51,8 @@
     "test:academy-assignment-v2": "node --test scripts/academy-assignment-v2-contract.test.mjs",
     "test:textbook-speaking-generator": "node --test scripts/textbook-speaking-generator-contract.test.mjs",
     "test:student-social": "node --test scripts/student-social-contract.test.mjs",
+    "test:academy-class-change": "node --test scripts/academy-class-change-sql.test.mjs",
+    "test:departed-activity": "node --experimental-strip-types --test scripts/departed-student-summarize.test.mjs",
     "test:student-avatars": "node --test scripts/student-avatar-presets-contract.test.mjs",
     "test:weekly-report-contracts": "node --experimental-strip-types --test scripts/weekly-report-speaking.test.mjs",
     "test:seo-foundation": "node --test scripts/seo-foundation.test.mjs",

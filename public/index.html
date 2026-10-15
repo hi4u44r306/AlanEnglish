@@ -66,6 +66,18 @@
     ========================================================== -->
 
     <meta name="theme-color" content="#073763" />
+    <script>
+      (function () {
+        try {
+          var choice = localStorage.getItem("ae-theme");
+          var dark = choice === "dark" || ((choice !== "light") && window.matchMedia("(prefers-color-scheme: dark)").matches);
+          var theme = dark ? "dark" : "light";
+          document.documentElement.setAttribute("data-theme", theme);
+          document.documentElement.setAttribute("data-bs-theme", theme);
+          if (dark) document.querySelector('meta[name="theme-color"]').setAttribute("content", "#0b1626");
+        } catch (e) {}
+      })();
+    </script>
 
     <!-- 加入主畫面（PWA）：iOS 全螢幕與啟動畫面 -->
     <meta name="mobile-web-app-capable" content="yes" />

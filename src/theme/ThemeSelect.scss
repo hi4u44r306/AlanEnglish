@@ -1,0 +1,66 @@
+.ae-theme-select {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--ae-border, #d9e2ef);
+  border-radius: 14px;
+  background: var(--ae-surface-muted, #f1f5fb);
+
+  button {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 0 14px;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--ae-text-muted, #667085);
+    font-size: 14px;
+    font-weight: 800;
+    text-transform: none !important;
+    cursor: pointer;
+
+    &.is-active {
+      background: var(--ae-surface, #fff);
+      color: var(--ae-accent, #245fc5);
+      box-shadow: 0 1px 4px rgba(16, 35, 56, 0.18);
+    }
+  }
+}
+
+@media (max-width: 420px) {
+  .ae-theme-select button { padding: 0 10px; font-size: 13px; }
+}
+
+.ae-theme-menu-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 14px 10px;
+
+  > span:first-child {
+    color: var(--ae-text-muted, #667085);
+    font-size: 12px;
+    font-weight: 800;
+  }
+
+  .ae-theme-select { width: 100%; }
+  .ae-theme-select button { flex: 1; padding: 0 6px; }
+}
+
+.student-settings-appearance {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 16px;
+  padding: 16px;
+  border: 1px solid var(--ae-border, #d9e2ef);
+  border-radius: 16px;
+  background: var(--ae-surface, #fff);
+  color: var(--ae-text, #17365d);
+
+  h2 { font-size: 1.05rem; margin: 0; }
+  p { margin: 0; color: var(--ae-text-muted, #667085); font-size: 0.9rem; }
+  .ae-theme-select { justify-self: start; max-width: 100%; }
+}

@@ -4,6 +4,7 @@ import { Navigate, Outlet, Route, Routes, useLocation, useParams } from "react-r
 import Router from "./GuardedBrowserRouter";
 import { Helmet } from "react-helmet";
 import { ToastContainer } from "react-toastify";
+import { useTheme } from "../theme/ThemeContext";
 import "react-toastify/dist/ReactToastify.css";
 import "./App.scss";
 import "./MobileNavFix.scss";
@@ -117,6 +118,7 @@ const AuthenticatedAppLayout = () => (
 );
 
 const App = () => {
+    const { resolved: resolvedTheme } = useTheme();
     return (
         <Router future={APP_ROUTER_FUTURE}>
             <RouteScrollToTop />
@@ -134,6 +136,7 @@ const App = () => {
                     pauseOnFocusLoss={false}
                     draggable
                     pauseOnHover={false}
+                    theme={resolvedTheme}
                 />
 
                 <Helmet>

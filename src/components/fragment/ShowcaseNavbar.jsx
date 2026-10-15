@@ -6,6 +6,7 @@ import { Link, useNavigate } from "react-router-dom";
 import Brand from "./Brand";
 import Menu from "../assets/img/menu.png";
 import "../assets/scss/ShowcaseNavbar.scss";
+import ThemeSelect from "../../theme/ThemeSelect";
 
 function ShowcaseNavbar({ nav1, nav2, nav4 }) {
     const [scrolled, setScrolled] = useState(false);
@@ -118,6 +119,8 @@ function ShowcaseNavbar({ nav1, nav2, nav4 }) {
                                 </Nav.Link>
                             ))}
                         </Nav>
+
+                        <div className="ae-theme-menu-row"><span>外觀</span><ThemeSelect /></div>
 
                         <div className="showcase-navbar-actions">
                             <Link className="showcase-navbar-login" to="/login" onClick={closeMobileMenu}>

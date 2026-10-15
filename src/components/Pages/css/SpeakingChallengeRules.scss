@@ -1,7 +1,7 @@
 .speaking-challenge-rules__intro {
   padding: 22px 22px 0;
-  h2 { margin: 0 0 8px; color: #17366f; font-size: 22px; font-weight: 900; }
-  p { margin: 0; color: #52657e; font-size: 15px; line-height: 1.75; }
+  h2 { margin: 0 0 8px; color: var(--ae-accent, #17366f); font-size: 22px; font-weight: 900; }
+  p { margin: 0; color: var(--ae-accent, #52657e); font-size: 15px; line-height: 1.75; }
 }
 .speaking-challenge-rules .speaking-play-flow {
   display: grid;
@@ -21,7 +21,7 @@
     padding: 12px 8px;
     border: 0;
     border-radius: 16px;
-    background: rgba(255, 255, 255, .8);
+    background: var(--ae-surface-glass, rgba(255, 255, 255, .8));
     text-align: center;
     &::before { content: none; }
     b { font-size: 16px; }
@@ -33,13 +33,13 @@
     width: 42px;
     height: 42px;
     border-radius: 14px;
-    background: #eaf2ff;
-    color: #2b66bd;
+    background: var(--ae-surface-muted, #eaf2ff);
+    color: var(--ae-accent, #2b66bd);
     font-size: 24px;
   }
-  li:nth-child(2) .speaking-play-flow__icon { background: #fff0b8; color: #956800; }
-  li:nth-child(3) .speaking-play-flow__icon { background: #e3f5eb; color: #27805a; }
-  .speaking-play-flow__arrow { position: absolute; right: -20px; top: 35px; color: #8398b2; font-size: 18px; }
+  li:nth-child(2) .speaking-play-flow__icon { background: #fff0b8; color: var(--ae-warning, #956800); }
+  li:nth-child(3) .speaking-play-flow__icon { background: var(--ae-surface-muted, #e3f5eb); color: var(--ae-success, #27805a); }
+  .speaking-play-flow__arrow { position: absolute; right: -20px; top: 35px; color: var(--ae-accent, #8398b2); font-size: 18px; }
 }
 .speaking-challenge-rules__usage {
   display: grid;
@@ -53,16 +53,16 @@
   gap: 8px;
   min-width: 0;
   padding: 18px;
-  border: 1px solid #d5e3f6;
+  border: 1px solid var(--ae-border, #d5e3f6);
   border-radius: 18px;
-  background: #fff;
-  color: #52657e;
-  &__label { display: flex; align-items: center; gap: 8px; color: #234e8c; font-size: 15px; font-weight: 800; }
-  > strong { color: #17366f; font-size: clamp(22px, 3vw, 30px); font-weight: 900; line-height: 1.25; }
+  background: var(--ae-surface, #fff);
+  color: var(--ae-accent, #52657e);
+  &__label { display: flex; align-items: center; gap: 8px; color: var(--ae-accent, #234e8c); font-size: 15px; font-weight: 800; }
+  > strong { color: var(--ae-accent, #17366f); font-size: clamp(22px, 3vw, 30px); font-weight: 900; line-height: 1.25; }
   > span:not(.speaking-usage-card__label) { font-size: 13px; line-height: 1.6; }
   p { margin: 2px 0 0; font-size: 14px; line-height: 1.7; }
-  b { color: #17366f; }
-  &--audio { border-color: #ecd297; background: #fffdf6; }
+  b { color: var(--ae-accent, #17366f); }
+  &--audio { border-color: #ecd297; background: var(--ae-surface-muted, #fffdf6); }
 }
 .speaking-round-slots {
   display: flex;
@@ -74,10 +74,10 @@
     place-items: center;
     width: 44px;
     height: 44px;
-    border: 2px solid #dde3ec;
+    border: 2px solid var(--ae-border, #dde3ec);
     border-radius: 13px;
-    background: #edf0f5;
-    color: #8796aa;
+    background: var(--ae-surface-muted, #edf0f5);
+    color: var(--ae-text-muted, #8796aa);
     font-size: 21px;
   }
   .is-available { border-color: #2b66bd; background: #2b66bd; color: #fff; }
@@ -87,7 +87,7 @@
   height: 20px;
   margin-block: 15px;
   border-radius: 10px;
-  background: #e4e9f1;
+  background: var(--ae-surface-muted, #e4e9f1);
   overflow: hidden;
   > span { display: block; height: 100%; border-radius: inherit; background: #2b66bd; }
   &.is-unknown { border: 1px dashed #b5c0d1; background: transparent; }
@@ -95,19 +95,19 @@
 .speaking-challenge-rules__snapshot,
 .speaking-challenge-rules__notice {
   margin: 0 22px 10px;
-  color: #64748a;
+  color: var(--ae-text-muted, #64748a);
   font-size: 12px;
   line-height: 1.7;
 }
 .speaking-challenge-rules__snapshot svg { margin-right: 5px; vertical-align: -2px; }
-.speaking-challenge-rules__notice { color: #8a5200; font-size: 14px; }
+.speaking-challenge-rules__notice { color: var(--ae-warning, #8a5200); font-size: 14px; }
 .speaking-challenge-rules__tips {
-  border-top: 1px solid #f1dfaa;
+  border-top: 1px solid var(--ae-border, #f1dfaa);
   padding-top: 12px;
-  p { margin: 0 0 9px; color: #52657e; font-size: 14px; line-height: 1.75; }
-  b { color: #17366f; }
+  p { margin: 0 0 9px; color: var(--ae-accent, #52657e); font-size: 14px; line-height: 1.75; }
+  b { color: var(--ae-accent, #17366f); }
 }
-.speaking-challenge-rules__content > small { display: block; color: #64748a; line-height: 1.7; }
+.speaking-challenge-rules__content > small { display: block; color: var(--ae-text-muted, #64748a); line-height: 1.7; }
 .speaking-challenge-rules .speaking-challenge-rules__heading strong { font-size: 17px; }
 .speaking-challenge-rules li span { font-size: 14px; line-height: 1.65; }
 @media (max-width: 760px) {
