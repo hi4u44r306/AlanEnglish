@@ -110,6 +110,32 @@ Deno.serve(async (req: Request) => {
       return json(200, { success: true, at: now });
     }
 
+    // 播放器記錄「放著不動沒回應」「切換頁面暫停」，每週報告用來算專注度。只記學生本人；不影響任何次數、連續天數或獎勵。
+    if (action === "listening_pause") {
+      if (account.role !== "student") return json(200, { success: true, ignored: true });
+      const reason = String(body?.reason || "");
+      if (reason !== "idle" && reason !== "hidden") return json(400, { error: "暫停原因不正確" });
+      const since = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+      const { count } = await admin
+        .from("student_activity_events")
+        .select("id", { count: "exact", head: true })
+        .eq("student_id", account.id)
+        .eq("activity_type", "listening")
+        .like("activity_key", "pause-%")
+        .gte("occurred_at", since);
+      if ((count || 0) >= 120) return json(200, { success: true, ignored: true });
+      const trackId = Number(body?.track_id);
+      const { error: eventError } = await admin.from("student_activity_events").insert({
+        student_id: account.id,
+        activity_type: "listening",
+        activity_key: `pause-${reason}`,
+        metadata: Number.isInteger(trackId) && trackId > 0 ? { track_id: trackId } : {},
+        occurred_at: now
+      });
+      if (eventError) return json(500, { error: "記錄失敗" });
+      return json(200, { success: true });
+    }
+
     if (action === "login") {
       const { error: updateError } = await admin
         .from("students")

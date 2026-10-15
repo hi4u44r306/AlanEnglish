@@ -40,5 +40,6 @@ export default function WeeklyReportStudent({ report }) {
             })}
         </ol>}
         {assigned > 0 && completed != null && <p className="weekly-student__homework"><FiCheckSquare aria-hidden="true" />作業完成 <strong>{completed} / {assigned}</strong></p>}
+        {assigned === 0 && <p className="weekly-student__homework is-none"><FiCheckSquare aria-hidden="true" />這週沒有作業</p>}
     </section>;
 }
