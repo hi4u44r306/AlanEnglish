@@ -28,7 +28,7 @@
     display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 12px !important; box-sizing: border-box;
     @media (min-width: 768px) { position: static !important; width: min(720px, 100%) !important; max-width: 720px !important; margin: 16px auto 0 !important; padding: 0 !important; }
     button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 52px; border: 1px solid var(--ae-border, #d5e3f0); border-radius: 16px; background: var(--ae-surface, #fff); color: var(--ae-text, #17365d); font: inherit; font-size: 18px; font-weight: 800; cursor: pointer; }
-    button.primary { border-color: #f1c93d; background: #ffd84d; }
+    button.primary { border-color: #f1c93d; background: var(--ae-surface-muted, #ffd84d); }
     button:disabled { opacity: .45; cursor: default; }
   }
   button { min-height: 44px; }

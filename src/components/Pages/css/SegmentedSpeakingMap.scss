@@ -64,7 +64,7 @@
       border: 1.7cqw solid #a96f3b;
       outline: 0;
       border-radius: 50%;
-      background: #a1a9ad;
+      background: var(--ae-surface-muted, #a1a9ad);
       color: var(--ae-text, #17345e);
       box-shadow: inset 0 0 0 .55cqw #efbe7b, 0 3px 0 #714723, 0 5px 8px #243c3426;
       padding: .5cqw;
@@ -77,7 +77,7 @@
       transform: none;
     }
     &.is-multiline-label .speaking-challenge-lesson__number { white-space: pre-line; font-size: 3.65cqw; }
-    &.is-current .speaking-challenge-lesson__number { background: #ffda4b; color: var(--ae-text, #17345e); }
+    &.is-current .speaking-challenge-lesson__number { background: var(--ae-surface-muted, #ffda4b); color: var(--ae-text, #17345e); }
     &.is-completed .speaking-challenge-lesson__number { background: #58e347; color: var(--ae-success, #123b23); }
     &:focus-visible { outline: 3px solid var(--ae-surface, #fff); outline-offset: 5px; border-radius: 50%; }
     &:hover .speaking-challenge-lesson__number { transform: none; filter: brightness(1.04); }

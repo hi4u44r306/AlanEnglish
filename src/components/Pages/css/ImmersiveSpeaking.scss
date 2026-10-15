@@ -1,6 +1,6 @@
 // The Workbook cards and A-Z rounds deliberately keep their existing styles.
 .speaking-challenge-page.is-book-open {
-  background: #10233e;
+  background: var(--ae-solid, #10233e);
 }
 
 .speaking-challenge-page.is-book-open .speaking-book-toolbar {
@@ -24,7 +24,7 @@
 .speaking-adventure-route .speaking-map-chapter {
   border: 3px solid #e2c888;
   border-radius: 26px;
-  background: #173d4c;
+  background: var(--ae-solid, #173d4c);
   box-shadow: 0 22px 46px rgba(1, 9, 23, .42);
 }
 .speaking-adventure-route .speaking-map-canvas {
@@ -78,7 +78,7 @@
   height: 24px;
   border: 2px solid var(--ae-surface, #fff);
   border-radius: 50%;
-  background: #1d3854;
+  background: var(--ae-solid, #1d3854);
   color: #fff;
   font-size: 13px;
 }
@@ -92,7 +92,7 @@
   padding: 28px;
   border: 3px solid #efce7d;
   border-radius: 28px;
-  background: radial-gradient(circle at 90% 5%, rgba(255,212,116,.2), transparent 30%), linear-gradient(160deg, #213d5a, #0d203d 70%);
+  background: var(--ae-solid, radial-gradient(circle at 90% 5%, rgba(255,212,116,.2), transparent 30%), linear-gradient(160deg, #213d5a, #0d203d 70%));
   color: #fff;
   box-shadow: 0 10px 0 #6f4c29, 0 30px 75px rgba(0,0,0,.55);
   text-align: center;
@@ -108,7 +108,7 @@
 .speaking-level-dialog__locked { color: #ffe0a4; font-weight: 850; }
 .speaking-level-dialog__close { background: rgba(255,255,255,.14); color: #fff; }
 .speaking-level-dialog__actions { justify-content: center; }
-.speaking-level-dialog__actions button { flex: 1 1 155px; min-height: 52px; border: 2px solid #a6b8cf; background: #294563; color: #fff; }
+.speaking-level-dialog__actions button { flex: 1 1 155px; min-height: 52px; border: 2px solid #a6b8cf; background: var(--ae-solid, #294563); color: #fff; }
 .speaking-level-dialog__actions button.primary { border-color: var(--ae-border, #ffe69b); background: linear-gradient(#ffd864, #f7a92f); color: var(--ae-warning, #3a2a15); box-shadow: 0 4px 0 #a86122; }
 .speaking-level-dialog__actions button:disabled { opacity: .55; box-shadow: none; cursor: not-allowed; }
 
@@ -119,7 +119,7 @@
 }
 .speaking-immersive-play .speaking-lesson-header {
   border: 2px solid #e6c17c;
-  background: linear-gradient(115deg, #294d66, #142b4a 70%);
+  background: var(--ae-solid, linear-gradient(115deg, #294d66, #142b4a 70%));
   box-shadow: 0 7px 0 #745432, 0 18px 32px rgba(0,0,0,.27);
 }
 .speaking-immersive-play .speaking-lesson-heading h1 { color: #fff; }
@@ -127,7 +127,7 @@
 .speaking-immersive-play .speaking-foundation-intro,
 .speaking-immersive-play .speaking-foundation-result {
   border: 3px solid #f0d79b;
-  background: radial-gradient(circle at 90% 0%, rgba(248,216,148,.13), transparent 36%), linear-gradient(#203e5d, #112841);
+  background: var(--ae-solid, radial-gradient(circle at 90% 0%, rgba(248,216,148,.13), transparent 36%), linear-gradient(#203e5d, #112841));
   color: #fff;
   box-shadow: 0 8px 0 #6d512f, 0 20px 42px rgba(0,0,0,.27);
 }
@@ -154,14 +154,14 @@
 .speaking-immersive-play .speaking-foundation-result h1,
 .speaking-immersive-play .speaking-foundation-result p { color: #fff; }
 .speaking-immersive-play .speaking-question-number,
-.speaking-immersive-play .speaking-foundation-count { background: #ffc653; color: var(--ae-warning, #3e2c1a); }
+.speaking-immersive-play .speaking-foundation-count { background: var(--ae-surface-muted, #ffc653); color: var(--ae-warning, #3e2c1a); }
 .speaking-immersive-play .speaking-direct-prompt { border: 1px solid rgba(147,212,251,.5); background: rgba(20,93,140,.42); color: #fff; }
 .speaking-immersive-play .speaking-direct-prompt strong,
 .speaking-immersive-play .speaking-direct-prompt p,
 .speaking-immersive-play .speaking-direct-prompt span { color: #fff; }
-.speaking-immersive-play .speaking-direct-prompt > svg { background: #ffcb60; color: var(--ae-text, #37334a); }
+.speaking-immersive-play .speaking-direct-prompt > svg { background: var(--ae-surface-muted, #ffcb60); color: var(--ae-text, #37334a); }
 .speaking-immersive-play .speaking-practice-flow { width: min(680px, 100%); margin-inline: auto; }
-.speaking-immersive-play .speaking-help-toggle { justify-self: end; border: 1px solid #a8c6df; background: #294f70; color: #fff; }
+.speaking-immersive-play .speaking-help-toggle { justify-self: end; border: 1px solid #a8c6df; background: var(--ae-solid, #294f70); color: #fff; }
 .speaking-immersive-play .speaking-help-panel { border-left: 4px solid #ffd16a; background: var(--ae-surface-muted, #eaf4ff); color: var(--ae-text, #233955); }
 .speaking-immersive-play .speaking-pronunciation { border-radius: 20px; background: rgba(255,255,255,.08); color: #fff; }
 .speaking-immersive-play .speaking-pronunciation.is-recording { background: rgba(255,102,81,.17); }
@@ -171,7 +171,7 @@
 .speaking-immersive-play .speaking-pronunciation-result > header span { color: #d9e8f5; }
 .speaking-immersive-play .speaking-pronunciation-result > header strong { color: #fff; }
 .speaking-immersive-play .speaking-pronunciation-mic { border: 4px solid var(--ae-border, #fff1b7); background: linear-gradient(#ffcf5f, #f18338); color: var(--ae-text, #303553); box-shadow: 0 8px 0 #a35326, 0 18px 30px rgba(0,0,0,.32); }
-.speaking-immersive-play .speaking-pronunciation button:not(.speaking-pronunciation-mic) { min-height: 48px; border: 2px solid var(--ae-border, #a7d5f7); background: #2a659b; color: #fff; }
+.speaking-immersive-play .speaking-pronunciation button:not(.speaking-pronunciation-mic) { min-height: 48px; border: 2px solid var(--ae-border, #a7d5f7); background: var(--ae-solid, #2a659b); color: #fff; }
 .speaking-immersive-play .speaking-pronunciation button.secondary { border-color: var(--ae-border, #d3e7f4); background: var(--ae-surface, #fff); color: var(--ae-accent, #224d77); }
 .speaking-immersive-play .speaking-recording-preview > div { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .speaking-immersive-play .speaking-recording-preview > div button { width: 100%; }
@@ -206,7 +206,7 @@
 }
 
 // Reference artwork: the scenery and trail are one canvas; live levels stay in the DOM.
-.speaking-challenge-page.is-book-open { padding-top: 0; background: #a8daf7; }
+.speaking-challenge-page.is-book-open { padding-top: 0; background: var(--ae-surface-muted, #a8daf7); }
 .speaking-challenge-page.is-book-open .speaking-book-toolbar {
   top: max(8px, env(safe-area-inset-top, 0px));
   width: min(550px, 100%);
@@ -252,8 +252,8 @@
 .speaking-challenge-page.is-book-open .speaking-book-toolbar__progress span { color: #ffe9c7; }
 .speaking-challenge-page.is-book-open .speaking-challenge-grid { width: min(550px, 100%); padding-top: 0; }
 .speaking-challenge-page.is-book-open .speaking-adventure-route { padding: 0; gap: 0; }
-.speaking-adventure-route .speaking-map-chapter { border: 0; border-radius: 0; background: #a8daf7; box-shadow: none; }
-.speaking-adventure-route .speaking-map-canvas { background: #8dc7ec url("../assets/speaking-map/adventure-islands.png") center / 100% 100% no-repeat; }
+.speaking-adventure-route .speaking-map-chapter { border: 0; border-radius: 0; background: var(--ae-surface-muted, #a8daf7); box-shadow: none; }
+.speaking-adventure-route .speaking-map-canvas { background: var(--ae-surface-muted, #8dc7ec) url("../assets/speaking-map/adventure-islands.png") center / 100% 100% no-repeat; }
 .speaking-adventure-route .speaking-map-canvas::after { display: none; }
 .speaking-adventure-route .speaking-challenge-lesson { top: calc(var(--map-y) - 38px); width: 76px; min-height: 76px; }
 .speaking-adventure-route .speaking-challenge-lesson__number {
@@ -310,7 +310,7 @@
 .speaking-immersive-play .speaking-lesson-progress > div:first-child,
 .speaking-immersive-play .speaking-lesson-progress strong { color: #fff; text-shadow: 0 2px 2px rgba(54, 27, 13, .45); }
 .speaking-immersive-play .speaking-lesson-heading h1 { font-size: clamp(16px, 2.5vw, 22px); }
-.speaking-immersive-play .speaking-progress-track { background: #e7bc8d; }
+.speaking-immersive-play .speaking-progress-track { background: var(--ae-surface-muted, #e7bc8d); }
 .speaking-immersive-play .speaking-progress-track span { background: linear-gradient(90deg, #ffea7d, #ffbc2a); }
 .speaking-immersive-play .speaking-lesson-reward { display: none; }
 .speaking-immersive-play .speaking-question-stage { max-width: 790px; }
@@ -331,7 +331,7 @@
 .speaking-immersive-play .speaking-foundation-result h1 { color: var(--ae-text, #18376b); }
 .speaking-immersive-play .speaking-foundation-intro p,
 .speaking-immersive-play .speaking-foundation-result p { color: var(--ae-accent, #536780); }
-.speaking-immersive-play .speaking-foundation-count { background: #f9df8d; color: var(--ae-warning, #563e13); }
+.speaking-immersive-play .speaking-foundation-count { background: var(--ae-surface-muted, #f9df8d); color: var(--ae-warning, #563e13); }
 .speaking-immersive-play .speaking-picture-card .speaking-gap-sentence { font-size: clamp(17px, 3vw, 23px); }
 .speaking-immersive-play .speaking-direct-prompt { border: 2px solid var(--ae-border, #e7f4ff); background: var(--ae-surface-glass, rgba(255, 255, 255, .94)); color: var(--ae-text, #203b69); }
 .speaking-immersive-play .speaking-direct-prompt strong,
@@ -348,7 +348,7 @@
 .speaking-immersive-play .speaking-recording-heading,
 .speaking-immersive-play .speaking-recording-privacy { padding: 4px 0; background: transparent; }
 .speaking-immersive-play .speaking-pronunciation .speaking-pronunciation-mic { display: flex; flex-direction: column; gap: 2px; justify-content: center; width: 98px; min-width: 98px; min-height: 98px; padding: 8px; border: 6px solid #ffe268; border-radius: 50%; background: linear-gradient(#2d9bff, #0751c8); color: #fff; box-shadow: inset 0 -4px #114aac, 0 6px 0 #e39e24, 0 14px 22px rgba(33, 64, 117, .3); }
-.speaking-immersive-play .speaking-pronunciation.is-recording .speaking-pronunciation-mic { background: #e96354; }
+.speaking-immersive-play .speaking-pronunciation.is-recording .speaking-pronunciation-mic { background: var(--ae-surface-muted, #e96354); }
 .speaking-immersive-play .speaking-pronunciation.is-recording.has-voice .speaking-pronunciation-mic { background: #25a86f; }
 .speaking-immersive-play .speaking-pronunciation-mic svg { font-size: 27px; }
 .speaking-immersive-play .speaking-pronunciation-mic span { font-size: 10px; line-height: 1.2; }
@@ -498,7 +498,7 @@ body.speaking-game-world-active .speaking-challenge-page.is-book-open { width: 1
   width: min(760px, 100%);
   height: auto;
   aspect-ratio: var(--map-aspect-ratio, 941 / 1672);
-  background: #78b9d5 url("../assets/speaking-map/storybook-adventure-map-v2.webp") center / 100% 100% no-repeat;
+  background: var(--ae-surface-muted, #78b9d5) url("../assets/speaking-map/storybook-adventure-map-v2.webp") center / 100% 100% no-repeat;
   box-shadow: 0 0 32px rgba(7, 20, 39, .45);
 }
 .speaking-adventure-route .speaking-map-book-sign {
@@ -569,7 +569,7 @@ body.speaking-game-world-active .speaking-challenge-page.is-book-open { width: 1
 .speaking-adventure-route .speaking-challenge-lesson.is-wide-label .speaking-challenge-lesson__number { width: 100%; min-width: 100%; border-radius: 999px; font-size: clamp(11px, 1.6vw, 14px); }
 .speaking-adventure-route .speaking-challenge-lesson.is-current .speaking-challenge-lesson__number {
   border-color: #a76435;
-  background: #ffd247;
+  background: var(--ae-surface-muted, #ffd247);
   color: var(--ae-text, #17345e);
   box-shadow: 0 4px 0 #704326, 0 7px 12px rgba(38, 42, 45, .2);
 }
@@ -877,7 +877,7 @@ body.speaking-game-world-active .speaking-challenge-page.is-book-open { width: 1
   width: 22px;
   height: 22px;
   border: 2px solid var(--ae-surface, #fff);
-  background: #415571;
+  background: var(--ae-solid, #415571);
 }
 .speaking-adventure-route .speaking-challenge-lesson.is-completed .speaking-challenge-lesson__state { background: #23834b; }
 .speaking-challenge-lesson__padlock {
@@ -988,7 +988,7 @@ body.speaking-game-world-active .speaking-challenge-page.is-book-open { width: 1
   width: 62px;
   height: 62px;
   border: 3px solid var(--ae-border, #fff2c5);
-  background: #f7b84b;
+  background: var(--ae-surface-muted, #f7b84b);
   color: var(--ae-warning, #5b391e);
   box-shadow: 0 3px 0 #a7652d;
   font-size: 29px;
@@ -1107,13 +1107,13 @@ body.speaking-game-world-active .speaking-challenge-page.is-book-open { width: 1
 
 .speaking-level-dialog__actions button.is-easy {
   border-color: #e9ae39;
-  background: #ffc950;
+  background: var(--ae-surface-muted, #ffc950);
   color: var(--ae-warning, #493415);
 }
 
 .speaking-level-dialog__actions button.is-challenge {
   border-color: #245ba8;
-  background: #2f73c8;
+  background: var(--ae-solid, #2f73c8);
   color: #fff;
 }
 
@@ -1193,11 +1193,11 @@ body.speaking-game-world-active .speaking-challenge-page.is-book-open { width: 1
 
 .speaking-immersive-play .speaking-progress-track {
   height: 5px;
-  background: #d9b78d;
+  background: var(--ae-surface-muted, #d9b78d);
 }
 
 .speaking-immersive-play .speaking-progress-track span {
-  background: #ffd45d;
+  background: var(--ae-surface-muted, #ffd45d);
 }
 
 .speaking-immersive-play .speaking-question-stage {
@@ -1258,7 +1258,7 @@ body.speaking-game-world-active .speaking-challenge-page.is-book-open { width: 1
   min-height: 26px;
   padding: 4px 10px;
   border-radius: 999px;
-  background: #ffdd79;
+  background: var(--ae-surface-muted, #ffdd79);
   color: var(--ae-warning, #5d4216);
   font-size: 11px;
 }
@@ -1320,7 +1320,7 @@ body.speaking-game-world-active .speaking-challenge-page.is-book-open { width: 1
   width: 30px;
   height: 30px;
   padding: 7px;
-  background: #ffdd79;
+  background: var(--ae-surface-muted, #ffdd79);
   color: var(--ae-warning, #5b421b);
 }
 
@@ -1388,7 +1388,7 @@ body.speaking-game-world-active .speaking-challenge-page.is-book-open { width: 1
   min-height: 74px;
   padding: 6px;
   border: 4px solid #ffd45d;
-  background: #2574cf;
+  background: var(--ae-solid, #2574cf);
   color: #fff;
   box-shadow: none;
 }
@@ -1522,7 +1522,7 @@ body.speaking-game-world-active .speaking-challenge-page.is-book-open { width: 1
   height: 56px;
   padding: 13px;
   border-radius: 16px;
-  background: #2f73c8;
+  background: var(--ae-solid, #2f73c8);
   box-shadow: none;
   font-size: 30px;
 }
@@ -1544,7 +1544,7 @@ body.speaking-game-world-active .speaking-challenge-page.is-book-open { width: 1
 .speaking-picture-page .speaking-foundation-actions button.primary {
   min-height: 48px;
   border: 1px solid #e3aa36;
-  background: #ffc950;
+  background: var(--ae-surface-muted, #ffc950);
   color: var(--ae-warning, #493415);
   box-shadow: none;
 }
@@ -1553,7 +1553,7 @@ body.speaking-game-world-active .speaking-challenge-page.is-book-open { width: 1
   min-height: 26px;
   padding: 4px 10px;
   border-radius: 999px;
-  background: #ffdd79;
+  background: var(--ae-surface-muted, #ffdd79);
   color: var(--ae-warning, #5d4216);
   font-size: 11px;
 }

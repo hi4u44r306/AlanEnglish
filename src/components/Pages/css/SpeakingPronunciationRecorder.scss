@@ -18,7 +18,7 @@
   color: var(--ae-accent, #254c77);
   text-align: center;
   p { margin: 6px 0; }
-  button { min-height: 44px; padding: 8px 18px; border: 0; border-radius: 10px; background: #326cb8; color: white; font-weight: 800; }
+  button { min-height: 44px; padding: 8px 18px; border: 0; border-radius: 10px; background: var(--ae-solid, #326cb8); color: white; font-weight: 800; }
 }
 
 .speaking-recording-heading { display: grid; gap: 5px; }
@@ -49,7 +49,7 @@
   padding: 16px;
   border: 9px solid var(--ae-border, #dbe8fa);
   border-radius: 50%;
-  background: #2b66bd;
+  background: var(--ae-solid, #2b66bd);
   color: #fff;
   box-shadow: 0 5px 14px rgba(43, 102, 189, .18);
   cursor: pointer;
@@ -61,7 +61,7 @@
 .speaking-pronunciation.is-recording { border-color: #f2a696; background: var(--ae-surface-muted, #fff6f4); }
 .speaking-pronunciation.is-recording .speaking-pronunciation-mic {
   border-color: var(--ae-border, #ffd8d1);
-  background: #e86655;
+  background: var(--ae-surface-muted, #e86655);
   box-shadow: 0 0 0 10px rgba(232, 102, 85, .12), 0 14px 28px rgba(160, 54, 40, .2);
   animation: speaking-recording-pulse 1.4s ease-in-out infinite;
 }
@@ -89,7 +89,7 @@
   padding: 10px 16px;
   border: 0;
   border-radius: 12px;
-  background: #2b66bd;
+  background: var(--ae-solid, #2b66bd);
   color: #fff;
   font-weight: 900;
   cursor: pointer;

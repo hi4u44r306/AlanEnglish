@@ -8,7 +8,7 @@
   min-height: 100dvh;
   padding: max(24px, env(safe-area-inset-top, 0px)) 24px max(24px, env(safe-area-inset-bottom, 0px));
   overflow: hidden;
-  background: #19364c;
+  background: var(--ae-solid, #19364c);
   color: var(--ae-text, #17345e);
 
   &::before {
@@ -87,7 +87,7 @@
   overflow: hidden;
   border: 1px solid #dfcba6;
   border-radius: 999px;
-  background: #eee2c8;
+  background: var(--ae-surface-muted, #eee2c8);
   box-shadow: inset 0 2px 4px rgba(105, 75, 35, .12), 0 1px 0 #fff;
 
   span {
@@ -129,7 +129,7 @@
   font-weight: 800;
   cursor: pointer;
 
-  &:hover { background: #f4e8d0; }
+  &:hover { background: var(--ae-surface-muted, #f4e8d0); }
   &:focus-visible { outline: 3px solid #2f73c8; outline-offset: 3px; }
 }
 

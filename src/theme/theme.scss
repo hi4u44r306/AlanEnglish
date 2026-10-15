@@ -11,15 +11,17 @@
   --ae-surface-glass: rgba(28, 28, 30, 0.94);
   --ae-text: #ececec;
   --ae-text-muted: #a1a1aa;
-  --ae-accent: #7cb4ff;
+  --ae-accent: #f0f0f0;
   --ae-success: #5fd3a0;
   --ae-danger: #ff8a80;
   --ae-warning: #f0c75e;
   --ae-border: #3a3a3d;
+  --ae-solid: #2e2e31;
+  --ae-icon: #6ea8fe;
   color-scheme: dark;
 }
 
-:root[data-theme='dark'] body {
+:root[data-theme='dark'] body:not(.speaking-challenge-active):not(.sr-immersive) {
   background: var(--ae-page);
   color: var(--ae-text);
 }
@@ -39,7 +41,63 @@
 }
 
 /* 頁面底色比卡片更深，卡片才浮得起來。 */
-:root[data-theme='dark'] .app-shell,
-:root[data-theme='dark'] .management-page {
+:root[data-theme='dark'] body:not(.speaking-challenge-active):not(.sr-immersive) .app-shell,
+:root[data-theme='dark'] body:not(.speaking-challenge-active):not(.sr-immersive) .management-page {
   background: var(--ae-page);
+}
+
+/* 口說大挑戰（有場景美術的遊戲畫面）維持原本設計：把色票還原，各處就會用原本的色碼。 */
+:root[data-theme='dark'] body.speaking-challenge-active,
+:root[data-theme='dark'] body.sr-immersive {
+  --ae-page: initial;
+  --ae-surface: initial;
+  --ae-surface-muted: initial;
+  --ae-surface-glass: initial;
+  --ae-text: initial;
+  --ae-text-muted: initial;
+  --ae-accent: initial;
+  --ae-success: initial;
+  --ae-danger: initial;
+  --ae-warning: initial;
+  --ae-border: initial;
+  --ae-solid: initial;
+  color-scheme: light;
+}
+
+/* Bootstrap 的關閉按鈕（X）預設是黑色圖示，深色時換成白色圖示（不能用 filter，會連按鈕底色一起反白）。 */
+:root[data-theme='dark'] .btn-close,
+:root[data-theme='dark'] .offcanvas-header .btn-close {
+  filter: none !important;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23fff'%3e%3cpath d='M.293.293a1 1 0 0 1 1.414 0L8 6.586 14.293.293a1 1 0 1 1 1.414 1.414L9.414 8l6.293 6.293a1 1 0 0 1-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 0 1-1.414-1.414L6.586 8 .293 1.707a1 1 0 0 1 0-1.414z'/%3e%3c/svg%3e") !important;
+}
+
+/* 圖示保留顏色（像 iPhone 的深色模式）：色塊用同色系的半透明底，圖示用亮一階的同色。 */
+:root[data-theme='dark'] .ae-student-menu-tile.is-blue { background: rgba(110, 168, 254, 0.18); color: #7db4ff; }
+:root[data-theme='dark'] .ae-student-menu-tile.is-yellow { background: rgba(255, 216, 77, 0.18); color: #ffd84d; }
+:root[data-theme='dark'] .ae-student-menu-tile.is-navy { background: rgba(159, 178, 203, 0.18); color: #b9c7da; }
+:root[data-theme='dark'] .ae-student-menu-tile.is-green { background: rgba(95, 211, 160, 0.18); color: #5fd3a0; }
+:root[data-theme='dark'] .ae-student-menu-tile.is-orange { background: rgba(255, 159, 107, 0.18); color: #ff9f6b; }
+:root[data-theme='dark'] .ae-student-menu-tile.is-purple { background: rgba(183, 156, 245, 0.18); color: #b79cf5; }
+:root[data-theme='dark'] .ae-mobile-brand-mark { background: #ffd84d !important; color: #17233f !important; }
+:root[data-theme='dark'] .ae-mobile-avatar { background: rgba(110, 168, 254, 0.18) !important; color: #7db4ff !important; }
+:root[data-theme='dark'] .ae-mobile-section > a.active { background: rgba(255, 216, 77, 0.14) !important; }
+
+/* 導覽列按鈕圖示保留顏色。 */
+:root[data-theme='dark'] .ae-student-nav-icon { background: rgba(110, 168, 254, 0.18); color: #7db4ff; }
+:root[data-theme='dark'] .ae-student-nav-icon.is-books { background: rgba(80, 196, 230, 0.18); color: #5fc9e8; }
+:root[data-theme='dark'] .ae-student-nav-icon.is-adventure { background: rgba(255, 216, 77, 0.18); color: #ffd84d; }
+:root[data-theme='dark'] .ae-student-nav-icon.is-profile { background: rgba(255, 216, 77, 0.18); color: #ffd84d; }
+:root[data-theme='dark'] .ae-student-bottom-nav .active .ae-student-nav-icon,
+:root[data-theme='dark'] .ae-student-desktop-nav .active .ae-student-nav-icon { background: #ffd84d; color: #17233f; }
+:root[data-theme='dark'] .ae-nav-inline svg,
+:root[data-theme='dark'] .ae-desktop-help svg,
+:root[data-theme='dark'] .ae-dropdown-item svg,
+:root[data-theme='dark'] .ae-mobile-section > a svg,
+:root[data-theme='dark'] .ae-mobile-section > button svg { color: #6ea8fe; }
+:root[data-theme='dark'] .ae-dropdown-item.logout svg,
+:root[data-theme='dark'] .ae-mobile-logout svg { color: #ff8a80; }
+
+/* 「接下來」橫幅右側的地圖插圖：深色時用深色漸層淡出，讓插圖保留。 */
+:root[data-theme='dark'] .student-progress__next::after {
+  background: linear-gradient(90deg, #262628 0%, #262628 44%, rgba(38, 38, 40, 0.9) 62%, rgba(38, 38, 40, 0.35) 100%);
 }
