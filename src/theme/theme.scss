@@ -7,7 +7,7 @@
 :root[data-theme='dark'] {
   --ae-page: #0b1626;
   --ae-surface: #12233a;
-  --ae-surface-muted: #182d48;
+  --ae-surface-muted: var(--ae-text-muted, #182d48);
   --ae-surface-glass: rgba(18, 35, 58, 0.94);
   --ae-text: #e6edf7;
   --ae-text-muted: #9fb2cb;

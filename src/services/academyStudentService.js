@@ -212,6 +212,11 @@ export const changeAcademyStudentClass = async (firebaseUser, { studentId, class
     )
 );
 
+// 管理員查看離校生是否回來登入（唯讀）。departed-student-activity 會重新確認管理員身分。
+export const loadDepartedStudentActivity = async firebaseUser => (
+    callEdgeFunction("departed-student-activity", firebaseUser, {})
+);
+
 export const createAcademyInvitation = async (
     firebaseUser,
     student
@@ -403,7 +408,8 @@ const academyStudentService = {
     deleteAcademyInvitation,
     sendAcademyPasswordReset,
     markAcademyPasswordChanged,
-    changeAcademyStudentClass
+    changeAcademyStudentClass,
+    loadDepartedStudentActivity
 };
 
 export default academyStudentService;
