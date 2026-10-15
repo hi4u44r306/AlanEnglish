@@ -1,5 +1,14 @@
 # Alan English 專案狀態
 
+### 問題回報（網站出問題時自動跳出並回報）（2026-10-15，分支 `feat/system-problem-report`；後端已部署，前端尚未部署）
+
+- 設計經審查代理（唯讀）檢查後調整：不新增資料表／migration，重用 `support_tickets`（category `other`、主旨前綴「【系統回報】」、`priority` 崩潰與載入失敗為 urgent）。
+- 後端：`support-manager` 於 2026-10-15 經擁有者同意部署為 v38（verify_jwt=false 不變）。新增 `system_report`：身分只信任 token 驗證後查到的學生資料（前端傳的姓名、信箱忽略；查不到學生一律匿名，用占位信箱）；診斷資訊清理（JWT、Bearer、簽名網址、email、長字串；只留路徑、堆疊前 5 行）；去重（report_id、同人同錯誤 1 小時內未結案）；三層限流（登入者 3／小時、匿名 20／小時、全站 60／小時）；一般客服表單拒絕冒用前綴，且計數排除系統回報；`list` 加 `kind` 篩選。線上 Netlify 測試網址已從允許來源移除（本來已停用）。
+- 部署後驗證：冒用前綴被拒（400）、匿名回報成功並正確忽略冒充的姓名／信箱、token 與 email 被遮蔽、同一 report_id 重送回傳既有案件、未登入 list 401、非允許來源 403。測試留下兩筆案件（#2、#3），已標示為已關閉。
+- 前端：`src/systemReport/`（錯誤邊界、對話框、重整次數保護、待補送回報、捲動位置還原、載入失敗偵測與新版本自動重整一次）；`index.js` 外層邊界＋`App.jsx` 內層邊界（換頁自動清除）；`AdminSupport` 加兩個分頁與緊急標記。
+- 驗證：`npm run test:system-report`（後端清理邏輯 9 項）、`src/systemReport` 元件測試 14 項通過；`CI=true npm run build` 成功；本機觸發載入失敗後，淺色與深色對話框顯示正常。
+- 不做／第二階段：「連續服務失敗」提示條、離線偵測進階處理；後端故障時刻意不提供重新整理（`AuthContext` 取不到使用者資料會登出）。
+
 ### 公開首頁固定淺色（2026-10-15，分支 `feat/landing-always-light`，尚未部署）
 
 - 擁有者要求根目錄維持淺色較專業。`useForcedLightTheme()`（`src/theme/ThemeContext.jsx`）讓 `Showcase` 顯示期間固定淺色、離開後恢復使用者選擇；`public/index.html` 開機前腳本對 `/`、`/showcase` 直接用淺色避免閃黑；首頁選單移除外觀選項。

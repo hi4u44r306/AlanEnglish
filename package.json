@@ -52,6 +52,7 @@
     "test:textbook-speaking-generator": "node --test scripts/textbook-speaking-generator-contract.test.mjs",
     "test:student-social": "node --test scripts/student-social-contract.test.mjs",
     "test:academy-class-change": "node --test scripts/academy-class-change-sql.test.mjs",
+    "test:system-report": "node --experimental-strip-types --test scripts/system-report.test.mjs",
     "test:departed-activity": "node --experimental-strip-types --test scripts/departed-student-summarize.test.mjs",
     "test:student-avatars": "node --test scripts/student-avatar-presets-contract.test.mjs",
     "test:weekly-report-contracts": "node --experimental-strip-types --test scripts/weekly-report-speaking.test.mjs",
