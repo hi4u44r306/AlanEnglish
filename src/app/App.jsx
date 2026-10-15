@@ -5,6 +5,7 @@ import Router from "./GuardedBrowserRouter";
 import { Helmet } from "react-helmet";
 import { ToastContainer } from "react-toastify";
 import { useTheme } from "../theme/ThemeContext";
+import RouteErrorBoundary from "../systemReport/RouteErrorBoundary";
 import "react-toastify/dist/ReactToastify.css";
 import "./App.scss";
 import "./MobileNavFix.scss";
@@ -149,6 +150,7 @@ const App = () => {
 
                 <RouteSeoPolicy />
 
+                <RouteErrorBoundary>
                 <Routes>
                     <Route path="/" element={<Showcase />} />
                     <Route path="/install" element={<InstallGuide />} />
@@ -255,6 +257,7 @@ const App = () => {
 
                     <Route path="*" element={<NotFound />} />
                 </Routes>
+                </RouteErrorBoundary>
                 </StoreProvider>
             </AuthProvider>
         </Router>

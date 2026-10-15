@@ -5,6 +5,11 @@ import './index.scss';
 import './theme/theme.scss';
 import { ThemeProvider } from './theme/ThemeContext';
 import { registerServiceWorker } from './pwa/registerServiceWorker';
+import SystemErrorBoundary from './systemReport/SystemErrorBoundary';
+import SystemReportHost from './systemReport/SystemReportHost';
+import { installGlobalHandlers } from './systemReport/globalHandlers';
+import { settleReload } from './systemReport/reloadGuard';
+import { restoreResume } from './systemReport/resume';
 // import { createStore } from "redux";
 import reducers from "./reducers/reducer";
 import { Provider } from 'react-redux';
@@ -28,13 +33,23 @@ const store = configureStore({
     reducer: reducers,
     // Other configureStore options (optional)
 });
+// 問題回報：重新整理後先結算次數、還原捲動位置；再開始監聽載入失敗。
+settleReload();
+restoreResume();
+installGlobalHandlers();
+
 const root = createRoot(document.getElementById('root'));
 root.render(
-    <Provider store={store}>
-        <ThemeProvider>
-            <App />
-        </ThemeProvider>
-    </Provider>
+    <>
+        <SystemErrorBoundary>
+            <Provider store={store}>
+                <ThemeProvider>
+                    <App />
+                </ThemeProvider>
+            </Provider>
+        </SystemErrorBoundary>
+        <SystemReportHost />
+    </>
 );
 
 registerServiceWorker();
