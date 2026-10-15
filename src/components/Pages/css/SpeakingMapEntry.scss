@@ -54,7 +54,7 @@
   padding: 10px 14px;
   border: 2px solid #e1a31d;
   border-radius: 13px;
-  background: #ffcf4f;
+  background: var(--ae-surface-muted, #ffcf4f);
   color: var(--ae-text, #17345e);
   font-weight: 800;
   white-space: nowrap;
@@ -77,7 +77,7 @@
 
 .speaking-level-dialog__actions button.primary.is-challenge {
   border-color: var(--ae-border, #9bc5ff);
-  background: #315bc8;
+  background: var(--ae-solid, #315bc8);
   color: #fff;
   box-shadow: 0 4px 0 #183c84;
 }

@@ -8,7 +8,7 @@
   .playlist-header__copy { padding-right: 0; }
   .playlist-header h1 { color: var(--ae-text, #17365d); font-size: clamp(23px, 3vw, 30px); overflow-wrap: anywhere; }
   .playlist-header__copy > p { color: var(--ae-text-muted, #526580); line-height: 1.6; font-size: 14px; }
-  .playlist-homework-back { min-height: 44px; padding: 0 12px; border: 1px solid var(--ae-border, #aac5ff); border-radius: 12px; color: #fff; background: #174597; font-size: 13px; }
+  .playlist-homework-back { min-height: 44px; padding: 0 12px; border: 1px solid var(--ae-border, #aac5ff); border-radius: 12px; color: #fff; background: var(--ae-solid, #174597); font-size: 13px; }
   .playlist-homework-banner__copy > span { letter-spacing: 0; font-size: 12px; }
 
   .playlist-learning-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; align-items: start; gap: 24px; }
@@ -24,7 +24,7 @@
   .music-card::before, .music-card::after { display: none; }
   .music-card--completed { border-color: #a3d2b5; }
   .music-card--active { border: 2px solid #2455b8; padding: 13px 15px; background: var(--ae-surface-muted, #eaf3ff); box-shadow: none; }
-  .music-card__play { width: 70px; height: 64px; border: 1px solid #e8b937; border-radius: 16px; background: #ffd45d; color: var(--ae-text, #183963); box-shadow: 0 3px 0 #e6b63c; display: flex; flex-direction: column; justify-content: center; gap: 3px; font-size: 30px; }
+  .music-card__play { width: 70px; height: 64px; border: 1px solid #e8b937; border-radius: 16px; background: var(--ae-surface-muted, #ffd45d); color: var(--ae-text, #183963); box-shadow: 0 3px 0 #e6b63c; display: flex; flex-direction: column; justify-content: center; gap: 3px; font-size: 30px; }
   .music-card__play:hover { transform: none; filter: brightness(1.03); }
   .music-card__play:disabled { cursor: default; opacity: .55; box-shadow: none; }
   .music-card__play:focus-visible { outline: 3px solid #173963; outline-offset: 3px; }
@@ -39,7 +39,7 @@
   .music-card__plays { background: var(--ae-surface-muted, #f5f8fd); border-color: var(--ae-border, #e2eaf5); box-shadow: none; min-width: 84px; padding: 8px; }
   .music-card__plays span { gap: 4px; }
   .music-card__plays small { display: block; color: var(--ae-accent, #516781); font-size: 11px; }
-  .music-card__plays svg { color: var(--ae-accent, #2455b8); }
+  .music-card__plays svg { color: var(--ae-icon, #2455b8); }
   .music-card__check { display: flex; width: auto; height: auto; padding: 4px 8px; border-radius: 8px; gap: 4px; box-shadow: none; font-size: 14px; }
   .music-card__check span { display: inline; font-size: 11px; }
 
@@ -50,7 +50,7 @@
   .playlist-listening-confirmed p { margin: 4px 0 0; font-size: 13px; overflow-wrap: anywhere; }
   .playlist-listening-confirmed__actions { display: flex; flex-wrap: wrap; gap: 8px; }
   .playlist-progress-error button, .playlist-listening-confirmed a, .playlist-listening-confirmed button { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 8px 12px; border: 1px solid var(--ae-border, #b6cced); border-radius: 12px; color: var(--ae-accent, #174597); background: var(--ae-surface-muted, #edf4ff); font-size: 13px; font-weight: 800; text-decoration: none; line-height: 1.5; }
-  .playlist-listening-confirmed a { background: #ffd45d; border-color: #e8b937; color: var(--ae-text, #183963); }
+  .playlist-listening-confirmed a { background: var(--ae-surface-muted, #ffd45d); border-color: #e8b937; color: var(--ae-text, #183963); }
   a:focus-visible, button:focus-visible, summary:focus-visible { outline: 3px solid #183963; outline-offset: 3px; }
   @media (max-width: 1000px) {
     .playlist-learning-layout { grid-template-columns: minmax(0, 1fr) 260px; gap: 16px; }
@@ -83,7 +83,7 @@
 // Keep the existing fixed position/safe-area offsets; grow only the touch targets.
 body:has(.playlist-page) .app-player {
   .rhap_main-controls > button { display: grid; place-items: center; width: 44px; min-width: 44px; height: 44px; border: 1px solid var(--ae-border, #d3e1f4); border-radius: 13px; background: var(--ae-surface-muted, #edf4ff); font-size: 32px; }
-  .rhap_main-controls .rhap_play-pause-button { width: 48px; min-width: 48px; height: 48px; border-color: #e8b937; background: #ffd45d; color: var(--ae-text, #183963) !important; }
+  .rhap_main-controls .rhap_play-pause-button { width: 48px; min-width: 48px; height: 48px; border-color: #e8b937; background: var(--ae-surface-muted, #ffd45d); color: var(--ae-text, #183963) !important; }
   .rhap_main-controls > button:focus-visible { outline: 3px solid #183963; outline-offset: 2px; }
   @media (max-width: 900px) {
     .player-mobile-expand { right: 156px; }

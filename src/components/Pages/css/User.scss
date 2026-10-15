@@ -37,8 +37,8 @@
   padding: 18px 22px;
   color: #fff;
   background:
-    radial-gradient(circle at 78% 15%, rgba(255, 217, 109, 0.24), transparent 26%),
-    linear-gradient(120deg, #101d43 0%, #263d85 62%, #5b3f92 100%);
+    var(--ae-solid, radial-gradient(circle at 78% 15%, rgba(255, 217, 109, 0.24), transparent 26%),
+    linear-gradient(120deg, #101d43 0%, #263d85 62%, #5b3f92 100%));
   border: 1px solid rgba(255, 220, 131, 0.35);
   border-radius: 20px;
   box-shadow: 0 16px 38px rgba(24, 34, 83, 0.2);
@@ -119,8 +119,8 @@
   box-sizing: border-box;
   color: #fff;
   background:
-    radial-gradient(circle at 82% 25%, rgba(255, 220, 128, 0.34), transparent 24%),
-    linear-gradient(135deg, #173d68 0%, #245c91 55%, #3177af 100%);
+    var(--ae-solid, radial-gradient(circle at 82% 25%, rgba(255, 220, 128, 0.34), transparent 24%),
+    linear-gradient(135deg, #173d68 0%, #245c91 55%, #3177af 100%));
   border-radius: 28px;
   box-shadow: 0 24px 55px rgba(28, 73, 116, 0.22);
 
@@ -238,7 +238,7 @@
     position: absolute;
     inset: 11px;
     content: "";
-    background: #235784;
+    background: var(--ae-solid, #235784);
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 50%;
   }
@@ -311,7 +311,7 @@
   gap: 24px;
 
   span {
-    color: var(--student-blue);
+    color: var(--ae-accent, #3578df);
     font-size: 0.61rem;
     font-weight: 950;
     letter-spacing: 0.15em;
@@ -641,8 +641,8 @@
   padding: 21px 23px;
   color: #fff;
   background:
-    radial-gradient(circle at 88% 18%, rgba(255, 217, 119, 0.28), transparent 25%),
-    linear-gradient(135deg, #173c64, #286d9f);
+    var(--ae-solid, radial-gradient(circle at 88% 18%, rgba(255, 217, 119, 0.28), transparent 25%),
+    linear-gradient(135deg, #173c64, #286d9f));
   border-radius: 18px;
   box-shadow: 0 14px 34px rgba(31, 80, 121, 0.16);
   text-decoration: none;
@@ -718,7 +718,7 @@
   }
 
   span {
-    color: var(--student-blue);
+    color: var(--ae-accent, #3578df);
     font-size: 0.54rem;
     font-weight: 950;
     letter-spacing: 0.14em;
@@ -1249,7 +1249,7 @@
   border: 0;
   border-radius: 12px;
   color: var(--ae-warning, #70450c);
-  background: #ffe5a7;
+  background: var(--ae-surface-muted, #ffe5a7);
   font: inherit;
   font-weight: 900;
 }

@@ -9,7 +9,7 @@
   li > span { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--ae-surface-muted, #edf2f7); }
   li strong { font-size: 12px; line-height: 1.4; overflow-wrap: anywhere; }
   li.is-current { color: var(--ae-text, #17345e); }
-  li.is-current > span { background: #ffcf4f; }
+  li.is-current > span { background: var(--ae-surface-muted, #ffcf4f); }
   li.is-visited > span { background: var(--ae-surface-muted, #e1f2e7); color: var(--ae-success, #236644); }
   p { margin: 10px 0 0; color: var(--ae-text-muted, #526478); font-size: 13px; line-height: 1.6; }
 }
