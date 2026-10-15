@@ -1,0 +1,109 @@
+// 離校生說明卡。顏色用變數並附淺色預設值，之後主題切換可以直接覆蓋。
+.departed-notice {
+  --departed-surface: var(--ae-surface, #fff);
+  --departed-text: var(--ae-text, #172033);
+  --departed-muted: var(--ae-text-muted, #52607a);
+  --departed-border: var(--ae-border, #dbe3ef);
+  margin: 0 0 18px;
+  padding: 20px 18px;
+  border: 1px solid var(--departed-border);
+  border-radius: 18px;
+  background: var(--departed-surface);
+  color: var(--departed-text);
+
+  h2 {
+    margin: 0 0 6px;
+    font-size: 1.18rem;
+    font-weight: 800;
+  }
+
+  &__lead {
+    margin: 0 0 14px;
+    color: var(--departed-muted);
+    line-height: 1.6;
+  }
+
+  &__columns {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  &__column {
+    padding: 14px;
+    border-radius: 14px;
+
+    h3 {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin: 0 0 8px;
+      font-size: 1rem;
+      font-weight: 800;
+    }
+
+    ul {
+      margin: 0;
+      padding-left: 1.2em;
+      line-height: 1.7;
+    }
+
+    &.is-kept {
+      background: rgba(52, 199, 89, 0.12);
+    }
+
+    &.is-stopped {
+      background: rgba(246, 184, 0, 0.14);
+    }
+  }
+
+  &__continue {
+    display: grid;
+    gap: 8px;
+    margin-top: 14px;
+    padding: 14px;
+    border-radius: 14px;
+    background: rgba(47, 111, 237, 0.1);
+
+    p {
+      margin: 0;
+      line-height: 1.65;
+    }
+
+    small {
+      color: var(--departed-muted);
+      line-height: 1.5;
+    }
+  }
+
+  &__contact {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    justify-self: start;
+    min-height: 44px;
+    padding: 0 18px;
+    border-radius: 12px;
+    background: #2f6fed;
+    color: #fff;
+    font-weight: 800;
+    text-decoration: none;
+
+    &:hover,
+    &:focus-visible {
+      color: #fff;
+      text-decoration: none;
+    }
+  }
+}
+
+@media (max-width: 640px) {
+  .departed-notice__columns {
+    grid-template-columns: 1fr;
+  }
+
+  .departed-notice__contact {
+    justify-self: stretch;
+  }
+}
