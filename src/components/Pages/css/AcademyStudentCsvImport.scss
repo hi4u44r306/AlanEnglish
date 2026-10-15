@@ -96,6 +96,77 @@
   color: var(--ae-accent, #245da9);
 }
 
+.academy-csv-download-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.academy-csv-secondary.academy-csv-secondary--quiet {
+  border: 1px solid var(--ae-border, #c9d8ee);
+  background: var(--ae-surface, #fff);
+}
+
+// 「每一欄怎麼填」：電腦兩欄、手機一欄。
+.academy-csv-fields {
+  margin-bottom: 18px;
+  padding: 18px 20px;
+  border: 1px solid var(--ae-border, #e1e7ef);
+  border-radius: 14px;
+  background: var(--ae-surface, #fff);
+
+  h2 {
+    margin: 0 0 12px;
+    color: var(--ae-text, #172033);
+    font-size: 1.02rem;
+    font-weight: 700;
+  }
+
+  dl {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px 18px;
+    margin: 0;
+  }
+
+  dl > div {
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: var(--ae-surface-muted, #f7f9fc);
+  }
+
+  dt {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--ae-text, #172033);
+    font-size: 0.95rem;
+    font-weight: 700;
+  }
+
+  dt span {
+    padding: 1px 8px;
+    border-radius: 999px;
+    background: var(--ae-surface-muted, #eef1f5);
+    color: var(--ae-text-muted, #667085);
+    font-size: 0.74rem;
+    font-weight: 700;
+  }
+
+  dt span.is-required {
+    background: var(--ae-surface-muted, #fff3d6);
+    color: var(--ae-warning, #8a5a00);
+  }
+
+  dd {
+    margin: 4px 0 0;
+    color: var(--ae-text-muted, #4b5565);
+    font-size: 0.88rem;
+    line-height: 1.55;
+    overflow-wrap: anywhere;
+  }
+}
+
 .academy-csv-file-button input {
   position: absolute;
   width: 1px;
@@ -399,6 +470,10 @@
 
   .academy-csv-upload-grid p {
     min-height: 0;
+  }
+
+  .academy-csv-fields dl {
+    grid-template-columns: 1fr;
   }
 
   .academy-csv-secondary,

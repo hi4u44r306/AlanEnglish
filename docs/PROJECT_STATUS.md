@@ -35,6 +35,13 @@
 - 未做／待辦：①（已完成）正式套用 migration 與部署函式；②先前報告提到的 `academy-student-manager` 新增 action 已撤回（該檔與主線完全相同，線上 v59 未更動）；②未來日期調班（需排程）；③整批升班精靈與 `attendance-manager` 依日期還原名單（舊點名在升班後會被「目前名單」過濾而看不到）；④既有 `apply_academy_placement_cycle` 仍是舊做法且沒有任何程式呼叫它，之後應改用新方式；⑤老師不可調整（依決定）。
 - 回復方式：此 migration 只新增不改舊資料；回復＝停用前端按鈕即可；若已有調班紀錄，舊視窗仍以 `transferred` 保存，不需刪除。
 
+### CSV 批次建立英文班學生：範本與說明重做（2026-10-15，分支 `feat/academy-csv-template`，進行中：本機完成，待 PR 合併）
+
+- 起因：擁有者的 CSV 入班日期是 `2026/9/1` 斜線格式，但後端 `academy-student-manager` 只接受 `YYYY-MM-DD`（`isIsoDate`），網頁只在顯示時用斜線，前端沒有轉換，導致誤解與上傳失敗。擁有者桌面的兩個批次檔已另存「_日期修正」版本（原檔未動，未讀取或輸出學生資料）。
+- 修改：`src/utils/academyStudentCsv.js` 新增 `normalizeAcademyCsvDate`（接受 `-`／`/`／`.` 分隔與 8 碼數字，無效日期原樣交給預覽報錯）、班級 NFKC＋大寫、去除多層 BOM、範例列防呆（`ACADEMY_STUDENT_CSV_EXAMPLE_NOTE`）、新版範本欄位（必填在前、補家長Email、選填標示）與 `buildAcademyStudentCsvExample`；`AcademyStudentCsvImport.jsx` 改為空白範本／填寫範例兩個下載鈕與「每一欄怎麼填」說明表；後端與資料表未變。舊版範本欄位仍相容。
+- 驗證：`academyStudentCsv`＋`AcademyStudentCsvImport` 測試 11 項通過（新增日期轉換、班級修正、兩層 BOM、範本欄位、範例列防呆）；`CI=true npm run build` 成功；本機以假管理員登入（未提交）在 390px／1280px 檢查頁面：8 欄說明、兩個下載鈕、無橫向溢出、無 console 錯誤。尚未部署。
+- 點名／升班調查（唯讀，2026-10-15）：CSV 匯入後每班點名表已會依 `academy_enrollments` 即時產生；升班用的 `academy_placement_cycles` 等表與函式已存在但無任何程式呼叫，且 `apply_academy_placement_cycle` 直接改原班級紀錄的 `class_id`（會讓離校教材推算與舊點名名單失準）、選畢業不走 `process_academy_departure_with_materials`。建議分階段：0 CSV 預覽各班人數（低風險）→ 1 新 migration（v2 套用、`transferred` 狀態，需擁有者同意與隔離環境）→ 2 管理員升班精靈 → 3 點名依日期還原名單 → 4 第一次正式升班（需同意）。待擁有者決定 6 個問題（E7 處理、誰能執行、是否記錄起訖日、CSV 是否只建新帳號、點名一班一天、撤回方式）。
+
 ### 加入主畫面（PWA）（2026-10-15，已發布：PR #573／main `c86fbde9`，Cloudflare Workers Builds success；iPhone／Android 實機待驗）
 
 - 發布驗收（2026-10-15 00:2x，Asia/Taipei，擁有者說「幫我合併」後合併）：正式站 manifest（start_url `/userinfo?source=pwa`、any＋maskable 圖示、背景白）、`/pwa/*` 圖片（maskable、launch-logo、18 張 iOS 啟動圖）、`/web-push-sw.js`（含空 fetch 監聽、no-cache 標頭）、`/install`（iPhone 只有 Safari 5 步、Chrome 版顯示改用 Safari 提醒）、`/support`（返回在最上方、整頁一個畫面）皆回 200 且內容正確；Edge 載入正式站無 console 錯誤、worker 已註冊、未登入從 `/userinfo?source=pwa` 進入落在 `/`。合併後約數十秒內 `/pwa/launch-logo.png` 曾短暫回 HTML（節點同步），重查已正常。
