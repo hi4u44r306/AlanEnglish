@@ -74,7 +74,7 @@
     transform: translateX(-50%);
     border: 1px solid var(--ae-border, #c9d3ff);
     border-radius: 16px;
-    background: #17233f;
+    background: var(--ae-solid, #17233f);
     color: #fff;
     font-weight: 900;
     text-align: center;
@@ -188,7 +188,7 @@
     justify-content: center;
     border: 0;
     border-radius: 15px;
-    background: #14213d;
+    background: var(--ae-solid, #14213d);
     color: #fff;
     font-weight: 900;
     text-decoration: none;
@@ -929,7 +929,7 @@
     padding: 10px 16px;
     border: 0;
     border-radius: 11px;
-    background: #14213d;
+    background: var(--ae-solid, #14213d);
     color: #fff;
     font-weight: 800;
     text-decoration: none;
@@ -1035,7 +1035,7 @@
     right: 8px;
     padding: 4px 7px;
     border-radius: 999px;
-    background: var(--mission-blue);
+    background: var(--ae-surface-muted, #4f67f6);
     color: #fff;
     font-size: 9px;
     font-style: normal;
@@ -1112,11 +1112,11 @@
 }
 
 .assignment-form-section--listening .assignment-form-section__heading > svg {
-    color: var(--mission-mint);
+    color: var(--ae-success, #2e9d80);
 }
 
 .assignment-form-section--ai .assignment-form-section__heading > svg {
-    color: var(--mission-purple);
+    color: var(--ae-icon, #7757df);
 }
 
 .assignment-form-section > label:last-child,
@@ -1143,7 +1143,7 @@
 
 .assignment-ai-helper a {
     flex: 0 0 auto;
-    color: var(--mission-purple);
+    color: var(--ae-accent, #7757df);
     font-weight: 900;
     text-decoration: none;
 }
@@ -1168,7 +1168,7 @@
 
 .assignment-publish-summary > div > svg {
     flex: 0 0 auto;
-    color: var(--mission-mint);
+    color: var(--ae-success, #2e9d80);
 }
 
 .assignment-publish-summary strong,

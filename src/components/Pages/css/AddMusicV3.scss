@@ -172,7 +172,7 @@
     }
 
     button:disabled { opacity: 0.45; cursor: not-allowed; }
-    .r2-migrate-all { background: #1d4ed8; }
+    .r2-migrate-all { background: var(--ae-solid, #1d4ed8); }
 }
 
 .r2-cors-guide {
@@ -187,7 +187,7 @@
         margin: 0;
         padding: 12px;
         border-radius: 9px;
-        background: #0f172a;
+        background: var(--ae-solid, #0f172a);
         color: #e2e8f0;
         font-size: 0.75rem;
         overflow-x: auto;

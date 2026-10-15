@@ -27,7 +27,7 @@
     // Filters on one scrollable line.
     .student-homework-filters { display: flex !important; flex-wrap: nowrap !important; gap: 8px !important; margin: 0 0 12px !important; padding: 0 0 4px !important; overflow-x: auto; border: 0 !important; scrollbar-width: none; &::-webkit-scrollbar { display: none; } }
     .student-homework-filters button { flex: 0 0 auto; min-height: 44px; padding: 8px 16px !important; border: 1px solid var(--ae-border, #c5d6e8) !important; border-radius: 22px !important; background: var(--ae-surface, #fff) !important; color: var(--ae-accent, #39526e) !important; font-size: 15px !important; font-weight: 700 !important; white-space: nowrap; }
-    .student-homework-filters button[aria-pressed="true"] { border-color: #17365d !important; background: #17365d !important; color: #fff !important; }
+    .student-homework-filters button[aria-pressed="true"] { border-color: #17365d !important; background: var(--ae-solid, #17365d) !important; color: #fff !important; }
 
     // One card per assignment.
     .student-homework-task-list { display: grid !important; grid-template-columns: minmax(0, 1fr) !important; gap: 12px; }

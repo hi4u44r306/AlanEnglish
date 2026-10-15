@@ -2,7 +2,7 @@
 .api-hero { align-items: center; }
 .api-hero > div:first-child { max-width: 760px; }
 .api-hero-actions { display: flex; align-items: center; gap: 10px; }
-.api-refresh { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 15px; border: 1px solid var(--ae-border, #d6dbe6); border-radius: 13px; color: var(--api-navy); background: var(--ae-surface, #fff); font-weight: 800; }
+.api-refresh { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 0 15px; border: 1px solid var(--ae-border, #d6dbe6); border-radius: 13px; color: var(--ae-text, #13264b); background: var(--ae-surface, #fff); font-weight: 800; }
 .api-refresh:disabled { opacity: .58; }
 .api-refresh .is-spinning { animation: api-spin .9s linear infinite; }
 .api-overview { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 16px; }
@@ -41,12 +41,12 @@
 .api-alert-critical { color: var(--ae-danger, #b42318); background: var(--ae-surface-muted, #fff1f0); }
 .api-dashboard-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(300px, .5fr); gap: 18px; }
 .api-trend-card, .api-settings-card { min-width: 0; }
-.api-trend-card .platform-section-title > svg { color: var(--api-blue); font-size: 23px; }
+.api-trend-card .platform-section-title > svg { color: var(--ae-icon, #2f6fed); font-size: 23px; }
 .api-trend { display: flex; align-items: end; gap: 7px; height: 210px; padding: 22px 7px 0; overflow-x: auto; border-bottom: 1px solid var(--ae-border, #dfe4ec); background: repeating-linear-gradient(to top, transparent 0, transparent 49px, var(--ae-surface-muted, #edf0f5) 50px); }
 .api-trend-day { display: grid; grid-template-rows: 18px 1fr 20px; align-items: end; justify-items: center; flex: 1 0 24px; min-width: 24px; height: 100%; }
 .api-trend-value { color: var(--ae-text-muted, #667085); font-size: 10px; }
 .api-trend-bar { width: min(100%, 22px); min-height: 5px; border-radius: 7px 7px 2px 2px; background: linear-gradient(180deg, #6e9cff, #2f6fed); transition: height .35s ease; }
-.api-trend-day:hover .api-trend-bar { background: #ff8a4c; }
+.api-trend-day:hover .api-trend-bar { background: var(--ae-surface-muted, #ff8a4c); }
 .api-trend-day small { color: var(--ae-text-muted, #7b8496); font-size: 10px; }
 .api-chart-note, .api-empty { margin: 12px 0 0; color: var(--ae-text-muted, #667085); font-size: 12px; }
 .api-empty { align-self: center; width: 100%; text-align: center; }
@@ -74,7 +74,7 @@
 .api-provider-head > svg.is-open { transform: rotate(180deg); }
 .api-provider-dot { width: 11px; height: 11px; border-radius: 50%; box-shadow: 0 0 0 5px rgba(47,111,237,.1); }
 .api-provider-dot.tracked { background: #2f6fed; }
-.api-provider-dot.external { background: #98a2b3; box-shadow: 0 0 0 5px rgba(152,162,179,.12); }
+.api-provider-dot.external { background: var(--ae-surface-muted, #98a2b3); box-shadow: 0 0 0 5px rgba(152,162,179,.12); }
 .api-provider-title { display: grid; gap: 2px; min-width: 0; }
 .api-provider-title strong { overflow: hidden; font-size: 14px; text-overflow: ellipsis; white-space: nowrap; }
 .api-provider-title small { color: var(--ae-text-muted, #667085); font-size: 11px; }
@@ -189,17 +189,17 @@
 }
 .api-plain-total { display: grid; gap: 6px;
     h2 { margin: 0; color: var(--ae-text-muted, #475467); font-size: 16px; font-weight: 700; }
-    strong { color: var(--api-navy); font-size: clamp(34px, 7vw, 52px); line-height: 1.1; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+    strong { color: var(--ae-text, #13264b); font-size: clamp(34px, 7vw, 52px); line-height: 1.1; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
     p { margin: 0; color: var(--ae-text-muted, #475467); font-size: 14px; line-height: 1.6; }
 }
 .api-plain-facts { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 0;
     div { min-width: 0; padding: 12px 14px; border: 1px solid var(--ae-border, #e0e5ee); border-radius: 13px; background: rgba(255,255,255,.75); }
     dt { color: var(--ae-text-muted, #667085); font-size: 12px; }
-    dd { margin: 4px 0 0; color: var(--api-navy); font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+    dd { margin: 4px 0 0; color: var(--ae-text, #13264b); font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 }
 .api-plain-budget-note { margin: 0; color: var(--ae-text-muted, #667085); font-size: 12px; }
 .api-plain-card { margin-bottom: 18px;
-    > h2 { margin: 0 0 6px; color: var(--api-navy); font-size: 20px; }
+    > h2 { margin: 0 0 6px; color: var(--ae-text, #13264b); font-size: 20px; }
     > p, > small { display: block; max-width: 70ch; color: var(--ae-text-muted, #667085); font-size: 14px; line-height: 1.65; }
 }
 .api-plain-todo { border-color: #fec84b; background: var(--ae-surface-muted, #fffdf5); }
@@ -207,11 +207,11 @@
 .api-plain-row { padding: 12px 0; border-top: 1px solid var(--ae-border, #e6edf5); }
 .api-plain-row-main { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 12px; align-items: center; }
 .api-plain-name { display: grid; gap: 2px; min-width: 0;
-    strong { color: var(--api-navy); font-size: 16px; overflow-wrap: anywhere; }
+    strong { color: var(--ae-text, #13264b); font-size: 16px; overflow-wrap: anywhere; }
     small { color: var(--ae-text-muted, #667085); font-size: 12px; }
 }
 .api-plain-amount { display: grid; gap: 2px; text-align: right;
-    strong { color: var(--api-navy); font-size: 18px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    strong { color: var(--ae-text, #13264b); font-size: 18px; font-variant-numeric: tabular-nums; white-space: nowrap; }
     small { color: var(--ae-text-muted, #667085); font-size: 12px; }
 }
 .api-plain-unknown .api-plain-amount strong { color: var(--ae-warning, #b54708); }
@@ -242,7 +242,7 @@
     > div { display: grid; gap: 4px; min-width: 0; padding: 16px; border-radius: 15px; background: var(--ae-surface-muted, #edf4ff); }
     > div:nth-child(2) { background: var(--ae-surface-muted, #ecfdf3); }
     span { color: var(--ae-text-muted, #475467); font-size: 13px; }
-    strong { color: var(--api-navy); font-size: 24px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+    strong { color: var(--ae-text, #13264b); font-size: 24px; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
     small { color: var(--ae-text-muted, #667085); font-size: 12px; }
     &.is-loss > div:nth-child(2) { background: var(--ae-surface-muted, #fff1f0); strong { color: var(--ae-danger, #b42318); } }
 }

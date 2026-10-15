@@ -135,7 +135,7 @@
   justify-content: center;
   border-radius: 13px;
   background: var(--ae-surface-muted, #eef3ff);
-  color: var(--ae-accent, #315bc8);
+  color: var(--ae-icon, #315bc8);
   font-size: 22px;
 }
 
@@ -182,7 +182,7 @@
     gap: 7px;
     border: 0;
     border-radius: 12px;
-    background: #315bc8;
+    background: var(--ae-solid, #315bc8);
     color: #fff;
     cursor: pointer;
     font: inherit;
@@ -396,7 +396,7 @@
     border: 0;
     border-radius: 10px;
     padding: 0 14px;
-    background: #315bc8;
+    background: var(--ae-solid, #315bc8);
     color: #fff;
     cursor: pointer;
     font-size: 12px;

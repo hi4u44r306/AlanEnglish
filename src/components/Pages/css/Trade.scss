@@ -286,6 +286,6 @@
   font-weight: 800;
 
   &:hover {
-    background: linear-gradient(90deg, #0056b3, #003d7a);
+    background: var(--ae-solid, linear-gradient(90deg, #0056b3, #003d7a));
   }
 }

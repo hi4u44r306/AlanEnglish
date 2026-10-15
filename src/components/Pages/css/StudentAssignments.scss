@@ -134,7 +134,7 @@
     align-items: baseline;
     justify-content: center;
     border-radius: 50%;
-    background: #253b78;
+    background: var(--ae-solid, #253b78);
     line-height: 1;
 }
 
@@ -215,7 +215,7 @@
 }
 
 .student-homework-summary__item.completed svg {
-    color: var(--homework-mint);
+    color: var(--ae-success, #35a789);
 }
 
 .student-homework-summary__tip {
@@ -527,7 +527,7 @@
     height: 7px;
     overflow: hidden;
     border-radius: 999px;
-    background: #dfebe8;
+    background: var(--ae-surface-muted, #dfebe8);
 }
 
 .student-homework-listening__bar span {
@@ -637,7 +637,7 @@
 
 .student-homework-action:hover {
     transform: translateY(-1px);
-    background: #26385d;
+    background: var(--ae-solid, #26385d);
     color: #ffffff;
     box-shadow: 0 9px 22px rgba(23, 35, 63, 0.17);
 }
@@ -674,7 +674,7 @@
     place-items: center;
     border-radius: 20px;
     background: var(--ae-surface-muted, #eaf8f4);
-    color: var(--homework-mint);
+    color: var(--ae-success, #35a789);
 }
 
 .student-homework-state > strong {
@@ -1117,7 +1117,7 @@
 
 .student-homework-pack-action:hover {
     transform: translateY(-1px);
-    background: #28395e;
+    background: var(--ae-solid, #28395e);
     color: #fff;
 }
 

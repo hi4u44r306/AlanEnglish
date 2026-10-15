@@ -33,7 +33,7 @@
     width: 9px;
     height: 9px;
     border-radius: 50%;
-    background: #c5ccd9;
+    background: var(--ae-surface-muted, #c5ccd9);
     box-shadow: 0 0 0 5px rgba(197, 204, 217, .18);
 }
 
@@ -104,7 +104,7 @@
     margin-top: 12px;
     border: 0;
     border-radius: 14px;
-    background: #14213d;
+    background: var(--ae-solid, #14213d);
     color: #fff;
     font-size: 13px;
     font-weight: 800;

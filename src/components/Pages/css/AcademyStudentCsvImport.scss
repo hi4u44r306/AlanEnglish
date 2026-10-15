@@ -321,7 +321,7 @@
 
   button {
     flex: 0 0 auto;
-    background: #173f78;
+    background: var(--ae-solid, #173f78);
     color: #fff;
   }
 }
@@ -372,7 +372,7 @@
     justify-content: space-between;
     gap: 12px;
     padding: 14px 16px;
-    background: #142443;
+    background: var(--ae-solid, #142443);
     color: #fff;
   }
 

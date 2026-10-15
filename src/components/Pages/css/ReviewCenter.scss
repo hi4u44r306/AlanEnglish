@@ -107,7 +107,7 @@
     position: absolute;
     inset: 9px;
     content: "";
-    background: #245879;
+    background: var(--ae-solid, #245879);
     border-radius: 50%;
   }
 
@@ -154,7 +154,7 @@
     height: 37px;
     flex-shrink: 0;
     padding: 10px;
-    color: var(--review-blue);
+    color: var(--ae-icon, #396fd4);
     background: var(--ae-surface-muted, #edf4ff);
     border-radius: 11px;
   }
@@ -211,7 +211,7 @@
   border-radius: 15px;
 
   > div:first-child > span {
-    color: var(--review-blue);
+    color: var(--ae-accent, #396fd4);
     font-size: 0.55rem;
     font-weight: 950;
     letter-spacing: 0.14em;
@@ -279,7 +279,7 @@
   }
 
   span {
-    color: var(--review-mint);
+    color: var(--ae-success, #2aa982);
     font-size: 0.58rem;
     font-weight: 950;
     letter-spacing: 0.08em;
@@ -532,7 +532,7 @@
     gap: 8px;
     padding: 11px 17px;
     color: #fff;
-    background: #193b63;
+    background: var(--ae-solid, #193b63);
     border: 0;
     border-radius: 11px;
     font-family: inherit;
@@ -554,7 +554,7 @@
   > span {
     display: block;
     margin-top: 13px;
-    color: var(--review-blue);
+    color: var(--ae-accent, #396fd4);
     font-size: 0.6rem;
     font-weight: 950;
     letter-spacing: 0.14em;
@@ -588,7 +588,7 @@
     margin-top: 17px;
     padding: 10px 14px;
     color: #fff;
-    background: #193b63;
+    background: var(--ae-solid, #193b63);
     border: 0;
     border-radius: 10px;
     font-family: inherit;
@@ -642,7 +642,7 @@
   a.primary,
   button {
     color: #fff;
-    background: #193b63;
+    background: var(--ae-solid, #193b63);
   }
 }
 
@@ -671,7 +671,7 @@
   border-radius: 18px;
 
   > svg {
-    color: var(--review-blue);
+    color: var(--ae-icon, #396fd4);
     font-size: 1.4rem;
     animation: reviewSpin 0.75s linear infinite;
   }

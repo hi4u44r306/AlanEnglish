@@ -119,3 +119,15 @@ test("returning to teacher assignments reuses the same login snapshot", async ()
     expect(screen.getByRole("button", { name: "複製作業" })).toBeEnabled(); await ready();
     expect(getTeacherAssignments).toHaveBeenCalledTimes(1); expect(getTeacherAssignmentBootstrap).toHaveBeenCalledTimes(1);
 });
+
+test("assignment name fills itself from date, class and homework, and the description field is gone", async () => {
+    render(<TeacherAssignments />); await ready();
+    openCreate();
+    expect(screen.queryByLabelText(/作業說明/)).not.toBeInTheDocument();
+    expect(screen.getByLabelText("作業名稱")).toHaveValue("");
+    fireEvent.change(screen.getByLabelText("發布班級"), { target: { value: "E1" } });
+    expect(screen.getByLabelText("作業名稱").value).toMatch(/^\d{1,2}\/\d{1,2} E1$/);
+    fireEvent.change(screen.getByLabelText("作業名稱"), { target: { value: "我自己取的名字" } });
+    fireEvent.change(screen.getByLabelText("發布班級"), { target: { value: "E1" } });
+    expect(screen.getByLabelText("作業名稱")).toHaveValue("我自己取的名字");
+});

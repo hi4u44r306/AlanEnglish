@@ -75,7 +75,7 @@
 
   &:hover {
     color: #fff;
-    background: #2867c2;
+    background: var(--ae-solid, #2867c2);
   }
 }
 
@@ -223,7 +223,7 @@
   background: var(--ae-surface-muted, #fff8e8);
 
   &:hover:not(:disabled) {
-    background: #ffefc4;
+    background: var(--ae-surface-muted, #ffefc4);
   }
 
   &:disabled {
@@ -501,7 +501,7 @@
   }
 
   .management-delete-dialog__actions button:last-child {
-    background: #203f84;
+    background: var(--ae-solid, #203f84);
   }
 }
 
@@ -688,7 +688,7 @@
   color: #fff;
 
   &:hover:not(:disabled) {
-    background: #2867c2;
+    background: var(--ae-solid, #2867c2);
   }
 
   &:disabled {
@@ -704,7 +704,7 @@
   color: var(--ae-text-muted, #4b5563);
 
   &:hover:not(:disabled) {
-    background: #e1e5ea;
+    background: var(--ae-surface-muted, #e1e5ea);
   }
 }
 
@@ -957,7 +957,7 @@
   textarea { min-height: 90px; padding: 10px; border: 1px solid var(--ae-border, #cbd6e5); border-radius: 8px; font: inherit; resize: vertical; }
   .management-delete-dialog__actions { flex-wrap: wrap; }
   .management-delete-dialog__actions button { min-height: 44px; }
-  .management-delete-dialog__actions button:last-child { background: #203f84; }
+  .management-delete-dialog__actions button:last-child { background: var(--ae-solid, #203f84); }
   p, strong, small { overflow-wrap: anywhere; }
 }
 .management-birth-date-history {
