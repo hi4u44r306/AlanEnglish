@@ -12,7 +12,7 @@ const report = (overrides = {}) => ({
     review: { mastered: 4 },
     next_focus: ["優先完成 1 份尚未完成的老師作業", "每天聽 3 次", "完成 1 題口說大挑戰", "不該出現的第四項"],
     daily_breakdown: days,
-    attention: { available: true, since: "2026-10-16", tracked_listens: 9, idle_pauses: 2, hidden_pauses: 3, focus_rate: 64, level: "ok" },
+    attention: { available: true, since: "2026-10-19", tracked_listens: 9, idle_pauses: 2, hidden_pauses: 3, focus_rate: 64, level: "ok" },
     ...overrides
 });
 
@@ -43,13 +43,13 @@ describe("WeeklyReportParent", () => {
     });
 
     it("says when tracking has not started instead of showing a misleading score", () => {
-        render(<WeeklyAttention attention={{ available: false, since: "2026-10-16", focus_rate: null, level: null }} />);
-        expect(screen.getByText(/專注度從 10\/16 開始記錄/)).toBeInTheDocument();
+        render(<WeeklyAttention attention={{ available: false, since: "2026-10-19", focus_rate: null, level: null }} />);
+        expect(screen.getByText(/專注度從 10\/19 起的那一週開始記錄/)).toBeInTheDocument();
         expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
     });
 
     it("says there is not enough listening data when the rate cannot be worked out", () => {
-        render(<WeeklyAttention attention={{ available: true, since: "2026-10-16", focus_rate: null, level: null, idle_pauses: 0, hidden_pauses: 0 }} />);
+        render(<WeeklyAttention attention={{ available: true, since: "2026-10-19", focus_rate: null, level: null, idle_pauses: 0, hidden_pauses: 0 }} />);
         expect(screen.getByText(/還沒有足夠的聆聽紀錄/)).toBeInTheDocument();
     });
 

@@ -21,7 +21,7 @@ export function WeeklyAttention({ attention }) {
     if (!attention.available) {
         return <article className="weekly-parent__card weekly-attention is-empty" aria-label="專注度">
             <h2><FiActivity aria-hidden="true" />專注度</h2>
-            <p>專注度從 {sinceLabel(attention.since)} 開始記錄，之後的每週報告會顯示。</p>
+            <p>專注度從 {sinceLabel(attention.since)} 起的那一週開始記錄；整週都有記錄的週別才會顯示。</p>
         </article>;
     }
     const level = LEVELS[attention.level];

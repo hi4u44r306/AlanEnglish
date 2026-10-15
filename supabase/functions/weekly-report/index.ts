@@ -501,7 +501,7 @@ const buildWeeklyReport = async (
     const makeupMessage = makeupLines.length ? `\n\n請假與補課：\n${makeupLines.join("\n")}` : "";
 
     // 專注度：放著不動沒回應、切換頁面暫停，對照有效聆聽次數（資料從播放器開始記錄後才有）。
-    const attention = buildAttention({ events: currentEvents, dailyBreakdown, weekEndDate: week.end_date });
+    const attention = buildAttention({ events: currentEvents, dailyBreakdown, weekStartDate: week.start_date });
     const attentionLine = describeAttention(attention);
 
     const guardianName = guardian?.guardian_name ? `${guardian.guardian_name}您好：` : "家長您好：";

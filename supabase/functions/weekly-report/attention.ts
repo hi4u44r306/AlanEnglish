@@ -1,7 +1,8 @@
 // 每週報告的「專注度」：用播放器新記錄的兩種中斷（放著不動沒回應、切換頁面暫停）對照有效聆聽次數。
 // 純函式、不做 I/O，方便單元測試。事件由 learning-activity 的 listening_pause 寫入 student_activity_events。
 
-export const ATTENTION_TRACKING_SINCE = "2026-10-16";
+// 以「整週」為單位：只有整週都有記錄的週別才顯示專注度。起算日必須是週一（台灣時間）。
+export const ATTENTION_TRACKING_SINCE = "2026-10-19";
 
 export type AttentionLevel = "focused" | "ok" | "needs_reminder";
 
@@ -25,11 +26,11 @@ export const attentionLevel = (rate: number): AttentionLevel => (rate >= 80 ? "f
 export const buildAttention = (input: {
     events: EventRow[];
     dailyBreakdown: DayRow[];
-    weekEndDate: string;
+    weekStartDate: string;
     since?: string;
 }): AttentionSummary => {
     const since = input.since || ATTENTION_TRACKING_SINCE;
-    const available = input.weekEndDate >= since;
+    const available = input.weekStartDate >= since;
     const pauses = (input.events || []).filter(event => (
         event.activity_type === "listening"
         && (event.activity_key === "pause-idle" || event.activity_key === "pause-hidden")

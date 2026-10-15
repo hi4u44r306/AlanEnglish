@@ -1,10 +1,10 @@
 # Alan English 專案狀態
 
-### 每週報告精簡（老師／管理員）＋專注度（2026-10-15，分支 `feat/weekly-report-attention`，尚未部署；兩個 Edge Function 待授權部署）
+### 每週報告精簡（老師／管理員）＋專注度（2026-10-15，分支 `feat/weekly-report-attention`，尚未部署；兩個 Edge Function 已獲授權，部署紀錄見下）
 
 - 需求：管理員版太雜，要像學生版精簡、讓家長一眼看到學了／聽了／會了多少、還可加強什麼與作業完成；另加專注度（放著不動自動暫停、切換頁面暫停）。
 - 資料調查：`listening_coverage_sessions` 沒有暫停原因；專注度需要新記錄。不新增資料表／migration：重用 `student_activity_events`（`activity_type=listening`，key `pause-idle`／`pause-hidden`，metadata 只有 track_id）。其他讀取該表的功能只取 `conversation` 類型，不受影響（已查 weekly-report、guardian-email）。
-- 後端：`learning-activity` 新增 `listening_pause`（只記學生、原因白名單、每小時最多 120 筆）；`weekly-report` 新增 `attention`（`attention.ts` 純函式，6 項測試）與家長文字摘要的專注度一行。專注度起算日 `ATTENTION_TRACKING_SINCE=2026-10-16`（若實際上線較晚需調整）。
+- 後端：`learning-activity` 新增 `listening_pause`（只記學生、原因白名單、每小時最多 120 筆）；`weekly-report` 新增 `attention`（`attention.ts` 純函式，6 項測試）與家長文字摘要的專注度一行。專注度以整週為單位：起算日 `ATTENTION_TRACKING_SINCE=2026-10-19`（週一），只有整週都在起算日之後的週別才顯示；前端需在 10/19 前上線，否則首週資料不完整。
 - 前端：`MusicPlayer` 只在既有的「切換頁面暫停」與「還在學習嗎？倒數結束」兩處多送一個事件，不改任何計次、防掛機或獎勵判斷；`WeeklyReportParent`（含 `WeeklyAttention`）取代老師／管理員版頁首大量內容，圖表收進折疊；學生版補「這週沒有作業」。
 - 驗證：`npm run test:weekly-attention` 6 項、`WeeklyReport*`／`WeeklyReportParent` 16 項、MusicPlayer 相關測試通過；本機以假資料看過淺色／深色與三種專注度狀態。
 - 部署順序建議：先部署 `learning-activity` 與 `weekly-report`（皆為新增、向下相容），再合併前端。
