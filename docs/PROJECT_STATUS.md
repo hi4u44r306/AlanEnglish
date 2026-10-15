@@ -1,6 +1,12 @@
 # Alan English 專案狀態
 
-### 深色模式第一階段（2026-10-15，分支 `feat/dark-mode-phase1`，PR #586，已發布：正式站已含 `ae-theme` 開機前腳本與切換元件，Cloudflare build success）
+### 深色模式改為黑底（2026-10-15，分支 `fix/dark-mode-black-palette`）
+
+- 擁有者回報：深色畫面是藍灰底、很醜，要像 ChatGPT／Claude 的黑底白字。原因：#586 合併後我重跑批次腳本，把 `src/theme/theme.scss` 的淺底色變數誤改成文字灰色（頁面底色變灰藍、按鈕淺底淺字）。
+- 修正：色票改為黑色系（頁面 #121212、卡片 #1c1c1e、文字 #ececec），`.app-shell`／`.management-page` 底色比卡片更深；`theme-color` 同步。只改 `theme.scss`、`ThemeContext.jsx`、`index.html`，淺色不受影響。
+- 提醒：日後若再跑批次腳本，必須排除 `src/theme/`。
+
+### 深色模式第一階段（2026-10-15，分支 `feat/dark-mode-phase1`，PR #586，已發布；#588 已改為黑底，Cloudflare build success）
 
 - 做法：`src/theme/`（`theme.scss` 深色色票、`ThemeContext.jsx`、`ThemeSelect.jsx`）；選擇存 localStorage 鍵 `ae-theme`（light／dark／system，預設 system）；`public/index.html` 開機前小腳本先設定 `data-theme`／`data-bs-theme` 與 `theme-color`，避免白閃；Toast 跟隨主題。
 - 全站樣式以腳本批次改成 `var(--ae-xxx, 原色碼)`（背景、文字、邊框、淺色漸層、頁面自訂變數）。**淺色模式不定義任何變數，所以一律落到原色碼**；已用腳本把所有 109 個變動樣式檔還原回原色碼，與 main 逐字相同，確認淺色不變。

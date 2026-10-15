@@ -1,21 +1,21 @@
-/* 淺色／深色主題色票。淺色值與原本畫面相同；深色值只在 data-theme="dark" 時生效。 */
-/* 淺色不定義任何變數：各處 var(--ae-xxx, 原色碼) 會自動使用原本的色碼，所以淺色畫面與以前完全相同。 */
+/* 淺色／深色主題色票。淺色不定義任何變數：各處 var(--ae-xxx, 原色碼) 會自動使用原本的色碼，
+   所以淺色畫面與以前完全相同；只有 data-theme="dark" 時下面的值才生效（黑底白字，類似 ChatGPT）。 */
 :root {
   color-scheme: light;
 }
 
 :root[data-theme='dark'] {
-  --ae-page: #0b1626;
-  --ae-surface: #12233a;
-  --ae-surface-muted: var(--ae-text-muted, #182d48);
-  --ae-surface-glass: rgba(18, 35, 58, 0.94);
-  --ae-text: #e6edf7;
-  --ae-text-muted: #9fb2cb;
-  --ae-accent: #8db8ff;
+  --ae-page: #121212;
+  --ae-surface: #1c1c1e;
+  --ae-surface-muted: #262628;
+  --ae-surface-glass: rgba(28, 28, 30, 0.94);
+  --ae-text: #ececec;
+  --ae-text-muted: #a1a1aa;
+  --ae-accent: #7cb4ff;
   --ae-success: #5fd3a0;
-  --ae-danger: #ff8f84;
+  --ae-danger: #ff8a80;
   --ae-warning: #f0c75e;
-  --ae-border: #2a4568;
+  --ae-border: #3a3a3d;
   color-scheme: dark;
 }
 
@@ -24,7 +24,7 @@
   color: var(--ae-text);
 }
 
-/* 深色時，圖片與影片不變暗；表單元素跟隨主題。 */
+/* 深色時，表單元素跟隨主題。 */
 :root[data-theme='dark'] input,
 :root[data-theme='dark'] select,
 :root[data-theme='dark'] textarea {
@@ -36,4 +36,10 @@
 :root[data-theme='dark'] input::placeholder,
 :root[data-theme='dark'] textarea::placeholder {
   color: var(--ae-text-muted);
+}
+
+/* 頁面底色比卡片更深，卡片才浮得起來。 */
+:root[data-theme='dark'] .app-shell,
+:root[data-theme='dark'] .management-page {
+  background: var(--ae-page);
 }
