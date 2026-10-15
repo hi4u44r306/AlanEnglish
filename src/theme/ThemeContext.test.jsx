@@ -1,7 +1,9 @@
 import React from "react";
 import { act, render, screen } from "@testing-library/react";
 import ThemeSelect from "./ThemeSelect";
-import { THEME_STORAGE_KEY, ThemeProvider, resolveTheme } from "./ThemeContext";
+import { THEME_STORAGE_KEY, ThemeProvider, resolveTheme, useForcedLightTheme } from "./ThemeContext";
+
+const LightOnlyPage = () => { useForcedLightTheme(); return <p>首頁</p>; };
 
 const mockMatchMedia = matches => {
     window.matchMedia = jest.fn().mockReturnValue({ matches, addEventListener: jest.fn(), removeEventListener: jest.fn() });
@@ -38,6 +40,14 @@ describe("theme", () => {
     it("follows the system when set to system", () => {
         mockMatchMedia(true);
         render(<ThemeProvider><ThemeSelect /></ThemeProvider>);
+        expect(document.documentElement.getAttribute("data-theme")).toBe("dark");
+    });
+
+    it("keeps a light-only page light and restores the saved choice after leaving", () => {
+        window.localStorage.setItem(THEME_STORAGE_KEY, "dark");
+        const { rerender } = render(<ThemeProvider><LightOnlyPage /></ThemeProvider>);
+        expect(document.documentElement.getAttribute("data-theme")).toBe("light");
+        rerender(<ThemeProvider><p>其他頁</p></ThemeProvider>);
         expect(document.documentElement.getAttribute("data-theme")).toBe("dark");
     });
 });

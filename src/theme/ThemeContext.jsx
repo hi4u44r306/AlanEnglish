@@ -31,12 +31,14 @@ export const applyTheme = resolved => {
     document.querySelector('meta[name="theme-color"]')?.setAttribute("content", THEME_COLORS[resolved]);
 };
 
-const ThemeContext = createContext({ choice: "system", resolved: "light", setChoice: () => {} });
+const ThemeContext = createContext({ choice: "system", resolved: "light", setChoice: () => {}, setForcedLight: () => {} });
 
 export function ThemeProvider({ children }) {
     const [choice, setChoiceState] = useState(readStoredChoice);
     const [prefersDark, setPrefersDark] = useState(systemPrefersDark);
-    const resolved = resolveTheme(choice, prefersDark);
+    // 公開首頁等頁面固定淺色（看起來較專業），不跟著使用者的外觀選擇。
+    const [forcedLight, setForcedLight] = useState(false);
+    const resolved = forcedLight ? "light" : resolveTheme(choice, prefersDark);
 
     useEffect(() => {
         let media;
@@ -54,8 +56,17 @@ export function ThemeProvider({ children }) {
         try { window.localStorage.setItem(THEME_STORAGE_KEY, next); } catch (error) { /* 無痕模式存不了時，本次仍然有效 */ }
     }, []);
 
-    const value = useMemo(() => ({ choice, resolved, setChoice }), [choice, resolved, setChoice]);
+    const value = useMemo(() => ({ choice, resolved, setChoice, setForcedLight }), [choice, resolved, setChoice]);
     return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }
 
 export const useTheme = () => useContext(ThemeContext);
+
+// 在這個元件顯示期間固定淺色，離開後恢復使用者的選擇。
+export const useForcedLightTheme = () => {
+    const { setForcedLight } = useTheme();
+    useEffect(() => {
+        setForcedLight(true);
+        return () => setForcedLight(false);
+    }, [setForcedLight]);
+};

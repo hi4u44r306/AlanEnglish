@@ -1,5 +1,10 @@
 # Alan English 專案狀態
 
+### 公開首頁固定淺色（2026-10-15，分支 `feat/landing-always-light`，尚未部署）
+
+- 擁有者要求根目錄維持淺色較專業。`useForcedLightTheme()`（`src/theme/ThemeContext.jsx`）讓 `Showcase` 顯示期間固定淺色、離開後恢復使用者選擇；`public/index.html` 開機前腳本對 `/`、`/showcase` 直接用淺色避免閃黑；首頁選單移除外觀選項。
+- 驗證：主題測試 5 項通過、`CI=true npm run build` 成功。注意：`Showcase.test.jsx` 兩項測試在 main 上本來就失敗（文案改過、測試未更新），與本次無關，待另案修正。
+
 ### 深色模式改為黑底（2026-10-15，分支 `fix/dark-mode-black-palette`）
 
 - 擁有者回報：深色畫面是藍灰底、很醜，要像 ChatGPT／Claude 的黑底白字。原因：#586 合併後我重跑批次腳本，把 `src/theme/theme.scss` 的淺底色變數誤改成文字灰色（頁面底色變灰藍、按鈕淺底淺字）。
