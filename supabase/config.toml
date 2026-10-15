@@ -492,3 +492,6 @@ verify_jwt = false
 
 [functions.attendance-manager]
 verify_jwt = false
+
+[functions.departed-student-activity]
+verify_jwt = false

@@ -1,5 +1,13 @@
 # Alan English 專案狀態
 
+### 離校生回訪統計（2026-10-15，分支 `feat/departed-activity-report`，PR 待合併；函式已部署）
+
+- 目的：擁有者要保留離校帳號，讓畢業生決定是否付 NT$299；先看離校生有沒有回來登入。
+- 後端：新增唯讀 Edge Function `departed-student-activity`（已於 2026-10-15 經 MCP 部署 v1，verify_jwt=false 並自行驗 Firebase token、由資料庫確認 admin；不寫入任何資料、不需 migration）。未登入 401、非允許來源 403 已實測。計算邏輯在 `summarize.ts`（純函式）。
+- 前端：`DepartedActivitySummary.jsx`（在 `AdminStudentLifecycle` 選「離校生」時顯示）、`academyStudentService.loadDepartedStudentActivity`。
+- 驗證：`npm run test:departed-activity` 4 項、元件測試 3 項通過，`CI=true npm run build` 成功。正式庫目前 0 位離校生，所以畫面會顯示空狀態；未用真實管理員帳號實測。
+- 回復：停用前端區塊即可；函式唯讀，可直接保留。手冊 v4.40（尚未部署）。
+
 ### 離校生登入說明卡（2026-10-15，分支 `feat/departed-student-landing`，進行中：本機完成、待 PR 合併）
 
 - 背景：擁有者詢問畢業／離校後帳號會不會被刪除，以及能否讓離校生自己決定要不要每月 NT$299 續用。查證（唯讀）：離校只把 `academy_enrollments` 改為 `withdrawn` 並保存班級教材（`process_academy_departure_with_materials`），專案資料庫排程只有 API 成本警示一個、沒有任何自動刪除或停用帳號；管理員手動刪帳號會被付款／兌換紀錄擋下。程式裡**沒有藍新／綠界金流**，只有 Stripe（`billing-manager`、`stripe-webhook`），且 `PUBLIC_SELF_SERVICE_BILLING_ENABLED = false`。
