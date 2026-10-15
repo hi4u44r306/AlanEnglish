@@ -123,7 +123,7 @@
     border: 0;
     border-radius: 999px;
     padding: 6px 11px;
-    background: #17233f;
+    background: var(--ae-solid, #17233f);
     color: #ffffff;
     font-family:
       "Nunito",
@@ -232,7 +232,7 @@ body {
 
   &::-webkit-scrollbar-thumb {
     border-radius: 999px;
-    background: #c7cdd6;
+    background: var(--ae-surface-muted, #c7cdd6);
   }
 }
 

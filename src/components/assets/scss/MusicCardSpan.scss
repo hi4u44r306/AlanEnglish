@@ -24,7 +24,7 @@
   }
 }
 .MusicCardSpan:hover{
-  background-color: #07689f;
+  background-color: var(--ae-solid, #07689f);
   color: #fafafa;
 }
 .MusicCardSpan:active{

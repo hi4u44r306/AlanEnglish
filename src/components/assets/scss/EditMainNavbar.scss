@@ -155,7 +155,7 @@
     color: #fff;
 
     &:hover {
-      background: #1d4ed8;
+      background: var(--ae-solid, #1d4ed8);
     }
   }
 }
@@ -310,7 +310,7 @@
     color: var(--ae-text, #374151);
 
     &:hover {
-      background: #dde4ec;
+      background: var(--ae-surface-muted, #dde4ec);
     }
   }
 }
@@ -352,7 +352,7 @@
   color: var(--ae-danger, #b91c1c) !important;
 
   &:hover {
-    background: #fecaca !important;
+    background: var(--ae-surface-muted, #fecaca) !important;
   }
 }
 

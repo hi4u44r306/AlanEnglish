@@ -245,7 +245,7 @@
     border: 1px solid #f0d08a;
     border-radius: 15px;
     color: var(--ae-warning, #86580d);
-    background: linear-gradient(145deg, #fff8df, #fff0bd);
+    background: var(--ae-surface-muted, linear-gradient(145deg, #fff8df, #fff0bd));
     text-align: center;
 
     span { font-size: 10px; font-weight: 900; letter-spacing: .06em; }
@@ -873,7 +873,7 @@
     form { display: grid; gap: 12px; max-width: 640px; }
     small { display: block; line-height: 1.7; }
     button, input[type="number"] { box-sizing: border-box; max-width: 100%; min-height: 44px; border: 1px solid #aac2df; border-radius: 12px; padding: 10px 14px; font: inherit; }
-    button { background: #245fc5; color: white; }
+    button { background: var(--ae-solid, #245fc5); color: white; }
     button:disabled { opacity: .65; }
     button:focus-visible, input:focus-visible { outline: 3px solid #17365d; outline-offset: 3px; }
     &__toggle { display: flex; align-items: center; gap: 10px; min-height: 44px; }

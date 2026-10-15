@@ -34,10 +34,10 @@
     height: 42px;
     border-radius: 14px;
     background: var(--ae-surface-muted, #eaf2ff);
-    color: var(--ae-accent, #2b66bd);
+    color: var(--ae-icon, #2b66bd);
     font-size: 24px;
   }
-  li:nth-child(2) .speaking-play-flow__icon { background: #fff0b8; color: var(--ae-warning, #956800); }
+  li:nth-child(2) .speaking-play-flow__icon { background: var(--ae-surface-muted, #fff0b8); color: var(--ae-warning, #956800); }
   li:nth-child(3) .speaking-play-flow__icon { background: var(--ae-surface-muted, #e3f5eb); color: var(--ae-success, #27805a); }
   .speaking-play-flow__arrow { position: absolute; right: -20px; top: 35px; color: var(--ae-accent, #8398b2); font-size: 18px; }
 }
@@ -80,7 +80,7 @@
     color: var(--ae-text-muted, #8796aa);
     font-size: 21px;
   }
-  .is-available { border-color: #2b66bd; background: #2b66bd; color: #fff; }
+  .is-available { border-color: #2b66bd; background: var(--ae-solid, #2b66bd); color: #fff; }
   &.is-unknown > span { border-style: dashed; background: transparent; color: #bbc5d2; }
 }
 .speaking-audio-meter {
@@ -89,7 +89,7 @@
   border-radius: 10px;
   background: var(--ae-surface-muted, #e4e9f1);
   overflow: hidden;
-  > span { display: block; height: 100%; border-radius: inherit; background: #2b66bd; }
+  > span { display: block; height: 100%; border-radius: inherit; background: var(--ae-solid, #2b66bd); }
   &.is-unknown { border: 1px dashed #b5c0d1; background: transparent; }
 }
 .speaking-challenge-rules__snapshot,

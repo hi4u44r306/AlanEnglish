@@ -11,7 +11,7 @@
   overflow: hidden;
   border: 3px solid var(--ae-border, #f9fbff);
   border-radius: 28px;
-  background: #bce8f7;
+  background: var(--ae-surface-muted, #bce8f7);
   box-shadow: 0 18px 38px rgba(20, 47, 91, 0.16);
 }
 
@@ -44,7 +44,7 @@
   aspect-ratio: var(--map-aspect-ratio, 792 / 1986);
   overflow: hidden;
   isolation: isolate;
-  background: #96d6b5;
+  background: var(--ae-surface-muted, #96d6b5);
 }
 .speaking-adventure-route .speaking-map-route {
   z-index: 1;
@@ -125,7 +125,7 @@
   padding: 10px 20px;
   border: 2px solid #f6ba27;
   border-radius: 16px;
-  background: #ffcc41;
+  background: var(--ae-surface-muted, #ffcc41);
   color: var(--ae-accent, #17366f);
   font-weight: 900;
   box-shadow: 0 6px 0 #b27a16;
