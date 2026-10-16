@@ -38,6 +38,7 @@ body.speaking-challenge-active {
     // Readable from about 50 cm on a phone: roughly 9 mm tall capitals at 34px.
     .speaking-question-heading h2,
     .speaking-easy-answer > strong,
+    .speaking-answer-only > strong,
     .speaking-help-panel > div > strong {
         display: block;
         font-size: clamp(32px, 8.6vw, 46px) !important;
