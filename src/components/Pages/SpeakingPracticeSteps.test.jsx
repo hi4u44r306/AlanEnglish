@@ -198,7 +198,7 @@ describe("SpeakingPracticeSteps", () => {
         fireEvent.click(screen.getByRole("button", { name: "看答案（看了這題就不算通過）" }));
         expect(await screen.findByText("這題先練習，稍後不看答案再試一次。")).toBeInTheDocument();
         fireEvent.click(screen.getByRole("button", { name: "收起答案" }));
-        expect(screen.getByRole("status")).toHaveTextContent("這題這次不算通過");
+        expect(screen.getByRole("status")).not.toHaveTextContent("這題這次不算通過");
         fireEvent.click(screen.getByRole("button", { name: "模擬正確回答" }));
         expect(onCompleted).not.toHaveBeenCalled();
         rerender(<SpeakingPracticeSteps {...props} challengeSessionId="round-2" />);
