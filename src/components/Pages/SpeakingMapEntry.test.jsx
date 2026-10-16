@@ -37,11 +37,13 @@ it("工作人員明示預覽，沒有推薦目標時不產生可開始的假入�
     expect(screen.getByText("目前沒有可開始的關卡")).toBeInTheDocument();
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
 });
-test("自由練習按鈕顯示進去練習過幾次，沒練過也說清楚；開始挑戰寫明通過才算過關", () => {
+test("兩個等級按鈕只寫怎麼玩，過關規則只在上方說一次", () => {
     const props = { section: "textbook", sectionCopy: { label: "教材", eyebrow: "課本", badge: "P.1" }, pages: "P.1", onClose: jest.fn(), onEnter: jest.fn() };
     const { rerender } = render(<ChallengePreviewDialog item={{ id: 1, title: "Hello", question_count: 2, practice_session_count: 3, is_unlocked: true }} {...props} />);
-    expect(screen.getByRole("button", { name: "第一級 跟著念" })).toHaveTextContent("已練習 3 次 · 不計通關");
-    expect(screen.getByText(/通過才算過關/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "第一級 跟著念" })).toHaveTextContent("看著句子念");
+    expect(screen.getByRole("button", { name: /第二級 直接回答/ })).toHaveTextContent("看圖或問題回答");
+    expect(screen.getByText("第二級每題都通過，才算過關。")).toBeInTheDocument();
+    expect(screen.queryByText(/已練習/)).not.toBeInTheDocument();
     rerender(<ChallengePreviewDialog item={{ id: 1, title: "Hello", question_count: 2, is_unlocked: true }} {...props} />);
-    expect(screen.getByRole("button", { name: "第一級 跟著念" })).toHaveTextContent("還沒練習過 · 不計通關");
+    expect(screen.getByRole("button", { name: "第一級 跟著念" })).not.toHaveTextContent("不計通關");
 });
