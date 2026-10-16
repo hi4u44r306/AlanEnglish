@@ -122,12 +122,12 @@
   font-weight: 800;
 
   &.is-promote {
-    background: var(--ae-surface-muted, #e3f6e8);
+    background: var(--ae-success-bg, #e3f6e8);
     color: var(--ae-success, #1d6b34);
   }
 
   &.is-demote {
-    background: var(--ae-surface-muted, #fff0d6);
+    background: var(--ae-warning-bg, #fff0d6);
     color: var(--ae-warning, #8a5a00);
   }
 }

@@ -224,7 +224,7 @@
 }
 
 .ai-library-progress span.pending {
-    background: var(--ae-surface-muted, #fff6df);
+    background: var(--ae-warning-bg, #fff6df);
     color: var(--ae-warning, #9a6c10);
     font-weight: 800;
 }

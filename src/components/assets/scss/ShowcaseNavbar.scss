@@ -472,12 +472,12 @@
   }
 
   .showcase-navbar-trial {
-    background: var(--ae-surface-muted, #ffd064);
+    background: var(--ae-warning-bg, #ffd064);
     color: var(--ae-text, #101c3c);
     box-shadow: 0 12px 28px rgba(255, 190, 66, 0.2);
 
     &:hover {
-      background: var(--ae-surface-muted, #ffca52);
+      background: var(--ae-warning-bg, #ffca52);
       color: var(--ae-text, #101c3c);
     }
   }

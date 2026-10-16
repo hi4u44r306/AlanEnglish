@@ -333,7 +333,7 @@
 }
 
 .status-enabled {
-  background: var(--ae-surface-muted, #dcfce7);
+  background: var(--ae-success-bg, #dcfce7);
   color: var(--ae-success, #15803d);
 }
 
@@ -352,7 +352,7 @@
   color: var(--ae-danger, #b91c1c) !important;
 
   &:hover {
-    background: var(--ae-surface-muted, #fecaca) !important;
+    background: var(--ae-danger-bg, #fecaca) !important;
   }
 }
 

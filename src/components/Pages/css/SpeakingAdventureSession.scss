@@ -13,12 +13,12 @@
   .speaking-focus-card::before { content: none; }
   .speaking-question-heading { border-color: var(--ae-border, #e5dbc5); }
   .speaking-question-heading p { color: var(--ae-accent, #4b6071); }
-  .speaking-question-number { background: var(--ae-surface-muted, #ffcf4f); color: var(--ae-text, #17345e); }
+  .speaking-question-number { background: var(--ae-warning-bg, #ffcf4f); color: var(--ae-text, #17345e); }
   .speaking-direct-prompt, .speaking-help-panel, .speaking-pronunciation { border-color: var(--ae-border, #d7dfd5); background: var(--ae-surface-muted, #edf4ef); color: var(--ae-text, #17345e); }
   .speaking-direct-prompt strong, .speaking-help-panel strong { color: var(--ae-text, #17345e); }
   .speaking-direct-prompt span, .speaking-help-panel p, .speaking-help-panel small { color: var(--ae-accent, #4b6071); }
   .speaking-help-toggle { border-color: #9cb7d3; background: var(--ae-surface-muted, #edf5ff); color: var(--ae-accent, #244c86); }
-  .speaking-continue-button { background: var(--ae-surface-muted, #ffcf4f); color: var(--ae-text, #17345e); }
+  .speaking-continue-button { background: var(--ae-warning-bg, #ffcf4f); color: var(--ae-text, #17345e); }
   .speaking-progress-track { background: var(--ae-surface-muted, #d9e6dc); }
   .speaking-progress-track > span { background: #28825b; }
   .speaking-no-reward { color: var(--ae-text-muted, #506072); }
@@ -30,7 +30,7 @@
   .speaking-recording-heading strong, .speaking-pronunciation-result > header strong { color: var(--ae-text, #17345e); }
   .speaking-recording-heading span, .speaking-recording-privacy, .speaking-pronunciation-result > header span { color: var(--ae-accent, #4b6071); }
   .speaking-pronunciation-mic { border-color: var(--ae-border, #fff4d6); background: var(--ae-solid, #315bc8); color: #fff; box-shadow: 0 5px 0 #183c84; }
-  .speaking-pronunciation.is-recording .speaking-pronunciation-mic { background: var(--ae-surface-muted, #ffd16a); color: var(--ae-text, #17345e); }
+  .speaking-pronunciation.is-recording .speaking-pronunciation-mic { background: var(--ae-warning-bg, #ffd16a); color: var(--ae-text, #17345e); }
   .speaking-pronunciation.is-recording.has-voice .speaking-pronunciation-mic { background: #28825b; color: #fff; }
   .speaking-foundation-intro h2, .speaking-foundation-result h1, .speaking-lesson-page { color: var(--ae-text, #17345e); }
   .speaking-foundation-intro p, .speaking-foundation-result p { color: var(--ae-accent, #4b6071); }
@@ -48,7 +48,7 @@
   width: min(920px, 100%);
   margin: 0 auto 12px;
   color: #fff8e9;
-  a { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 10px 14px; border: 2px solid #e4bc64; border-radius: 14px; background: var(--ae-surface-muted, #fff4d6); color: var(--ae-text, #17345e); font-weight: 800; text-decoration: none; }
+  a { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 10px 14px; border: 2px solid #e4bc64; border-radius: 14px; background: var(--ae-warning-bg, #fff4d6); color: var(--ae-text, #17345e); font-weight: 800; text-decoration: none; }
   a:focus-visible { outline: 3px solid #ffcf4f; outline-offset: 3px; }
 }
 
@@ -70,7 +70,7 @@
   .speaking-no-reward { border-top: 1px solid var(--ae-border, #e5dbc5); padding-top: 12px; line-height: 1.6; }
 }
 .speaking-listening-busy { max-width: 280px; font-size: 13px; line-height: 1.5; color: #fff4d6; }
-.speaking-celebration-next-topic { display: grid; gap: 4px; padding: 10px; border-radius: 12px; background: var(--ae-surface-muted, #fff4d6); color: var(--ae-text, #17345e); overflow-wrap: anywhere; small { font-size: 12px; } }
+.speaking-celebration-next-topic { display: grid; gap: 4px; padding: 10px; border-radius: 12px; background: var(--ae-warning-bg, #fff4d6); color: var(--ae-text, #17345e); overflow-wrap: anywhere; small { font-size: 12px; } }
 
 .playlist-speaking-preparation { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; margin-bottom: 20px; padding: 18px; border: 2px solid #c49053; border-radius: 20px; background: var(--ae-surface-muted, #fff8e9); color: var(--ae-text, #17345e); > div { flex: 1 1 250px; } span { display: inline-flex; gap: 8px; align-items: center; font-weight: 800; } p { margin: 8px 0 0; font-size: 14px; line-height: 1.6; } }
 .playlist-speaking-return { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 10px 14px; border-radius: 12px; background: var(--ae-solid, #315bc8); color: #fff; font-weight: 800; text-decoration: none; &:focus-visible { outline: 3px solid #e4ab2b; outline-offset: 3px; } }
@@ -85,4 +85,22 @@
     .speaking-visual-aid--challenge { width: min(320px, 100%); }
     .speaking-question-heading h2 { font-size: 21px; }
   }
+}
+
+// 學生想離開聽力頁時被帶回來的提醒。
+.playlist-speaking-blocked { margin: 0 0 12px; padding: 12px 16px; border: 2px solid #f2b51e; border-radius: 16px; background: #fffbea; color: #3a2a15; font-size: 17px; font-weight: 800; line-height: 1.5; }
+
+// 預覽說明（左）與「先聽本關教材」（右）同一列；窄手機自動換成兩行。
+.speaking-session-topbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  width: min(920px, 100%);
+  margin: 0 auto 12px;
+
+  &:empty { display: none; }
+
+  .speaking-staff-preview-banner { flex: 1 1 260px; margin: 0; }
+  .speaking-lesson-preparation { flex: 0 0 auto; width: auto; margin: 0 0 0 auto; }
 }

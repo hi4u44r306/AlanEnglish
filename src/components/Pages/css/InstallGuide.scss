@@ -105,7 +105,7 @@
 }
 
 .install-guide__notice--ok {
-  background: var(--ae-surface-muted, #e7f7ee);
+  background: var(--ae-success-bg, #e7f7ee);
   color: var(--ae-success, #11603a);
 }
 
@@ -548,7 +548,7 @@
 
 .ig-target {
   position: relative;
-  background: var(--ae-surface-muted, #fff1bf);
+  background: var(--ae-warning-bg, #fff1bf);
   color: var(--ae-text, #073763) !important;
   font-weight: 800;
 
@@ -620,7 +620,7 @@
 
   &:hover,
   &:focus-visible {
-    background: var(--ae-surface-muted, #ffefb8);
+    background: var(--ae-warning-bg, #ffefb8);
     color: var(--ae-text, #073763);
   }
 

@@ -45,9 +45,9 @@
     span { font-size: 15px; font-weight: 700; color: var(--ae-text-muted, #526780); }
     strong { font-size: clamp(34px, 11vw, 48px); font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums; }
     strong small { margin-left: 2px; font-size: 16px; font-weight: 800; }
-    .is-blue svg, li.is-blue svg { background: var(--ae-surface-muted, #dbe8ff); color: var(--ae-icon, #1d4fa8); }
-    li.is-yellow svg { background: var(--ae-surface-muted, #ffe9a8); color: var(--ae-warning, #8a5a00); }
-    li.is-orange svg { background: var(--ae-surface-muted, #ffe1cc); color: var(--ae-warning, #b54708); }
+    .is-blue svg, li.is-blue svg { background: var(--ae-info-bg, #dbe8ff); color: var(--ae-icon, #1d4fa8); }
+    li.is-yellow svg { background: var(--ae-warning-bg, #ffe9a8); color: var(--ae-warning, #8a5a00); }
+    li.is-orange svg { background: var(--ae-warning-bg, #ffe1cc); color: var(--ae-warning, #b54708); }
 }
 .weekly-student__days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; margin: 0; padding: 14px 12px; border: 1px solid var(--ae-border, #d5e3f0); border-radius: 20px; background: var(--ae-surface, #fff); list-style: none;
     li { display: grid; justify-items: center; gap: 6px; font-size: 14px; font-weight: 700; color: var(--ae-text-muted, #526780); }
@@ -58,4 +58,13 @@
 .weekly-student__homework { display: flex; align-items: center; gap: 10px; margin: 0; padding: 14px 18px; border: 1px solid var(--ae-border, #d5e3f0); border-radius: 20px; background: var(--ae-surface, #fff); font-size: 17px; font-weight: 700;
     svg { width: 22px; height: 22px; color: var(--ae-icon, #245fc5); }
     strong { margin-left: auto; font-size: 20px; font-weight: 900; font-variant-numeric: tabular-nums; }
+}
+
+// 每週報告裡孩子看的專注度：數字只到整十，用顏色區分。
+.weekly-student__focus { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; margin: 0; padding: 14px 18px; border: 1px solid var(--ae-border, #d5e3f0); border-radius: 20px; background: var(--ae-surface, #fff); font-size: 17px; font-weight: 700;
+  strong { font-size: 22px; }
+  span { flex-basis: 100%; color: var(--ae-text-muted, #52647a); font-size: 16px; font-weight: 600; }
+  &.is-focused strong { color: var(--ae-success, #1f7a4d); }
+  &.is-ok strong { color: var(--ae-warning, #a35a00); }
+  &.is-needs_reminder strong { color: var(--ae-danger, #b42318); }
 }

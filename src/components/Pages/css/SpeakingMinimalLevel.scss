@@ -38,6 +38,7 @@ body.speaking-challenge-active {
     // Readable from about 50 cm on a phone: roughly 9 mm tall capitals at 34px.
     .speaking-question-heading h2,
     .speaking-easy-answer > strong,
+    .speaking-answer-only > strong,
     .speaking-help-panel > div > strong {
         display: block;
         font-size: clamp(32px, 8.6vw, 46px) !important;
@@ -148,13 +149,13 @@ body.speaking-challenge-active .speaking-game-question-card,
 body.speaking-challenge-active .speaking-practice-flow { border: 0 !important; border-radius: 0 !important; background: none !important; box-shadow: none !important; }
 body.speaking-challenge-active .speaking-gap-sentence { border: 0 !important; background: none !important; color: var(--ae-text, #17365d) !important; }
 body.speaking-challenge-active .answer-blank,
-body.speaking-challenge-active .speaking-answer-slot { border-bottom: 4px solid #ffd84d !important; border-radius: 6px 6px 0 0 !important; background: var(--ae-surface-muted, #fff6d6) !important; color: var(--ae-warning, #5c4a12) !important; }
+body.speaking-challenge-active .speaking-answer-slot { border-bottom: 4px solid #ffd84d !important; border-radius: 6px 6px 0 0 !important; background: var(--ae-warning-bg, #fff6d6) !important; color: var(--ae-warning, #5c4a12) !important; }
 body.speaking-challenge-active .speaking-gap-sentence-audio,
 body.speaking-challenge-active .speaking-help-toggle { min-height: 44px; border: 1px solid var(--ae-border, #c5d6e8) !important; border-radius: 22px !important; background: var(--ae-surface, #fff) !important; box-shadow: none !important; color: var(--ae-accent, #245fc5) !important; font-weight: 700 !important; }
 
 // The microphone is the one bright thing on the screen.
 body.speaking-challenge-active .speaking-pronunciation { border: 0 !important; background: none !important; }
-body.speaking-challenge-active .speaking-pronunciation-mic { border: 0 !important; background: var(--ae-surface-muted, #ffd84d) !important; box-shadow: none !important; color: var(--ae-text, #17365d) !important; }
+body.speaking-challenge-active .speaking-pronunciation-mic { border: 0 !important; background: var(--ae-warning-bg, #ffd84d) !important; box-shadow: none !important; color: var(--ae-text, #17365d) !important; }
 body.speaking-challenge-active .speaking-pronunciation-mic:disabled { background: var(--ae-surface-muted, #e6edf5) !important; color: var(--ae-text-muted, #8a97a8) !important; }
 body.speaking-challenge-active .speaking-recording-status { background: none !important; color: var(--ae-text-muted, #526780) !important; }
 
@@ -163,7 +164,7 @@ body.speaking-challenge-active .speaking-question-navigation { border: 0 !import
 body.speaking-challenge-active .speaking-question-navigation > button { min-height: 52px; border: 1px solid var(--ae-border, #c5d6e8) !important; border-radius: 16px !important; background: var(--ae-surface, #fff) !important; box-shadow: none !important; color: var(--ae-text, #17365d) !important; font-weight: 800 !important; }
 body.speaking-challenge-active .speaking-question-navigation > button.primary,
 body.speaking-challenge-active .speaking-foundation-intro .primary,
-body.speaking-challenge-active .speaking-focus-card button.primary { border: 0 !important; border-radius: 16px !important; background: var(--ae-surface-muted, #ffd84d) !important; background-image: none !important; box-shadow: none !important; color: var(--ae-text, #17365d) !important; font-weight: 800 !important; text-shadow: none !important; }
+body.speaking-challenge-active .speaking-focus-card button.primary { border: 0 !important; border-radius: 16px !important; background: var(--ae-warning-bg, #ffd84d) !important; background-image: none !important; box-shadow: none !important; color: var(--ae-text, #17365d) !important; font-weight: 800 !important; text-shadow: none !important; }
 body.speaking-challenge-active .speaking-question-navigation > button:disabled { opacity: .45; }
 
 // The opening card of a level, and the page behind it, in the same flat style.
@@ -171,7 +172,7 @@ body.speaking-challenge-active .speaking-challenge-page { background: var(--ae-s
 body.speaking-challenge-active .speaking-foundation-intro { border: 1px solid var(--ae-border, #d5e3f0) !important; border-radius: 24px !important; background: var(--ae-surface, #fff) !important; background-image: none !important; box-shadow: none !important; color: var(--ae-text, #17365d) !important; }
 body.speaking-challenge-active .speaking-foundation-intro > svg,
 body.speaking-challenge-active .speaking-foundation-intro > span:first-child,
-body.speaking-challenge-active .speaking-foundation-intro [class*="icon"] { background: var(--ae-surface-muted, #dbe8ff) !important; background-image: none !important; box-shadow: none !important; color: var(--ae-icon, #1d4fa8) !important; }
+body.speaking-challenge-active .speaking-foundation-intro [class*="icon"] { background: var(--ae-info-bg, #dbe8ff) !important; background-image: none !important; box-shadow: none !important; color: var(--ae-icon, #1d4fa8) !important; }
 
 // ---- A friendlier finish on top of the flat base: a soft sky behind the card, the sentence as
 // the hero, a blank that looks like a slot to fill, and a microphone with a gentle halo.
@@ -197,7 +198,7 @@ body.speaking-challenge-active .speaking-progress-track > span { border-radius: 
 body.speaking-challenge-active .speaking-focus-card { border: 1px solid var(--ae-border, #d5e3f0) !important; border-top: 6px solid #ffd84d !important; border-radius: 28px !important; }
 body.speaking-challenge-active .speaking-gap-sentence { font-weight: 900 !important; letter-spacing: -.01em; }
 body.speaking-challenge-active .answer-blank,
-body.speaking-challenge-active .speaking-answer-slot { display: inline-block; margin-inline: 4px; padding: 0 12px !important; border: 2px dashed #e0ac1c !important; border-radius: 14px !important; background: var(--ae-surface-muted, #fff6d6) !important; color: var(--ae-warning, #7a5600) !important; line-height: 1.5; }
+body.speaking-challenge-active .speaking-answer-slot { display: inline-block; margin-inline: 4px; padding: 0 12px !important; border: 2px dashed #e0ac1c !important; border-radius: 14px !important; background: var(--ae-warning-bg, #fff6d6) !important; color: var(--ae-warning, #7a5600) !important; line-height: 1.5; }
 body.speaking-challenge-active .speaking-gap-sentence-audio { border-color: transparent !important; background: var(--ae-surface-muted, #e8f1ff) !important; color: var(--ae-accent, #1d4fa8) !important; }
 body.speaking-challenge-active .speaking-help-toggle { border-color: transparent !important; background: var(--ae-surface-muted, #f1f5fa) !important; color: var(--ae-accent, #39526e) !important; font-size: 16px !important; }
 
@@ -211,7 +212,7 @@ body.speaking-challenge-active .speaking-pronunciation-mic:disabled { box-shadow
 body.speaking-challenge-active .speaking-foundation-intro { border-top: 6px solid #ffd84d !important; border-radius: 28px !important; }
 body.speaking-challenge-active .speaking-foundation-intro > svg,
 body.speaking-challenge-active .speaking-foundation-intro > span:first-child,
-body.speaking-challenge-active .speaking-foundation-intro [class*="icon"] { border-radius: 50% !important; background: var(--ae-surface-muted, #ffe9a8) !important; color: var(--ae-warning, #8a5a00) !important; }
+body.speaking-challenge-active .speaking-foundation-intro [class*="icon"] { border-radius: 50% !important; background: var(--ae-warning-bg, #ffe9a8) !important; color: var(--ae-warning, #8a5a00) !important; }
 body.speaking-challenge-active .speaking-question-navigation > button.primary,
 body.speaking-challenge-active .speaking-foundation-intro .primary,
 body.speaking-challenge-active .speaking-focus-card button.primary { border-radius: 18px !important; font-size: 18px !important; }
@@ -275,3 +276,33 @@ body.speaking-challenge-active .speaking-alphabet-list .handwriting-paper {
 }
 body.speaking-challenge-active .speaking-alphabet-list .handwriting-letter { flex: none; height: 100%; width: auto; overflow: visible; }
 body.speaking-challenge-active .speaking-alphabet-list .handwriting-letter path { stroke-width: 2.3; }
+
+// 「跟著念」要念的那一句：上方標「念這句」，外框加粗，學生一眼看出要念答案而不是題目。
+.speaking-easy-answer__cue {
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+    align-self: flex-start;
+    width: fit-content;
+    padding: 4px 12px;
+    border-radius: 999px;
+    background: #ffd34d;
+    color: #3a2a15;
+    font-size: 18px;
+    font-weight: 900;
+    line-height: 1.3;
+}
+
+.speaking-challenge-page .speaking-help-panel.speaking-easy-answer,
+.speaking-adventure-session .speaking-challenge-detail.speaking-immersive-play .speaking-help-panel.speaking-easy-answer {
+    border: 3px solid #f2b51e;
+    background: var(--ae-warning-bg, #fffbea);
+}
+
+// 桌機版的提示框是兩欄格線；「念這句」與要念的句子都佔滿整列，句子靠左。
+.speaking-challenge-page .speaking-help-panel.speaking-easy-answer > .speaking-easy-answer__cue,
+.speaking-challenge-page .speaking-help-panel.speaking-easy-answer > strong {
+    grid-column: 1 / -1;
+    justify-self: start;
+    text-align: left;
+}

@@ -566,7 +566,7 @@
         padding: 12px;
         border: 1px solid #e7c76b;
         border-radius: 10px;
-        background: var(--ae-surface-muted, #fff8df);
+        background: var(--ae-warning-bg, #fff8df);
         color: var(--ae-warning, #5d4511);
         overflow-wrap: anywhere;
         p:last-child { margin-bottom: 0; }
@@ -1035,7 +1035,7 @@
     right: 8px;
     padding: 4px 7px;
     border-radius: 999px;
-    background: var(--ae-surface-muted, #4f67f6);
+    background: var(--ae-info-bg, #4f67f6);
     color: #fff;
     font-size: 9px;
     font-style: normal;

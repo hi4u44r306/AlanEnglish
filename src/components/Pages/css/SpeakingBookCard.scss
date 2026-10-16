@@ -54,7 +54,7 @@
       margin: 0;
       border: 2px solid #a96f3b;
       border-radius: 50%;
-      background: var(--ae-surface-muted, #ffda4b);
+      background: var(--ae-warning-bg, #ffda4b);
       color: var(--ae-text, #17345e);
       box-shadow: inset 0 0 0 1px #fff0ae;
       font-size: 12px;
@@ -92,7 +92,7 @@
       overflow: hidden;
       border: 1px solid #c4a272;
       border-radius: 10px;
-      background: var(--ae-surface-muted, #eadfc4);
+      background: var(--ae-warning-bg, #eadfc4);
       > span { display: block; height: 100%; border-radius: 8px; background: var(--book-primary); }
     }
 
@@ -108,7 +108,7 @@
       padding: 8px 10px;
       border: 2px solid #a96f3b;
       border-radius: 10px;
-      background: var(--ae-surface-muted, #ffda4b);
+      background: var(--ae-warning-bg, #ffda4b);
       color: var(--ae-text, #17345e);
       box-shadow: 0 2px 0 #714723;
       font-size: 13px;

@@ -37,8 +37,8 @@
     color: var(--ae-icon, #2b66bd);
     font-size: 24px;
   }
-  li:nth-child(2) .speaking-play-flow__icon { background: var(--ae-surface-muted, #fff0b8); color: var(--ae-warning, #956800); }
-  li:nth-child(3) .speaking-play-flow__icon { background: var(--ae-surface-muted, #e3f5eb); color: var(--ae-success, #27805a); }
+  li:nth-child(2) .speaking-play-flow__icon { background: var(--ae-warning-bg, #fff0b8); color: var(--ae-warning, #956800); }
+  li:nth-child(3) .speaking-play-flow__icon { background: var(--ae-success-bg, #e3f5eb); color: var(--ae-success, #27805a); }
   .speaking-play-flow__arrow { position: absolute; right: -20px; top: 35px; color: var(--ae-accent, #8398b2); font-size: 18px; }
 }
 .speaking-challenge-rules__usage {

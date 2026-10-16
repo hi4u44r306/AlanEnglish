@@ -52,9 +52,9 @@ describe("speaking return and completion flow", () => {
             generation_metadata: { interaction_type: type }, source_pages: [11], question_count: 1, completed_count: 0, is_unlocked: true }] });
         render(<MemoryRouter initialEntries={["/student/speaking-challenges/book/book-1"]}><Routes><Route path="/student/speaking-challenges/book/:bookKey" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
         fireEvent.click(await screen.findByRole("button", { name: /P.11，/ }));
-        expect(screen.getByRole("button", { name: "自由練習" })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "跟著念" })).toBeInTheDocument();
         expect(screen.getByRole("button", { name: /挑戰 ·/ })).toBeInTheDocument();
-        expect(screen.getByRole("dialog")).toHaveTextContent("挑戰通過");
+        expect(screen.getByRole("dialog")).toHaveTextContent("通過");
     });
     it("通關星星只是慶祝裝飾，完成文案與實際獎勵分開", async () => {
         completeSpeakingChallengeQuestion.mockResolvedValue({ challenge_completed: true, xp_awarded: 30, ae_points_awarded: 3 });
@@ -89,7 +89,7 @@ describe("speaking return and completion flow", () => {
     it("return has a short animation, unmounts recording content, and preserves the map location", async () => {
         mount(); await screen.findByRole("button", { name: "通過本題" });
         fireEvent.click(screen.getByRole("button", { name: "關卡列表" }));
-        expect(screen.getByText("返回地圖中…")).toBeInTheDocument();
+        expect(screen.getByText("回到地圖中…")).toBeInTheDocument();
         expect(screen.queryByRole("button", { name: "通過本題" })).not.toBeInTheDocument();
         await screen.findByRole("heading", { name: "地圖已返回" });
         expect(screen.getByTestId("route")).toHaveTextContent("|7");
@@ -116,7 +116,7 @@ describe("speaking return and completion flow", () => {
         mount(); fireEvent.click(await screen.findByRole("button", { name: "通過本題" }));
         fireEvent.click(screen.getByRole("button", { name: "關卡列表" }));
         await act(async () => resolve({ challenge_completed: true, xp_awarded: 30 }));
-        expect(screen.getByText("返回地圖中…")).toBeInTheDocument();
+        expect(screen.getByText("回到地圖中…")).toBeInTheDocument();
         expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
         await screen.findByRole("heading", { name: "地圖已返回" });
     });
@@ -149,7 +149,7 @@ describe("speaking return and completion flow", () => {
         mount(); fireEvent.click(await screen.findByRole("button", { name: "通過本題" }));
         fireEvent.click(screen.getByRole("button", { name: "關卡列表" }));
         await act(async () => reject(new Error("無法儲存練習紀錄")));
-        expect(screen.getByText("返回地圖中…")).toBeInTheDocument();
+        expect(screen.getByText("回到地圖中…")).toBeInTheDocument();
         expect(screen.queryByText("無法儲存練習紀錄")).not.toBeInTheDocument();
         await screen.findByRole("heading", { name: "地圖已返回" });
     });

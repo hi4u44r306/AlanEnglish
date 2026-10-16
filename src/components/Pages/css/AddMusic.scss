@@ -320,7 +320,7 @@
 
   &.valid {
     color: var(--ae-success, #177447);
-    background: var(--ae-surface-muted, #e6f8ee);
+    background: var(--ae-success-bg, #e6f8ee);
   }
 
   &.invalid {
@@ -415,7 +415,7 @@
 
 .summary-skipped {
   color: var(--ae-warning, #8b6a1d);
-  background: var(--ae-surface-muted, #fff7dc);
+  background: var(--ae-warning-bg, #fff7dc);
 }
 
 .summary-failed {
@@ -471,17 +471,17 @@
 
   &.success {
     color: var(--ae-success, #177447);
-    background: var(--ae-surface-muted, #def5e8);
+    background: var(--ae-success-bg, #def5e8);
   }
 
   &.failed {
     color: var(--ae-danger, #b03d3d);
-    background: var(--ae-surface-muted, #fae5e5);
+    background: var(--ae-danger-bg, #fae5e5);
   }
 
   &.skipped {
     color: var(--ae-warning, #97711f);
-    background: var(--ae-surface-muted, #fff1c7);
+    background: var(--ae-warning-bg, #fff1c7);
   }
 
   &.uploading,
@@ -573,7 +573,7 @@
 
 .track-enabled {
   color: var(--ae-success, #187548);
-  background: var(--ae-surface-muted, #e5f7ed);
+  background: var(--ae-success-bg, #e5f7ed);
 }
 
 .track-disabled {

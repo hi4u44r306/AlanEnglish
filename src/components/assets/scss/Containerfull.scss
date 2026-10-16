@@ -289,3 +289,8 @@ body {
     padding: 5px 11px;
   }
 }
+
+// 「先聽本關教材」專心模式：沒有上方導覽列，內容從畫面頂端（避開 iPhone 瀏海）開始。
+.app-shell.app-shell--focus {
+  padding-top: max(12px, env(safe-area-inset-top, 0px));
+}

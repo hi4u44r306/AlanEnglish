@@ -87,7 +87,7 @@
   overflow: hidden;
   border: 1px solid #dfcba6;
   border-radius: 999px;
-  background: var(--ae-surface-muted, #eee2c8);
+  background: var(--ae-warning-bg, #eee2c8);
   box-shadow: inset 0 2px 4px rgba(105, 75, 35, .12), 0 1px 0 #fff;
 
   span {
@@ -129,7 +129,7 @@
   font-weight: 800;
   cursor: pointer;
 
-  &:hover { background: var(--ae-surface-muted, #f4e8d0); }
+  &:hover { background: var(--ae-warning-bg, #f4e8d0); }
   &:focus-visible { outline: 3px solid #2f73c8; outline-offset: 3px; }
 }
 
@@ -182,4 +182,50 @@
   .speaking-mode-loading-page.is-workbook-entry .speaking-mode-loading-card__badge { animation: none; }
 
   .speaking-mode-loading-card__track span { width: 66%; }
+}
+
+// 載入畫面只顯示進度條與返回鍵；文字保留給螢幕閱讀器。
+.speaking-mode-loading-card .speaking-mode-loading-card__sr {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  margin: -1px !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  clip-path: inset(50%) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+.speaking-mode-loading-card {
+  position: relative;
+  padding-top: 34px;
+}
+
+.speaking-mode-loading-card .speaking-mode-loading-card__track {
+  width: 100%;
+}
+
+// 一行簡單文字＋進度條。讀得快時（0.2 秒內）整張卡片不出現，避免閃一下。
+.speaking-mode-loading-card .speaking-mode-loading-card__label {
+  margin: 0;
+  color: var(--ae-text, #17345e);
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.speaking-mode-loading-page .speaking-mode-loading-card {
+  animation: speaking-mode-loading-appear .2s step-end both;
+}
+
+@keyframes speaking-mode-loading-appear {
+  from { visibility: hidden; }
+  to { visibility: visible; }
+}
+
+// 題目讀好了：進度條填滿後才換成關卡。
+.speaking-mode-loading-page.is-complete .speaking-mode-loading-card__track span {
+  width: 100% !important;
+  animation: none;
+  transition: width .25s ease-out;
 }

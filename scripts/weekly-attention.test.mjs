@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { ATTENTION_TRACKING_SINCE, attentionLevel, buildAttention, describeAttention } from "../supabase/functions/weekly-report/attention.ts";
+import { ATTENTION_TRACKING_SINCE, attentionLevel, buildAttention, describeAttention, roundedFocusRate } from "../supabase/functions/weekly-report/attention.ts";
 
 const day = (date, listening) => ({ date, listening });
 const event = (key, iso, type = "listening") => ({ activity_type: type, activity_key: key, occurred_at: iso });
@@ -59,4 +59,12 @@ test("levels have clear thresholds", () => {
     assert.equal(attentionLevel(79), "ok");
     assert.equal(attentionLevel(55), "ok");
     assert.equal(attentionLevel(54), "needs_reminder");
+});
+
+test("家長摘要的專注度只顯示整十，等級依整十後的數字", () => {
+    assert.deepEqual([95, 94, 63, 55, 28].map(roundedFocusRate), [100, 90, 60, 60, 30]);
+    const base = { available: true, since: ATTENTION_TRACKING_SINCE, tracked_listens: 10, idle_pauses: 1, hidden_pauses: 0, level: "ok" };
+    assert.match(describeAttention({ ...base, focus_rate: 77 }), /^專注度：專注（80%；/);
+    assert.match(describeAttention({ ...base, focus_rate: 55 }), /^專注度：普通（60%；/);
+    assert.match(describeAttention({ ...base, focus_rate: 33 }), /^專注度：需要提醒（30%；/);
 });

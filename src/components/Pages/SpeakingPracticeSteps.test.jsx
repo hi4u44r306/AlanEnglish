@@ -150,7 +150,7 @@ describe("SpeakingPracticeSteps", () => {
 
     it("簡單模式直接顯示答案；挑戰模式的提示先由伺服器登記", async () => {
         const { unmount } = render(<SpeakingPracticeSteps firebaseUser={{}} question={question} showAnswerByDefault />);
-        expect(screen.getByLabelText("簡單模式參考答案")).toHaveTextContent("My name is 你的名字.");
+        expect(screen.getByLabelText("跟著念參考答案")).toHaveTextContent("My name is 你的名字.");
         unmount();
 
         const onRevealHint = jest.fn().mockResolvedValue({ model_answer: "My name is [你的名字].", hint_zh: "說出自己的名字" });
@@ -158,7 +158,7 @@ describe("SpeakingPracticeSteps", () => {
         const { rerender } = render(<SpeakingPracticeSteps firebaseUser={{}} question={challengeQuestion}
             challengeMode="challenge" challengeSessionId="round-1" onRevealHint={onRevealHint} />);
         expect(screen.queryByText("你的名字")).not.toBeInTheDocument();
-        fireEvent.click(screen.getByRole("button", { name: "看提示（本輪此題不計通關）" }));
+        fireEvent.click(screen.getByRole("button", { name: "看答案（看了這題就不算通過）" }));
         await waitFor(() => expect(onRevealHint).toHaveBeenCalledWith(expect.objectContaining({ id: 9 }), "round-1"));
         expect(await screen.findByText("你的名字")).toBeInTheDocument();
         rerender(<SpeakingPracticeSteps firebaseUser={{}} question={challengeQuestion}
@@ -166,32 +166,43 @@ describe("SpeakingPracticeSteps", () => {
         await waitFor(() => expect(screen.queryByText("你的名字")).not.toBeInTheDocument());
     });
 
+    it("自己說按看答案後只顯示這題的答案，不顯示提示、示範與發音說明", async () => {
+        render(<SpeakingPracticeSteps firebaseUser={{}} question={question} challengeMode="challenge" challengeSessionId="demo-round"
+            onRevealHint={jest.fn().mockResolvedValue({ model_answer: "My name is Amy.", hint_zh: "說出你的名字", pronunciation_notes_zh: "把 name 說清楚。" })} />);
+        fireEvent.click(screen.getByRole("button", { name: "看答案（看了這題就不算通過）" }));
+        const panel = await screen.findByLabelText("這題的答案");
+        expect(panel).toHaveTextContent("My name is Amy.");
+        expect(panel).not.toHaveTextContent("說出你的名字");
+        expect(panel).not.toHaveTextContent("發音提醒");
+        expect(panel).not.toHaveTextContent("可以這樣說");
+        expect(screen.getByRole("button", { name: "收起答案" })).toBeInTheDocument();
+    });
     it("挑戰模式看過提示後即使評分回傳正確，也不標記本輪通關", async () => {
         const onCompleted = jest.fn();
         const onIncorrect = jest.fn();
         render(<SpeakingPracticeSteps firebaseUser={{}} question={question} challengeMode="challenge"
             challengeSessionId="demo-round" onRevealHint={jest.fn().mockResolvedValue({ model_answer: question.model_answer })}
             onCompleted={onCompleted} onIncorrect={onIncorrect} />);
-        fireEvent.click(screen.getByRole("button", { name: "看提示（本輪此題不計通關）" }));
+        fireEvent.click(screen.getByRole("button", { name: "看答案（看了這題就不算通過）" }));
         await screen.findByText("你的名字");
         fireEvent.click(screen.getByRole("button", { name: "模擬正確回答" }));
         expect(onCompleted).not.toHaveBeenCalled();
         expect(onIncorrect).toHaveBeenCalledWith(expect.objectContaining({ hint_used: true }));
-        expect(screen.getByText("這題先練習，稍後不用提示再試一次。")).toBeInTheDocument();
+        expect(screen.getByText("這題先練習，稍後不看答案再試一次。")).toBeInTheDocument();
     });
     it("提示成功開啟後立即提醒，收起也保留，新回合清除提醒且能通關", async () => {
         const onCompleted = jest.fn().mockResolvedValue(true);
         const onRevealHint = jest.fn().mockResolvedValue({ model_answer: question.model_answer });
         const props = { question, challengeMode: "challenge", onCompleted, onRevealHint };
         const { rerender } = render(<SpeakingPracticeSteps {...props} challengeSessionId="round-1" />);
-        fireEvent.click(screen.getByRole("button", { name: "看提示（本輪此題不計通關）" }));
-        expect(await screen.findByText("這題先練習，稍後不用提示再試一次。")).toBeInTheDocument();
-        fireEvent.click(screen.getByRole("button", { name: "收起回答提示" }));
-        expect(screen.getByRole("status")).toHaveTextContent("本輪這題不計通關");
+        fireEvent.click(screen.getByRole("button", { name: "看答案（看了這題就不算通過）" }));
+        expect(await screen.findByText("這題先練習，稍後不看答案再試一次。")).toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "收起答案" }));
+        expect(screen.getByRole("status")).not.toHaveTextContent("這題這次不算通過");
         fireEvent.click(screen.getByRole("button", { name: "模擬正確回答" }));
         expect(onCompleted).not.toHaveBeenCalled();
         rerender(<SpeakingPracticeSteps {...props} challengeSessionId="round-2" />);
-        expect(screen.queryByText("這題先練習，稍後不用提示再試一次。")).not.toBeInTheDocument();
+        expect(screen.queryByText("這題先練習，稍後不看答案再試一次。")).not.toBeInTheDocument();
         fireEvent.click(screen.getByRole("button", { name: "模擬正確回答" }));
         expect(await screen.findByText("本題已完成！你可以繼續挑戰或再練一次。")).toBeInTheDocument();
         expect(onCompleted).toHaveBeenCalledTimes(1);
@@ -199,38 +210,38 @@ describe("SpeakingPracticeSteps", () => {
     it("提示載入失敗不顯示已使用提示，仍可重試", async () => {
         const onRevealHint = jest.fn().mockRejectedValueOnce(new Error("提示載入失敗")).mockResolvedValue({ model_answer: question.model_answer });
         render(<SpeakingPracticeSteps question={question} challengeMode="challenge" onRevealHint={onRevealHint} />);
-        fireEvent.click(screen.getByRole("button", { name: "看提示（本輪此題不計通關）" }));
+        fireEvent.click(screen.getByRole("button", { name: "看答案（看了這題就不算通過）" }));
         expect(await screen.findByRole("alert")).toHaveTextContent("提示載入失敗");
-        expect(screen.queryByText("這題先練習，稍後不用提示再試一次。")).not.toBeInTheDocument();
-        fireEvent.click(screen.getByRole("button", { name: "看提示（本輪此題不計通關）" }));
-        expect(await screen.findByText("這題先練習，稍後不用提示再試一次。")).toBeInTheDocument();
+        expect(screen.queryByText("這題先練習，稍後不看答案再試一次。")).not.toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "看答案（看了這題就不算通過）" }));
+        expect(await screen.findByText("這題先練習，稍後不看答案再試一次。")).toBeInTheDocument();
     });
     it("舊回合遲到的提示不能重新打開新回合答案", async () => {
         let resolve;
         const onRevealHint = jest.fn(() => new Promise(done => { resolve = done; }));
         const props = { question, challengeMode: "challenge", onRevealHint };
         const { rerender } = render(<SpeakingPracticeSteps {...props} challengeSessionId="round-1" />);
-        fireEvent.click(screen.getByRole("button", { name: "看提示（本輪此題不計通關）" }));
+        fireEvent.click(screen.getByRole("button", { name: "看答案（看了這題就不算通過）" }));
         rerender(<SpeakingPracticeSteps {...props} challengeSessionId="round-2" />);
         await act(async () => resolve({ model_answer: question.model_answer }));
         expect(screen.queryByText("你的名字")).not.toBeInTheDocument();
         expect(screen.queryByRole("status")).not.toBeInTheDocument();
-        expect(screen.getByRole("button", { name: "看提示（本輪此題不計通關）" })).toBeEnabled();
+        expect(screen.getByRole("button", { name: "看答案（看了這題就不算通過）" })).toBeEnabled();
     });
     it("簡單模式的挖空句預設只顯示挖空，看提示要先向伺服器登記且本題不算過", async () => {
         const onRevealHint = jest.fn().mockResolvedValue({ model_answer: "They are tables.", simple_answer: "They are tables.", hint_zh: "" });
         const gapQuestion = { ...question, model_answer: "They are [餐桌].", simple_answer: "", hint_zh: "", hint_voids_pass: true };
         render(<SpeakingPracticeSteps firebaseUser={{}} question={gapQuestion} challengeMode="easy" showAnswerByDefault challengeSessionId="s1" onRevealHint={onRevealHint} onPlayAudio={jest.fn()} />);
-        expect(screen.getByLabelText("簡單模式參考答案")).toHaveTextContent("They are 餐桌.");
+        expect(screen.getByLabelText("跟著念參考答案")).toHaveTextContent("They are 餐桌.");
         expect(screen.queryByText(/They are tables./)).not.toBeInTheDocument();
-        fireEvent.click(screen.getByRole("button", { name: "看提示（這題不算過）" }));
+        fireEvent.click(screen.getByRole("button", { name: "看答案（看了這題就不算通過）" }));
         await waitFor(() => expect(onRevealHint).toHaveBeenCalledWith(gapQuestion, "s1"));
         expect(await screen.findByText("They are tables.")).toBeInTheDocument();
-        expect(screen.getByText("這題先練習，稍後不用提示再試一次。")).toBeInTheDocument();
+        expect(screen.getByText("這題先練習，稍後不看答案再試一次。")).toBeInTheDocument();
     });
     it("沒有挖空的簡單模式題目維持直接顯示答案，不出現會取消過關的提示", () => {
         render(<SpeakingPracticeSteps firebaseUser={{}} question={{ ...question, model_answer: "They are tables." }} challengeMode="easy" showAnswerByDefault onPlayAudio={jest.fn()} />);
-        expect(screen.getByLabelText("簡單模式參考答案")).toHaveTextContent("They are tables.");
-        expect(screen.queryByRole("button", { name: /看提示/ })).not.toBeInTheDocument();
+        expect(screen.getByLabelText("跟著念參考答案")).toHaveTextContent("They are tables.");
+        expect(screen.queryByRole("button", { name: /看答案/ })).not.toBeInTheDocument();
     });
 });

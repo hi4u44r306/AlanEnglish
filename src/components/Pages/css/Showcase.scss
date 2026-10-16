@@ -386,7 +386,7 @@
   margin-top: 16px;
   padding: 5px 9px;
   border-radius: 999px;
-  background: var(--ae-surface-muted, #fff0bd);
+  background: var(--ae-warning-bg, #fff0bd);
   color: var(--ae-warning, #6b4a08);
   font-size: 12px;
   font-weight: 900;
@@ -896,7 +896,7 @@
     width: 5px;
     height: 5px;
     border-radius: 50%;
-    background: var(--ae-surface-muted, #ffc94a);
+    background: var(--ae-warning-bg, #ffc94a);
   }
 }
 
@@ -936,8 +936,8 @@
     height: 8px;
     border-radius: 50%;
 
-    &:nth-child(1) { background: var(--ae-surface-muted, #ff7a7a); }
-    &:nth-child(2) { background: var(--ae-surface-muted, #ffd166); }
+    &:nth-child(1) { background: var(--ae-danger-bg, #ff7a7a); }
+    &:nth-child(2) { background: var(--ae-warning-bg, #ffd166); }
     &:nth-child(3) { background: #4dcc8f; }
   }
 }
@@ -979,7 +979,7 @@
 
 .ae-demo-mini-logo {
   margin-bottom: 14px;
-  background: var(--ae-surface-muted, #ffc94a);
+  background: var(--ae-warning-bg, #ffc94a);
   color: var(--ae-text, #13213f);
   font-size: 12px;
   font-weight: 900;
@@ -1021,7 +1021,7 @@
   height: 38px;
   place-items: center;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--ae-surface-muted, #ffc94a), var(--ae-surface-muted, #ff8a42));
+  background: linear-gradient(135deg, var(--ae-warning-bg, #ffc94a), var(--ae-warning-bg, #ff8a42));
   color: var(--ae-text, #13213f);
   font-weight: 900;
 }
@@ -1274,11 +1274,11 @@
   }
 
   &.tone-1::after { background: var(--ae-pink); }
-  &.tone-2::after { background: var(--ae-surface-muted, #ffc94a); }
+  &.tone-2::after { background: var(--ae-warning-bg, #ffc94a); }
   &.tone-3::after { background: var(--ae-cyan); }
 
   &.tone-2 .showcase-feature-icon {
-    background: var(--ae-surface-muted, #fff6d9);
+    background: var(--ae-warning-bg, #fff6d9);
     color: var(--ae-warning, #b77900);
   }
 
@@ -1457,7 +1457,7 @@
     opacity: 0.13;
   }
 
-  &.academy::after { background: var(--ae-surface-muted, #ffc94a); }
+  &.academy::after { background: var(--ae-warning-bg, #ffc94a); }
   &.self-study::after { background: var(--ae-cyan); }
 
   h3 {
@@ -1750,7 +1750,7 @@
   right: 20px;
   padding: 8px 13px;
   border-radius: 999px;
-  background: var(--ae-surface-muted, #ffc94a);
+  background: var(--ae-warning-bg, #ffc94a);
   color: var(--ae-text, #13213f);
   font-size: 10px;
   font-weight: 900;
@@ -2174,7 +2174,7 @@
 
   .showcase-plan-table-wrap::-webkit-scrollbar-thumb {
     border-radius: 999px;
-    background: var(--ae-surface-muted, #9eb2dc);
+    background: var(--ae-info-bg, #9eb2dc);
   }
 }
 
