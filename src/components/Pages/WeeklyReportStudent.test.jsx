@@ -31,3 +31,16 @@ test("shows a dash, never a made-up zero, when a figure is missing, and no homew
     expect(screen.queryByText("作業完成")).not.toBeInTheDocument();
     expect(document.querySelector(".weekly-student__days")).toBeNull();
 });
+
+test("孩子的每週報告顯示整十的專注度與鼓勵話；老師版可以關掉", () => {
+    const { rerender } = render(<WeeklyReportStudent report={report({ attention: { available: true, focus_rate: 95 } })} />);
+    expect(screen.getByText("100%")).toBeInTheDocument();
+    expect(screen.getByText("很專心，繼續保持！")).toBeInTheDocument();
+    rerender(<WeeklyReportStudent report={report({ attention: { available: true, focus_rate: 34 } })} />);
+    expect(screen.getByText("30%")).toBeInTheDocument();
+    expect(screen.getByText(/要加油/)).toBeInTheDocument();
+    rerender(<WeeklyReportStudent report={report({ attention: { available: true, focus_rate: 95 } })} showAttention={false} />);
+    expect(screen.queryByText("100%")).not.toBeInTheDocument();
+    rerender(<WeeklyReportStudent report={report({ attention: { available: false, focus_rate: null } })} />);
+    expect(screen.queryByText(/專注度/)).not.toBeInTheDocument();
+});

@@ -1,6 +1,7 @@
 import React from "react";
 import { FiActivity, FiAward, FiTarget } from "react-icons/fi";
 import WeeklyReportStudent from "./WeeklyReportStudent";
+import { focusLevel, roundFocusRate } from "../../utils/focusRate";
 import "./css/WeeklyReportParent.scss";
 
 const LEVELS = {
@@ -24,7 +25,8 @@ export function WeeklyAttention({ attention }) {
             <p>專注度從 {sinceLabel(attention.since)} 起的那一週開始記錄；整週都有記錄的週別才會顯示。</p>
         </article>;
     }
-    const level = LEVELS[attention.level];
+    const rate = roundFocusRate(attention.focus_rate);
+    const level = LEVELS[focusLevel(rate)];
     if (!level) {
         return <article className="weekly-parent__card weekly-attention is-empty" aria-label="專注度">
             <h2><FiActivity aria-hidden="true" />專注度</h2>
@@ -35,10 +37,10 @@ export function WeeklyAttention({ attention }) {
         <h2><FiActivity aria-hidden="true" />專注度</h2>
         <div className="weekly-attention__main">
             <strong>{level.label}</strong>
-            <span aria-label={`專注率 ${attention.focus_rate}%`}>{attention.focus_rate}%</span>
+            <span aria-label={`專注率 ${rate}%`}>{rate}%</span>
         </div>
-        <div className="weekly-attention__bar" role="progressbar" aria-label="專注率" aria-valuemin="0" aria-valuemax="100" aria-valuenow={attention.focus_rate}>
-            <i style={{ width: `${attention.focus_rate}%` }} />
+        <div className="weekly-attention__bar" role="progressbar" aria-label="專注率" aria-valuemin="0" aria-valuemax="100" aria-valuenow={rate}>
+            <i style={{ width: `${rate}%` }} />
         </div>
         <p>{level.text}</p>
         <ul className="weekly-attention__facts">
@@ -53,7 +55,7 @@ export default function WeeklyReportParent({ report }) {
     const focus = (Array.isArray(report.next_focus) ? report.next_focus : []).filter(Boolean).slice(0, 3);
     const mastered = count(report.review?.mastered);
     return <section className="weekly-parent" aria-label="這週給家長的重點">
-        <WeeklyReportStudent report={report} />
+        <WeeklyReportStudent report={report} showAttention={false} />
         {mastered > 0 && <p className="weekly-parent__mastered"><FiAward aria-hidden="true" />智慧複習這週新學會 <strong>{mastered}</strong> 題</p>}
         <div className="weekly-parent__grid">
             <WeeklyAttention attention={report.attention} />

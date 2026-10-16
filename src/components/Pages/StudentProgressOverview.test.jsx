@@ -9,11 +9,13 @@ import { getSpeakingChallengeCatalog } from "../../services/speakingChallengeSer
 import { getStudentAssignments, getStudentAssignmentsV2 } from "../../services/assignmentService";
 import { clearStudentPageCache, studentPageScope } from "../../services/studentPageCache";
 import { saveStudentLearningResume } from "../../services/studentLearningResume";
+import { getWeeklyReport } from "../../services/weeklyReportService";
 
 jest.mock("../../auth/AuthContext", () => ({ useAuth: jest.fn() }));
 jest.mock("../../services/contentAccessService", () => ({ getAccessibleCatalog: jest.fn() }));
 jest.mock("../../services/speakingChallengeService", () => ({ getSpeakingChallengeCatalog: jest.fn() }));
 jest.mock("../../services/assignmentService", () => ({ getStudentAssignments: jest.fn(), getStudentAssignmentsV2: jest.fn() }));
+jest.mock("../../services/weeklyReportService", () => ({ getWeeklyReport: jest.fn() }));
 
 const auth = (features, uid = "learner-a") => ({ firebaseUser: { uid }, role: "student", studentProfile: { membership: { is_active: true, effective_access: { features } } } });
 const scopeOf = value => studentPageScope(value.firebaseUser, value.role, value.studentProfile);
@@ -33,6 +35,7 @@ beforeEach(() => {
         { id: 3, title: "已完成的作業", due_at: "2099-01-01T00:00:00Z", progress: { completed: true } }
     ] });
     getStudentAssignmentsV2.mockResolvedValue({ assignments: [] });
+    getWeeklyReport.mockResolvedValue({ report: { attention: { available: false, focus_rate: null } } });
     getSpeakingChallengeCatalog.mockResolvedValue({ challenges: [
         { id: 1, book: { id: 10, name: "Workbook 1" }, is_completed: true },
         { id: 2, book: { id: 10, name: "Workbook 1" }, is_completed: false },
@@ -134,4 +137,18 @@ test("says assignments are done, and does not hide a failed load", async () => {
     expect(screen.queryByRole("link", { name: /作業.*都完成了/ })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "重新讀取" }));
     await waitFor(() => expect(getStudentAssignmentsV2).toHaveBeenCalledTimes(3));
+});
+
+test("每週報告列顯示本週專注度，數字四捨五入到整十；還沒有資料時不顯示", async () => {
+    useAuth.mockReturnValue(auth({ assignments: false, pronunciation: false }));
+    getWeeklyReport.mockResolvedValue({ report: { attention: { available: true, focus_rate: 94 } } });
+    renderOverview();
+    expect(await screen.findByRole("link", { name: /每週報告.*本週專注度 90%/ })).toHaveAttribute("href", "/student/weekly-report");
+});
+
+test("專注度還沒開始記錄時，每週報告列不顯示數字", async () => {
+    useAuth.mockReturnValue(auth({ assignments: false, pronunciation: false }));
+    renderOverview();
+    await waitFor(() => expect(getWeeklyReport).toHaveBeenCalled());
+    expect(screen.getByRole("link", { name: /每週報告/ })).not.toHaveTextContent("專注度");
 });
