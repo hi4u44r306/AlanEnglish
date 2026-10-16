@@ -61,7 +61,7 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(container.querySelector('[aria-current="step"]')).toHaveAttribute("data-question-set-id", "2");
         expect(screen.getByRole("button", { name: /下一頁，尚未解鎖/ })).toBeInTheDocument();
         fireEvent.click(goal);
-        expect(screen.getByRole("dialog", { name: "P.15 認識新朋友" })).not.toHaveTextContent("依教材頁序完成");
+        expect(screen.getByRole("dialog", { name: /P.15 認識新朋友$/ })).not.toHaveTextContent("依教材頁序完成");
         expect(screen.getByRole("button", { name: "跟著念" })).toHaveFocus();
         expect(getSpeakingChallengeSet).not.toHaveBeenCalled();
         fireEvent.keyDown(document, { key: "Escape" });
@@ -547,7 +547,7 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(node.closest(".speaking-adventure-route")).toBeInTheDocument();
         expect(node.querySelector(".speaking-challenge-lesson__number")).toHaveTextContent("P.21");
         fireEvent.click(node);
-        expect(screen.getByRole("dialog", { name: "P.21 看圖問答" })).toHaveTextContent("題數");
+        expect(screen.getByRole("dialog", { name: /P.21 看圖問答$/ })).toHaveTextContent("題數");
         expect(screen.getByRole("dialog")).toHaveTextContent("通過0/9 句");
         expect(screen.getByRole("dialog")).not.toHaveTextContent("簡單0 / 9");
         expect(screen.queryByText("本關道具")).not.toBeInTheDocument();

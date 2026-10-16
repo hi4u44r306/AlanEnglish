@@ -43,6 +43,9 @@ test("兩個等級按鈕只寫怎麼玩，過關規則只在上方說一次", ()
     expect(screen.getByRole("button", { name: "跟著念" })).toHaveTextContent("看著句子念");
     expect(screen.getByRole("button", { name: /自己說/ })).toHaveTextContent("看圖或問題回答");
     expect(screen.queryByText(/就能過關/)).not.toBeInTheDocument();
+    expect(screen.getByText("P.1")).toHaveClass("speaking-level-dialog__book");
+    rerender(<ChallengePreviewDialog item={{ id: 1, title: "Hello", question_count: 7, challenge_completed_count: 3, book: { name: "Workbook 4" }, is_unlocked: true }} {...props} />);
+    expect(screen.getByRole("dialog", { name: "Workbook 4 · P.1 Hello" })).toHaveTextContent("3/7 句");
     expect(screen.queryByText(/已練習/)).not.toBeInTheDocument();
     rerender(<ChallengePreviewDialog item={{ id: 1, title: "Hello", question_count: 2, is_unlocked: true }} {...props} />);
     expect(screen.getByRole("button", { name: "跟著念" })).not.toHaveTextContent("不計通關");

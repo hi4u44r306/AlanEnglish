@@ -36,13 +36,15 @@ export const ChallengePreviewDialog = ({ item, section, sectionCopy, pages, onCl
     const challengeCompletedCount = Number(item.challenge_completed_count) || 0;
     const singlePractice = usesSinglePracticeMode(item) || section === "preparation";
     const topicLabel = speakingLessonTopic(item, pages, sectionCopy.label);
+    const bookLine = [item.book?.name || item.books?.name, pages].filter(Boolean).join(" · ");
     const practiceOnly = !staffPreview && item.generation_metadata?.interaction_type === "alphabet_round" && item.completed_today === true;
     const easyAction = practiceOnly ? "聽示範與錄音練習" : SPEAKING_LEVELS.easy.label;
     const challengeAction = speakingEntryAction(challengeCompletedCount, questionCount, false, "challenge");
     return <div className="speaking-level-overlay" onMouseDown={event => { if (event.target === event.currentTarget) onClose(); }}>
-        <section className={`speaking-level-dialog${locked ? " is-locked" : ""}`} ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="speaking-level-title" aria-describedby={practiceOnly || item.is_completed ? "speaking-level-status" : undefined}>
+        <section className={`speaking-level-dialog${locked ? " is-locked" : ""}`} ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={bookLine ? "speaking-level-book speaking-level-title" : "speaking-level-title"} aria-describedby={practiceOnly || item.is_completed ? "speaking-level-status" : undefined}>
             <button type="button" className="speaking-level-dialog__close" onClick={onClose} aria-label="關閉關卡摘要">×</button>
-            <h2 id="speaking-level-title">{pages ? <span className="speaking-level-dialog__pages">{pages}</span> : null}{pages ? " " : ""}{topicLabel}</h2>
+            {bookLine && <p id="speaking-level-book" className="speaking-level-dialog__book">{bookLine}</p>}
+            <h2 id="speaking-level-title">{topicLabel}</h2>
             {staffPreview && <p className="speaking-level-dialog__topic">工作人員預覽</p>}
             <div className={`speaking-level-dialog__facts${singlePractice ? " is-compact" : ""}`}>
                 <span><small>題數</small><strong>{questionCount} 題</strong></span>
