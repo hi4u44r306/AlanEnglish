@@ -10,7 +10,8 @@
   position: fixed;
   left: 50%;
   bottom: 18px;
-  z-index: 1800;
+  /* 要在頁面內容上方，但必須低於側邊選單與遮罩（Bootstrap 約 1040～1045），否則會蓋住選單底部的登出鈕。 */
+  z-index: 1020;
   width: min(420px, calc(100vw - 32px));
   transform: translateX(-50%);
   pointer-events: none;
