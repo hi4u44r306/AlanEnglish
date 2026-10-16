@@ -5,6 +5,11 @@ const callSpeakingContent = (firebaseUser, action, payload = {}) => (
     callEdgeFunction("speaking-content-manager", firebaseUser, { action, ...payload })
 );
 
+// 每題片段（聽這題）由獨立的 speaking-clip-manager 處理。
+const callSpeakingClips = (firebaseUser, action, payload = {}) => (
+    callEdgeFunction("speaking-clip-manager", firebaseUser, { action, ...payload })
+);
+
 export const getSpeakingContentBootstrap = firebaseUser => callSpeakingContent(firebaseUser, "bootstrap");
 export const prepareSpeakingSourceUpload = (firebaseUser, payload) => callSpeakingContent(firebaseUser, "create_document_upload", payload);
 export const extractSpeakingSourceDocument = (firebaseUser, payload) => callSpeakingContent(firebaseUser, "extract_document", payload);
@@ -35,13 +40,13 @@ export const updateDraftSpeakingQuestion = (firebaseUser, payload) => callSpeaki
 export const createSpeakingQuestionSetRevision = (firebaseUser, questionSetId) => callSpeakingContent(firebaseUser, "create_question_set_revision", {
     question_set_id: questionSetId
 });
-export const listSpeakingQuestionClips = (firebaseUser, questionSetId) => callSpeakingContent(firebaseUser, "list_question_clips", {
+export const listSpeakingQuestionClips = (firebaseUser, questionSetId) => callSpeakingClips(firebaseUser, "list_question_clips", {
     question_set_id: questionSetId
 });
-export const importSpeakingQuestionClips = (firebaseUser, questionSetId, clips) => callSpeakingContent(firebaseUser, "import_question_clips", {
+export const importSpeakingQuestionClips = (firebaseUser, questionSetId, clips) => callSpeakingClips(firebaseUser, "import_question_clips", {
     question_set_id: questionSetId, clips
 });
-export const reviewSpeakingQuestionClip = (firebaseUser, clipId, decision) => callSpeakingContent(firebaseUser, "review_question_clip", {
+export const reviewSpeakingQuestionClip = (firebaseUser, clipId, decision) => callSpeakingClips(firebaseUser, "review_question_clip", {
     clip_id: clipId, decision
 });
 export const updateSpeakingQuestionSetDraft =(firebaseUser, payload) => callSpeakingContent(firebaseUser, "update_question_set_draft", payload);

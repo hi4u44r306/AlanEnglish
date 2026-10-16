@@ -1,13 +1,14 @@
 # Alan English 專案狀態
 
-### 每題片段「聽這題」第一階段（2026-10-16，分支 `feat/speaking-question-clips`，前端與兩個 Function 尚未部署）
+### 每題片段「聽這題」第一階段（2026-10-16，分支 `feat/speaking-question-clips`，已部署）
 
 - 資料表：`speaking_question_media_clips`（migration `20261016140406`，擁有者 2026-10-16 同意，已套用正式庫）。音檔（track_id＋起訖毫秒）或 YouTube（11 碼 id＋起訖毫秒），draft／approved／archived，每題每類型最多一個核准，RLS 開啟、只給 service_role。驗證：RLS true、0 policy、anon／authenticated 無 select、7 個索引、0 筆。預留 `private_object_key` 供日後改用預先剪好的小檔。
-- 後端：`_shared/speaking-question-clips.ts`（驗證、只在 easy／示範／純練習給片段、每條音軌只簽一次網址）。`speaking-challenge` question_set 回傳 `clip`（讀取失敗不影響關卡）；`speaking-content-manager` 新增 `list_question_clips`／`import_question_clips`／`review_question_clip`，建立新版草稿時複製片段。部署前已比對線上 v91 與 main 一致（僅已知的等價正規式寫法差異）。
+- 後端：`_shared/speaking-question-clips.ts`（驗證、只在 easy／示範／純練習給片段、每條音軌只簽一次網址）。`speaking-challenge` question_set 回傳 `clip`（讀取失敗不影響關卡）；管理端改為獨立新 Function `speaking-clip-manager`（只限 admin，`list_question_clips`／`import_question_clips`／`review_question_clip`）；原因：`speaking-content-manager` 約 33 萬字元，部署工具無法一次上傳，故不動它。限制：建立新版草稿時片段不會自動帶過去（新版發布後需重新匯入），日後部署 content-manager 時再補。
 - 前端：`SpeakingQuestionClip`（獨立 audio、不經 MusicPlayer、不呼叫 record-play，播放時回報 busy 避免誤記專注度）；放在 `SpeakingPracticeSteps` 與老師唯讀預覽；管理端 `SpeakingQuestionClipReview`（匯入片段腳本 JSON、試聽、核准、移除）。`SpeakingActivityContext` 拆成獨立小檔，錄音元件改用它（順便修好錄音元件測試載入 Firebase 失敗）。
 - 驗證：`test:speaking-clips` 7 項；口說相關前端 22 組 266 項通過；`CI=true npm run build` 成功；本機假資料 320／412／1280px 無橫向溢出。
 - 擁有者決定（2026-10-16「都照建議」）：片段含答案（先聽再拼）；拼字用點字母或打字；三步流程取代「跟著念」當練習，通關／獎勵仍看「自己說」；接受片段網址指向整條音軌的風險。
-- 下一步：取得同意後部署兩支 Function 並合併前端，再由管理員匯入 Workbook 3 P4（題組 37，音檔 114）並試聽核准。第二階段：三步流程與拼字、YouTube 片段與「看完整影片」按鈕（不綁獎勵，遵守 YouTube 規定）。
+- 部署紀錄（2026-10-16，擁有者「同意部署並合併」）：`speaking-challenge` v85（19 檔逐檔比對與 repo 一致）、`speaking-clip-manager` v1（新）；三者 OPTIONS 200、未登入／壞 token 401。PR #601。
+- 下一步：由管理員匯入 Workbook 3 P4（題組 37，音檔 114）並試聽核准。第二階段：三步流程與拼字、YouTube 片段與「看完整影片」按鈕（不綁獎勵，遵守 YouTube 規定）。
 - 已知：正式庫 `academy_class_change` migration 版本為 `20261015031133`，repo 檔名為 `20261015120000`，內容未變，日後整理時對齊。
 
 ### 口說專注度＋家長 Email 專注度（2026-10-16，分支 `feat/speaking-attention`）
