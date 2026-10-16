@@ -61,8 +61,8 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(container.querySelector('[aria-current="step"]')).toHaveAttribute("data-question-set-id", "2");
         expect(screen.getByRole("button", { name: /下一頁，尚未解鎖/ })).toBeInTheDocument();
         fireEvent.click(goal);
-        expect(screen.getByRole("dialog", { name: "認識新朋友" })).toHaveTextContent("P.15");
-        expect(screen.getByRole("button", { name: /挑戰 · 看題目回答/ })).toHaveFocus();
+        expect(screen.getByRole("dialog", { name: /P.15 認識新朋友$/ })).not.toHaveTextContent("依教材頁序完成");
+        expect(screen.getByRole("button", { name: "跟著念" })).toHaveFocus();
         expect(getSpeakingChallengeSet).not.toHaveBeenCalled();
         fireEvent.keyDown(document, { key: "Escape" });
         expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
@@ -99,8 +99,9 @@ describe("TextbookSpeakingChallenge model audio", () => {
         fireEvent.click(await screen.findByRole("button", { name: /P.15，問候，尚未解鎖/ }));
         expect(screen.getByRole("button", { name: "關閉關卡摘要" })).toHaveFocus();
         expect(screen.getByRole("button", { name: "尚未解鎖" })).toBeDisabled();
+        expect(screen.queryByRole("button", { name: "返回地圖" })).not.toBeInTheDocument();
         fireEvent.keyDown(document, { key: "Tab", shiftKey: true });
-        expect(screen.getByRole("button", { name: "返回地圖" })).toHaveFocus();
+        expect(screen.getByRole("button", { name: "關閉關卡摘要" })).toHaveFocus();
     });
 
     it("shows the existing Workbook 2 object clue inline without duplicating a manually edited clue", async () => {
@@ -345,7 +346,7 @@ describe("TextbookSpeakingChallenge model audio", () => {
         });
 
         render(<MemoryRouter initialEntries={["/student/speaking-challenges/7"]}><Routes><Route path="/student/speaking-challenges/:questionSetId" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
-        expect(await screen.findByLabelText("簡單模式參考答案")).toHaveTextContent("My name is Alan.");
+        expect(await screen.findByLabelText("跟著念參考答案")).toHaveTextContent("My name is Alan.");
         expect(screen.queryByRole("button", { name: "聽回答範例" })).not.toBeInTheDocument();
         expect(global.Audio).not.toHaveBeenCalled();
         expect(play).not.toHaveBeenCalled();
@@ -378,7 +379,7 @@ describe("TextbookSpeakingChallenge model audio", () => {
 
         render(<MemoryRouter initialEntries={["/student/speaking-challenges/7"]}><Routes><Route path="/student/speaking-challenges/:questionSetId" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
 
-        expect(await screen.findByLabelText("簡單模式參考答案")).toHaveTextContent("My name is Alan.");
+        expect(await screen.findByLabelText("跟著念參考答案")).toHaveTextContent("My name is Alan.");
         expect(screen.queryByRole("button", { name: "語音準備中" })).not.toBeInTheDocument();
     });
 
@@ -481,8 +482,8 @@ describe("TextbookSpeakingChallenge model audio", () => {
         const lesson = await screen.findByRole("button", { name: /顏色與生活物品/ });
         expect(lesson).toBeEnabled();
         fireEvent.click(lesson);
-        expect(screen.getByRole("button", { name: "自由練習" })).toBeEnabled();
-        expect(screen.getByRole("button", { name: /挑戰 · 看題目回答/ })).toBeEnabled();
+        expect(screen.getByRole("button", { name: "跟著念" })).toBeEnabled();
+        expect(screen.getByRole("button", { name: /自己說 · / })).toBeEnabled();
     });
 
     it("地圖圓點只顯示頁碼或關卡序號，主題留在摘要", async () => {
@@ -547,13 +548,13 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(node.closest(".speaking-adventure-route")).toBeInTheDocument();
         expect(node.querySelector(".speaking-challenge-lesson__number")).toHaveTextContent("P.21");
         fireEvent.click(node);
-        expect(screen.getByRole("dialog", { name: "看圖問答" })).toHaveTextContent("P.21");
-        expect(screen.getByRole("dialog")).toHaveTextContent("挑戰通過0 / 9");
+        expect(screen.getByRole("dialog", { name: /P.21 看圖問答$/ })).toHaveTextContent("題數");
+        expect(screen.getByRole("dialog")).toHaveTextContent("通過0/9 句");
         expect(screen.getByRole("dialog")).not.toHaveTextContent("簡單0 / 9");
         expect(screen.queryByText("本關道具")).not.toBeInTheDocument();
         expect(screen.queryByText("提示卡")).not.toBeInTheDocument();
         expect(screen.getByTestId("location-path")).toHaveTextContent("/student/speaking-challenges/book/");
-        fireEvent.click(screen.getByRole("button", { name: "自由練習" }));
+        fireEvent.click(screen.getByRole("button", { name: "跟著念" }));
         expect(screen.getByText("正式挑戰頁")).toBeInTheDocument();
         expect(screen.getByTestId("location-path")).toHaveAttribute("data-loading-return", "/student/speaking-challenges/book/book-Workbook%201");
     });
@@ -602,7 +603,7 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(screen.getByText(/每個字母每天最多評分 3 次/)).toBeInTheDocument();
         expect(screen.getByText(/第一次送評才扣一輪.*同一輪重試不多扣/)).toBeInTheDocument();
         expect(screen.getByText(/字母／拼讀每段最多錄 12 秒/)).toBeInTheDocument();
-        expect(screen.getByText(/完成整關挑戰才算正式通關並解鎖下一頁/)).toBeInTheDocument();
+        expect(screen.getByText(/就能過關並解鎖下一頁/)).toBeInTheDocument();
         fireEvent.click(rulesToggle);
         expect(rulesToggle).toHaveAttribute("aria-expanded", "false");
         expect(screen.queryByText("輪數怎麼算？")).not.toBeInTheDocument();
@@ -642,7 +643,7 @@ describe("TextbookSpeakingChallenge model audio", () => {
             speaking_questions: [{ id: 151, question_text: "What is this?", model_answer: "It is a cat.", progress_status: "opened" }]
         } });
         render(<MemoryRouter initialEntries={["/student/speaking-challenges/15?mode=easy"]}><Routes><Route path="/student/speaking-challenges/:questionSetId" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
-        expect(await screen.findByLabelText("簡單模式參考答案")).toHaveTextContent("It is a cat.");
+        expect(await screen.findByLabelText("跟著念參考答案")).toHaveTextContent("It is a cat.");
         expect(completeSpeakingChallengeQuestion).not.toHaveBeenCalled();
     });
 
@@ -732,7 +733,7 @@ describe("TextbookSpeakingChallenge model audio", () => {
             questionSetId: 7, bookLabel: "Workbook 1", levelLabel: "P.18～20", bookCatalogPath: "/student/speaking-challenges/book/book-1"
         } } }]}><Routes><Route path="/student/speaking-challenges/:questionSetId" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
 
-        expect(screen.getByRole("heading", { name: `正在進入${mode === "challenge" ? "挑戰" : "簡單"}模式…` })).toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: `正在進入${mode === "challenge" ? "自己說" : "跟著念"}…` })).toBeInTheDocument();
         expect(screen.getByText("Workbook 1 · P.18～20")).toBeInTheDocument();
         expect(screen.getByRole("progressbar", { name: "題目載入中" })).not.toHaveAttribute("aria-valuenow");
         expect(getSpeakingChallengeSet).toHaveBeenCalledWith(mockFirebaseUser, 7, mode);
@@ -765,6 +766,14 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(screen.queryByRole("progressbar", { name: "題目載入中" })).not.toBeInTheDocument();
     });
 
+    it("關卡還沒解鎖時，回到原本那本教材的地圖而不是教材總覽", async () => {
+        getSpeakingChallengeSet.mockRejectedValue(Object.assign(new Error("locked"), { status: 403, code: "speaking_challenge_locked" }));
+        const entry = { questionSetId: 7, bookCatalogPath: "/student/speaking-challenges/book/book-1" };
+        render(<MemoryRouter initialEntries={[{ pathname: "/student/speaking-challenges/7", search: "?mode=challenge", state: { speakingEntry: entry } }]}><Routes><Route path="/student/speaking-challenges/:questionSetId" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
+        expect(await screen.findByRole("heading", { name: "這一關還沒解鎖" })).toBeInTheDocument();
+        expect(screen.getByRole("link", { name: "回到地圖" })).toHaveAttribute("href", "/student/speaking-challenges/book/book-1");
+    });
+
     it("讀取畫面切換同一關模式時不顯示舊模式內容", async () => {
         let resolveChallenge;
         const firstChallenge = { id: 7, topic: "Names", speaking_questions: [{ id: 9, question_text: "What's your name?", model_answer: "My name is Alan.", progress_status: "opened" }] };
@@ -774,7 +783,7 @@ describe("TextbookSpeakingChallenge model audio", () => {
         render(<MemoryRouter initialEntries={["/student/speaking-challenges/7?mode=easy"]}><Routes><Route path="/student/speaking-challenges/:questionSetId" element={<><Link to="/student/speaking-challenges/7?mode=challenge">切換挑戰</Link><TextbookSpeakingChallenge /></>} /></Routes></MemoryRouter>);
         expect(await screen.findByRole("heading", { name: "What's your name?" })).toBeInTheDocument();
         fireEvent.click(screen.getByRole("link", { name: "切換挑戰" }));
-        expect(screen.getByRole("heading", { name: "正在進入挑戰模式…" })).toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: "正在進入自己說…" })).toBeInTheDocument();
         expect(screen.queryByRole("heading", { name: "What's your name?" })).not.toBeInTheDocument();
         await act(async () => resolveChallenge({ challenge: firstChallenge }));
         expect(screen.getByRole("heading", { name: "What's your name?" })).toBeInTheDocument();
@@ -790,7 +799,7 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(await screen.findByText("What's your name?")).toBeInTheDocument();
         fireEvent.click(screen.getByRole("link", { name: "切換到 02" }));
         expect(screen.queryByText("What's your name?")).not.toBeInTheDocument();
-        expect(screen.getByRole("heading", { name: "正在進入簡單模式…" })).toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: "正在進入跟著念…" })).toBeInTheDocument();
 
         await act(async () => resolveSecondChallenge({ challenge: { id: 8, title: "02 打招呼", topic: "Greetings", difficulty: "E1", books: { name: "Workbook 1" }, speaking_questions: [{ id: 10, question_text: "Good morning!", progress_status: "opened" }] } }));
         expect(screen.getByText("Good morning!")).toBeInTheDocument();

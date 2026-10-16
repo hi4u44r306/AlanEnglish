@@ -40,6 +40,15 @@ describe("MusicCard", () => {
         expect(onStart).toHaveBeenCalledTimes(1);
     });
 
+    it("口說聽力準備頁隱藏 YouTube 看影片連結，避免離開網站", () => {
+        useSelector.mockImplementation(selector => selector({ musicReducer: { playing: null, playingStatus: false } }));
+        const video = { ...music, type: "Workbook_2", page: "P4" };
+        const view = render(<MusicCard music={video} />);
+        expect(screen.getByRole("link", { name: /YouTube/ })).toBeInTheDocument();
+        view.rerender(<MusicCard music={video} hideVideo />);
+        expect(screen.queryByRole("link", { name: /YouTube/ })).not.toBeInTheDocument();
+    });
+
     it("播放中以符合按鈕尺寸的四條音樂等化器顯示狀態", () => {
         useSelector.mockImplementation(selector => selector({
             musicReducer: {

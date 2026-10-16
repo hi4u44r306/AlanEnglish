@@ -38,6 +38,7 @@ body.speaking-challenge-active {
     // Readable from about 50 cm on a phone: roughly 9 mm tall capitals at 34px.
     .speaking-question-heading h2,
     .speaking-easy-answer > strong,
+    .speaking-answer-only > strong,
     .speaking-help-panel > div > strong {
         display: block;
         font-size: clamp(32px, 8.6vw, 46px) !important;
@@ -275,3 +276,33 @@ body.speaking-challenge-active .speaking-alphabet-list .handwriting-paper {
 }
 body.speaking-challenge-active .speaking-alphabet-list .handwriting-letter { flex: none; height: 100%; width: auto; overflow: visible; }
 body.speaking-challenge-active .speaking-alphabet-list .handwriting-letter path { stroke-width: 2.3; }
+
+// 「跟著念」要念的那一句：上方標「念這句」，外框加粗，學生一眼看出要念答案而不是題目。
+.speaking-easy-answer__cue {
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+    align-self: flex-start;
+    width: fit-content;
+    padding: 4px 12px;
+    border-radius: 999px;
+    background: #ffd34d;
+    color: #3a2a15;
+    font-size: 18px;
+    font-weight: 900;
+    line-height: 1.3;
+}
+
+.speaking-challenge-page .speaking-help-panel.speaking-easy-answer,
+.speaking-adventure-session .speaking-challenge-detail.speaking-immersive-play .speaking-help-panel.speaking-easy-answer {
+    border: 3px solid #f2b51e;
+    background: var(--ae-warning-bg, #fffbea);
+}
+
+// 桌機版的提示框是兩欄格線；「念這句」與要念的句子都佔滿整列，句子靠左。
+.speaking-challenge-page .speaking-help-panel.speaking-easy-answer > .speaking-easy-answer__cue,
+.speaking-challenge-page .speaking-help-panel.speaking-easy-answer > strong {
+    grid-column: 1 / -1;
+    justify-self: start;
+    text-align: left;
+}

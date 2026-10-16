@@ -160,8 +160,8 @@ export default function SpeakingPracticeSteps({
             </div>
         </details>
 
-        {showAnswerByDefault && answerPattern && !(question.hint_voids_pass && revealedAnswer) && <div className="speaking-help-panel speaking-easy-answer" aria-label="簡單模式參考答案">
-            <small>看著題目與答案，勇敢說出完整句子</small><strong>{answerPatternWithSlots(answerQuestion.model_answer)}</strong>
+        {showAnswerByDefault && answerPattern && !(question.hint_voids_pass && revealedAnswer) && <div className="speaking-help-panel speaking-easy-answer" aria-label="跟著念參考答案">
+            <small>看著題目與答案，勇敢說出完整句子</small><span className="speaking-easy-answer__cue"><FiMic aria-hidden="true" />念這句</span><strong>{answerPatternWithSlots(answerQuestion.model_answer)}</strong>
             {canListen && <button type="button" disabled={audioWorking || busy} onClick={onPlayAudio}>
                 <FiVolume2 aria-hidden="true" />{question.model_audio_url ? (audioWorking ? "播放中…" : "聽回答範例") : "語音準備中"}
             </button>}
@@ -172,16 +172,20 @@ export default function SpeakingPracticeSteps({
         </button>}
 
         {!hideHelp && (!showAnswerByDefault || question.hint_voids_pass) && (!deferAnswerHelp || lastResult || hintVoidsPass) && <button type="button" className="speaking-help-toggle" aria-expanded={showHelp} aria-controls={helpId} onClick={toggleHelp} disabled={helpLoading || busy}>
-            <FiHelpCircle aria-hidden="true" />{helpLoading ? "正在開啟提示…" : showHelp ? "收起回答提示" : challengeMode === "challenge" ? "看提示（本輪此題不計通關）" : hintVoidsPass ? "看提示（這題不算過）" : "不知道怎麼說？"}
+            <FiHelpCircle aria-hidden="true" />{hintVoidsPass ? (helpLoading ? "正在打開答案…" : showHelp ? "收起答案" : "看答案（看了這題就不算通過）") : helpLoading ? "正在開啟提示…" : showHelp ? "收起回答提示" : "不知道怎麼說？"}
         </button>}
 
         {helpError && <p className="speaking-practice-retry" role="alert">{helpError}</p>}
         {hintVoidsPass && revealedAnswer && <p className="speaking-hint-practice-notice" role="status">
-            <strong>這題先練習，稍後不用提示再試一次。</strong>
-            <span>本輪這題不計通關；已通過的題目會保留。</span>
+            <strong>這題先練習，稍後不看答案再試一次。</strong>
         </p>}
 
-        {!hideHelp && showHelp && <div className="speaking-help-panel" id={helpId}>
+        {/* 「自己說」看答案：只顯示這題的答案，不放提示、示範或發音說明。 */}
+        {!hideHelp && showHelp && hintVoidsPass && <div className="speaking-help-panel speaking-answer-only" id={helpId} aria-label="這題的答案">
+            <strong>{answerPatternWithSlots(answerQuestion.model_answer)}</strong>
+        </div>}
+
+        {!hideHelp && showHelp && !hintVoidsPass && <div className="speaking-help-panel" id={helpId}>
             {answerQuestion.hint_zh && <p>{answerQuestion.hint_zh}</p>}
             <div><small>可以這樣說</small><strong>{answerPatternWithSlots(answerQuestion.model_answer)}</strong></div>
             {canListen && <button type="button" disabled={audioWorking || busy} onClick={onPlayAudio}>
@@ -213,7 +217,7 @@ export default function SpeakingPracticeSteps({
         {saving && <p className="speaking-practice-saving" role="status">正在儲存本題進度，請稍候…</p>}
         {!saving && lastResult?.answer_match !== false && lastResult && !lastResult.hint_used && !lastResult.save_failed && <p className="speaking-practice-finished" role="status"><FiCheck aria-hidden="true" /> 本題已完成！你可以繼續挑戰或再練一次。</p>}
         {lastResult?.save_failed && <div className="speaking-save-retry" role="alert"><strong>回答已評分，通關紀錄尚未儲存。</strong><p>保留這次回答，重試儲存即可。</p><button type="button" onClick={() => handleScored(lastResult)} disabled={saving}>{saving ? "儲存中…" : "重試儲存"}</button></div>}
-        {lastResult?.hint_used && !revealedAnswer && <p className="speaking-practice-retry" role="status">這題先練習，稍後不用提示再試一次。本輪這題不計通關。</p>}
+        {lastResult?.hint_used && !revealedAnswer && <p className="speaking-practice-retry" role="status">這題先練習，稍後不看答案再試一次。</p>}
         {lastResult?.answer_match === false && (
           <p className="speaking-practice-retry">
             <FiHelpCircle aria-hidden="true" />{" "}

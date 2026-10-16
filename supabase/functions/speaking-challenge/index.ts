@@ -343,9 +343,7 @@ Deno.serve(async (req: Request) => {
                     }))
                 };
             }
-            // In easy mode a picture gap sentence is read from the blanked sentence; the full
-            // answer is only available through reveal_hint, which voids that question for the run.
-            const easyGapMode = challengeMode === "easy" && !demoMode && !practiceOnly;
+            // 第一級（easy）的看圖挖空句直接給完整句子跟著念；只有第二級（challenge）隱藏答案。
             const questions = [];
             for (const question of (questionSet.speaking_questions || []).sort((a: any, b: any) => a.sort_order - b.sort_order)) {
                 const modelAsset: any = assetByQuestionPurpose.get(`${Number(question.id)}:model_answer`);
@@ -374,16 +372,7 @@ Deno.serve(async (req: Request) => {
                         createR2PresignedUrl(privateObjectKey, "GET", 15 * 60)
                     )
                 });
-                const easyGapQuestion = easyGapMode && publicQuestion.interaction_type === "picture_gap_sentence";
-                questions.push(easyGapQuestion ? {
-                    ...publicQuestion,
-                    hint_zh: "",
-                    keywords: [],
-                    simple_answer: "",
-                    model_answer: "",
-                    pronunciation_notes_zh: "",
-                    hint_voids_pass: true
-                } : challengeMode === "challenge" && !demoMode && !practiceOnly ? {
+                questions.push(challengeMode === "challenge" && !demoMode && !practiceOnly ? {
                     ...publicQuestion,
                     hint_zh: "",
                     keywords: [],

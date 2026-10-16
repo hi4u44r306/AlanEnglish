@@ -56,8 +56,13 @@ export const buildAttention = (input: {
     };
 };
 
+// 給家長看的數字只到整十（95→100、63→60），等級也依整十後的數字判斷，和網頁上顯示的一致。
+export const roundedFocusRate = (rate: number) => Math.min(100, Math.max(0, Math.round(rate / 10) * 10));
+const roundedLevel = (rate: number) => (rate >= 80 ? "專注" : rate >= 60 ? "普通" : "需要提醒");
+
 export const describeAttention = (attention: AttentionSummary): string => {
     if (!attention.available || attention.focus_rate === null) return "";
-    const label = attention.level === "focused" ? "專注" : attention.level === "ok" ? "普通" : "需要提醒";
-    return `專注度：${label}（${attention.focus_rate}%；放著不動自動暫停 ${attention.idle_pauses} 次、切換頁面暫停 ${attention.hidden_pauses} 次）。`;
+    const rate = roundedFocusRate(attention.focus_rate);
+    const label = roundedLevel(rate);
+    return `專注度：${label}（${rate}%；放著不動自動暫停 ${attention.idle_pauses} 次、切換頁面暫停 ${attention.hidden_pauses} 次）。`;
 };

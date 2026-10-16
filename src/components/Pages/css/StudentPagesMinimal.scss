@@ -59,3 +59,12 @@
     svg { width: 22px; height: 22px; color: var(--ae-icon, #245fc5); }
     strong { margin-left: auto; font-size: 20px; font-weight: 900; font-variant-numeric: tabular-nums; }
 }
+
+// 每週報告裡孩子看的專注度：數字只到整十，用顏色區分。
+.weekly-student__focus { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; margin: 0; padding: 14px 18px; border: 1px solid var(--ae-border, #d5e3f0); border-radius: 20px; background: var(--ae-surface, #fff); font-size: 17px; font-weight: 700;
+  strong { font-size: 22px; }
+  span { flex-basis: 100%; color: var(--ae-text-muted, #52647a); font-size: 16px; font-weight: 600; }
+  &.is-focused strong { color: var(--ae-success, #1f7a4d); }
+  &.is-ok strong { color: var(--ae-warning, #a35a00); }
+  &.is-needs_reminder strong { color: var(--ae-danger, #b42318); }
+}

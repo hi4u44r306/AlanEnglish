@@ -94,14 +94,15 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, s
             phaseFocusRef.current?.focus({ preventScroll: true });
         }
     }, [activeQuestion?.id, phase]);
-    const sentenceTokens = useMemo(() => tokenizeSpeakingSentence(
-        activeQuestion?.picture_interaction?.sentence_pattern
-    ), [activeQuestion]);
+    // 第一級（easy）直接顯示完整句子跟著念；第二級才顯示挖空句。舊版後端在 easy 模式不給答案時，退回挖空句。
+    const fullSentence = gapMode && challengeMode === "easy" ? String(activeQuestion?.model_answer || "").trim() : "";
+    const sentenceText = fullSentence || activeQuestion?.picture_interaction?.sentence_pattern;
+    const sentenceTokens = useMemo(() => tokenizeSpeakingSentence(sentenceText), [sentenceText]);
 
     // The picture is replaced by its Chinese description: inside the blank when the sentence
     // has one blank, as a single cue line when it has several.
     const gapCue = pictureCueZh(activeQuestion?.visual_aid?.alt_zh);
-    const blankCue = sentenceTokens.filter(token => token.kind === "blank").length === 1 ? gapCue : "";
+    const blankCue = !fullSentence && sentenceTokens.filter(token => token.kind === "blank").length === 1 ? gapCue : "";
 
     const playAudio = (url, token, errorMessage, blockedMessage) => {
         if (!url) return;
@@ -182,7 +183,7 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, s
         <section className="speaking-question-stage"><article ref={phaseFocusRef} tabIndex="-1" aria-label={`第 ${activeIndex + 1} 題，共 ${round.length} 題`} key={activeQuestion.id} className="speaking-focus-card speaking-foundation-card speaking-picture-card">
             <div className="speaking-game-question-card">
                 <span className="speaking-foundation-count">第 {activeIndex + 1} 題，共 {round.length} 題</span>
-                {!gapMode && <SpeakingVisualAid aid={activeQuestion.visual_aid} showCaption={false} />}
+                <SpeakingVisualAid aid={activeQuestion.visual_aid} showCaption={false} />
                 {staffAudioPreview && gapMode && <button
                 type="button"
                 className="speaking-gap-sentence-audio"
@@ -190,14 +191,14 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, s
                 disabled={!activeQuestion.picture_interaction?.sentence_audio_url || audioToken !== null}
                 aria-label="播放整句發音；每個挖空處停留 2 秒"
             ><FiVolume2 aria-hidden="true" />{audioToken === "sentence" ? "整句播放中…" : "聽整句（每個挖空停 2 秒）"}</button>}
-                {gapMode && <div className="speaking-gap-sentence" aria-label={activeQuestion.picture_interaction?.sentence_pattern}>
+                {gapMode && <div className={`speaking-gap-sentence${fullSentence ? " is-full" : ""}`} aria-label={sentenceText}>
                 {sentenceTokens.map(token => token.kind === "word"
                     ? <span key={token.tokenIndex} className="sentence-word">{token.text}</span>
                     : token.kind === "blank"
                         ? <span key={token.tokenIndex} className={`answer-blank${blankCue ? " has-cue" : ""}`} aria-label={blankCue ? `要補上的答案：${blankCue}` : "要補上的答案"}>{blankCue || "____"}</span>
                         : <span key={token.tokenIndex} className="punctuation" aria-hidden="true">{token.text}</span>)}
             </div>}
-                {gapMode && gapCue && !blankCue && <p className="speaking-gap-cue">（{gapCue}）</p>}
+                {gapMode && !fullSentence && gapCue && !blankCue && <p className="speaking-gap-cue">（{gapCue}）</p>}
                 {audioError && <p className="speaking-foundation-warning" role="alert">{audioError}</p>}
             </div>
             {staffPreview && !adminScoringPreview ? <p className="speaking-staff-preview-banner" role="status">老師唯讀預覽：可使用下方按鈕逐題查看，不啟用麥克風。</p> : <SpeakingPracticeSteps
@@ -207,7 +208,7 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, s
                 challengeSessionId={challengeSessionId}
                 interactionType={interactionType}
                 challengeMode={challengeMode}
-                showAnswerByDefault={challengeMode === "easy"}
+                showAnswerByDefault={challengeMode === "easy" && !fullSentence}
                 onRevealHint={onRevealHint}
                 hideHelp={(staffPreview && !adminScoringPreview) || (challengeMode === "easy" && !activeQuestion.hint_voids_pass)}
                 promptTitle={copy.promptTitle}

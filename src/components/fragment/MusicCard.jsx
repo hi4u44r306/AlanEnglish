@@ -20,7 +20,8 @@ function MusicCard({
     progressStatus = "ready",
     onStart,
     assignmentProgress,
-    assignmentProgressStatus = "ready"
+    assignmentProgressStatus = "ready",
+    hideVideo = false
 }) {
     const dispatch = useDispatch();
 
@@ -165,7 +166,7 @@ function MusicCard({
 
             <div className={`music-card__status${assignmentProgress ? " has-assignment" : ""}`}>
                 {assignmentProgress && <div className="music-card__assignment"><strong>{assignmentProgress.completed ? "本次作業已完成" : "本次作業"}</strong><span>{assignmentProgressStatus !== "ready" ? "作業進度尚未確認" : `已聽 ${assignmentProgress.playCount} 次，還需 ${Math.max(0, assignmentProgress.requiredListens - assignmentProgress.playCount)} 次`}</span><b className="music-card__count" aria-hidden="true">{assignmentProgressStatus === "ready" ? `${Math.min(assignmentProgress.playCount, assignmentProgress.requiredListens)} / ${assignmentProgress.requiredListens} 次` : "—"}</b><small>老師指定：{assignmentProgress.requiredListens} 次</small></div>}
-                {videoUrl && <a className="music-card__video" href={videoUrl} target="_blank" rel="noopener noreferrer" aria-label={`在 YouTube 看 ${title} 的教學影片`}><FiYoutube aria-hidden="true" /><span>看影片</span></a>}
+                {videoUrl && !hideVideo && <a className="music-card__video" href={videoUrl} target="_blank" rel="noopener noreferrer" aria-label={`在 YouTube 看 ${title} 的教學影片`}><FiYoutube aria-hidden="true" /><span>看影片</span></a>}
                 <div className="music-card__plays">
                     <FiHeadphones aria-hidden="true" />
                     <span><small>{assignmentProgress ? "長期熟練累積" : "熟練進度"}</small><strong>{progressStatus === "ready" ? `${Math.min(playCount, LISTENING_MASTERY_REQUIRED_PLAYS)} / ${LISTENING_MASTERY_REQUIRED_PLAYS}` : progressStatus === "loading" ? "讀取中" : "紀錄未載入"}</strong></span>

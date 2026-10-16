@@ -30,16 +30,17 @@ describe("WeeklyReportParent", () => {
     it("explains focus in plain words with both kinds of pause", () => {
         render(<WeeklyAttention attention={report().attention} />);
         expect(screen.getByText("普通")).toBeInTheDocument();
-        expect(screen.getByText("64%")).toBeInTheDocument();
+        expect(screen.getByText("60%")).toBeInTheDocument();
         expect(screen.getByText(/放著不動、系統自動暫停/)).toHaveTextContent("2 次");
         expect(screen.getByText(/切換頁面造成暫停/)).toHaveTextContent("3 次");
-        expect(screen.getByRole("progressbar", { name: "專注率" })).toHaveAttribute("aria-valuenow", "64");
+        expect(screen.getByRole("progressbar", { name: "專注率" })).toHaveAttribute("aria-valuenow", "60");
     });
 
     it("asks for a reminder when focus is low", () => {
         render(<WeeklyAttention attention={{ ...report().attention, focus_rate: 21, level: "needs_reminder" }} />);
         expect(screen.getByText("需要提醒")).toBeInTheDocument();
         expect(screen.getByText(/建議陪伴孩子一起練習/)).toBeInTheDocument();
+        expect(screen.getByText("20%")).toBeInTheDocument();
     });
 
     it("says when tracking has not started instead of showing a misleading score", () => {
