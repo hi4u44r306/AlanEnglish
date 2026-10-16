@@ -1,5 +1,13 @@
 # Alan English 專案狀態
 
+### 口說專注度＋家長 Email 專注度（2026-10-16，分支 `feat/speaking-attention`）
+
+- 已上線（2026-10-16）：PR #597（含 #595 深色第二階段、#596 對話按鈕）合併為 main `e6ed4dfd`，Cloudflare Workers Builds success；正式站 asset 已含 `speaking-easy-answer__cue`、`speaking-session-topbar`、`weekly-student__focus` 等新類別。
+- 本批：`learning-activity` 新增 `speaking_attention`（reason：idle／hidden／left_prep；activity_type=`other`、key=`speaking-pause-*`，因資料表 CHECK 只允許 login/listening/conversation/ai/other，不需 migration；只記學生、每小時 60 筆）。前端 `useSpeakingAttention`（SpeakingAdventureSession 內）、聽力頁鎖定導回時記 left_prep。`weekly-report` 新增 `speaking_attention`（`buildSpeakingAttention`，分母為本週 `speaking_challenge_question_progress` 完成題數）與家長摘要一行；`guardian-email` 加入聽力／口說專注度（整十）並排除暫停事件計入活躍日。
+- 驗證：前端相關 423 項、`test:weekly-attention` 9 項通過；`CI=true npm run build` 成功。
+- 擁有者 2026-10-16 指示「部署全部」：三個 Function 於合併後部署，部署紀錄見下方更新。
+- 每題片段（第三級「聽了說」前置）：Workbook 3 P4 本機試做通過（擁有者試聽「聽起來很好」，不要題號）；腳本在 scratchpad（clipper.py），尚未建立資料表，下一步需擁有者同意 migration。
+
 ### 口說等級：跟著念／自己說＋關卡視窗精簡（2026-10-16，分支 `feat/speaking-levels`，PR #597，前端尚未部署）
 
 - 第 1 階段（前端）：新增 `src/constants/speakingLevels.js`（easy＝「跟著念」、challenge＝「自己說」）；關卡視窗拿掉書本圖示與「依教材頁序完成」，標題改為「P.x 主題」、資訊改「題數／通過 X/Y 句」、規則一句話；讀取畫面、關卡標題、規則、結束動畫同步。未解鎖頁「回到地圖」回到同一本地圖。

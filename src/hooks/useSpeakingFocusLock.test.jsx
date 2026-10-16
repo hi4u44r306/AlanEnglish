@@ -20,10 +20,12 @@ const where = () => screen.getByTestId("where").textContent;
 beforeEach(() => sessionStorage.clear());
 
 test("學生在聽力頁時改網址到其他頁面會被帶回聽力頁", () => {
-    renderAt(PREP);
+    const onLeave = jest.fn();
+    renderAt(PREP, { uid: "s1", role: "student", authLoading: false, onLeaveBlocked: onLeave });
     expect(JSON.parse(sessionStorage.getItem(SPEAKING_FOCUS_KEY)).returnPath).toBe("/student/speaking-challenges/11?mode=easy");
     act(() => navigateRef("/student/books"));
     expect(where()).toBe(PREP);
+    expect(onLeave).toHaveBeenCalledWith(expect.objectContaining({ returnPath: "/student/speaking-challenges/11?mode=easy" }));
     expect(screen.getByTestId("where")).toHaveAttribute("data-blocked", "true");
 });
 

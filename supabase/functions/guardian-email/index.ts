@@ -13,6 +13,15 @@ const FIREBASE_JWKS = createRemoteJWKSet(
 );
 const DAY_MS = 24 * 60 * 60 * 1000;
 const TAIPEI_OFFSET_MS = 8 * 60 * 60 * 1000;
+// 專注度從 2026-10-19（週一）那一週開始記錄，與 weekly-report 的 ATTENTION_TRACKING_SINCE 相同。
+const ATTENTION_TRACKING_SINCE = "2026-10-19";
+const isPauseEvent = (row: any) => /^(pause-|speaking-pause-)/.test(String(row?.activity_key || ""));
+// 家長看的專注度只到整十（95→100、63→60）；等級依整十後的數字判斷，和網頁一致。
+const roundedFocus = (kept: number, pauses: number) => {
+    if (kept + pauses <= 0) return null;
+    return Math.min(100, Math.max(0, Math.round((kept / (kept + pauses)) * 10) * 10));
+};
+const focusLabel = (rate: number) => (rate >= 80 ? "專注" : rate >= 60 ? "普通" : "需要提醒");
 
 const json = (status: number, body: unknown) => new Response(JSON.stringify(body), {
     status,
@@ -94,7 +103,8 @@ const buildReport = async (admin: any, student: any, weekStart: string) => {
         reviewResult,
         activityResult,
         speakingPassedResult,
-        speakingAttemptResult
+        speakingAttemptResult,
+        speakingCompletedResult
     ] = await Promise.all([
         admin
             .from("guardian_contacts")
@@ -127,7 +137,7 @@ const buildReport = async (admin: any, student: any, weekStart: string) => {
             .lt("reviewed_at", range.endAt),
         admin
             .from("student_activity_events")
-            .select("activity_type,occurred_at")
+            .select("activity_type,activity_key,occurred_at")
             .eq("student_id", student.id)
             .gte("occurred_at", range.startAt)
             .lt("occurred_at", range.endAt),
@@ -143,7 +153,15 @@ const buildReport = async (admin: any, student: any, weekStart: string) => {
             .select("id,created_at")
             .eq("student_id", student.id)
             .gte("created_at", range.startAt)
-            .lt("created_at", range.endAt)
+            .lt("created_at", range.endAt),
+        // 本週完成的口說題數（口說專注度的分母，與 weekly-report 相同）。
+        admin
+            .from("speaking_challenge_question_progress")
+            .select("question_id", { count: "exact", head: true })
+            .eq("student_id", student.id)
+            .eq("status", "completed")
+            .gte("completed_at", range.startAt)
+            .lt("completed_at", range.endAt)
     ]);
     const firstError = [
         guardianResult.error,
@@ -153,7 +171,8 @@ const buildReport = async (admin: any, student: any, weekStart: string) => {
         reviewResult.error,
         activityResult.error,
         speakingPassedResult.error,
-        speakingAttemptResult.error
+        speakingAttemptResult.error,
+        speakingCompletedResult.error
     ].find(Boolean);
     if (firstError) throw firstError;
 
@@ -186,13 +205,19 @@ const buildReport = async (admin: any, student: any, weekStart: string) => {
             activeDateKeys.add(new Date(timestamp + TAIPEI_OFFSET_MS).toISOString().slice(0, 10));
         }
     };
-    for (const row of activityResult.data || []) addActiveDay(row.occurred_at);
+    // 暫停紀錄（放著不動、切換頁面）不是學習，不算進練習天數。
+    for (const row of activityResult.data || []) if (!isPauseEvent(row)) addActiveDay(row.occurred_at);
     for (const row of speakingAttemptResult.data || []) addActiveDay(row.created_at);
     const conversationCount = (activityResult.data || [])
         .filter((row: any) => row.activity_type === "conversation")
         .length;
     const aiPassed = (aiResult.data || []).filter((row: any) => row.passed).length;
     const status = getStatusCopy(activeDateKeys.size, listening, completedAssignments, accuracy);
+    const tracking = range.startDate >= ATTENTION_TRACKING_SINCE;
+    const events = activityResult.data || [];
+    const countKey = (key: string) => events.filter((row: any) => row.activity_key === key).length;
+    const listeningFocus = tracking ? roundedFocus(listening, countKey("pause-idle") + countKey("pause-hidden")) : null;
+    const speakingFocus = tracking ? roundedFocus(Number(speakingCompletedResult.count || 0), countKey("speaking-pause-idle") + countKey("speaking-pause-hidden") + countKey("speaking-pause-left_prep")) : null;
 
     return {
         student,
@@ -208,7 +233,9 @@ const buildReport = async (admin: any, student: any, weekStart: string) => {
             ai_passed: aiPassed,
             review_count: (reviewResult.data || []).length,
             conversation_count: conversationCount,
-            accuracy
+            accuracy,
+            listening_focus: listeningFocus,
+            speaking_focus: speakingFocus
         },
         status
     };
@@ -228,7 +255,12 @@ const buildEmail = (report: any) => {
         ? `開口練習 ${m.speaking_attempts} 次，通過 ${m.speaking_passed} 題`
         : "本週沒有口說練習";
     // Optional lines appear only when the student actually used that feature.
+    const focusText = [
+        m.listening_focus === null ? "" : `聽力 ${m.listening_focus}%（${focusLabel(m.listening_focus)}）`,
+        m.speaking_focus === null ? "" : `口說 ${m.speaking_focus}%（${focusLabel(m.speaking_focus)}）`
+    ].filter(Boolean).join("、");
     const extras = [
+        focusText ? ["專注度", focusText] : null,
         m.ai_passed ? ["AI 教材", `通過 ${m.ai_passed} 份`] : null,
         m.review_count ? ["智慧複習", `${m.review_count} 題${m.accuracy === null ? "" : `，正確率 ${m.accuracy}%`}`] : null
     ].filter(Boolean) as string[][];

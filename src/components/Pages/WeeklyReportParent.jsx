@@ -50,6 +50,36 @@ export function WeeklyAttention({ attention }) {
     </article>;
 }
 
+// 口說大挑戰的專注度：關卡進行中切換頁面、放著不動、想離開聽力頁被帶回，對照本週完成的口說題數。
+const SPEAKING_LEVELS = {
+    focused: { label: "專注", tone: "is-focused", text: "練口說時大多能專心完成。" },
+    ok: { label: "普通", tone: "is-ok", text: "練口說時偶爾會切走或停下來，可以多提醒。" },
+    needs_reminder: { label: "需要提醒", tone: "is-needs", text: "練口說時常常切走或停著不動，建議陪孩子一起練。" }
+};
+
+export function WeeklySpeakingAttention({ attention }) {
+    if (!attention?.available) return null;
+    const rate = roundFocusRate(attention.focus_rate);
+    const level = SPEAKING_LEVELS[focusLevel(rate)];
+    if (!level) return null;
+    return <article className={`weekly-parent__card weekly-attention ${level.tone}`} aria-label="口說專注度">
+        <h2><FiActivity aria-hidden="true" />口說專注度</h2>
+        <div className="weekly-attention__main">
+            <strong>{level.label}</strong>
+            <span aria-label={`口說專注率 ${rate}%`}>{rate}%</span>
+        </div>
+        <div className="weekly-attention__bar" role="progressbar" aria-label="口說專注率" aria-valuemin="0" aria-valuemax="100" aria-valuenow={rate}>
+            <i style={{ width: `${rate}%` }} />
+        </div>
+        <p>{level.text}</p>
+        <ul className="weekly-attention__facts">
+            <li>關卡中切換頁面：<b>{count(attention.hidden_pauses)} 次</b></li>
+            <li>放著不動超過 90 秒：<b>{count(attention.idle_pauses)} 次</b></li>
+            {count(attention.left_prep) > 0 && <li>想離開聽力準備頁：<b>{count(attention.left_prep)} 次</b></li>}
+        </ul>
+    </article>;
+}
+
 // 老師與管理員看的每週報告重點：家長一眼就能看懂「學了多少、聽了多少、會了多少、專不專心、作業有沒有完成、還可以加強什麼」。
 export default function WeeklyReportParent({ report }) {
     const focus = (Array.isArray(report.next_focus) ? report.next_focus : []).filter(Boolean).slice(0, 3);
@@ -59,6 +89,7 @@ export default function WeeklyReportParent({ report }) {
         {mastered > 0 && <p className="weekly-parent__mastered"><FiAward aria-hidden="true" />智慧複習這週新學會 <strong>{mastered}</strong> 題</p>}
         <div className="weekly-parent__grid">
             <WeeklyAttention attention={report.attention} />
+            <WeeklySpeakingAttention attention={report.speaking_attention} />
             <article className="weekly-parent__card weekly-parent__focus" aria-label="還可以加強">
                 <h2><FiTarget aria-hidden="true" />還可以加強</h2>
                 {focus.length ? <ul>{focus.map(item => <li key={item}>{item}</li>)}</ul> : <p>目前沒有特別需要加強的地方，繼續保持。</p>}

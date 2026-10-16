@@ -52,7 +52,7 @@ export default function useSpeakingFocusLock({ uid, role, authLoading, onLeaveBl
             writeLock(null);
             return;
         }
-        onLeaveBlocked?.();
+        onLeaveBlocked?.(lock);
         navigate(lock.prepPath, { replace: true, state: { speakingFocusBlocked: true } });
     }, [location, uid, role, authLoading, navigate, onLeaveBlocked]);
 }

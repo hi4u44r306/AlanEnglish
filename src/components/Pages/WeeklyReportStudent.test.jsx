@@ -43,4 +43,8 @@ test("孩子的每週報告顯示整十的專注度與鼓勵話；老師版可�
     expect(screen.queryByText("100%")).not.toBeInTheDocument();
     rerender(<WeeklyReportStudent report={report({ attention: { available: false, focus_rate: null } })} />);
     expect(screen.queryByText(/專注度/)).not.toBeInTheDocument();
+    rerender(<WeeklyReportStudent report={report({ attention: { available: true, focus_rate: 81 }, speaking_attention: { available: true, focus_rate: 57 } })} />);
+    expect(screen.getByText(/聽力專注度/)).toHaveTextContent("80%");
+    expect(screen.getByText(/口說專注度/)).toHaveTextContent("60%");
+    expect(screen.getByText("不錯喔，練習時別切走")).toBeInTheDocument();
 });

@@ -1,7 +1,7 @@
 import React from "react";
 import "@testing-library/jest-dom";
 import { render, screen } from "@testing-library/react";
-import WeeklyReportParent, { WeeklyAttention } from "./WeeklyReportParent";
+import WeeklyReportParent, { WeeklyAttention, WeeklySpeakingAttention } from "./WeeklyReportParent";
 
 const days = ["一", "二", "三", "四", "五", "六", "日"].map((weekday, index) => ({ date: `2026-09-${14 + index}`, weekday: `週${weekday}`, total: index === 0 ? 3 : 0 }));
 const report = (overrides = {}) => ({
@@ -58,4 +58,14 @@ describe("WeeklyReportParent", () => {
         render(<WeeklyReportParent report={report({ assignments: { assigned: 0, completed: 0 } })} />);
         expect(screen.getByText("這週沒有作業")).toBeInTheDocument();
     });
+});
+
+test("口說專注度卡片：整十、三種中斷次數；還沒開始記錄就不顯示", () => {
+    const { rerender, container } = render(<WeeklySpeakingAttention attention={{ available: true, focus_rate: 86, hidden_pauses: 2, idle_pauses: 1, left_prep: 1 }} />);
+    expect(screen.getByText("90%")).toBeInTheDocument();
+    expect(screen.getByText("專注")).toBeInTheDocument();
+    expect(screen.getByText(/關卡中切換頁面/)).toHaveTextContent("2 次");
+    expect(screen.getByText(/想離開聽力準備頁/)).toHaveTextContent("1 次");
+    rerender(<WeeklySpeakingAttention attention={{ available: false, focus_rate: null }} />);
+    expect(container).toBeEmptyDOMElement();
 });
