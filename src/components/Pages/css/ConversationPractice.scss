@@ -55,7 +55,7 @@
     padding: 18px 20px;
     border: 1px solid rgba(64, 169, 140, .24);
     border-radius: 20px;
-    background: rgba(235, 252, 247, .9);
+    background: var(--ae-surface-glass, rgba(235, 252, 247, .9));
 }
 
 .conversation-free-badge strong,
@@ -263,7 +263,7 @@
 }
 
 .mission-item.done .mission-check {
-    background: var(--ae-surface-muted, #e8f7f2);
+    background: var(--ae-success-bg, #e8f7f2);
     color: var(--ae-success, #248269);
 }
 
@@ -702,7 +702,7 @@
 }
 
 .conversation-feedback.correct > span {
-    background: var(--ae-surface-muted, #cceee4);
+    background: var(--ae-success-bg, #cceee4);
 }
 
 .conversation-feedback.retry {
@@ -711,7 +711,7 @@
 }
 
 .conversation-feedback.retry > span {
-    background: var(--ae-surface-muted, #ffe1cf);
+    background: var(--ae-warning-bg, #ffe1cf);
 }
 
 .continue-conversation-button {

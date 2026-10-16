@@ -522,7 +522,7 @@
 
   &--homework {
     color: var(--ae-warning, #c47b1d);
-    background: var(--ae-surface-muted, #fff2df);
+    background: var(--ae-warning-bg, #fff2df);
   }
 
   &--accuracy {
@@ -754,7 +754,7 @@
 
   &--assignment {
     --learning-color: #c17a1e;
-    --learning-soft: var(--ae-surface-muted, #fff2df);
+    --learning-soft: var(--ae-warning-bg, #fff2df);
   }
 
   &--ai {
@@ -802,7 +802,7 @@
   > div {
     height: 7px;
     overflow: hidden;
-    background: var(--ae-surface-muted, #f2e1db);
+    background: var(--ae-danger-bg, #f2e1db);
     border-radius: 999px;
 
     i {
@@ -869,7 +869,7 @@
     padding: 10px;
     box-sizing: border-box;
     color: var(--ae-warning, #bd7b20);
-    background: var(--ae-surface-muted, #fff2df);
+    background: var(--ae-warning-bg, #fff2df);
     border-radius: 12px;
   }
 

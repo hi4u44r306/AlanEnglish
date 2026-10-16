@@ -14,7 +14,7 @@
   height: 46px;
   border: 7px solid var(--ae-surface, #fff);
   border-radius: 50%;
-  background: var(--ae-surface-muted, #ffd35c);
+  background: var(--ae-warning-bg, #ffd35c);
   box-shadow: 0 6px 0 rgba(20, 47, 91, 0.18);
 }
 .speaking-book-card__route i:nth-child(1) { bottom: -8%; left: -47px; }
@@ -44,7 +44,7 @@
   margin-bottom: 18px;
   border: 1px solid var(--ae-border, #cbdcf2);
   border-radius: 26px;
-  background: var(--ae-surface-muted, #dcecfb);
+  background: var(--ae-info-bg, #dcecfb);
   box-shadow: 0 14px 32px rgba(20, 47, 91, 0.1);
 }
 .speaking-adventure-map .speaking-catalog-section + .speaking-catalog-section {
@@ -222,7 +222,7 @@
 }
 .speaking-level-dialog__facts small { color: var(--ae-text-muted, #5b6d85); }
 .speaking-level-dialog__facts strong { overflow-wrap: anywhere; }
-.speaking-level-dialog__goal { padding: 11px 13px; border-radius: 12px; background: var(--ae-surface-muted, #fff5d9); }
+.speaking-level-dialog__goal { padding: 11px 13px; border-radius: 12px; background: var(--ae-warning-bg, #fff5d9); }
 .speaking-level-dialog__actions { display: flex; flex-wrap: wrap; gap: 9px; justify-content: flex-end; }
 .speaking-level-dialog__actions button {
   display: inline-flex;

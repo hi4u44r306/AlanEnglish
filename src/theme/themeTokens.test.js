@@ -8,7 +8,7 @@ describe("dark theme tokens", () => {
     const block = css.slice(darkStart, css.indexOf("}", darkStart));
 
     it("defines every token with a plain colour", () => {
-        const names = ["page", "surface", "surface-muted", "surface-glass", "text", "text-muted", "accent", "success", "danger", "warning", "border", "solid", "icon"];
+        const names = ["page", "surface", "surface-muted", "surface-glass", "text", "text-muted", "accent", "success", "danger", "warning", "border", "solid", "icon", "success-bg", "danger-bg", "warning-bg", "info-bg", "purple-bg"];
         for (const name of names) {
             const line = block.split("\n").find(row => row.trim().startsWith(`--ae-${name}:`));
             expect(line).toBeTruthy();

@@ -73,14 +73,14 @@
 .team-boss-page .tb-native-battle {
  .tb-battle-sound{padding:14px 20px;border-top:1px solid var(--ae-border, #dce6ed);display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:13px;}
  .tb-battle-sound label{display:flex;gap:8px;align-items:center;flex-wrap:wrap;} .tb-battle-sound input{min-height:44px;width:130px;} .tb-battle-sound p{width:100%;margin:0;line-height:1.6;color:var(--ae-accent, #52667e);}
- .tb-battle-results{padding:20px;background:var(--ae-surface-muted, #f7faff);border-block:1px solid #dce6ed;} .tb-battle-results h3{font-size:18px;} .tb-result-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px;} .tb-result-grid article{padding:14px;border:1px solid var(--ae-border, #dce6ed);border-radius:14px;background:var(--ae-surface, #fff);min-width:0;} .tb-result-grid h4{font-size:15px;margin:0 0 12px;} .tb-result-grid dl{margin:0;} .tb-result-grid dl div{display:flex;justify-content:space-between;gap:12px;margin:10px 0;font-size:13px;} .tb-result-grid dd{font-weight:700;margin:0;white-space:nowrap;} .tb-result-grid p,.tb-battle-results>p{font-size:12px;line-height:1.7;} .tb-result-note{color:var(--ae-accent, #52667e);} .tb-result-claim{padding:12px;background:var(--ae-surface-muted, #fff3cc);border-radius:10px;}
+ .tb-battle-results{padding:20px;background:var(--ae-surface-muted, #f7faff);border-block:1px solid #dce6ed;} .tb-battle-results h3{font-size:18px;} .tb-result-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px;} .tb-result-grid article{padding:14px;border:1px solid var(--ae-border, #dce6ed);border-radius:14px;background:var(--ae-surface, #fff);min-width:0;} .tb-result-grid h4{font-size:15px;margin:0 0 12px;} .tb-result-grid dl{margin:0;} .tb-result-grid dl div{display:flex;justify-content:space-between;gap:12px;margin:10px 0;font-size:13px;} .tb-result-grid dd{font-weight:700;margin:0;white-space:nowrap;} .tb-result-grid p,.tb-battle-results>p{font-size:12px;line-height:1.7;} .tb-result-note{color:var(--ae-accent, #52667e);} .tb-result-claim{padding:12px;background:var(--ae-warning-bg, #fff3cc);border-radius:10px;}
  @media(max-width:650px){.tb-battle-sound,.tb-battle-results{padding:14px 12px;}.tb-result-grid{grid-template-columns:1fr;}.tb-result-grid dl div{font-size:13px;}}
 }
 
 .team-boss-page .tb-native-battle {
  .is-reacting .tb-native-art{filter:drop-shadow(0 0 8px #8275b766);}
  .is-celebrating .tb-native-art{filter:drop-shadow(0 4px 8px #ddb74d55);}
- .tb-native-victory-label{font-size:14px;color:var(--ae-warning, #7b5d1c);background:var(--ae-surface-muted, #fff7db);border:1px solid #e4d7a8;border-radius:12px;padding:8px 12px;line-height:1.6;}
+ .tb-native-victory-label{font-size:14px;color:var(--ae-warning, #7b5d1c);background:var(--ae-warning-bg, #fff7db);border:1px solid #e4d7a8;border-radius:12px;padding:8px 12px;line-height:1.6;}
  .tb-native-damage::before{content:"本筆累計";display:block;font-size:10px;line-height:1.4;font-weight:500;}
 }
 // Both poses contain their full equipment layers; only blend within one loadout.

@@ -56,7 +56,7 @@
     height: 10px;
     overflow: hidden;
     border-radius: 999px;
-    background: var(--ae-surface-muted, #e8eef7);
+    background: var(--ae-info-bg, #e8eef7);
 
     i { display: block; height: 100%; border-radius: inherit; background: var(--ae-success, #247a56); }
   }

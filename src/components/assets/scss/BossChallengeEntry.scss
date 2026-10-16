@@ -56,7 +56,7 @@ a.ae-boss-entry.ae-boss-entry .ae-boss-entry__sparks > i {
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: var(--ae-surface-muted, #fff1a8);
+  background: var(--ae-warning-bg, #fff1a8);
   box-shadow: 0 0 8px 2px #ffb21f;
   opacity: 0;
   animation: ae-boss-spark 1.8s linear infinite;
