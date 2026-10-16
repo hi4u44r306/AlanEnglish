@@ -150,7 +150,7 @@ describe("SpeakingPracticeSteps", () => {
 
     it("簡單模式直接顯示答案；挑戰模式的提示先由伺服器登記", async () => {
         const { unmount } = render(<SpeakingPracticeSteps firebaseUser={{}} question={question} showAnswerByDefault />);
-        expect(screen.getByLabelText("簡單模式參考答案")).toHaveTextContent("My name is 你的名字.");
+        expect(screen.getByLabelText("第一級參考答案")).toHaveTextContent("My name is 你的名字.");
         unmount();
 
         const onRevealHint = jest.fn().mockResolvedValue({ model_answer: "My name is [你的名字].", hint_zh: "說出自己的名字" });
@@ -221,7 +221,7 @@ describe("SpeakingPracticeSteps", () => {
         const onRevealHint = jest.fn().mockResolvedValue({ model_answer: "They are tables.", simple_answer: "They are tables.", hint_zh: "" });
         const gapQuestion = { ...question, model_answer: "They are [餐桌].", simple_answer: "", hint_zh: "", hint_voids_pass: true };
         render(<SpeakingPracticeSteps firebaseUser={{}} question={gapQuestion} challengeMode="easy" showAnswerByDefault challengeSessionId="s1" onRevealHint={onRevealHint} onPlayAudio={jest.fn()} />);
-        expect(screen.getByLabelText("簡單模式參考答案")).toHaveTextContent("They are 餐桌.");
+        expect(screen.getByLabelText("第一級參考答案")).toHaveTextContent("They are 餐桌.");
         expect(screen.queryByText(/They are tables./)).not.toBeInTheDocument();
         fireEvent.click(screen.getByRole("button", { name: "看提示（這題不算過）" }));
         await waitFor(() => expect(onRevealHint).toHaveBeenCalledWith(gapQuestion, "s1"));
@@ -230,7 +230,7 @@ describe("SpeakingPracticeSteps", () => {
     });
     it("沒有挖空的簡單模式題目維持直接顯示答案，不出現會取消過關的提示", () => {
         render(<SpeakingPracticeSteps firebaseUser={{}} question={{ ...question, model_answer: "They are tables." }} challengeMode="easy" showAnswerByDefault onPlayAudio={jest.fn()} />);
-        expect(screen.getByLabelText("簡單模式參考答案")).toHaveTextContent("They are tables.");
+        expect(screen.getByLabelText("第一級參考答案")).toHaveTextContent("They are tables.");
         expect(screen.queryByRole("button", { name: /看提示/ })).not.toBeInTheDocument();
     });
 });

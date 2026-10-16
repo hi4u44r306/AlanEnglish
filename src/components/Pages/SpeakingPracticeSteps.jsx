@@ -160,7 +160,7 @@ export default function SpeakingPracticeSteps({
             </div>
         </details>
 
-        {showAnswerByDefault && answerPattern && !(question.hint_voids_pass && revealedAnswer) && <div className="speaking-help-panel speaking-easy-answer" aria-label="簡單模式參考答案">
+        {showAnswerByDefault && answerPattern && !(question.hint_voids_pass && revealedAnswer) && <div className="speaking-help-panel speaking-easy-answer" aria-label="第一級參考答案">
             <small>看著題目與答案，勇敢說出完整句子</small><strong>{answerPatternWithSlots(answerQuestion.model_answer)}</strong>
             {canListen && <button type="button" disabled={audioWorking || busy} onClick={onPlayAudio}>
                 <FiVolume2 aria-hidden="true" />{question.model_audio_url ? (audioWorking ? "播放中…" : "聽回答範例") : "語音準備中"}

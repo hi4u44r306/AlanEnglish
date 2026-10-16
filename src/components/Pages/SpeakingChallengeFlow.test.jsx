@@ -52,7 +52,7 @@ describe("speaking return and completion flow", () => {
             generation_metadata: { interaction_type: type }, source_pages: [11], question_count: 1, completed_count: 0, is_unlocked: true }] });
         render(<MemoryRouter initialEntries={["/student/speaking-challenges/book/book-1"]}><Routes><Route path="/student/speaking-challenges/book/:bookKey" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
         fireEvent.click(await screen.findByRole("button", { name: /P.11，/ }));
-        expect(screen.getByRole("button", { name: "自由練習" })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "第一級 跟著念" })).toBeInTheDocument();
         expect(screen.getByRole("button", { name: /挑戰 ·/ })).toBeInTheDocument();
         expect(screen.getByRole("dialog")).toHaveTextContent("挑戰通過");
     });

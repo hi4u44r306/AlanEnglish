@@ -1,10 +1,11 @@
 import React, { useEffect, useRef } from "react";
 import { FiBookOpen, FiMic } from "react-icons/fi";
 import "./css/SpeakingChallengeLoading.scss";
+import { SPEAKING_LEVELS } from "../../constants/speakingLevels";
 
 export default function SpeakingChallengeLoading({ mode, singlePractice = false, bookLabel, levelLabel, workbookEntry = false, onReturn }) {
     const isChallenge = mode === "challenge";
-    const modeLabel = singlePractice ? "朗讀練習" : isChallenge ? "挑戰模式" : "簡單模式";
+    const modeLabel = singlePractice ? "朗讀練習" : isChallenge ? SPEAKING_LEVELS.challenge.label : SPEAKING_LEVELS.easy.label;
     const headingRef = useRef(null);
     const reference = workbookEntry ? "" : [bookLabel, levelLabel].filter(Boolean).join(" · ");
     const headingLabel = workbookEntry ? `正在進入 ${bookLabel || "Workbook"} 口說大挑戰…` : `正在進入${modeLabel}…`;

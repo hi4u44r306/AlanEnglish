@@ -561,7 +561,7 @@ export default function TextbookSpeakingChallenge() {
             <div className="speaking-lesson-heading">
                 <span>{challenge.books?.name || "教材"}</span>
                 <h1>{challenge.title}</h1>
-                <p>{challenge.topic} · {singlePractice ? "朗讀練習：看著文字念" : challengeMode === "challenge" ? "挑戰：看問題回答" : "簡單：看答案說"}</p>
+                <p>{challenge.topic} · {singlePractice ? "朗讀練習：看著文字念" : challengeMode === "challenge" ? "第二級 直接回答：看圖或看問題回答" : "第一級 跟著念：看著句子念"}</p>
             </div>
             <div className="speaking-lesson-progress">
                 <div><span>第 {activeQuestionIndex + 1} / {questions.length} 題</span><strong>{progressPercent}%</strong></div>
