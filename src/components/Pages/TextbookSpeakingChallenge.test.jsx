@@ -99,8 +99,9 @@ describe("TextbookSpeakingChallenge model audio", () => {
         fireEvent.click(await screen.findByRole("button", { name: /P.15，問候，尚未解鎖/ }));
         expect(screen.getByRole("button", { name: "關閉關卡摘要" })).toHaveFocus();
         expect(screen.getByRole("button", { name: "尚未解鎖" })).toBeDisabled();
+        expect(screen.queryByRole("button", { name: "返回地圖" })).not.toBeInTheDocument();
         fireEvent.keyDown(document, { key: "Tab", shiftKey: true });
-        expect(screen.getByRole("button", { name: "返回地圖" })).toHaveFocus();
+        expect(screen.getByRole("button", { name: "關閉關卡摘要" })).toHaveFocus();
     });
 
     it("shows the existing Workbook 2 object clue inline without duplicating a manually edited clue", async () => {

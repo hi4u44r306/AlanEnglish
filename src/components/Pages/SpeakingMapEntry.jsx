@@ -55,7 +55,6 @@ export const ChallengePreviewDialog = ({ item, section, sectionCopy, pages, onCl
             <div className={`speaking-level-dialog__actions${singlePractice ? " is-single" : ""}`}>
                 <button type="button" className="primary is-easy" aria-label={locked ? "尚未解鎖" : easyAction} onClick={() => onEnter("easy")} disabled={locked}><span><strong>{locked ? "尚未解鎖" : easyAction}</strong><small>{practiceOnly ? "不送評、不計通關" : SPEAKING_LEVELS.easy.how}</small></span><FiChevronRight aria-hidden="true" /></button>
                 {!practiceOnly && <button type="button" className="primary is-challenge" aria-label={locked ? `${SPEAKING_LEVELS.challenge.label}尚未解鎖` : `${SPEAKING_LEVELS.challenge.label} · ${challengeAction} · ${SPEAKING_LEVELS.challenge.how}`} onClick={() => onEnter("challenge")} disabled={locked}><span><strong>{locked ? "尚未解鎖" : SPEAKING_LEVELS.challenge.label}</strong><small>{SPEAKING_LEVELS.challenge.how}</small></span><FiChevronRight aria-hidden="true" /></button>}
-                <button type="button" className="speaking-level-dialog__return" onClick={onClose}>返回地圖</button>
             </div>
         </section>
     </div>;
