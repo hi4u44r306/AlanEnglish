@@ -6,9 +6,10 @@
 - 本批：`learning-activity` 新增 `speaking_attention`（reason：idle／hidden／left_prep；activity_type=`other`、key=`speaking-pause-*`，因資料表 CHECK 只允許 login/listening/conversation/ai/other，不需 migration；只記學生、每小時 60 筆）。前端 `useSpeakingAttention`（SpeakingAdventureSession 內）、聽力頁鎖定導回時記 left_prep。`weekly-report` 新增 `speaking_attention`（`buildSpeakingAttention`，分母為本週 `speaking_challenge_question_progress` 完成題數）與家長摘要一行；`guardian-email` 加入聽力／口說專注度（整十）並排除暫停事件計入活躍日。
 - 驗證：前端相關 423 項、`test:weekly-attention` 9 項通過；`CI=true npm run build` 成功。
 - 擁有者 2026-10-16 指示「部署全部」：三個 Function 於合併後部署，部署紀錄見下方更新。
+- 部署紀錄（2026-10-16，擁有者同意）：PR #598、#599 合併為 main `3d77ead3`，Cloudflare Workers Builds success，正式站 JS 已含「聽力專注度」「口說專注度」「本週專注度」。`learning-activity` v51（#599 先補回線上版已有的「家長提醒當日已寄」檢查再部署）、`weekly-report` v51、`guardian-email` v54；部署後逐檔比對與 repo 一致，三者 OPTIONS 200、未登入／壞 token 401。專注度從 2026-10-19 那週開始顯示；已登入路徑待真實使用觀察。
 - 每題片段（第三級「聽了說」前置）：Workbook 3 P4 本機試做通過（擁有者試聽「聽起來很好」，不要題號）；腳本在 scratchpad（clipper.py），尚未建立資料表，下一步需擁有者同意 migration。
 
-### 口說等級：跟著念／自己說＋關卡視窗精簡（2026-10-16，分支 `feat/speaking-levels`，PR #597，前端尚未部署）
+### 口說等級：跟著念／自己說＋關卡視窗精簡（2026-10-16，分支 `feat/speaking-levels`，PR #597，已上線 main `e6ed4dfd`）
 
 - 第 1 階段（前端）：新增 `src/constants/speakingLevels.js`（easy＝「跟著念」、challenge＝「自己說」）；關卡視窗拿掉書本圖示與「依教材頁序完成」，標題改為「P.x 主題」、資訊改「題數／通過 X/Y 句」、規則一句話；讀取畫面、關卡標題、規則、結束動畫同步。未解鎖頁「回到地圖」回到同一本地圖。
 - 第 2 階段：`speaking-challenge` 移除 easy 模式把看圖挖空句答案清空的特例，**已部署 v84（2026-10-16，擁有者同意）**；以線上版為基礎，部署後逐檔比對 18 個檔案與 repo 完全一致，OPTIONS 200、未登入／壞 token 401。舊前端在第一級會同時看到挖空句與參考答案，新前端合併後改為圖片＋完整句子。部署過程中 MCP 工具會把 `\u005B` 轉成 `[`，故 `_shared/speaking-pronunciation-reference.ts` 正規式改寫為等價的 `\[` `\]`（以多組字串比對結果相同；v81–v83 短暫為錯誤正規式，但本 Function 不呼叫該段程式，無影響）。前端 `WorkbookOnePictureChallenge`：兩級都顯示圖片，第一級顯示完整句子並隱藏重複的參考答案框。
