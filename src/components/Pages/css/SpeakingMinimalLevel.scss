@@ -306,3 +306,8 @@ body.speaking-challenge-active .speaking-alphabet-list .handwriting-letter path 
     justify-self: start;
     text-align: left;
 }
+
+// 「聽這題」：每題片段按鈕置中，錯誤訊息在按鈕下方。
+.speaking-question-clip { display: grid; justify-items: center; gap: 6px; }
+.speaking-question-clip__button { min-height: 44px; }
+.speaking-question-clip__error { color: var(--ae-danger, #b3261e); font-size: 14px; text-align: center; }

@@ -420,3 +420,20 @@
     .speaking-admin-command__actions button { grid-template-columns: 1fr; justify-items: center; min-height: 52px; text-align: center; }
     .speaking-admin-command__actions svg { display: none; }
 }
+
+// 每題片段（聽這題）審核面板
+.speaking-clip-review { display: grid; gap: 10px; margin: 10px 0; padding: 14px; border: 1px solid var(--ae-border, #dce5ee); border-radius: 14px; background: var(--ae-surface, #fff); color: var(--ae-text, #17365d); }
+.speaking-clip-review header { display: grid; gap: 4px; }
+.speaking-clip-review header span { color: var(--ae-text-muted, #526780); font-size: 14px; line-height: 1.6; }
+.speaking-clip-review ol { display: grid; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.speaking-clip-review li { display: grid; gap: 6px; padding: 10px; border-radius: 12px; background: var(--ae-surface-muted, #f5f8fc); }
+.speaking-clip-review li p { margin: 0; overflow-wrap: anywhere; }
+.speaking-clip-review__clip { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.speaking-clip-review__clip > span { overflow-wrap: anywhere; }
+.speaking-clip-review__clip button { min-height: 44px; }
+.speaking-clip-review__status { padding: 2px 10px; border-radius: 999px; background: var(--ae-surface, #fff); font-size: 13px; font-weight: 700; }
+.speaking-clip-review__status.is-approved { background: var(--ae-success-bg, #e5f5e9); color: var(--ae-success, #1b6344); }
+.speaking-clip-review details { display: grid; gap: 8px; }
+.speaking-clip-review details[open] > * + * { margin-top: 8px; }
+.speaking-clip-review details label { display: grid; gap: 4px; }
+.speaking-clip-review textarea, .speaking-clip-review select { box-sizing: border-box; width: 100%; min-height: 44px; font: inherit; }

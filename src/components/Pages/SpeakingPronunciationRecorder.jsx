@@ -7,7 +7,7 @@ import { playSpeakingFeedbackSound, prepareSpeakingFeedbackSound } from "../../u
 import "./css/SpeakingPronunciationRecorder.scss";
 import { microphoneIssue } from "../../utils/microphoneIssue";
 import MicrophonePermissionHelp from "../fragment/MicrophonePermissionHelp";
-import { SpeakingActivityContext } from "./SpeakingAdventureSession";
+import { SpeakingActivityContext } from "./SpeakingActivityContext";
 import { speakingRecordingSeconds, SPEAKING_BUDGET_ERROR_CODES } from "../../utils/speakingRecordingPolicy";
 
 const recordingMimeType = () => {

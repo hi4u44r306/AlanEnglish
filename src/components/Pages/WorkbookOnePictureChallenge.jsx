@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { FiChevronLeft, FiChevronRight, FiRefreshCw, FiVolume2 } from "react-icons/fi";
 import { createPictureChallengeRound, tokenizeSpeakingSentence } from "../../utils/speakingPictureChallenge";
 import SpeakingPracticeSteps from "./SpeakingPracticeSteps";
+import SpeakingQuestionClip from "./SpeakingQuestionClip";
 import SpeakingVisualAid from "./SpeakingVisualAid";
 import { createSpeakingChallengeSessionId } from "../../utils/speakingChallengeSession";
 
@@ -201,7 +202,7 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, s
                 {gapMode && !fullSentence && gapCue && !blankCue && <p className="speaking-gap-cue">（{gapCue}）</p>}
                 {audioError && <p className="speaking-foundation-warning" role="alert">{audioError}</p>}
             </div>
-            {staffPreview && !adminScoringPreview ? <p className="speaking-staff-preview-banner" role="status">老師唯讀預覽：可使用下方按鈕逐題查看，不啟用麥克風。</p> : <SpeakingPracticeSteps
+            {staffPreview && !adminScoringPreview ? <>{activeQuestion.clip && <SpeakingQuestionClip clip={activeQuestion.clip} />}<p className="speaking-staff-preview-banner" role="status">老師唯讀預覽：可使用下方按鈕逐題查看，不啟用麥克風。</p></> : <SpeakingPracticeSteps
                 key={activeQuestion.id}
                 firebaseUser={firebaseUser}
                 question={activeQuestion}
