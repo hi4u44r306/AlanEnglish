@@ -298,3 +298,11 @@ body.speaking-challenge-active .speaking-alphabet-list .handwriting-letter path 
     border: 3px solid #f2b51e;
     background: var(--ae-warning-bg, #fffbea);
 }
+
+// 桌機版的提示框是兩欄格線；「念這句」與要念的句子都佔滿整列，句子靠左。
+.speaking-challenge-page .speaking-help-panel.speaking-easy-answer > .speaking-easy-answer__cue,
+.speaking-challenge-page .speaking-help-panel.speaking-easy-answer > strong {
+    grid-column: 1 / -1;
+    justify-self: start;
+    text-align: left;
+}

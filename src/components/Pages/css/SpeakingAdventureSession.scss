@@ -89,3 +89,18 @@
 
 // 學生想離開聽力頁時被帶回來的提醒。
 .playlist-speaking-blocked { margin: 0 0 12px; padding: 12px 16px; border: 2px solid #f2b51e; border-radius: 16px; background: #fffbea; color: #3a2a15; font-size: 17px; font-weight: 800; line-height: 1.5; }
+
+// 預覽說明（左）與「先聽本關教材」（右）同一列；窄手機自動換成兩行。
+.speaking-session-topbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  width: min(920px, 100%);
+  margin: 0 auto 12px;
+
+  &:empty { display: none; }
+
+  .speaking-staff-preview-banner { flex: 1 1 260px; margin: 0; }
+  .speaking-lesson-preparation { flex: 0 0 auto; width: auto; margin: 0 0 0 auto; }
+}

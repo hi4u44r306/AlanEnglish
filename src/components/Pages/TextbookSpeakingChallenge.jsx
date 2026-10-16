@@ -228,7 +228,8 @@ export default function TextbookSpeakingChallenge() {
     const renderScene = content => {
         if (returnTransition) return <SpeakingChallengeReturn toCatalog={returnTransition.path === "/student/speaking-challenges"} />;
         if (!completionNotice) return questionSetReady && !loaderFinishing
-            ? <SpeakingAdventureSession key={`${questionSetId}:${challengeMode}`} challenge={challenge} pages={levelReference(challenge)} mode={challengeMode} firebaseUser={firebaseUser}>{content}</SpeakingAdventureSession>
+            ? <SpeakingAdventureSession key={`${questionSetId}:${challengeMode}`} challenge={challenge} pages={levelReference(challenge)} mode={challengeMode} firebaseUser={firebaseUser}
+                notice={staffPreview ? <aside className="speaking-staff-preview-banner" role="status"><FiBookOpen aria-hidden="true" /><span><strong>{adminScoringPreview ? "管理員評分示範" : "工作人員唯讀預覽"}</strong>{adminScoringPreview ? "可以送出評分；不會寫入學生進度、發放獎勵或計入每日挑戰額度。" : "所有已發布題目都可查看，不會寫入學生進度或發放獎勵。"}</span></aside> : null}>{content}</SpeakingAdventureSession>
             : content;
         const bookPath = challengeBookCatalogPath(challenge);
         const items = (completionCatalog.length ? completionCatalog : staffPreview ? catalog : [])
@@ -588,7 +589,6 @@ export default function TextbookSpeakingChallenge() {
     };
 
     return renderScene(<main className="speaking-challenge-page speaking-challenge-detail speaking-immersive-play">
-        {staffPreview && <aside className="speaking-staff-preview-banner" role="status"><FiBookOpen aria-hidden="true" /><span><strong>{adminScoringPreview ? "管理員評分示範" : "工作人員唯讀預覽"}</strong>{adminScoringPreview ? "可以送出評分；不會寫入學生進度、發放獎勵或計入每日挑戰額度。" : "所有已發布題目都可查看，不會寫入學生進度或發放獎勵。"}</span></aside>}
         <header className="speaking-lesson-header">
             <button className="speaking-back" onClick={returnToBookCatalog}><FiChevronLeft />關卡列表</button>
             <strong className="speaking-lesson-page">{levelReference(challenge) || challenge.title}</strong>
