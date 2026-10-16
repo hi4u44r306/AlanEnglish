@@ -37,6 +37,15 @@ export const recordListeningPause = (firebaseUser, { reason, track_id: trackId }
     track_id: trackId
 });
 
+// 口說大挑戰的專注度：hidden（關卡進行中切換頁面）、idle（90 秒沒有操作）、left_prep（想離開先聽本關教材被帶回）。
+// 只記學生本人，失敗不影響練習。
+export const recordSpeakingAttention = (firebaseUser, { reason, question_set_id: questionSetId, mode } = {}) => callLearningActivity(firebaseUser, {
+    action: "speaking_attention",
+    reason,
+    question_set_id: questionSetId,
+    mode
+});
+
 export const getConversationProgress = (firebaseUser, scenarioKey = "meet-a-foreigner") => callLearningActivity(firebaseUser, {
     action: "conversation_get",
     scenario_key: scenarioKey

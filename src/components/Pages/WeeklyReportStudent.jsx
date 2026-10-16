@@ -9,10 +9,12 @@ const todayInTaipei = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/T
 // sentences spoken — three numbers and a row of days. Nothing here is computed on the page;
 // every figure is the one the report endpoint returns.
 // 孩子看的專注度用鼓勵的說法；數字只顯示整十。
+const KID_SPEAKING_FOCUS = { focused: "說得很專心，太棒了！", ok: "不錯喔，練習時別切走", needs_reminder: "要加油！練口說時不要切走或停著" };
 const KID_FOCUS = { focused: "很專心，繼續保持！", ok: "還不錯，聽的時候別走開喔", needs_reminder: "要加油！聽的時候不要放著或切走" };
 
 export default function WeeklyReportStudent({ report, showAttention = true }) {
     const focusRate = report.attention?.available ? roundFocusRate(report.attention.focus_rate) : null;
+    const speakingFocusRate = report.speaking_attention?.available ? roundFocusRate(report.speaking_attention.focus_rate) : null;
     const days = Array.isArray(report.daily_breakdown) ? report.daily_breakdown : [];
     const today = todayInTaipei();
     const activeDays = count(report.metrics?.active_days);
@@ -46,6 +48,7 @@ export default function WeeklyReportStudent({ report, showAttention = true }) {
         </ol>}
         {assigned > 0 && completed != null && <p className="weekly-student__homework"><FiCheckSquare aria-hidden="true" />作業完成 <strong>{completed} / {assigned}</strong></p>}
         {assigned === 0 && <p className="weekly-student__homework is-none"><FiCheckSquare aria-hidden="true" />這週沒有作業</p>}
-        {showAttention && focusRate !== null && <p className={`weekly-student__focus is-${focusLevel(focusRate)}`}><FiActivity aria-hidden="true" />專注度 <strong>{focusRate}%</strong><span>{KID_FOCUS[focusLevel(focusRate)]}</span></p>}
+        {showAttention && focusRate !== null && <p className={`weekly-student__focus is-${focusLevel(focusRate)}`}><FiActivity aria-hidden="true" />聽力專注度 <strong>{focusRate}%</strong><span>{KID_FOCUS[focusLevel(focusRate)]}</span></p>}
+        {showAttention && speakingFocusRate !== null && <p className={`weekly-student__focus is-${focusLevel(speakingFocusRate)}`}><FiMic aria-hidden="true" />口說專注度 <strong>{speakingFocusRate}%</strong><span>{KID_SPEAKING_FOCUS[focusLevel(speakingFocusRate)]}</span></p>}
     </section>;
 }

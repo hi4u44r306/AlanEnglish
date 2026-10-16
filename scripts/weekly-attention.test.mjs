@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { ATTENTION_TRACKING_SINCE, attentionLevel, buildAttention, describeAttention, roundedFocusRate } from "../supabase/functions/weekly-report/attention.ts";
+import { ATTENTION_TRACKING_SINCE, attentionLevel, buildAttention, describeAttention, roundedFocusRate, buildSpeakingAttention, describeSpeakingAttention } from "../supabase/functions/weekly-report/attention.ts";
 
 const day = (date, listening) => ({ date, listening });
 const event = (key, iso, type = "listening") => ({ activity_type: type, activity_key: key, occurred_at: iso });
@@ -67,4 +67,26 @@ test("家長摘要的專注度只顯示整十，等級依整十後的數字", ()
     assert.match(describeAttention({ ...base, focus_rate: 77 }), /^專注度：專注（80%；/);
     assert.match(describeAttention({ ...base, focus_rate: 55 }), /^專注度：普通（60%；/);
     assert.match(describeAttention({ ...base, focus_rate: 33 }), /^專注度：需要提醒（30%；/);
+});
+
+test("口說專注度：完成題數對照切換頁面、放著不動、想離開聽力頁的次數", () => {
+    const at = time => `2026-10-2${time}T03:00:00.000Z`;
+    const events = [
+        { activity_type: "other", activity_key: "speaking-pause-hidden", occurred_at: at(0) },
+        { activity_type: "other", activity_key: "speaking-pause-idle", occurred_at: at(1) },
+        { activity_type: "other", activity_key: "speaking-pause-left_prep", occurred_at: at(1) },
+        { activity_type: "listening", activity_key: "pause-idle", occurred_at: at(1) },
+        { activity_type: "other", activity_key: "review-x", occurred_at: at(1) }
+    ];
+    const days = [{ date: "2026-10-19", speaking_challenge: 0 }, { date: "2026-10-20", speaking_challenge: 9 }, { date: "2026-10-21", speaking_challenge: 8 }];
+    const result = buildSpeakingAttention({ events, dailyBreakdown: days, weekStartDate: "2026-10-19" });
+    assert.equal(result.completed_questions, 17);
+    assert.deepEqual([result.hidden_pauses, result.idle_pauses, result.left_prep], [1, 1, 1]);
+    assert.equal(result.focus_rate, Math.round(17 / 20 * 100));
+    assert.match(describeSpeakingAttention(result), /^口說專注度：專注（90%；中途切換頁面 1 次、放著不動 1 次）。$/);
+    const before = buildSpeakingAttention({ events, dailyBreakdown: days, weekStartDate: "2026-10-12" });
+    assert.equal(before.available, false);
+    assert.equal(describeSpeakingAttention(before), "");
+    const none = buildSpeakingAttention({ events: [], dailyBreakdown: [], weekStartDate: "2026-10-19" });
+    assert.equal(none.focus_rate, null);
 });

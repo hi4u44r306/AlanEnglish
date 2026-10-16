@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import '../assets/scss/Containerfull.scss';
 import MainNavbar from './MainNavbar';
 import '../assets/scss/BrowserCompatibility.scss';
@@ -12,6 +12,7 @@ import { useSelector } from 'react-redux';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../../auth/AuthContext';
 import useSpeakingFocusLock, { isSpeakingListeningFocus } from '../../hooks/useSpeakingFocusLock';
+import { recordSpeakingAttention } from '../../services/learningActivityService';
 
 const MINI_PLAYER_PATHS = [
     '/student/conversation',
@@ -36,7 +37,13 @@ const Containerfull = ({ children }) => {
 
     // 口說關卡的「先聽本關教材」頁：拿掉上方導覽列與下方選單，只留聽力，並鎖住站內跳頁。
     const speakingListeningFocus = isSpeakingListeningFocus(location);
-    useSpeakingFocusLock({ uid: firebaseUser?.uid || null, role, authLoading });
+    // 想離開聽力頁被帶回來，記一次口說專注度的 left_prep（只記學生，失敗不影響）。
+    const recordLeftPrep = useCallback(lock => {
+        const match = String(lock?.returnPath || '').match(/^\/student\/speaking-challenges\/(\d+)\?mode=(easy|challenge)/);
+        if (!firebaseUser || !match) return;
+        try { recordSpeakingAttention(firebaseUser, { reason: 'left_prep', question_set_id: Number(match[1]), mode: match[2] })?.catch?.(() => {}); } catch (error) { /* 記錄失敗不影響 */ }
+    }, [firebaseUser]);
+    useSpeakingFocusLock({ uid: firebaseUser?.uid || null, role, authLoading, onLeaveBlocked: recordLeftPrep });
 
     const [
         currMusic,

@@ -136,6 +136,38 @@ Deno.serve(async (req: Request) => {
       return json(200, { success: true });
     }
 
+    // 口說大挑戰的專注度：關卡進行中切換頁面（hidden）、90 秒沒有任何操作（idle）、
+    // 想離開「先聽本關教材」被帶回（left_prep）。只記學生本人，不影響通關、次數或獎勵。
+    // activity_type 用既有的 other（資料表 CHECK 只允許 login/listening/conversation/ai/other），以 key 前綴區分。
+    if (action === "speaking_attention") {
+      if (account.role !== "student") return json(200, { success: true, ignored: true });
+      const reason = String(body?.reason || "");
+      if (!["idle", "hidden", "left_prep"].includes(reason)) return json(400, { error: "中斷原因不正確" });
+      const since = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+      const { count } = await admin
+        .from("student_activity_events")
+        .select("id", { count: "exact", head: true })
+        .eq("student_id", account.id)
+        .eq("activity_type", "other")
+        .like("activity_key", "speaking-pause-%")
+        .gte("occurred_at", since);
+      if ((count || 0) >= 60) return json(200, { success: true, ignored: true });
+      const questionSetId = Number(body?.question_set_id);
+      const mode = body?.mode === "challenge" ? "challenge" : body?.mode === "easy" ? "easy" : null;
+      const metadata: Record<string, unknown> = {};
+      if (Number.isInteger(questionSetId) && questionSetId > 0) metadata.question_set_id = questionSetId;
+      if (mode) metadata.mode = mode;
+      const { error: eventError } = await admin.from("student_activity_events").insert({
+        student_id: account.id,
+        activity_type: "other",
+        activity_key: `speaking-pause-${reason}`,
+        metadata,
+        occurred_at: now
+      });
+      if (eventError) return json(500, { error: "記錄失敗" });
+      return json(200, { success: true });
+    }
+
     if (action === "login") {
       const { error: updateError } = await admin
         .from("students")
