@@ -1,5 +1,4 @@
 import React, { useEffect, useRef } from "react";
-import { FiBookOpen, FiMic } from "react-icons/fi";
 import "./css/SpeakingChallengeLoading.scss";
 import { SPEAKING_LEVELS } from "../../constants/speakingLevels";
 
@@ -16,13 +15,13 @@ export default function SpeakingChallengeLoading({ mode, singlePractice = false,
 
     return <main className={`speaking-challenge-page speaking-mode-loading-page is-${isChallenge ? "challenge" : "easy"}${workbookEntry ? " is-workbook-entry" : ""}`}>
         <section className="speaking-mode-loading-card" aria-labelledby="speaking-mode-loading-title">
-            <div className="speaking-mode-loading-card__badge" aria-hidden="true">{isChallenge ? <FiMic /> : <FiBookOpen />}</div>
-            {reference && <p className="speaking-mode-loading-card__reference">{reference}</p>}
-            <div role="status" aria-live="polite" aria-atomic="true">
+            {/* 小朋友只看到進度條；標題與說明只給螢幕閱讀器，避免分心。 */}
+            {reference && <p className="speaking-mode-loading-card__reference speaking-mode-loading-card__sr">{reference}</p>}
+            <div className="speaking-mode-loading-card__sr" role="status" aria-live="polite" aria-atomic="true">
                 <h1 id="speaking-mode-loading-title" ref={headingRef} tabIndex={-1} aria-label={headingLabel}>正在進入<br />{workbookEntry ? <><span>{bookLabel || "Workbook"}</span><br />口說大挑戰…</> : <>{modeLabel}…</>}</h1>
             </div>
             <div className="speaking-mode-loading-card__track" role="progressbar" aria-label={workbookEntry ? "關卡地圖載入中" : "題目載入中"} aria-busy="true"><span /></div>
-            <div className="speaking-mode-loading-card__copy">
+            <div className="speaking-mode-loading-card__copy speaking-mode-loading-card__sr">
                 <p>{workbookEntry ? "準備好，開始你的口說冒險！" : singlePractice ? "看著文字開口念，需要時可以聽示範" : isChallenge ? "看問題，試著自己回答" : "看著答案，勇敢說出口"}</p>
                 <small>{workbookEntry ? "正在準備關卡與冒險地圖" : "準備題目中"}</small>
             </div>
