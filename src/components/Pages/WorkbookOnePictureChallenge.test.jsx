@@ -246,7 +246,7 @@ describe("WorkbookOnePictureChallenge", () => {
         expect(screen.getByLabelText("The apple is in the tree.")).toHaveClass("is-full");
         expect(screen.getByText("apple")).toBeInTheDocument();
         expect(screen.queryByLabelText(/要補上的答案/)).not.toBeInTheDocument();
-        expect(screen.queryByLabelText("第一級參考答案")).not.toBeInTheDocument();
+        expect(screen.queryByLabelText("跟著念參考答案")).not.toBeInTheDocument();
         unmount();
         const challenge = { ...gapChallenge, speaking_questions: [{ ...gapChallenge.speaking_questions[0], model_answer: "" }] };
         render(<WorkbookOnePictureChallenge challenge={challenge} challengeMode="challenge" firebaseUser={{ uid: "student" }} onComplete={jest.fn()} onExit={jest.fn()} />);

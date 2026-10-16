@@ -5,18 +5,18 @@ import { ChallengePreviewDialog, speakingEntryAction, speakingLessonTopic, Speak
 it("本機題今日已通關仍提供練習與再次挑戰評分", () => {
     const onEnter=jest.fn();
     render(<ChallengePreviewDialog item={{id:1,title:"Hello",question_count:2,completed_count:2,is_completed:true,completed_today:true}} section="textbook" sectionCopy={{label:"課本",eyebrow:"課本練習"}} onEnter={onEnter} onClose={()=>{}} />);
-    fireEvent.click(screen.getByRole("button",{name:"第一級 跟著念"}));
+    fireEvent.click(screen.getByRole("button",{name:"跟著念"}));
     expect(onEnter).toHaveBeenCalledWith("easy");
-    expect(screen.getByRole("button",{name:/第二級 直接回答 · /})).toBeEnabled();
+    expect(screen.getByRole("button",{name:/自己說 · /})).toBeEnabled();
     expect(screen.queryByText(/今天已完成，錄音回聽/)).not.toBeInTheDocument();
 });
 
 it("摘要依兩種模式各自的完成數顯示繼續或重玩，按鈕仍進入原模式", () => {
     const onEnter = jest.fn();
     render(<ChallengePreviewDialog item={{ title: "P15 問候", topic: "認識新朋友", question_count: 7, completed_count: 7, challenge_completed_count: 2, is_completed: true }} pages="P.15" section="textbook" sectionCopy={{ label: "課本練習", eyebrow: "依教材頁序完成", badge: "課本" }} onEnter={onEnter} />);
-    fireEvent.click(screen.getByRole("button", { name: "第一級 跟著念" }));
+    fireEvent.click(screen.getByRole("button", { name: "跟著念" }));
     expect(onEnter).toHaveBeenLastCalledWith("easy");
-    fireEvent.click(screen.getByRole("button", { name: /第二級 直接回答 · 繼續挑戰/ }));
+    fireEvent.click(screen.getByRole("button", { name: /自己說 · 繼續挑戰/ }));
     expect(onEnter).toHaveBeenLastCalledWith("challenge");
 });
 
@@ -40,10 +40,10 @@ it("工作人員明示預覽，沒有推薦目標時不產生可開始的假入�
 test("兩個等級按鈕只寫怎麼玩，過關規則只在上方說一次", () => {
     const props = { section: "textbook", sectionCopy: { label: "教材", eyebrow: "課本", badge: "P.1" }, pages: "P.1", onClose: jest.fn(), onEnter: jest.fn() };
     const { rerender } = render(<ChallengePreviewDialog item={{ id: 1, title: "Hello", question_count: 2, practice_session_count: 3, is_unlocked: true }} {...props} />);
-    expect(screen.getByRole("button", { name: "第一級 跟著念" })).toHaveTextContent("看著句子念");
-    expect(screen.getByRole("button", { name: /第二級 直接回答/ })).toHaveTextContent("看圖或問題回答");
-    expect(screen.getByText("第二級每題都通過，才算過關。")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "跟著念" })).toHaveTextContent("看著句子念");
+    expect(screen.getByRole("button", { name: /自己說/ })).toHaveTextContent("看圖或問題回答");
+    expect(screen.getByText("用「自己說」把每一句都說對，就能過關！")).toBeInTheDocument();
     expect(screen.queryByText(/已練習/)).not.toBeInTheDocument();
     rerender(<ChallengePreviewDialog item={{ id: 1, title: "Hello", question_count: 2, is_unlocked: true }} {...props} />);
-    expect(screen.getByRole("button", { name: "第一級 跟著念" })).not.toHaveTextContent("不計通關");
+    expect(screen.getByRole("button", { name: "跟著念" })).not.toHaveTextContent("不計通關");
 });

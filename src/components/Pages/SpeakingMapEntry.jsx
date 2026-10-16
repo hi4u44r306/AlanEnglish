@@ -1,5 +1,5 @@
 import React from "react";
-import { FiBookOpen, FiChevronRight, FiLock } from "react-icons/fi";
+import { FiChevronRight } from "react-icons/fi";
 import { usesSinglePracticeMode } from "../../utils/speakingPracticeMode";
 import { SPEAKING_LEVELS } from "../../constants/speakingLevels";
 
@@ -40,21 +40,19 @@ export const ChallengePreviewDialog = ({ item, section, sectionCopy, pages, onCl
     const easyAction = practiceOnly ? "聽示範與錄音練習" : SPEAKING_LEVELS.easy.label;
     const challengeAction = speakingEntryAction(challengeCompletedCount, questionCount, false, "challenge");
     return <div className="speaking-level-overlay" onMouseDown={event => { if (event.target === event.currentTarget) onClose(); }}>
-        <section className={`speaking-level-dialog${locked ? " is-locked" : ""}`} ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="speaking-level-title" aria-describedby="speaking-level-description">
+        <section className={`speaking-level-dialog${locked ? " is-locked" : ""}`} ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="speaking-level-title" aria-describedby="speaking-level-status">
             <button type="button" className="speaking-level-dialog__close" onClick={onClose} aria-label="關閉關卡摘要">×</button>
-            <div className="speaking-level-dialog__crest" aria-hidden="true">{locked ? <FiLock /> : <FiBookOpen />}</div>
-            <span className="speaking-level-dialog__eyebrow">{sectionCopy.eyebrow}</span>
-            <h2 id="speaking-level-title">{topicLabel}</h2>
-            <p id="speaking-level-description" className="speaking-level-dialog__topic">{pages || sectionCopy.badge} · {staffPreview ? "工作人員預覽" : "口說大挑戰"}</p>
+            <h2 id="speaking-level-title">{pages ? <span className="speaking-level-dialog__pages">{pages}</span> : null}{pages ? " " : ""}{topicLabel}</h2>
+            {staffPreview && <p className="speaking-level-dialog__topic">工作人員預覽</p>}
             <div className={`speaking-level-dialog__facts${singlePractice ? " is-compact" : ""}`}>
-                <span><small>本關題數</small><strong>{questionCount} 題</strong></span>
-                <span><small>挑戰通過</small><strong>{challengeCompletedCount} / {questionCount}</strong></span>
+                <span><small>題數</small><strong>{questionCount} 題</strong></span>
+                <span><small>通過</small><strong>{challengeCompletedCount}/{questionCount} 句</strong></span>
             </div>
             {locked && <p className="speaking-level-dialog__locked">先完成前一關，就能解鎖這個挑戰。</p>}
-            {practiceOnly ? <p role="status">A–Z 今日挑戰已完成，明天可再評分；現在可聽示範與錄音練習。</p> : <p role="status">{item.is_completed ? "已過關，可以再玩；獎勵只領一次。" : "第二級每題都通過，才算過關。"}</p>}
+            {practiceOnly ? <p id="speaking-level-status" role="status">A–Z 今日挑戰已完成，明天可再評分；現在可聽示範與錄音練習。</p> : <p id="speaking-level-status" role="status">{item.is_completed ? "這關已過！想再玩隨時都可以。" : `用「${SPEAKING_LEVELS.challenge.label}」把每一句都說對，就能過關！`}</p>}
             <div className={`speaking-level-dialog__actions${singlePractice ? " is-single" : ""}`}>
                 <button type="button" className="primary is-easy" aria-label={locked ? "尚未解鎖" : easyAction} onClick={() => onEnter("easy")} disabled={locked}><span><strong>{locked ? "尚未解鎖" : easyAction}</strong><small>{practiceOnly ? "不送評、不計通關" : SPEAKING_LEVELS.easy.how}</small></span><FiChevronRight aria-hidden="true" /></button>
-                {!practiceOnly && <button type="button" className="primary is-challenge" aria-label={locked ? "第二級尚未解鎖" : `${SPEAKING_LEVELS.challenge.label} · ${challengeAction} · ${SPEAKING_LEVELS.challenge.how}`} onClick={() => onEnter("challenge")} disabled={locked}><span><strong>{locked ? "尚未解鎖" : SPEAKING_LEVELS.challenge.label}</strong><small>{SPEAKING_LEVELS.challenge.how}</small></span><FiChevronRight aria-hidden="true" /></button>}
+                {!practiceOnly && <button type="button" className="primary is-challenge" aria-label={locked ? `${SPEAKING_LEVELS.challenge.label}尚未解鎖` : `${SPEAKING_LEVELS.challenge.label} · ${challengeAction} · ${SPEAKING_LEVELS.challenge.how}`} onClick={() => onEnter("challenge")} disabled={locked}><span><strong>{locked ? "尚未解鎖" : SPEAKING_LEVELS.challenge.label}</strong><small>{SPEAKING_LEVELS.challenge.how}</small></span><FiChevronRight aria-hidden="true" /></button>}
                 <button type="button" className="speaking-level-dialog__return" onClick={onClose}>返回地圖</button>
             </div>
         </section>

@@ -1,4 +1,5 @@
 import { speakingReadFailure } from "../../utils/speakingReadFailure";
+import { SPEAKING_LEVELS } from "../../constants/speakingLevels";
 import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { FiAward, FiBookOpen, FiCheck, FiChevronDown, FiChevronLeft, FiChevronRight, FiMic, FiVolume2 } from "react-icons/fi";
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
@@ -567,7 +568,7 @@ export default function TextbookSpeakingChallenge() {
             <div className="speaking-lesson-heading">
                 <span>{challenge.books?.name || "教材"}</span>
                 <h1>{challenge.title}</h1>
-                <p>{challenge.topic} · {singlePractice ? "朗讀練習：看著文字念" : challengeMode === "challenge" ? "第二級 直接回答：看圖或問題回答" : "第一級 跟著念：看著句子念"}</p>
+                <p>{challenge.topic} · {singlePractice ? "朗讀練習：看著文字念" : challengeMode === "challenge" ? `${SPEAKING_LEVELS.challenge.label}：${SPEAKING_LEVELS.challenge.how}` : `${SPEAKING_LEVELS.easy.label}：${SPEAKING_LEVELS.easy.how}`}</p>
             </div>
             <div className="speaking-lesson-progress">
                 <div><span>第 {activeQuestionIndex + 1} / {questions.length} 題</span><strong>{progressPercent}%</strong></div>

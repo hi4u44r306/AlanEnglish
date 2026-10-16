@@ -75,6 +75,17 @@
   color: #d4e2f1;
 }
 
+// 標題（P.4 主題）放在關閉鈕下方，避免字壓到 ×；長標題平均換行。
+.speaking-level-dialog #speaking-level-title {
+  padding: 34px 0 0;
+  font-size: clamp(21px, 2.4vw, 26px);
+  text-wrap: balance;
+}
+
+.speaking-level-dialog__pages {
+  white-space: nowrap;
+}
+
 .speaking-level-dialog__actions button.primary.is-challenge {
   border-color: var(--ae-border, #9bc5ff);
   background: var(--ae-solid, #315bc8);
