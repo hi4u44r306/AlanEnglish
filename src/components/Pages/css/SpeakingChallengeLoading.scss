@@ -205,3 +205,27 @@
 .speaking-mode-loading-card .speaking-mode-loading-card__track {
   width: 100%;
 }
+
+// 一行簡單文字＋進度條。讀得快時（0.2 秒內）整張卡片不出現，避免閃一下。
+.speaking-mode-loading-card .speaking-mode-loading-card__label {
+  margin: 0;
+  color: var(--ae-text, #17345e);
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.speaking-mode-loading-page .speaking-mode-loading-card {
+  animation: speaking-mode-loading-appear .2s step-end both;
+}
+
+@keyframes speaking-mode-loading-appear {
+  from { visibility: hidden; }
+  to { visibility: visible; }
+}
+
+// 題目讀好了：進度條填滿後才換成關卡。
+.speaking-mode-loading-page.is-complete .speaking-mode-loading-card__track span {
+  width: 100% !important;
+  animation: none;
+  transition: width .25s ease-out;
+}

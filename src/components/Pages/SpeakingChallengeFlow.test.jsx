@@ -89,7 +89,7 @@ describe("speaking return and completion flow", () => {
     it("return has a short animation, unmounts recording content, and preserves the map location", async () => {
         mount(); await screen.findByRole("button", { name: "通過本題" });
         fireEvent.click(screen.getByRole("button", { name: "關卡列表" }));
-        expect(screen.getByText("返回地圖中…")).toBeInTheDocument();
+        expect(screen.getByText("回到地圖中…")).toBeInTheDocument();
         expect(screen.queryByRole("button", { name: "通過本題" })).not.toBeInTheDocument();
         await screen.findByRole("heading", { name: "地圖已返回" });
         expect(screen.getByTestId("route")).toHaveTextContent("|7");
@@ -116,7 +116,7 @@ describe("speaking return and completion flow", () => {
         mount(); fireEvent.click(await screen.findByRole("button", { name: "通過本題" }));
         fireEvent.click(screen.getByRole("button", { name: "關卡列表" }));
         await act(async () => resolve({ challenge_completed: true, xp_awarded: 30 }));
-        expect(screen.getByText("返回地圖中…")).toBeInTheDocument();
+        expect(screen.getByText("回到地圖中…")).toBeInTheDocument();
         expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
         await screen.findByRole("heading", { name: "地圖已返回" });
     });
@@ -149,7 +149,7 @@ describe("speaking return and completion flow", () => {
         mount(); fireEvent.click(await screen.findByRole("button", { name: "通過本題" }));
         fireEvent.click(screen.getByRole("button", { name: "關卡列表" }));
         await act(async () => reject(new Error("無法儲存練習紀錄")));
-        expect(screen.getByText("返回地圖中…")).toBeInTheDocument();
+        expect(screen.getByText("回到地圖中…")).toBeInTheDocument();
         expect(screen.queryByText("無法儲存練習紀錄")).not.toBeInTheDocument();
         await screen.findByRole("heading", { name: "地圖已返回" });
     });

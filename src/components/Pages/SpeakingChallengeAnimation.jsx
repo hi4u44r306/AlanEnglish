@@ -5,7 +5,7 @@ import "./css/SpeakingChallengeAnimation.scss";
 
 export function SpeakingChallengeReturn({ toCatalog = false }) {
     return <main className="speaking-transition-page" role="status" aria-live="polite">
-        <div className="speaking-return-card"><FiMap aria-hidden="true" /><strong>{toCatalog ? "返回教材列表中…" : "返回地圖中…"}</strong></div>
+        <div className="speaking-return-card"><FiMap aria-hidden="true" /><strong>{toCatalog ? "回到教材列表中…" : "回到地圖中…"}</strong></div>
     </main>;
 }
 

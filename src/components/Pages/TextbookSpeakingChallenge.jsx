@@ -5,7 +5,7 @@ import { FiAward, FiBookOpen, FiCheck, FiChevronDown, FiChevronLeft, FiChevronRi
 import { Link, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import useStudentPageQuery from "../../hooks/useStudentPageQuery";
 import { useAuth } from "../../auth/AuthContext";
-import { completeAlphabetIntroListen, completeSpeakingChallengeQuestion, getSpeakingChallengeCatalog, getSpeakingChallengeSet, revealSpeakingChallengeHint, startAlphabetIntroListen, startSpeakingFoundationRound } from "../../services/speakingChallengeService";
+import { completeAlphabetIntroListen, completeSpeakingChallengeQuestion, getSpeakingChallengeCatalog, getSpeakingChallengeSet, prefetchSpeakingChallengeSet, revealSpeakingChallengeHint, startAlphabetIntroListen, startSpeakingFoundationRound } from "../../services/speakingChallengeService";
 import SpeakingPracticeSteps from "./SpeakingPracticeSteps";
 import SpeakingReviewPractice from "./SpeakingReviewPractice";
 import SpeakingVisualAid from "./SpeakingVisualAid";
@@ -196,10 +196,10 @@ export default function TextbookSpeakingChallenge() {
 
     useEffect(() => {
         if (!returnTransition) return undefined;
-        const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+        // 地圖資料已經在畫面上，不再刻意等待動畫，直接回到地圖。
         const timer = window.setTimeout(() => navigate(returnTransition.path, {
             state: { speakingReturn: { questionSetId: returnTransition.questionSetId } }
-        }), reduced ? 0 : 650);
+        }), 0);
         return () => window.clearTimeout(timer);
     }, [navigate, returnTransition]);
 
@@ -227,7 +227,7 @@ export default function TextbookSpeakingChallenge() {
 
     const renderScene = content => {
         if (returnTransition) return <SpeakingChallengeReturn toCatalog={returnTransition.path === "/student/speaking-challenges"} />;
-        if (!completionNotice) return questionSetId && challenge && Number(challenge.id) === Number(questionSetId) && loadedChallengeKey === `${questionSetId}:${challengeMode}`
+        if (!completionNotice) return questionSetReady && !loaderFinishing
             ? <SpeakingAdventureSession key={`${questionSetId}:${challengeMode}`} challenge={challenge} pages={levelReference(challenge)} mode={challengeMode} firebaseUser={firebaseUser}>{content}</SpeakingAdventureSession>
             : content;
         const bookPath = challengeBookCatalogPath(challenge);
@@ -352,6 +352,33 @@ export default function TextbookSpeakingChallenge() {
         return () => { cancelled = true; };
     }, [firebaseUser, questionSetId, staffPreview, challengeMode, navigate, location.pathname, location.state, readAttempt]);
 
+    // 關卡摘要一打開就在背景讀題目，按下等級時通常已經讀好。
+    useEffect(() => {
+        const item = selectedLesson?.item;
+        if (!item || !firebaseUser || (!staffPreview && item.is_unlocked === false)) return;
+        prefetchSpeakingChallengeSet?.(firebaseUser, Number(item.id), "easy");
+        if (!usesSinglePracticeMode(item)) prefetchSpeakingChallengeSet?.(firebaseUser, Number(item.id), "challenge");
+    }, [selectedLesson, firebaseUser, staffPreview]);
+
+    // 讀取條：讀得慢時才看得到，讀好後先填滿再換成題目；讀得快就直接出現題目。
+    const questionSetReady = Boolean(questionSetId && challenge && Number(challenge.id) === Number(questionSetId) && loadedChallengeKey === `${questionSetId}:${challengeMode}`);
+    const loaderStartedRef = useRef(0);
+    const [loaderFinishing, setLoaderFinishing] = useState(false);
+    useLayoutEffect(() => {
+        if (!questionSetId) return undefined;
+        if (!questionSetReady) {
+            loaderStartedRef.current = loaderStartedRef.current || Date.now();
+            return undefined;
+        }
+        const shownFor = loaderStartedRef.current ? Date.now() - loaderStartedRef.current : 0;
+        loaderStartedRef.current = 0;
+        const reduced = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+        if (shownFor < 250 || reduced) return undefined;
+        setLoaderFinishing(true);
+        const timer = window.setTimeout(() => setLoaderFinishing(false), 300);
+        return () => { window.clearTimeout(timer); setLoaderFinishing(false); };
+    }, [questionSetId, questionSetReady]);
+
     // The practice page opens on the question the student was stuck on, when the caller knows it.
     const switchToPractice = useCallback((reason, questionId) => setChallenge(current => current ? { ...current, practice_only: true, practice_reason: reason, practice_question_id: questionId ?? null } : current), []);
     const markComplete = async (question, sessionId = challengeSessionId) => {
@@ -475,12 +502,12 @@ export default function TextbookSpeakingChallenge() {
             } } })} />}
         </main>);
     }
-    if (!challenge || Number(challenge.id) !== Number(questionSetId) || loadedChallengeKey !== `${questionSetId}:${challengeMode}`) {
+    if (!questionSetReady || loaderFinishing) {
         const entry = Number(location.state?.speakingEntry?.questionSetId) === Number(questionSetId)
             ? location.state.speakingEntry : null;
         const catalogItem = catalog.find(item => Number(item.id) === Number(questionSetId));
         const returnPath = entry?.bookCatalogPath || challengeBookCatalogPath(catalogItem);
-        return renderScene(<SpeakingChallengeLoading mode={challengeMode}
+        return renderScene(<SpeakingChallengeLoading mode={challengeMode} complete={questionSetReady}
             singlePractice={entry?.singlePractice || usesSinglePracticeMode(catalogItem)}
             bookLabel={entry?.bookLabel || catalogItem?.book?.name || catalogItem?.books?.name}
             levelLabel={entry?.levelLabel || (catalogItem ? levelReference(catalogItem) || lessonTitle(catalogItem) : "")}
