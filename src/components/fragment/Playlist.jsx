@@ -171,6 +171,7 @@ function Playlist() {
                 {bookQuery.error && bookQuery.data && <p role="status">目前顯示上次教材清單，播放網址暫時無法更新。<button type="button" onClick={() => bookQuery.refresh()}>重新讀取教材</button></p>}
                 {resumeTrackId && !homeworkContext.active && !speakingContext && <p role="status">{visibleTracks.some(track => String(track.id) === resumeTrackId) ? "已找到上次學習的音檔，按「播放」即可開始。" : "上次音檔目前不在教材清單中，請選擇其他音檔。"}</p>}
                 {lastHeardTrack && <p className="playlist-last-heard" role="status">上次聽到：<a href={`#listening-track-${lastHeardTrack.id}`}>{lastHeardTrack.title || lastHeardTrack.music_name || lastHeardTrack.page || "教材音檔"}</a></p>}
+                {speakingContext && location.state?.speakingFocusBlocked && <p className="playlist-speaking-blocked" role="status">先把這一關的教材聽熟，再按「回到原口說關卡」回去練習。</p>}
                 {speakingContext && <section className="playlist-speaking-preparation" aria-label="本關聽力準備">
                     <div><span><Headphones aria-hidden="true" size={18} />本關聽力準備</span><p>先把教材聽熟，再回到口說關卡試著自己回答。已完成的題目會保留，回去後重新載入本關。</p></div>
                     {speakingReturn}
@@ -258,6 +259,7 @@ function Playlist() {
                                     assignmentProgress={homeworkContext.active ? homeworkProgress.get(String(track.id)) : null}
                                     assignmentProgressStatus={homeworkStatus}
                                     onStart={rememberTrack}
+                                    hideVideo={Boolean(speakingContext)}
                                 />
                             </div>
                         )) : <div className="playlist-empty">{speakingContext ? "本關對應音檔目前無法載入，請回到口說關卡繼續練習。" : homeworkContext.active ? homeworkStatus === "loading" ? "正在讀取指定音檔…" : "目前沒有可確認的指定音檔，請返回作業頁查看。" : "目前沒有音檔"}</div>}

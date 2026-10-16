@@ -10,6 +10,8 @@ import MobileOffcanvasScrollGuard from './MobileOffcanvasScrollGuard';
 import AssignmentShortcut from './AssignmentShortcut';
 import { useSelector } from 'react-redux';
 import { useLocation } from 'react-router-dom';
+import { useAuth } from '../../auth/AuthContext';
+import useSpeakingFocusLock, { isSpeakingListeningFocus } from '../../hooks/useSpeakingFocusLock';
 
 const MINI_PLAYER_PATHS = [
     '/student/conversation',
@@ -30,6 +32,11 @@ const Containerfull = ({ children }) => {
     );
 
     const location = useLocation();
+    const { firebaseUser, role, authLoading } = useAuth();
+
+    // 口說關卡的「先聽本關教材」頁：拿掉上方導覽列與下方選單，只留聽力，並鎖住站內跳頁。
+    const speakingListeningFocus = isSpeakingListeningFocus(location);
+    useSpeakingFocusLock({ uid: firebaseUser?.uid || null, role, authLoading });
 
     const [
         currMusic,
@@ -107,7 +114,7 @@ const Containerfull = ({ children }) => {
 
     return (
         <div
-            className="app-shell"
+            className={`app-shell${speakingListeningFocus ? ' app-shell--focus' : ''}`}
             style={{
                 '--app-player-space':
                     playerSpace
@@ -115,9 +122,11 @@ const Containerfull = ({ children }) => {
         >
             <MobileOffcanvasScrollGuard />
 
-            <header className="app-header">
-                <MainNavbar />
-            </header>
+            {!speakingListeningFocus && (
+                <header className="app-header">
+                    <MainNavbar />
+                </header>
+            )}
 
             <main
                 className={`app-content ${
@@ -142,7 +151,7 @@ const Containerfull = ({ children }) => {
                 {children}
             </main>
 
-            <AssignmentShortcut
+            {!speakingListeningFocus && <AssignmentShortcut
                 playerVisible={
                     Boolean(currMusic) &&
                     !hidePlayerForSpeaking
@@ -150,7 +159,7 @@ const Containerfull = ({ children }) => {
                 compactPlayer={
                     showMiniPlayer
                 }
-            />
+            />}
 
             <ConversationUXGuard />
             <ConversationHintCoach />
