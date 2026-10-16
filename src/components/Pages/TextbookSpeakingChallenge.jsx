@@ -397,9 +397,15 @@ export default function TextbookSpeakingChallenge() {
     const loadError = questionSetId ? error : !catalogQuery.data ? catalogQuery.error : null;
     if (loadError) {
         const failure = speakingReadFailure(loadError);
+        // 從某本教材的地圖點進來時，回到同一本的地圖並定位原關卡，不要跳回教材總覽
+        const entry = Number(location.state?.speakingEntry?.questionSetId) === Number(questionSetId) ? location.state.speakingEntry : null;
+        const mapPath = questionSetId && failure.link === "/student/speaking-challenges"
+            ? entry?.bookCatalogPath || challengeBookCatalogPath(catalog.find(item => Number(item.id) === Number(questionSetId)))
+            : failure.link;
+        const backToMap = mapPath !== failure.link;
         return <main className="speaking-challenge-page"><section className="speaking-challenge-empty" role="status"><FiMic /><h1>{failure.title}</h1><p>{failure.detail}</p>
             {failure.retry && <button type="button" onClick={() => questionSetId ? setReadAttempt(attempt => attempt + 1) : catalogQuery.refresh()} disabled={catalogQuery.refreshing}>重新讀取</button>}
-            <Link to={failure.link}>{failure.action}</Link></section></main>;
+            <Link to={mapPath} state={backToMap ? { speakingReturn: { questionSetId: Number(questionSetId) } } : undefined}>{backToMap ? "回到地圖" : failure.action}</Link></section></main>;
     }
     if (!questionSetId) {
         const selectedBook = bookKey ? catalogGroups.find(group => group.id === bookKey || encodeURIComponent(group.id) === bookKey) : null;

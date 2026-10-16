@@ -765,6 +765,14 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(screen.queryByRole("progressbar", { name: "題目載入中" })).not.toBeInTheDocument();
     });
 
+    it("關卡還沒解鎖時，回到原本那本教材的地圖而不是教材總覽", async () => {
+        getSpeakingChallengeSet.mockRejectedValue(Object.assign(new Error("locked"), { status: 403, code: "speaking_challenge_locked" }));
+        const entry = { questionSetId: 7, bookCatalogPath: "/student/speaking-challenges/book/book-1" };
+        render(<MemoryRouter initialEntries={[{ pathname: "/student/speaking-challenges/7", search: "?mode=challenge", state: { speakingEntry: entry } }]}><Routes><Route path="/student/speaking-challenges/:questionSetId" element={<TextbookSpeakingChallenge />} /></Routes></MemoryRouter>);
+        expect(await screen.findByRole("heading", { name: "這一關還沒解鎖" })).toBeInTheDocument();
+        expect(screen.getByRole("link", { name: "回到地圖" })).toHaveAttribute("href", "/student/speaking-challenges/book/book-1");
+    });
+
     it("讀取畫面切換同一關模式時不顯示舊模式內容", async () => {
         let resolveChallenge;
         const firstChallenge = { id: 7, topic: "Names", speaking_questions: [{ id: 9, question_text: "What's your name?", model_answer: "My name is Alan.", progress_status: "opened" }] };
