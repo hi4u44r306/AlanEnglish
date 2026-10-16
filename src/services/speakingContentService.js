@@ -35,7 +35,16 @@ export const updateDraftSpeakingQuestion = (firebaseUser, payload) => callSpeaki
 export const createSpeakingQuestionSetRevision = (firebaseUser, questionSetId) => callSpeakingContent(firebaseUser, "create_question_set_revision", {
     question_set_id: questionSetId
 });
-export const updateSpeakingQuestionSetDraft = (firebaseUser, payload) => callSpeakingContent(firebaseUser, "update_question_set_draft", payload);
+export const listSpeakingQuestionClips = (firebaseUser, questionSetId) => callSpeakingContent(firebaseUser, "list_question_clips", {
+    question_set_id: questionSetId
+});
+export const importSpeakingQuestionClips = (firebaseUser, questionSetId, clips) => callSpeakingContent(firebaseUser, "import_question_clips", {
+    question_set_id: questionSetId, clips
+});
+export const reviewSpeakingQuestionClip = (firebaseUser, clipId, decision) => callSpeakingContent(firebaseUser, "review_question_clip", {
+    clip_id: clipId, decision
+});
+export const updateSpeakingQuestionSetDraft =(firebaseUser, payload) => callSpeakingContent(firebaseUser, "update_question_set_draft", payload);
 export const updatePictureDraftQuestion = (firebaseUser, payload) => callSpeakingContent(firebaseUser, "update_picture_draft_question", payload);
 export const addPictureDraftQuestion = (firebaseUser, payload) => callSpeakingContent(firebaseUser, "add_picture_draft_question", payload);
 export const updateManualStandardQuestion = (firebaseUser, payload) => callSpeakingContent(firebaseUser, "update_manual_standard_question", payload);

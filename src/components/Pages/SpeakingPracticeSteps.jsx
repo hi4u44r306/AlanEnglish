@@ -2,6 +2,7 @@ import React, { useEffect, useId, useRef, useState } from "react";
 import { FiCheck, FiHelpCircle, FiMic, FiVolume2 } from "react-icons/fi";
 import SpeakingPronunciationRecorder from "./SpeakingPronunciationRecorder";
 import SpeakingLearningJourney from "./SpeakingLearningJourney";
+import SpeakingQuestionClip from "./SpeakingQuestionClip";
 
 const ANSWER_SLOT_PATTERN = /[\u005B［]([^\u005D］]{1,80})[\u005D］]/g;
 
@@ -159,6 +160,9 @@ export default function SpeakingPracticeSteps({
             <div><strong>{promptTitle}</strong><span>{promptDetail}</span></div>
             </div>
         </details>
+
+        {/* 「聽這題」：後端只在跟著念／示範時給片段，自己說不會有。 */}
+        {question.clip && <SpeakingQuestionClip clip={question.clip} disabled={busy || audioWorking} />}
 
         {showAnswerByDefault && answerPattern && !(question.hint_voids_pass && revealedAnswer) && <div className="speaking-help-panel speaking-easy-answer" aria-label="跟著念參考答案">
             <small>看著題目與答案，勇敢說出完整句子</small><span className="speaking-easy-answer__cue"><FiMic aria-hidden="true" />念這句</span><strong>{answerPatternWithSlots(answerQuestion.model_answer)}</strong>

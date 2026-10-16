@@ -1,9 +1,10 @@
-import React, { createContext, useState } from "react";
+import React, { useState } from "react";
 import SpeakingLessonPreparation from "./SpeakingLessonPreparation";
 import { useAuth } from "../../auth/AuthContext";
 import useSpeakingAttention from "../../hooks/useSpeakingAttention";
+import { SpeakingActivityContext } from "./SpeakingActivityContext";
 
-export const SpeakingActivityContext = createContext(null);
+export { SpeakingActivityContext };
 
 export default function SpeakingAdventureSession({ challenge, pages, mode, firebaseUser, notice = null, children }) {
     const [busy, setBusy] = useState(false);

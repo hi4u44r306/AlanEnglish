@@ -2,7 +2,7 @@ import React from "react";
 import { cleanup, act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import SpeakingPronunciationRecorder from "./SpeakingPronunciationRecorder";
-import { SpeakingActivityContext } from "./SpeakingAdventureSession";
+import { SpeakingActivityContext } from "./SpeakingActivityContext";
 import { submitSpeakingPronunciationAttempt, submitAlphabetPronunciationAttempt } from "../../services/pronunciationCoachService";
 import { convertAudioBlobToWav } from "../../utils/audioWav";
 import { playSpeakingFeedbackSound, prepareSpeakingFeedbackSound } from "../../utils/speakingFeedbackSound";
