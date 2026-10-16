@@ -40,7 +40,7 @@ export const ChallengePreviewDialog = ({ item, section, sectionCopy, pages, onCl
     const easyAction = practiceOnly ? "聽示範與錄音練習" : SPEAKING_LEVELS.easy.label;
     const challengeAction = speakingEntryAction(challengeCompletedCount, questionCount, false, "challenge");
     return <div className="speaking-level-overlay" onMouseDown={event => { if (event.target === event.currentTarget) onClose(); }}>
-        <section className={`speaking-level-dialog${locked ? " is-locked" : ""}`} ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="speaking-level-title" aria-describedby="speaking-level-status">
+        <section className={`speaking-level-dialog${locked ? " is-locked" : ""}`} ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="speaking-level-title" aria-describedby={practiceOnly || item.is_completed ? "speaking-level-status" : undefined}>
             <button type="button" className="speaking-level-dialog__close" onClick={onClose} aria-label="關閉關卡摘要">×</button>
             <h2 id="speaking-level-title">{pages ? <span className="speaking-level-dialog__pages">{pages}</span> : null}{pages ? " " : ""}{topicLabel}</h2>
             {staffPreview && <p className="speaking-level-dialog__topic">工作人員預覽</p>}
@@ -49,7 +49,7 @@ export const ChallengePreviewDialog = ({ item, section, sectionCopy, pages, onCl
                 <span><small>通過</small><strong>{challengeCompletedCount}/{questionCount} 句</strong></span>
             </div>
             {locked && <p className="speaking-level-dialog__locked">先完成前一關，就能解鎖這個挑戰。</p>}
-            {practiceOnly ? <p id="speaking-level-status" role="status">A–Z 今日挑戰已完成，明天可再評分；現在可聽示範與錄音練習。</p> : <p id="speaking-level-status" role="status">{item.is_completed ? "這關已過！想再玩隨時都可以。" : `用「${SPEAKING_LEVELS.challenge.label}」把每一句都說對，就能過關！`}</p>}
+            {practiceOnly ? <p id="speaking-level-status" role="status">A–Z 今日挑戰已完成，明天可再評分；現在可聽示範與錄音練習。</p> : item.is_completed && <p id="speaking-level-status" role="status">這關已過！想再玩隨時都可以。</p>}
             <div className={`speaking-level-dialog__actions${singlePractice ? " is-single" : ""}`}>
                 <button type="button" className="primary is-easy" aria-label={locked ? "尚未解鎖" : easyAction} onClick={() => onEnter("easy")} disabled={locked}><span><strong>{locked ? "尚未解鎖" : easyAction}</strong><small>{practiceOnly ? "不送評、不計通關" : SPEAKING_LEVELS.easy.how}</small></span><FiChevronRight aria-hidden="true" /></button>
                 {!practiceOnly && <button type="button" className="primary is-challenge" aria-label={locked ? `${SPEAKING_LEVELS.challenge.label}尚未解鎖` : `${SPEAKING_LEVELS.challenge.label} · ${challengeAction} · ${SPEAKING_LEVELS.challenge.how}`} onClick={() => onEnter("challenge")} disabled={locked}><span><strong>{locked ? "尚未解鎖" : SPEAKING_LEVELS.challenge.label}</strong><small>{SPEAKING_LEVELS.challenge.how}</small></span><FiChevronRight aria-hidden="true" /></button>}
