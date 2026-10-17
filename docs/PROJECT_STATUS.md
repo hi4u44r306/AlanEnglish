@@ -1,5 +1,12 @@
 # Alan English 專案狀態
 
+### 教學影片在平台內播放＋觀看紀錄（2026-10-17，分支 `feat/lesson-video`，PR #604）
+
+- 前端：`LessonVideoDialog`（YouTube IFrame API、youtube-nocookie、rel=0、fs=0；每秒取樣只累計連續播放，看滿 80% 送 complete；hidden 暫停並送 pause_hidden；播放時暫停頁面上的 audio；portal＋背景鎖捲）；`MusicCard` 的「看影片」改開視窗（lazy 載入），Playlist 在口說聽力準備頁也顯示（context=speaking_prep）。段落取自 `workbookVideoChapters`（本頁章節到下一章節）。
+- 後端（待部署）：`learning-activity` 新增 `video_watch`（start／complete／pause_hidden；activity_type=other、key video-start／video-watched／video-pause-hidden；complete 需同 session 的 start 且經過時間 ≥ 片段 80%；每小時 120 筆；只記學生）。`weekly-report` 回傳 `video`＋家長摘要一行；`guardian-email` 多「教學影片：看完 X 段」，暫停與 video-start 不算活躍日。無 migration。
+- 驗證：相關前端 405 項＋影片 5 項、`test:weekly-attention` 10 項通過；`CI=true npm run build` 成功；本機 320／412／1280 截圖（真實 YouTube 嵌入）無溢出。
+- 部署紀錄（2026-10-17，擁有者同意）：部署前確認線上版本與指紋未變；`learning-activity` v52、`weekly-report` v52、`guardian-email` v55，逐檔／逐段比對與 repo 一致，三者 OPTIONS 200、未登入／壞 token 401。前端隨 PR #604 合併。
+
 ### Cloudflare 建置失敗：npm 10 套件清單相容（2026-10-17，分支 `fix/npm10-lockfile`）
 
 - 症狀：PR #602 合併後 Workers Builds 失敗（重試亦同），安裝階段 `npm ci` EUSAGE：lock 的 picomatch@2.3.2／yaml@1.10.3 不滿足 4.0.7／2.9.1。Cloudflare 環境為 npm 10.9.2＋node 24.21.0；lock 自 9/20 未變，先前建置成功。

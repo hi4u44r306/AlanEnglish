@@ -259,7 +259,7 @@ function Playlist() {
                                     assignmentProgress={homeworkContext.active ? homeworkProgress.get(String(track.id)) : null}
                                     assignmentProgressStatus={homeworkStatus}
                                     onStart={rememberTrack}
-                                    hideVideo={Boolean(speakingContext)}
+                                    videoContext={speakingContext ? "speaking_prep" : "playlist"}
                                 />
                             </div>
                         )) : <div className="playlist-empty">{speakingContext ? "本關對應音檔目前無法載入，請回到口說關卡繼續練習。" : homeworkContext.active ? homeworkStatus === "loading" ? "正在讀取指定音檔…" : "目前沒有可確認的指定音檔，請返回作業頁查看。" : "目前沒有音檔"}</div>}

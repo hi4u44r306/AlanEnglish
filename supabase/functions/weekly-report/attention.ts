@@ -122,3 +122,18 @@ export const describeSpeakingAttention = (attention: SpeakingAttentionSummary): 
     const rate = roundedFocusRate(attention.focus_rate);
     return `口說專注度：${roundedLevel(rate)}（${rate}%；中途切換頁面 ${attention.hidden_pauses} 次、放著不動 ${attention.idle_pauses} 次）。`;
 };
+
+// 平台內教學影片：本週看完幾段（learning-activity 已核對看滿八成）、播放中切走幾次。
+export type VideoSummary = { watched: number; hidden_pauses: number };
+
+export const buildVideoSummary = (events: EventRow[]): VideoSummary => {
+    const rows = (events || []).filter(event => event.activity_type === "other");
+    return {
+        watched: rows.filter(event => event.activity_key === "video-watched").length,
+        hidden_pauses: rows.filter(event => event.activity_key === "video-pause-hidden").length
+    };
+};
+
+export const describeVideoSummary = (video: VideoSummary): string => (
+    video.watched > 0 ? `教學影片：看完 ${video.watched} 段${video.hidden_pauses ? `（中途切換頁面 ${video.hidden_pauses} 次）` : ""}。` : ""
+);

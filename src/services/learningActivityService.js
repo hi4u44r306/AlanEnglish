@@ -46,7 +46,13 @@ export const recordSpeakingAttention = (firebaseUser, { reason, question_set_id:
     mode
 });
 
-export const getConversationProgress = (firebaseUser, scenarioKey = "meet-a-foreigner") => callLearningActivity(firebaseUser, {
+// 平台內教學影片：phase = start／complete／pause_hidden。看完由後端再核對時間，只記學生本人。
+export const recordVideoWatch = (firebaseUser, payload = {}) => callLearningActivity(firebaseUser, {
+    action: "video_watch",
+    ...payload
+});
+
+export const getConversationProgress =(firebaseUser, scenarioKey = "meet-a-foreigner") => callLearningActivity(firebaseUser, {
     action: "conversation_get",
     scenario_key: scenarioKey
 });
