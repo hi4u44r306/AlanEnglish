@@ -1,5 +1,12 @@
 # Alan English 專案狀態
 
+### 跟著念三步：聽 → 拼 → 念（2026-10-17，分支 `feat/speaking-guided-steps`，尚未部署）
+
+- 只改前端，無 migration、無 Function。`utils/speakingGuidedSteps.js`（由 sentence_pattern＋model_answer 算出空格答案、步驟順序、字母方塊）；`SpeakingGuidedSteps.jsx`（步驟條、聽、拼）；`SpeakingPracticeSteps` 在 easy 依步驟顯示，念的步驟才出現完整句與麥克風；`WorkbookOnePictureChallenge` 念之前只顯示挖空句。「聽這題」改為大顆黃色按鈕（擁有者回報不明顯）。
+- 驗證：口說相關前端 21 組全過（含新 `SpeakingGuidedSteps`、`speakingGuidedSteps` 共 10 項）；`CI=true npm run build` 成功；本機假資料 320／412／1280 截圖無溢出。
+- 擁有者決定：片段含答案（先聽再拼）、拼字用點字母／打字、三步只當練習不影響通關。
+- 下一步：擁有者確認後合併上線；之後做 YouTube「看完整影片」按鈕。
+
 ### 每題片段「聽這題」第一階段（2026-10-16，分支 `feat/speaking-question-clips`，已部署）
 
 - 資料表：`speaking_question_media_clips`（migration `20261016140406`，擁有者 2026-10-16 同意，已套用正式庫）。音檔（track_id＋起訖毫秒）或 YouTube（11 碼 id＋起訖毫秒），draft／approved／archived，每題每類型最多一個核准，RLS 開啟、只給 service_role。驗證：RLS true、0 policy、anon／authenticated 無 select、7 個索引、0 筆。預留 `private_object_key` 供日後改用預先剪好的小檔。

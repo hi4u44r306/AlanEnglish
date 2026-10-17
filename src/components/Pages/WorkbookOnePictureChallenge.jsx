@@ -5,6 +5,7 @@ import SpeakingPracticeSteps from "./SpeakingPracticeSteps";
 import SpeakingQuestionClip from "./SpeakingQuestionClip";
 import SpeakingVisualAid from "./SpeakingVisualAid";
 import { createSpeakingChallengeSessionId } from "../../utils/speakingChallengeSession";
+import { initialGuidedStep } from "../../utils/speakingGuidedSteps";
 
 const copyByType = {
     picture_qa: {
@@ -56,6 +57,7 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, s
     const [challengeSessionId, setChallengeSessionId] = useState("");
     const [canSkip, setCanSkip] = useState(false);
     const [completedIds, setCompletedIds] = useState(() => new Set());
+    const [guided, setGuided] = useState({ id: null, step: null });
     const audioRef = useRef(null);
     const phaseFocusRef = useRef(null);
 
@@ -95,8 +97,10 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, s
             phaseFocusRef.current?.focus({ preventScroll: true });
         }
     }, [activeQuestion?.id, phase]);
-    // 第一級（easy）直接顯示完整句子跟著念；第二級才顯示挖空句。舊版後端在 easy 模式不給答案時，退回挖空句。
-    const fullSentence = gapMode && challengeMode === "easy" ? String(activeQuestion?.model_answer || "").trim() : "";
+    // 第一級（easy）在「念」這一步才顯示完整句子；聽與拼的時候先顯示挖空句，避免先看到答案。
+    // 第二級只顯示挖空句。舊版後端在 easy 模式不給答案時，退回挖空句。
+    const guidedStep = guided.id === activeQuestion?.id ? guided.step : initialGuidedStep(activeQuestion, challengeMode);
+    const fullSentence = gapMode && challengeMode === "easy" && guidedStep === "speak" ? String(activeQuestion?.model_answer || "").trim() : "";
     const sentenceText = fullSentence || activeQuestion?.picture_interaction?.sentence_pattern;
     const sentenceTokens = useMemo(() => tokenizeSpeakingSentence(sentenceText), [sentenceText]);
 
@@ -215,6 +219,7 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, s
                 promptTitle={copy.promptTitle}
                 promptDetail={copy.promptDetail}
                 onCompleted={handleCorrect}
+                onGuidedStepChange={step => setGuided({ id: activeQuestion.id, step })}
                 onPracticeOnly={onPracticeOnly}
                 onIncorrect={() => setCanSkip(true)}
             />}

@@ -3,6 +3,8 @@ import { FiCheck, FiHelpCircle, FiMic, FiVolume2 } from "react-icons/fi";
 import SpeakingPronunciationRecorder from "./SpeakingPronunciationRecorder";
 import SpeakingLearningJourney from "./SpeakingLearningJourney";
 import SpeakingQuestionClip from "./SpeakingQuestionClip";
+import { GuidedListenStep, GuidedSpellStep, GuidedStepper } from "./SpeakingGuidedSteps";
+import { initialGuidedStep, nextGuidedStep, spellingTargetFor } from "../../utils/speakingGuidedSteps";
 
 const ANSWER_SLOT_PATTERN = /[\u005B［]([^\u005D］]{1,80})[\u005D］]/g;
 
@@ -70,7 +72,8 @@ export default function SpeakingPracticeSteps({
     allowModelAudio = true,
     readAloud = false,
     promptTitle = "直接開口回答",
-    promptDetail = "不用打字，按下麥克風後用完整英文句子回答。"
+    promptDetail = "不用打字，按下麥克風後用完整英文句子回答。",
+    onGuidedStepChange
 }) {
     const [showHelp, setShowHelp] = useState(false);
     const [revealedAnswer, setRevealedAnswer] = useState(null);
@@ -79,6 +82,11 @@ export default function SpeakingPracticeSteps({
     const [lastResult, setLastResult] = useState(null);
     const [saving, setSaving] = useState(false);
     const [recorderPhase, setRecorderPhase] = useState("ready");
+    // 跟著念的三步（聽→拼→念）；自己說永遠直接念。
+    const [guidedStep, setGuidedStep] = useState(() => initialGuidedStep(question, challengeMode));
+    // 只在換題／新回合時重設步驟；同一題的進度更新（新物件）不能把孩子拉回第 1 步。
+    const questionRef = useRef(question);
+    questionRef.current = question;
     const helpId = useId();
     const busy = ["recording", "preparing", "assessing"].includes(recorderPhase) || saving;
     const canListen = allowModelAudio && Boolean(question.model_audio_url);
@@ -99,6 +107,7 @@ export default function SpeakingPracticeSteps({
         setLastResult(null);
         setSaving(false);
         setRecorderPhase("ready");
+        setGuidedStep(initialGuidedStep(questionRef.current, challengeMode));
         return () => { hintRequestRef.current += 1; };
     }, [question.id, challengeSessionId, challengeMode]);
 
@@ -151,7 +160,24 @@ export default function SpeakingPracticeSteps({
         setShowHelp(true);
     };
 
+    const spellingAnswers = challengeMode === "easy" ? spellingTargetFor(question) : null;
+    const guidedSteps = challengeMode === "easy"
+        ? [question.clip?.type === "audio" && "listen", spellingAnswers && "spell", "speak"].filter(Boolean)
+        : [];
+    const goToStep = step => { setGuidedStep(step); onGuidedStepChange?.(step); };
+    const stepper = guidedSteps.length > 1 && <GuidedStepper steps={guidedSteps} current={guidedStep} />;
+
+    if (guidedStep === "listen" && question.clip) return <section className="speaking-practice-flow">
+        {stepper}
+        <GuidedListenStep clip={question.clip} nextLabel={spellingAnswers ? "下一步：拼單字" : "下一步：看著句子念"} onNext={() => goToStep(nextGuidedStep("listen", question))} />
+    </section>;
+    if (guidedStep === "spell" && spellingAnswers) return <section className="speaking-practice-flow">
+        {stepper}
+        <GuidedSpellStep key={question.id} answers={spellingAnswers} clip={question.clip} onDone={() => goToStep("speak")} />
+    </section>;
+
     return <section className="speaking-practice-flow">
+        {stepper}
         <SpeakingLearningJourney phase={saving ? "assessing" : lastResult ? "feedback" : recorderPhase} canListen={canListen} />
         <details className="speaking-practice-instructions">
             <summary>這題怎麼練？</summary>
@@ -162,7 +188,7 @@ export default function SpeakingPracticeSteps({
         </details>
 
         {/* 「聽這題」：後端只在跟著念／示範時給片段，自己說不會有。 */}
-        {question.clip && <SpeakingQuestionClip clip={question.clip} disabled={busy || audioWorking} />}
+        {question.clip && <SpeakingQuestionClip clip={question.clip} label={guidedSteps.length > 1 ? "再聽一次" : "聽這題"} disabled={busy || audioWorking} />}
 
         {showAnswerByDefault && answerPattern && !(question.hint_voids_pass && revealedAnswer) && <div className="speaking-help-panel speaking-easy-answer" aria-label="跟著念參考答案">
             <small>看著題目與答案，勇敢說出完整句子</small><span className="speaking-easy-answer__cue"><FiMic aria-hidden="true" />念這句</span><strong>{answerPatternWithSlots(answerQuestion.model_answer)}</strong>

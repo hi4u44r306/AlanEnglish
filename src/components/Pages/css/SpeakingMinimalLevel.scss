@@ -311,3 +311,33 @@ body.speaking-challenge-active .speaking-alphabet-list .handwriting-letter path 
 .speaking-question-clip { display: grid; justify-items: center; gap: 6px; }
 .speaking-question-clip__button { min-height: 44px; }
 .speaking-question-clip__error { color: var(--ae-danger, #b3261e); font-size: 14px; text-align: center; }
+
+// 跟著念三步：聽 → 拼 → 念
+.speaking-guided-stepper { display: flex; justify-content: center; gap: 8px; margin: 0 0 12px; padding: 0; list-style: none; }
+.speaking-guided-stepper li { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; background: var(--ae-surface-muted, #eef3f9); color: var(--ae-text-muted, #526780); font-size: 16px; font-weight: 700; }
+.speaking-guided-stepper li > span { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: var(--ae-surface, #fff); font-size: 14px; }
+.speaking-guided-stepper li.is-current { background: var(--ae-solid, #17365d); color: #fff; }
+.speaking-guided-stepper li.is-current > span { color: var(--ae-text, #17365d); }
+.speaking-guided-stepper li.is-done { background: var(--ae-success-bg, #e5f5e9); color: var(--ae-success, #1b6344); }
+.speaking-guided-step { display: grid; justify-items: center; gap: 14px; text-align: center; }
+.speaking-guided-step__title { margin: 0; color: var(--ae-text, #17365d); font-size: 20px; font-weight: 800; }
+body.speaking-challenge-active .speaking-question-clip--hero .speaking-question-clip__button,
+.speaking-question-clip--hero .speaking-question-clip__button { display: inline-flex; align-items: center; justify-content: center; gap: 10px; width: min(320px, 100%); min-height: 64px; border: 0 !important; border-radius: 20px !important; background: var(--ae-warning-bg, #ffd84d) !important; box-shadow: 0 5px 0 #e0a800 !important; color: var(--ae-text, #17365d) !important; font-size: 22px !important; font-weight: 800 !important; }
+.speaking-question-clip--hero .speaking-question-clip__button svg { font-size: 26px; }
+.speaking-question-clip--hero .speaking-question-clip__button[aria-pressed="true"] { box-shadow: 0 2px 0 #e0a800 !important; transform: translateY(3px); }
+.speaking-guided-next { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 52px; padding: 0 22px; border: 1px solid var(--ae-border, #c5d6e8); border-radius: 16px; background: var(--ae-surface, #fff); color: var(--ae-accent, #245fc5); font-size: 18px; font-weight: 800; }
+.speaking-guided-next.is-ready { border-color: transparent; background: var(--ae-solid, #17365d); color: #fff; }
+.speaking-spell-slots { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; max-width: 100%; }
+.speaking-spell-slot { width: 44px; height: 52px; padding: 0; border: 0; border-bottom: 4px solid var(--ae-border, #9cb7d3); border-radius: 10px 10px 4px 4px; background: var(--ae-surface-muted, #f1f5fa); color: var(--ae-text, #17365d); font-size: 28px; font-weight: 800; text-transform: none !important; }
+.speaking-spell-slot.is-filled { background: var(--ae-surface, #fff); border-bottom-color: var(--ae-accent, #245fc5); }
+.speaking-spell-slot.is-wrong { border-bottom-color: var(--ae-danger, #c62828); color: var(--ae-danger, #c62828); background: var(--ae-danger-bg, #fdecec); }
+.speaking-spell-slots.is-right .speaking-spell-slot { border-bottom-color: var(--ae-success, #1b6344); color: var(--ae-success, #1b6344); }
+.speaking-spell-slot:disabled { opacity: 1; cursor: default; }
+.speaking-spell-gap { width: 14px; }
+.speaking-spell-tiles { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; max-width: 540px; }
+.speaking-spell-tile { width: 52px; height: 52px; border: 1px solid var(--ae-border, #c5d6e8); border-radius: 14px; background: var(--ae-surface, #fff); box-shadow: 0 3px 0 var(--ae-border, #c5d6e8); color: var(--ae-text, #17365d); font-size: 26px; font-weight: 800; text-transform: none !important; }
+.speaking-spell-tile:disabled { opacity: .3; box-shadow: none; }
+.speaking-spell-tile--back { color: var(--ae-text-muted, #526780); font-size: 22px; }
+.speaking-spell-feedback { margin: 0; color: var(--ae-danger, #c62828); font-size: 16px; font-weight: 700; }
+.speaking-spell-feedback.is-right { display: inline-flex; align-items: center; gap: 6px; color: var(--ae-success, #1b6344); font-size: 20px; }
+@media (max-width: 380px) { .speaking-spell-slot { width: 36px; height: 46px; font-size: 24px; } .speaking-spell-tile { width: 46px; height: 46px; font-size: 22px; } }
