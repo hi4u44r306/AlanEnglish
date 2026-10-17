@@ -90,3 +90,18 @@ test("口說專注度：完成題數對照切換頁面、放著不動、想離�
     const none = buildSpeakingAttention({ events: [], dailyBreakdown: [], weekStartDate: "2026-10-19" });
     assert.equal(none.focus_rate, null);
 });
+
+test("video summary counts watched parts and switch-aways, nothing else", async () => {
+    const { buildVideoSummary, describeVideoSummary } = await import("../supabase/functions/weekly-report/attention.ts");
+    const events = [
+        event("video-start", "2026-10-20T01:00:00Z", "other"),
+        event("video-watched", "2026-10-20T01:02:00Z", "other"),
+        event("video-watched", "2026-10-21T01:02:00Z", "other"),
+        event("video-pause-hidden", "2026-10-21T01:01:00Z", "other"),
+        event("pause-hidden", "2026-10-21T01:01:00Z")
+    ];
+    const video = buildVideoSummary(events);
+    assert.deepEqual(video, { watched: 2, hidden_pauses: 1 });
+    assert.equal(describeVideoSummary(video), "教學影片：看完 2 段（中途切換頁面 1 次）。");
+    assert.equal(describeVideoSummary({ watched: 0, hidden_pauses: 3 }), "");
+});

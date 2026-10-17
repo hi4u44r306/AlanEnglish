@@ -14,6 +14,15 @@ const WORKBOOK_VIDEO_CHAPTERS = {
 
 const pageKey = page => String(page || "").toLowerCase().replace(/^p\.?/, "").replace(/\s+/g, "");
 
+// 這一頁在整支影片裡的段落：從本頁的章節開始，到下一個章節開始為止（最後一段沒有結尾，播到影片結束）。
+export const getTrackVideoSegment = (bookCode, page) => {
+    const book = WORKBOOK_VIDEO_CHAPTERS[bookCode];
+    const start = book?.pages[pageKey(page)];
+    if (!Number.isInteger(start)) return null;
+    const next = Object.values(book.pages).filter(value => value > start).sort((left, right) => left - right)[0];
+    return { videoId: book.videoId, start, end: Number.isInteger(next) ? next : null };
+};
+
 export const getTrackVideoUrl = (bookCode, page) => {
     const book = WORKBOOK_VIDEO_CHAPTERS[bookCode];
     const seconds = book?.pages[pageKey(page)];

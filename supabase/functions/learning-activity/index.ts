@@ -179,6 +179,75 @@ Deno.serve(async (req: Request) => {
       return json(200, { success: true });
     }
 
+    // 平台內播放的教學影片（YouTube 片段）：start 開始、complete 看完、pause_hidden 播放中切走。
+    // 看完要後端再確認：同一個播放工作階段先有 start，且經過的時間至少是片段長度的 80%。
+    // 只記學生本人；不給點數、不算通關（遵守 YouTube 不得以獎勵換觀看的規定）。
+    if (action === "video_watch") {
+      if (account.role !== "student") return json(200, { success: true, ignored: true });
+      const phase = String(body?.phase || "");
+      if (!["start", "complete", "pause_hidden"].includes(phase)) return json(400, { error: "影片紀錄類型不正確" });
+      const videoId = String(body?.video_id || "");
+      const startSeconds = Number(body?.start_seconds);
+      const endSeconds = Number(body?.end_seconds);
+      const sessionId = String(body?.session_id || "");
+      if (!/^[A-Za-z0-9_-]{11}$/.test(videoId)
+        || !Number.isInteger(startSeconds) || !Number.isInteger(endSeconds)
+        || startSeconds < 0 || endSeconds <= startSeconds || endSeconds - startSeconds > 3 * 60 * 60
+        || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(sessionId)) {
+        return json(400, { error: "影片資料不正確" });
+      }
+      const since = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+      const { count } = await admin
+        .from("student_activity_events")
+        .select("id", { count: "exact", head: true })
+        .eq("student_id", account.id)
+        .eq("activity_type", "other")
+        .like("activity_key", "video-%")
+        .gte("occurred_at", since);
+      if ((count || 0) >= 120) return json(200, { success: true, ignored: true });
+      const trackId = Number(body?.track_id);
+      const context = body?.context === "speaking_prep" ? "speaking_prep" : "playlist";
+      const metadata: Record<string, unknown> = {
+        video_id: videoId, start_seconds: startSeconds, end_seconds: endSeconds, session_id: sessionId, context
+      };
+      if (Number.isInteger(trackId) && trackId > 0) metadata.track_id = trackId;
+
+      if (phase === "complete") {
+        const { data: started } = await admin
+          .from("student_activity_events")
+          .select("occurred_at")
+          .eq("student_id", account.id)
+          .eq("activity_key", "video-start")
+          .eq("metadata->>session_id", sessionId)
+          .gte("occurred_at", new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString())
+          .order("occurred_at", { ascending: true })
+          .limit(1)
+          .maybeSingle();
+        if (!started) return json(409, { error: "找不到這段影片的開始紀錄", code: "video_not_started" });
+        const elapsed = (Date.now() - new Date(started.occurred_at).getTime()) / 1000;
+        if (elapsed + 5 < (endSeconds - startSeconds) * 0.8) {
+          return json(409, { error: "影片還沒看到八成", code: "video_too_short" });
+        }
+        const { count: done } = await admin
+          .from("student_activity_events")
+          .select("id", { count: "exact", head: true })
+          .eq("student_id", account.id)
+          .eq("activity_key", "video-watched")
+          .eq("metadata->>session_id", sessionId);
+        if ((done || 0) > 0) return json(200, { success: true, duplicate: true });
+      }
+
+      const { error: eventError } = await admin.from("student_activity_events").insert({
+        student_id: account.id,
+        activity_type: "other",
+        activity_key: phase === "start" ? "video-start" : phase === "complete" ? "video-watched" : "video-pause-hidden",
+        metadata,
+        occurred_at: now
+      });
+      if (eventError) return json(500, { error: "記錄失敗" });
+      return json(200, { success: true });
+    }
+
     if (action === "login") {
       const { error: updateError } = await admin
         .from("students")

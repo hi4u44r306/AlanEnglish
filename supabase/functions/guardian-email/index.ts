@@ -15,7 +15,8 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 const TAIPEI_OFFSET_MS = 8 * 60 * 60 * 1000;
 // 專注度從 2026-10-19（週一）那一週開始記錄，與 weekly-report 的 ATTENTION_TRACKING_SINCE 相同。
 const ATTENTION_TRACKING_SINCE = "2026-10-19";
-const isPauseEvent = (row: any) => /^(pause-|speaking-pause-)/.test(String(row?.activity_key || ""));
+// 暫停／切走與「開始看影片」都不是一天的學習證據；看完影片（video-watched）才算。
+const isPauseEvent = (row: any) => /^(pause-|speaking-pause-|video-pause-|video-start)/.test(String(row?.activity_key || ""));
 // 家長看的專注度只到整十（95→100、63→60）；等級依整十後的數字判斷，和網頁一致。
 const roundedFocus = (kept: number, pauses: number) => {
     if (kept + pauses <= 0) return null;
@@ -235,7 +236,8 @@ const buildReport = async (admin: any, student: any, weekStart: string) => {
             conversation_count: conversationCount,
             accuracy,
             listening_focus: listeningFocus,
-            speaking_focus: speakingFocus
+            speaking_focus: speakingFocus,
+            videos_watched: countKey("video-watched")
         },
         status
     };
@@ -261,6 +263,7 @@ const buildEmail = (report: any) => {
     ].filter(Boolean).join("、");
     const extras = [
         focusText ? ["專注度", focusText] : null,
+        m.videos_watched ? ["教學影片", `看完 ${m.videos_watched} 段`] : null,
         m.ai_passed ? ["AI 教材", `通過 ${m.ai_passed} 份`] : null,
         m.review_count ? ["智慧複習", `${m.review_count} 題${m.accuracy === null ? "" : `，正確率 ${m.accuracy}%`}`] : null
     ].filter(Boolean) as string[][];

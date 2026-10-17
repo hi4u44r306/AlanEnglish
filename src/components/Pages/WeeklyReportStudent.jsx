@@ -1,5 +1,5 @@
 import React from "react";
-import { FiActivity, FiCalendar, FiCheckSquare, FiHeadphones, FiMic } from "react-icons/fi";
+import { FiActivity, FiCalendar, FiCheckSquare, FiHeadphones, FiMic, FiYoutube } from "react-icons/fi";
 import { focusLevel, roundFocusRate } from "../../utils/focusRate";
 
 const count = value => (typeof value === "number" && Number.isFinite(value) && value >= 0 ? value : null);
@@ -22,6 +22,7 @@ export default function WeeklyReportStudent({ report, showAttention = true }) {
     const sentences = count(report.speaking_challenge?.completed_questions);
     const assigned = count(report.assignments?.assigned);
     const completed = count(report.assignments?.completed);
+    const videos = count(report.video?.watched);
     const tiles = [
         { key: "days", icon: FiCalendar, tone: "blue", verb: "學了", value: activeDays, unit: "天" },
         { key: "plays", icon: FiHeadphones, tone: "yellow", verb: "聽了", value: plays, unit: "次" },
@@ -48,6 +49,7 @@ export default function WeeklyReportStudent({ report, showAttention = true }) {
         </ol>}
         {assigned > 0 && completed != null && <p className="weekly-student__homework"><FiCheckSquare aria-hidden="true" />作業完成 <strong>{completed} / {assigned}</strong></p>}
         {assigned === 0 && <p className="weekly-student__homework is-none"><FiCheckSquare aria-hidden="true" />這週沒有作業</p>}
+        {videos > 0 && <p className="weekly-student__homework"><FiYoutube aria-hidden="true" />看完教學影片 <strong>{videos}</strong> 段</p>}
         {showAttention && focusRate !== null && <p className={`weekly-student__focus is-${focusLevel(focusRate)}`}><FiActivity aria-hidden="true" />聽力專注度 <strong>{focusRate}%</strong><span>{KID_FOCUS[focusLevel(focusRate)]}</span></p>}
         {showAttention && speakingFocusRate !== null && <p className={`weekly-student__focus is-${focusLevel(speakingFocusRate)}`}><FiMic aria-hidden="true" />口說專注度 <strong>{speakingFocusRate}%</strong><span>{KID_SPEAKING_FOCUS[focusLevel(speakingFocusRate)]}</span></p>}
     </section>;
