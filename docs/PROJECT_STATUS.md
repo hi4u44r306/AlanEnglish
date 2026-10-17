@@ -1,5 +1,13 @@
 # Alan English 專案狀態
 
+### Cloudflare 建置失敗：npm 10 套件清單相容（2026-10-17，分支 `fix/npm10-lockfile`）
+
+- 症狀：PR #602 合併後 Workers Builds 失敗（重試亦同），安裝階段 `npm ci` EUSAGE：lock 的 picomatch@2.3.2／yaml@1.10.3 不滿足 4.0.7／2.9.1。Cloudflare 環境為 npm 10.9.2＋node 24.21.0；lock 自 9/20 未變，先前建置成功。
+- 重現：Windows 的 npm 10 不會報錯；在 WSL Linux（node 24.21.0）以 npm 10.9.2 `ci --dry-run` 完整重現。原因是 fdir、postcss-load-config 的選用 peer（picomatch ^4、yaml ^2）在 Linux 的 ideal tree 被放到根目錄。
+- 修正：以 npm 10.9.2 在 Linux 執行 `install --package-lock-only`，只變動 13 筆：根目錄 picomatch→4.0.7、yaml→2.9.1，原本需要 2.x／1.x 的套件改用各自巢狀副本；其他套件版本完全不變。
+- 驗證：Linux npm 10.9.2 `ci --dry-run` 通過；Windows npm 11 `npm ci` 重裝、`CI=true npm run build` 成功、口說相關 260 項測試通過。
+- 9/19（`6f57ed57`）曾發生同類問題；之後若 Cloudflare 再換 npm 版本，可用同樣方式在 WSL 以對應版本重建 lock。
+
 ### 跟著念三步：聽 → 拼 → 念（2026-10-17，分支 `feat/speaking-guided-steps`，尚未部署）
 
 - 只改前端，無 migration、無 Function。`utils/speakingGuidedSteps.js`（由 sentence_pattern＋model_answer 算出空格答案、步驟順序、字母方塊）；`SpeakingGuidedSteps.jsx`（步驟條、聽、拼）；`SpeakingPracticeSteps` 在 easy 依步驟顯示，念的步驟才出現完整句與麥克風；`WorkbookOnePictureChallenge` 念之前只顯示挖空句。「聽這題」改為大顆黃色按鈕（擁有者回報不明顯）。
