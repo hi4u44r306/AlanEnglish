@@ -1,5 +1,5 @@
 import { hasSpeakingAnswerSlots, matchesSpeakingAnswerTemplate } from "./speaking-pronunciation-reference.ts";
-import { FOUNDATION_INTERACTION_TYPES, matchesFoundationAnswer } from "./speaking-foundation-answer.ts";
+import { FOUNDATION_INTERACTION_TYPES, alignThSoundAlikes, matchesFoundationAnswer } from "./speaking-foundation-answer.ts";
 
 export const readingWords = (text: string): string[] => text.toLowerCase().replace(/[’‘]/g, "'")
     .replace(/\bi'm\b/g, "i am").replace(/\bcan't\b/g, "cannot").replace(/\bwon't\b/g, "will not").replace(/n't\b/g, " not")
@@ -8,7 +8,8 @@ export const readingWords = (text: string): string[] => text.toLowerCase().repla
     .match(/[a-z]+(?:'[a-z]+)?|\d+/g) || [];
 
 export function readingCoverage(expectedText: string, recognizedText: string) {
-    const expected = readingWords(expectedText), heard = readingWords(recognizedText);
+    const expected = readingWords(expectedText);
+    const { spoken: heard, tips: thTips } = alignThSoundAlikes(expected, readingWords(recognizedText));
     const table = Array.from({ length: expected.length + 1 }, () => new Uint16Array(heard.length + 1));
     for (let i = 1; i <= expected.length; i++) for (let j = 1; j <= heard.length; j++) {
         table[i][j] = expected[i - 1] === heard[j - 1] ? table[i - 1][j - 1] + 1 : Math.max(table[i - 1][j], table[i][j - 1]);
@@ -20,7 +21,7 @@ export function readingCoverage(expectedText: string, recognizedText: string) {
         else if (table[i - 1][j] >= table[i][j - 1]) i--; else j--;
     }
     const matched = table[expected.length][heard.length];
-    return { matched, total: expected.length, score: expected.length ? Math.round(matched / expected.length * 100) : 0,
+    return { matched, total: expected.length, score: expected.length ? Math.round(matched / expected.length * 100) : 0, thTips,
         words: expected.map((text, index) => ({ text, status: hits[index] ? "good" : "retry" })) };
 }
 
@@ -60,13 +61,17 @@ export function assessReadingCompleteness(question: { answerTemplate: string; ac
     const score = alphabet || hasSlots ? (strictMatch || structuredMatch ? 100 : 0) : coverage.score;
     const answerMatch = score >= 70 && (hasSlots ? structuredMatch || strictMatch : strictType ? strictMatch : coverage.total > 0);
     const revealReference = answerMatch && !hasSlots && !alphabet;
+    // Passed, but a th word was heard as s/f/t/d/z: pass it and say which word to practise.
+    const pronunciationTips = answerMatch && !alphabet ? coverage.thTips.map(tip => ({ ...tip, sound: "th" })) : [];
     return {
         assessment_kind: "local_completeness_v1", assessment_status: "assessed", evidence_source: "client_transcript",
-        recognized_text: text, answer_match: answerMatch,
+        recognized_text: text, answer_match: answerMatch, pronunciation_tips: pronunciationTips,
         // Null explicitly means not measured. Historical Azure results stay intact.
         scores: { completeness: score, pronunciation: null, accuracy: null, fluency: null, prosody: null },
         words: revealReference ? coverage.words : readingWords(text).map(text => ({ text, status: "practice" })),
-        feedback: answerMatch ? "已完成這次朗讀！這是朗讀完整度，不是發音準確度。"
+        feedback: answerMatch ? pronunciationTips.length
+            ? `通過了！不過 ${pronunciationTips.map(tip => tip.word).join("、")} 的 th 可能沒念清楚（系統聽成 ${pronunciationTips.map(tip => tip.heard).join("、")}）。下次把舌尖輕放在上下牙齒中間再念，會更標準。`
+            : "已完成這次朗讀！這是朗讀完整度，不是發音準確度。"
             : alphabet ? "請聽示範，再把字母分開唸清楚；辨識也可能聽錯，可以重錄。"
                 : "請再確認題目，用完整且正確的句子回答。辨識也可能聽錯，可以重錄。"
     };

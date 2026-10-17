@@ -1,5 +1,12 @@
 # Alan English 專案狀態
 
+### 口說評分 th 放寬（2026-10-17，分支 `feat/th-tolerance`，尚未部署）
+
+- 起因：擁有者念 "It is her mouth." 兩次都被辨識成 "mouse"，完整度 75 但答案字不符而不通過。
+- 後端：`_shared/speaking-foundation-answer.ts` 新增 `thSoundAlikes`／`alignThSoundAlikes`（答案字含 th 時，th→s/f/t/d/z，字尾 th 可再加 e，視為同字），用於 `matchesChildFriendlySentence` 與 `speaking-completeness.ts` 的 `readingCoverage`；通過時回傳 `pronunciation_tips` 與提醒文字。只影響 `pronunciation-coach`（`speaking-challenge`、`speaking-content-manager` 未使用被改函式，不需重新部署）。
+- 前端：`SpeakingPronunciationRecorder` 通過時顯示黃色 th 提醒。
+- 驗證：`scripts/speaking-completeness.test.mjs` 17 項（含新增 th 案例）、`speaking-local-handler` 11 項、Recorder 43 項通過。`test-speaking-foundation-answer.mjs`、`test-speaking-pronunciation-reference.mjs` 在未改的 main 上即失敗（舊原始碼比對），與本次無關。
+
 ### 拼字 3 次機會（2026-10-17，分支 `feat/spell-three-tries`，尚未部署）
 
 - `GuidedSpellStep`：填滿才判斷；拼錯整排標紅 0.9 秒後清空，不標個別字母；填滿後鎖住刪改；`SPELL_TRIES = 3`，3 次錯呼叫 `onFail`（`SpeakingPracticeSteps.onSpellFailed` → `WorkbookOnePictureChallenge.skipQuestion`），題目不算完成、下一輪再出現。只改前端。
