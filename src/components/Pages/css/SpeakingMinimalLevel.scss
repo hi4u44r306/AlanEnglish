@@ -223,32 +223,32 @@ body.speaking-challenge-active .speaking-lesson-page { flex: 0 0 auto !important
 // Room for the halo, so it never touches the hint above it.
 body.speaking-challenge-active .speaking-pronunciation { padding-block: 24px 20px !important; }
 
-// ---- The record button. A large sunny disc with the microphone in the middle, a white rim and
-// two soft rings that breathe; its label sits underneath so the disc stays clean. While
-// recording it turns coral and the rings quicken, so the state is obvious without reading.
+// ---- The record button. A large sunny disc with the microphone in the middle and a white rim; no glow
+// around it. It beats gently like a heart so children know to press it. While recording it turns green
+// with a tick (說完了) and keeps beating, so the state is obvious without reading.
 body.speaking-challenge-active .speaking-pronunciation { display: grid; justify-items: center; padding-block: 28px 20px !important; }
 body.speaking-challenge-active .speaking-pronunciation-mic.speaking-pronunciation-mic {
   position: relative; display: grid !important; place-items: center; width: 112px !important; height: 112px !important; min-width: 0 !important; min-height: 0 !important; margin: 0 auto 44px !important; padding: 0 !important;
   border: 5px solid var(--ae-surface, #fff) !important; border-radius: 50% !important;
   background: linear-gradient(160deg, #ffe98a 0%, #ffd03f 55%, #f9b91b 100%) !important;
   color: var(--ae-text, #17365d) !important; overflow: visible !important;
-  box-shadow: 0 0 0 2px #f2b61c, 0 0 0 14px rgba(255, 208, 63, .28), 0 0 0 28px rgba(255, 208, 63, .12) !important;
-  animation: speaking-mic-rings 2.6s ease-in-out infinite; transition: transform .12s ease;
+  box-shadow: 0 0 0 2px #f2b61c, 0 6px 14px rgba(23, 54, 93, .16) !important;
+  animation: speaking-mic-heartbeat 1.6s ease-in-out infinite; transition: transform .12s ease;
 }
 body.speaking-challenge-active .speaking-pronunciation-mic.speaking-pronunciation-mic > svg { width: 46px !important; height: 46px !important; stroke-width: 2.2; }
 body.speaking-challenge-active .speaking-pronunciation-mic.speaking-pronunciation-mic > span { position: absolute; top: calc(100% + 18px); left: 50%; transform: translateX(-50%); color: var(--ae-text, #17365d) !important; font-size: 17px !important; font-weight: 800 !important; line-height: 1.3; white-space: nowrap; }
 body.speaking-challenge-active .speaking-pronunciation-mic.speaking-pronunciation-mic:active { transform: scale(.95); }
 body.speaking-challenge-active .speaking-pronunciation-mic.speaking-pronunciation-mic:focus-visible { outline: 3px solid #17365d !important; outline-offset: 6px; }
 body.speaking-challenge-active .speaking-pronunciation-mic.speaking-pronunciation-mic.is-recording {
-  background: linear-gradient(160deg, #ff9a7b 0%, #f4563f 60%, #e23a2e 100%) !important; color: #fff !important;
-  box-shadow: 0 0 0 2px #e23a2e, 0 0 0 14px rgba(244, 86, 63, .26), 0 0 0 28px rgba(244, 86, 63, .1) !important;
-  animation: speaking-mic-rings-live 1.1s ease-in-out infinite;
+  background: linear-gradient(160deg, #6fd39b 0%, #2fa76a 60%, #1f8a55 100%) !important; color: #fff !important;
+  box-shadow: 0 0 0 2px #1f8a55, 0 6px 14px rgba(23, 54, 93, .16) !important;
+  animation: speaking-mic-heartbeat 1.2s ease-in-out infinite;
 }
-body.speaking-challenge-active .speaking-pronunciation-mic.speaking-pronunciation-mic.is-recording > span { color: var(--ae-danger, #b3261e) !important; }
+body.speaking-challenge-active .speaking-pronunciation-mic.speaking-pronunciation-mic.is-recording > span { color: var(--ae-success, #1b6344) !important; }
 body.speaking-challenge-active .speaking-pronunciation-mic.speaking-pronunciation-mic:disabled { background: var(--ae-surface-muted, #e6edf5) !important; color: var(--ae-text-muted, #8a97a8) !important; box-shadow: 0 0 0 2px #c5d6e8 !important; animation: none; }
 body.speaking-challenge-active .speaking-pronunciation-mic.speaking-pronunciation-mic:disabled > span { color: var(--ae-text-muted, #8a97a8) !important; }
-@keyframes speaking-mic-rings { 50% { box-shadow: 0 0 0 2px #f2b61c, 0 0 0 20px rgba(255, 208, 63, .16), 0 0 0 38px rgba(255, 208, 63, .04); } }
-@keyframes speaking-mic-rings-live { 50% { box-shadow: 0 0 0 2px #e23a2e, 0 0 0 22px rgba(244, 86, 63, .14), 0 0 0 40px rgba(244, 86, 63, .03); } }
+// 心跳：兩下輕跳後停一下。
+@keyframes speaking-mic-heartbeat { 0%, 40%, 100% { transform: scale(1); } 12% { transform: scale(1.06); } 24% { transform: scale(1); } 32% { transform: scale(1.05); } }
 @media (prefers-reduced-motion: reduce) { body.speaking-challenge-active .speaking-pronunciation-mic.speaking-pronunciation-mic { animation: none !important; transition: none; } }
 
 // One centred column at every width: on wide screens the two-column grid left the question squeezed

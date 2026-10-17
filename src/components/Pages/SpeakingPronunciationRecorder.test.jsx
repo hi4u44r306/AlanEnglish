@@ -84,8 +84,8 @@ describe("SpeakingPronunciationRecorder", () => {
         render(<SpeakingPronunciationRecorder question={{id:9}} practiceOnly onScored={onScored} />);
         expect(screen.queryByRole('button',{name:'準備語音辨識'})).not.toBeInTheDocument();
         fireEvent.click(screen.getByRole('button',{name:'開始錄音'}));
-        await waitFor(()=>expect(screen.getByRole('button',{name:'完成錄音'})).toBeInTheDocument());
-        fireEvent.click(screen.getByRole('button',{name:'完成錄音'}));
+        await waitFor(()=>expect(screen.getByRole('button',{name:'說完了，結束錄音'})).toBeInTheDocument());
+        fireEvent.click(screen.getByRole('button',{name:'說完了，結束錄音'}));
         await waitFor(()=>expect(screen.getByRole('button',{name:'重新錄音'})).toBeInTheDocument());
         expect(screen.queryByRole('button',{name:'送出評分'})).not.toBeInTheDocument();
         expect(convertAudioBlobToWav).not.toHaveBeenCalled();
@@ -382,7 +382,7 @@ describe("SpeakingPronunciationRecorder", () => {
         const firebaseUser = { uid: "finish-assess-student" };
         render(<SpeakingPronunciationRecorder question={{ id: 9 }} firebaseUser={firebaseUser} interactionType={interactionType} foundationRoundId="round-1" challengeSessionId="session-1" challengeMode="challenge" onScored={onScored} />);
         fireEvent.click(screen.getByRole("button", { name: "開始錄音" }));
-        fireEvent.click(await screen.findByRole("button", { name: "完成並評分" }));
+        fireEvent.click(await screen.findByRole("button", { name: "說完了，送出評分" }));
         await waitFor(() => expect(onScored).toHaveBeenCalledTimes(1));
         expect(service).toHaveBeenCalledTimes(1);
         expect(service).toHaveBeenCalledWith(expect.objectContaining({ firebaseUser, questionId: 9, foundationRoundId: "round-1", challengeSessionId: "session-1", challengeMode: "challenge" }));
@@ -409,7 +409,7 @@ describe("SpeakingPronunciationRecorder", () => {
         const onScored = jest.fn();
         render(<SpeakingPronunciationRecorder question={{ id: 9 }} onScored={onScored} />);
         fireEvent.click(screen.getByRole("button", { name: "開始錄音" }));
-        const finish = await screen.findByRole("button", { name: "完成並評分" });
+        const finish = await screen.findByRole("button", { name: "說完了，送出評分" });
         act(() => { fireEvent.click(finish); fireEvent.click(finish); });
         expect(stopSpy).toHaveBeenCalledTimes(1);
         expect(finish).toBeDisabled();
@@ -432,7 +432,7 @@ describe("SpeakingPronunciationRecorder", () => {
         const onScored = jest.fn();
         render(<SpeakingPronunciationRecorder question={{ id: 9 }} onScored={onScored} />);
         fireEvent.click(screen.getByRole("button", { name: "開始錄音" }));
-        fireEvent.click(await screen.findByRole("button", { name: "完成並評分" }));
+        fireEvent.click(await screen.findByRole("button", { name: "說完了，送出評分" }));
         expect(await screen.findByRole("alert")).toHaveTextContent("錄音仍保留");
         expect(screen.getByLabelText("回聽我的錄音")).toHaveAttribute("src", "blob:scoring-wav");
         expect(submitSpeakingPronunciationAttempt).toHaveBeenCalledTimes(1);
@@ -452,7 +452,7 @@ describe("SpeakingPronunciationRecorder", () => {
         const onScored = jest.fn();
         render(<SpeakingPronunciationRecorder question={{ id: 9 }} onScored={onScored} />);
         fireEvent.click(screen.getByRole("button", { name: "開始錄音" }));
-        fireEvent.click(await screen.findByRole("button", { name: "完成並評分" }));
+        fireEvent.click(await screen.findByRole("button", { name: "說完了，送出評分" }));
         expect(await screen.findByRole("alert")).toHaveTextContent("本月的語音評分時間已用完");
         fireEvent.click(screen.getByRole("button", { name: "重試評分" }));
         expect(screen.getByRole("button", { name: "重試評分" })).toBeDisabled();
@@ -465,7 +465,7 @@ describe("SpeakingPronunciationRecorder", () => {
         convertAudioBlobToWav.mockRejectedValueOnce(new Error("轉檔失敗")).mockResolvedValueOnce(new Blob([new Uint8Array(1600)], { type: "audio/wav" }));
         render(<SpeakingPronunciationRecorder question={{ id: 9 }} />);
         fireEvent.click(screen.getByRole("button", { name: "開始錄音" }));
-        fireEvent.click(await screen.findByRole("button", { name: "完成並評分" }));
+        fireEvent.click(await screen.findByRole("button", { name: "說完了，送出評分" }));
         expect(await screen.findByRole("alert")).toHaveTextContent("轉檔失敗");
         expect(submitSpeakingPronunciationAttempt).not.toHaveBeenCalled();
         fireEvent.click(screen.getByRole("button", { name: "開始錄音" }));
@@ -478,7 +478,7 @@ describe("SpeakingPronunciationRecorder", () => {
         jest.spyOn(window.MediaRecorder.prototype, "stop").mockImplementation(function () { this.state = "inactive"; this.onstop?.(); });
         render(<SpeakingPronunciationRecorder question={{ id: 9 }} />);
         fireEvent.click(screen.getByRole("button", { name: "開始錄音" }));
-        fireEvent.click(await screen.findByRole("button", { name: "完成並評分" }));
+        fireEvent.click(await screen.findByRole("button", { name: "說完了，送出評分" }));
         expect(await screen.findByRole("alert")).toHaveTextContent("沒有收到清楚的錄音");
         expect(screen.getByRole("button", { name: "開始錄音" })).toBeEnabled();
         expect(convertAudioBlobToWav).not.toHaveBeenCalled();
@@ -491,7 +491,7 @@ describe("SpeakingPronunciationRecorder", () => {
         submitSpeakingPronunciationAttempt.mockResolvedValue({ assessment_kind: "local_completeness_v1", answer_match: true, scores: { completeness: 85 } });
         render(<SpeakingPronunciationRecorder question={{ id: 9 }} />);
         fireEvent.click(screen.getByRole("button", { name: "開始錄音" }));
-        fireEvent.click(await screen.findByRole("button", { name: "完成並評分" }));
+        fireEvent.click(await screen.findByRole("button", { name: "說完了，送出評分" }));
         expect(await screen.findByRole("alert")).toHaveTextContent("錄音仍保留");
         expect(submitSpeakingPronunciationAttempt).not.toHaveBeenCalled();
         expect(screen.getByRole("button", { name: "重試評分" })).toBeEnabled();
@@ -508,7 +508,7 @@ describe("SpeakingPronunciationRecorder", () => {
         });
         render(<SpeakingPronunciationRecorder question={{ id: 9 }} />);
         fireEvent.click(screen.getByRole("button", { name: "開始錄音" }));
-        fireEvent.click(await screen.findByRole("button", { name: "完成並評分" }));
+        fireEvent.click(await screen.findByRole("button", { name: "說完了，送出評分" }));
         expect(await screen.findByRole("alert")).toHaveTextContent("錄音中斷了");
         expect(screen.queryByLabelText("回聽我的錄音")).not.toBeInTheDocument();
         expect(screen.getByRole("button", { name: "重新錄製" })).toBeEnabled();
@@ -520,7 +520,7 @@ describe("SpeakingPronunciationRecorder", () => {
         jest.spyOn(window.MediaRecorder.prototype, "stop").mockImplementationOnce(() => { throw new Error("stop failed"); });
         render(<SpeakingPronunciationRecorder question={{ id: 9 }} />);
         fireEvent.click(screen.getByRole("button", { name: "開始錄音" }));
-        fireEvent.click(await screen.findByRole("button", { name: "完成並評分" }));
+        fireEvent.click(await screen.findByRole("button", { name: "說完了，送出評分" }));
         expect(screen.getByRole("alert")).toHaveTextContent("請再按一次停止並回聽");
         expect(screen.getByRole("button", { name: "先停止並回聽" })).toBeEnabled();
         fireEvent.click(screen.getByRole("button", { name: "先停止並回聽" }));
@@ -534,7 +534,7 @@ describe("SpeakingPronunciationRecorder", () => {
         const props = { question: { id: 9 }, firebaseUser: { uid: "old-user" }, challengeSessionId: "old-session" };
         const { rerender, unmount } = render(<SpeakingPronunciationRecorder {...props} />);
         fireEvent.click(screen.getByRole("button", { name: "開始錄音" }));
-        fireEvent.click(await screen.findByRole("button", { name: "完成並評分" }));
+        fireEvent.click(await screen.findByRole("button", { name: "說完了，送出評分" }));
         await waitFor(() => expect(converted).toBeDefined());
         if (change === "unmount") unmount();
         else rerender(<SpeakingPronunciationRecorder {...props} {...({ question: { question: { id: 10 } }, session: { challengeSessionId: "new-session" }, account: { firebaseUser: { uid: "new-user" } }, practice: { practiceOnly: true } }[change])} />);
@@ -550,10 +550,10 @@ describe("SpeakingPronunciationRecorder", () => {
         convertAudioBlobToWav.mockResolvedValue(new Blob([new Uint8Array(1600)], { type: "audio/wav" }));
         const { rerender } = render(<SpeakingPronunciationRecorder question={{ id: 9 }} />);
         fireEvent.click(screen.getByRole("button", { name: "開始錄音" }));
-        await screen.findByRole("button", { name: "完成並評分" });
+        await screen.findByRole("button", { name: "說完了，送出評分" });
         rerender(<SpeakingPronunciationRecorder question={{ id: 10 }} />);
         fireEvent.click(screen.getByRole("button", { name: "開始錄音" }));
-        await screen.findByRole("button", { name: "完成並評分" });
+        await screen.findByRole("button", { name: "說完了，送出評分" });
         act(() => recorders[0].ondataavailable({ data: new Blob([new Uint8Array(9000)]) }));
         fireEvent.click(screen.getByRole("button", { name: "先停止並回聽" }));
         await screen.findByRole("button", { name: "送出評分" });
@@ -571,7 +571,7 @@ describe("SpeakingPronunciationRecorder", () => {
         const props = { question: { id: 9 } };
         const { rerender } = render(<SpeakingPronunciationRecorder {...props} />);
         fireEvent.click(screen.getByRole("button", { name: "開始錄音" }));
-        fireEvent.click(await screen.findByRole("button", { name: "完成並評分" }));
+        fireEvent.click(await screen.findByRole("button", { name: "說完了，送出評分" }));
         await waitFor(() => expect(stage === "conversion" ? convertAudioBlobToWav : transcribe).toHaveBeenCalledTimes(1));
         rerender(<SpeakingPronunciationRecorder {...props} disabledReason="目前不能送出" />);
         await act(async () => releaseWork(stage === "conversion" ? wav : { recognizedText: "My name is Amy.", audioSeconds: 2 }));
@@ -589,7 +589,7 @@ describe("SpeakingPronunciationRecorder", () => {
         const busy = jest.fn();
         render(<SpeakingActivityContext.Provider value={busy}><SpeakingPronunciationRecorder question={{ id: 9 }} onScored={onScored} /></SpeakingActivityContext.Provider>);
         fireEvent.click(screen.getByRole("button", { name: "開始錄音" }));
-        fireEvent.click(await screen.findByRole("button", { name: "完成並評分" }));
+        fireEvent.click(await screen.findByRole("button", { name: "說完了，送出評分" }));
         await waitFor(() => expect(onScored).toHaveBeenCalledTimes(1));
         expect(screen.getByRole("button", { name: "再練一次" })).toBeDisabled();
         expect(busy).toHaveBeenLastCalledWith(true);
@@ -629,19 +629,19 @@ describe("SpeakingPronunciationRecorder", () => {
         expect(await screen.findByRole("alert")).toHaveTextContent(title);
         expect(screen.queryByText(/Requested device/)).not.toBeInTheDocument();
         fireEvent.click(screen.getByRole("button", { name: "重新檢查" }));
-        await screen.findByRole("button", { name: "完成錄音" });
+        await screen.findByRole("button", { name: "說完了，結束錄音" });
         expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalledTimes(2);
         expect(submitSpeakingPronunciationAttempt).not.toHaveBeenCalled();
     });
     it("device disconnect unlocks manual recording and does not submit the interrupted answer", async () => {
         render(<SpeakingPronunciationRecorder question={{ id: 9 }} practiceOnly />);
         fireEvent.click(screen.getByRole("button", { name: "開始錄音" }));
-        await screen.findByRole("button", { name: "完成錄音" });
+        await screen.findByRole("button", { name: "說完了，結束錄音" });
         const stream = await navigator.mediaDevices.getUserMedia.mock.results[0].value;
         act(() => stream.getTracks()[0].onended());
         expect(screen.getByRole("alert")).toHaveTextContent("錄音中斷了");
         fireEvent.click(screen.getByRole("button", { name: "重新錄製" }));
-        await screen.findByRole("button", { name: "完成錄音" });
+        await screen.findByRole("button", { name: "說完了，結束錄音" });
         expect(navigator.mediaDevices.getUserMedia).toHaveBeenCalledTimes(2);
         expect(submitSpeakingPronunciationAttempt).not.toHaveBeenCalled();
     });

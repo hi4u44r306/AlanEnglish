@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
-import { FiAlertCircle, FiCheckCircle, FiMic, FiRefreshCw, FiSend, FiVolume2 } from "react-icons/fi";
+import { FiAlertCircle, FiCheck, FiCheckCircle, FiMic, FiRefreshCw, FiSend, FiVolume2 } from "react-icons/fi";
 import { submitSpeakingPronunciationAttempt, submitAlphabetPronunciationAttempt } from "../../services/pronunciationCoachService";
 import { retainLocalSpeakingRecognizer } from "../../services/localSpeakingRecognizer";
 import { convertAudioBlobToWav } from "../../utils/audioWav";
@@ -306,7 +306,7 @@ export default function SpeakingPronunciationRecorder({
         {!result && <>
             <div className="speaking-recording-heading">
                 <strong>{submitting ? "正在聽你的回答…" : recording ? (voiceDetected ? "聽到你的聲音了" : "麥克風已啟用，直接開口說") : preparing ? engineReady ? "正在準備評分音檔…" : "正在準備語音辨識…" : recordedBlob ? "錄音完成，先聽聽看送評的聲音" : practiceOnly ? "啟用麥克風錄音練習" : "啟用麥克風開始挑戰"}</strong>
-                <span>{submitting ? "請稍候，完成後會顯示練習結果。" : recording ? `最長 ${maxRecordingSeconds} 秒，說完後按${canFinishAndAssess ? "完成並評分；也可以先停止並回聽" : "完成錄音"}。` : preparing ? "請稍候，不需要重新錄音。" : recordedBlob ? practiceOnly ? "聽聽自己的聲音，想再練可以重新錄音。" : "確認清楚後，再交給 AI 評分。" : `每次最長 ${maxRecordingSeconds} 秒；本題會立刻開始收音。`}</span>
+                <span>{submitting ? "請稍候，完成後會顯示練習結果。" : recording ? `最長 ${maxRecordingSeconds} 秒，說完後按「說完了」${canFinishAndAssess ? "；也可以先停止並回聽" : ""}。` : preparing ? "請稍候，不需要重新錄音。" : recordedBlob ? practiceOnly ? "聽聽自己的聲音，想再練可以重新錄音。" : "確認清楚後，再交給 AI 評分。" : `每次最長 ${maxRecordingSeconds} 秒；本題會立刻開始收音。`}</span>
             </div>
             {recording && <div className="speaking-recording-countdown" role="timer" aria-label={`錄音剩餘 ${remainingSeconds} 秒`}><strong>{remainingSeconds}</strong><span>秒</span></div>}
             {disabledReason && <p className="speaking-pronunciation-notice">{disabledReason}</p>}
@@ -315,10 +315,10 @@ export default function SpeakingPronunciationRecorder({
                 className={`speaking-pronunciation-mic${recording ? " is-recording" : ""}`}
                 onClick={recording ? () => stop(canFinishAndAssess) : start}
                 disabled={!engineReady || preparing || submitting || Boolean(disabledReason)}
-                aria-label={recording ? canFinishAndAssess ? "完成並評分" : "完成錄音" : microphoneProblem?.retry || "開始錄音"}
+                aria-label={recording ? canFinishAndAssess ? "說完了，送出評分" : "說完了，結束錄音" : microphoneProblem?.retry || "開始錄音"}
             >
-                {recording ? <FiSend aria-hidden="true" /> : <FiMic aria-hidden="true" />}
-                <span>{recording ? canFinishAndAssess ? "完成並評分" : "完成錄音" : preparing ? "準備中…" : microphoneProblem?.retry || "啟用麥克風"}</span>
+                {recording ? <FiCheck aria-hidden="true" /> : <FiMic aria-hidden="true" />}
+                <span>{recording ? "說完了" : preparing ? "準備中…" : microphoneProblem?.retry || "啟用麥克風"}</span>
             </button>}
             {recording && canFinishAndAssess && <button type="button" className="secondary" onClick={() => stop()} disabled={preparing || submitting || Boolean(disabledReason)}><FiVolume2 aria-hidden="true" />先停止並回聽</button>}
             {previewUrl && <div className="speaking-recording-preview"><audio controls src={previewUrl} aria-label="回聽我的錄音">你的瀏覽器不支援錄音播放。</audio><div><button type="button" className="secondary" onClick={start} disabled={submitting || preparing || Boolean(disabledReason)}><FiRefreshCw />重新錄音</button>{!practiceOnly && <button type="button" onClick={() => submit()} disabled={submitting || preparing || budgetBlocked || Boolean(disabledReason)}><FiSend />{submitting ? "AI 評分中…" : error ? "重試評分" : "送出評分"}</button>}</div></div>}
