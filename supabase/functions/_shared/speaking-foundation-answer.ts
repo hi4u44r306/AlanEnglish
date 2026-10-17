@@ -148,12 +148,48 @@ const tokenEditDistance = (expected: string[], spoken: string[]) => {
     return previous[spoken.length];
 };
 
+// th is the sound Taiwanese children (and speech recognizers) most often miss: "mouth" comes back
+// as "mouse", "three" as "tree". When an answer word has th, the same word with th replaced by
+// s/f/t/d/z (plus a trailing e when th ends the word) still counts as said; the caller tells the
+// student which th word to practise.
+const TH_SUBSTITUTES = ["s", "f", "t", "d", "z"];
+export const thSoundAlikes = (word: string): string[] => {
+    if (!word.includes("th")) return [];
+    const variants = new Set<string>();
+    for (const match of word.matchAll(/th/g)) {
+        const position = match.index ?? 0;
+        for (const substitute of TH_SUBSTITUTES) {
+            const variant = word.slice(0, position) + substitute + word.slice(position + 2);
+            variants.add(variant);
+            if (position + 2 === word.length) variants.add(variant + "e");
+        }
+    }
+    variants.delete(word);
+    return [...variants];
+};
+
+// Replace heard words that differ from an answer word only in its th; report which ones.
+export const alignThSoundAlikes = (expected: string[], spoken: string[]) => {
+    const tips: { word: string; heard: string }[] = [];
+    const thWords = [...new Set(expected.filter(token => token.includes("th")))];
+    if (!thWords.length) return { spoken, tips };
+    const expectedWords = new Set(expected);
+    const aligned = spoken.map(token => {
+        if (expectedWords.has(token)) return token;
+        const word = thWords.find(candidate => thSoundAlikes(candidate).includes(token));
+        if (!word) return token;
+        if (!tips.some(tip => tip.word === word)) tips.push({ word, heard: token });
+        return word;
+    });
+    return { spoken: aligned, tips };
+};
+
 // Young learners should not fail because the speech recognizer drops one short
 // grammar word.  Core answer words and yes/no polarity still have to match, and
 // longer answers may differ by at most 30 percent of their tokens.
 export const matchesChildFriendlySentence = (expectedAnswer: unknown, recognizedText: unknown) => {
     const expected = canonicalSentenceTokens(expectedAnswer);
-    const spoken = canonicalSentenceTokens(recognizedText);
+    const spoken = alignThSoundAlikes(expected, canonicalSentenceTokens(recognizedText)).spoken;
     if (!expected.length || !spoken.length) return false;
     if (expected.join(" ") === spoken.join(" ")) return true;
     if (expected.length < 3) return false;
