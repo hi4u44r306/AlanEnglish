@@ -70,3 +70,21 @@ test("其他括號內容不自動轉成可接受回答", () => {
     assert.equal(assess(question(template, "text_qa"), "Read clearly.").answer_match, false);
     assert.equal(assess(question("I have no idea. (No, it isn't.)", "text_qa"), "No, it isn't.").answer_match, false);
 });
+test("th 放寬：mouth 聽成 mouse 也通過，但回報 th 要念清楚", () => {
+    const q = question("It is her mouth.", "picture_gap_sentence");
+    const result = assess(q, "It is her mouse.");
+    assert.equal(result.answer_match, true);
+    assert.equal(result.scores.completeness, 100);
+    assert.deepEqual(result.pronunciation_tips, [{ word: "mouth", heard: "mouse", sound: "th" }]);
+    assert.match(result.feedback, /mouth 的 th/);
+    assert.equal(assess(question("They are her teeth.", "picture_gap_sentence"), "They are her tees.").answer_match, true);
+    assert.equal(assess(question("I have three apples."), "I have tree apples.").pronunciation_tips[0].heard, "tree");
+});
+test("th 放寬不放過其他錯字：答案字不對仍不通過", () => {
+    const q = question("It is her mouth.", "picture_gap_sentence");
+    assert.equal(assess(q, "It is her nose.").answer_match, false);
+    assert.equal(assess(q, "It is his mouth.").answer_match, false);
+    const exact = assess(q, "It is her mouth.");
+    assert.equal(exact.answer_match, true);
+    assert.deepEqual(exact.pronunciation_tips, []);
+});

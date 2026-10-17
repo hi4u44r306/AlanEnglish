@@ -328,6 +328,7 @@ export default function SpeakingPronunciationRecorder({
             <header>{answerMatched ? <FiCheckCircle aria-hidden="true" /> : <FiAlertCircle aria-hidden="true" />}<span>本次練習結果</span><strong>{answerMatched ? scoreLabel(pronunciationScore) : assessmentUncertain ? "系統沒有聽清楚" : "回答方式還差一點"}</strong></header>
             <p className="speaking-completeness-score"><span>{azureLetters ? "字母發音" : "朗讀完整度"}</span><strong>{pronunciationScore} 分</strong></p>
             {previewUrl && <details className="speaking-result-replay"><summary>回聽我的錄音</summary><audio controls src={previewUrl} aria-label="回聽我的錄音">你的瀏覽器不支援錄音播放。</audio></details>}
+            {answerMatched && result.pronunciation_tips?.length > 0 && <p className="speaking-pronunciation-tip"><strong>th 可以再念清楚</strong><span>{result.pronunciation_tips.map(tip => `${tip.word}（系統聽成 ${tip.heard}）`).join("、")}。下次把舌尖輕放在上下牙齒中間再念，會更標準。</span></p>}
             {assessmentUncertain && <p className="speaking-pronunciation-feedback"><span>{result.feedback || "這次沒有聽清楚，不算你答錯，請再試一次。"}</span></p>}
             <div className="speaking-result-actions">
                 {onListenAgain && <button type="button" className="secondary" onClick={onListenAgain} disabled={audioWorking || submitting}><FiVolume2 aria-hidden="true" />{audioWorking ? "示範播放中…" : "再聽示範"}</button>}

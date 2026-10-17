@@ -1,12 +1,31 @@
 # Alan English 專案狀態
 
-### 口說麥克風心跳＋關卡頂列一排（2026-10-17，分支 `feat/mic-button-heartbeat`，PR #606，尚未部署）
+### 口說評分加速 第 1 步：預檢快取（2026-10-17，分支 `perf/cors-preflight-cache`，尚未部署）
+
+- 量測（正式站 24 小時）：本機轉文字估 1～8 秒（base 模型超過 8 秒才換 tiny，未記錄實際值）；`pronunciation-coach` POST 平均 783ms、p90 1046ms；答對再呼叫 `speaking-challenge` POST 平均 1155ms、p90 1848ms；兩者每次都有 OPTIONS 預檢約 270ms。45 次 POST 全部 200。
+- 本步：`pronunciation-coach`、`speaking-challenge` 的 CORS 加 `Access-Control-Max-Age: 7200`，瀏覽器快取預檢。需重新部署這兩支 Function。
+- 下一步（擁有者已同意方向）：② 轉完文字在瀏覽器以同一套規則先顯示結果，伺服器評分與存進度改背景（規則版本不符則等伺服器；存檔失敗自動重試，最終失敗提示「剛剛沒存到，請再念一次」；整輪結算前確認全部存好）；③ 記錄轉文字實際秒數再調模型門檻。
+
+### 口說評分 th 放寬（2026-10-17，分支 `feat/th-tolerance`，尚未部署）
+
+- 起因：擁有者念 "It is her mouth." 兩次都被辨識成 "mouse"，完整度 75 但答案字不符而不通過。
+- 後端：`_shared/speaking-foundation-answer.ts` 新增 `thSoundAlikes`／`alignThSoundAlikes`（答案字含 th 時，th→s/f/t/d/z，字尾 th 可再加 e，視為同字），用於 `matchesChildFriendlySentence` 與 `speaking-completeness.ts` 的 `readingCoverage`；通過時回傳 `pronunciation_tips` 與提醒文字。只影響 `pronunciation-coach`（`speaking-challenge`、`speaking-content-manager` 未使用被改函式，不需重新部署）。
+- 前端：`SpeakingPronunciationRecorder` 通過時顯示黃色 th 提醒。
+- 驗證：`scripts/speaking-completeness.test.mjs` 17 項（含新增 th 案例）、`speaking-local-handler` 11 項、Recorder 43 項通過。`test-speaking-foundation-answer.mjs`、`test-speaking-pronunciation-reference.mjs` 在未改的 main 上即失敗（舊原始碼比對），與本次無關。
+
+### 拼字 3 次機會（2026-10-17，分支 `feat/spell-three-tries`，尚未部署）
+
+- `GuidedSpellStep`：填滿才判斷；拼錯整排標紅 0.9 秒後清空，不標個別字母；填滿後鎖住刪改；`SPELL_TRIES = 3`，3 次錯呼叫 `onFail`（`SpeakingPracticeSteps.onSpellFailed` → `WorkbookOnePictureChallenge.skipQuestion`），題目不算完成、下一輪再出現。只改前端。
+- 驗證：口說相關測試通過（含新增 3 次失敗案例）；本機 412 截圖（剩餘次數、3 次失敗）。
+
+### 口說麥克風心跳＋關卡頂列一排（2026-10-17，分支 `feat/mic-button-heartbeat`，PR #606，2026-10-17 已合併並部署）
 
 - 麥克風：無光暈、心跳動畫；錄音中綠色打勾「說完了」（`SpeakingPronunciationRecorder.jsx`、`SpeakingMinimalLevel.scss`）。
 - 頂列：拿掉頁碼（P.x）；「先聽本關教材」用 portal 放進關卡標題列（`SpeakingHeaderTools`＋`SpeakingHeaderToolsContext`），與題數進度同一排；標題列不存在時（讀取／結果）仍在上方。
 - 拼字：`gapAnswersFromPattern` 比對前去掉句尾中文提示括號（P4 的 10 題原本因此沒有拼字）；`spellingPlan` 超過 10 個字母只拼最長字、只顯示那一格；字母格依最長字以 `cqw` 縮小。
 - 一畫面：句子 >60／>110 字元縮小字級（`is-long`／`is-very-long`），`max-height: 740px` 縮小圖片、字母方塊、麥克風與間距。正式題庫 92 題看圖補句以 P11、P24、P4、P90 最長情況實測：375×667、412×844、1280×800 拼與念兩步卡片都在畫面內、無側向溢出；320×640 的 P11／P4／P90 仍需少量捲動（16–97px）。
 - 驗證：口說相關 7 個測試檔 134 項通過；本機 320／375／412／1280 截圖。只改前端。
+- 部署：合併 commit 563f088a；`CI=true npm run build` 成功；正式站 main.a68f1844 引用的 407 分檔（css ee6bceb8、js aa2c50b7）與本機建置雜湊相同，含新樣式（心跳、頂列、一畫面）。未在實機 iPhone 驗證。
 
 ### 外觀只限管理員、其他人固定淺色（2026-10-17，分支 `feat/light-theme-for-students`，尚未部署）
 
