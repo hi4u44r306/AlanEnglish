@@ -4,7 +4,7 @@ import { SpeakingActivityContext } from "./SpeakingActivityContext";
 
 // 「聽這題」：只播原本教材音檔裡這一題的那一段（start_ms～end_ms）。
 // 用自己的 <audio>，不經過 MusicPlayer，也不送任何聽力紀錄，所以不算聽力次數。
-export default function SpeakingQuestionClip({ clip, disabled = false }) {
+export default function SpeakingQuestionClip({ clip, disabled = false, variant = "", label = "聽這題", onPlayed }) {
     const audioRef = useRef(null);
     const frameRef = useRef(0);
     const [playing, setPlaying] = useState(false);
@@ -13,12 +13,13 @@ export default function SpeakingQuestionClip({ clip, disabled = false }) {
     const startSeconds = Number(clip?.start_ms) / 1000;
     const endSeconds = Number(clip?.end_ms) / 1000;
 
-    const stop = () => {
+    const stop = (finished = false) => {
         cancelAnimationFrame(frameRef.current);
         const audio = audioRef.current;
         if (audio && !audio.paused) audio.pause();
         setPlaying(false);
         setBusy?.(false);
+        if (finished) onPlayed?.();
     };
 
     // 換題或離開時停止播放。
@@ -34,7 +35,7 @@ export default function SpeakingQuestionClip({ clip, disabled = false }) {
         const audio = audioRef.current;
         if (!audio) return;
         if (audio.currentTime >= endSeconds || audio.ended) {
-            stop();
+            stop(true);
             return;
         }
         frameRef.current = requestAnimationFrame(watchEnd);
@@ -74,13 +75,13 @@ export default function SpeakingQuestionClip({ clip, disabled = false }) {
         }
     };
 
-    return <div className="speaking-question-clip">
+    return <div className={`speaking-question-clip${variant ? ` speaking-question-clip--${variant}` : ""}`}>
         <audio ref={audioRef} src={clip.url} preload="none" onTimeUpdate={() => {
-            if (audioRef.current && audioRef.current.currentTime >= endSeconds) stop();
-        }} onEnded={stop} />
+            if (audioRef.current && audioRef.current.currentTime >= endSeconds) stop(true);
+        }} onEnded={() => stop(true)} />
         <button type="button" className="speaking-help-toggle speaking-question-clip__button" onClick={play} disabled={disabled && !playing} aria-pressed={playing}>
             {playing ? <FiSquare aria-hidden="true" /> : <FiHeadphones aria-hidden="true" />}
-            {playing ? "停止" : "聽這題"}
+            {playing ? "停止" : label}
         </button>
         {failed && <small className="speaking-question-clip__error" role="alert">這段聲音暫時無法播放，請再按一次。</small>}
     </div>;

@@ -236,13 +236,18 @@ describe("WorkbookOnePictureChallenge", () => {
         expect(screen.queryByRole("button", { name: /播放整句發音/ })).not.toBeInTheDocument();
     });
 
-    it("看圖補句第一級顯示圖片與完整句子；第二級顯示圖片與挖空句", () => {
+    it("看圖補句第一級先挖空拼字、拼對才顯示完整句子；第二級顯示圖片與挖空句", () => {
         const gapChallenge = { id: 22, title: "P22 看圖補句", generation_metadata: { interaction_type: "picture_gap_sentence" },
             speaking_questions: [{ id: 2201, sort_order: 0, visual_aid: privateVisual, model_answer: "The apple is in the tree.", picture_interaction: {
                 type: "picture_gap_sentence", sentence_pattern: "The ____ is in the tree." } }] };
         const { unmount } = render(<WorkbookOnePictureChallenge challenge={gapChallenge} challengeMode="easy" firebaseUser={{ uid: "student" }} onComplete={jest.fn()} onExit={jest.fn()} />);
         fireEvent.click(screen.getByRole("button", { name: "開始挑戰" }));
         expect(screen.getByRole("img", { name: "樹上的蘋果" })).toBeInTheDocument();
+        // 先拼字：此時只看得到挖空句，看不到 apple。
+        expect(screen.getByLabelText(/要補上的答案/)).toBeInTheDocument();
+        expect(screen.queryByText("apple")).not.toBeInTheDocument();
+        "apple".split("").forEach(letter => fireEvent.click(screen.getAllByRole("button", { name: `字母 ${letter}` }).find(button => !button.disabled)));
+        fireEvent.click(screen.getByRole("button", { name: /下一步：看著句子念/ }));
         expect(screen.getByLabelText("The apple is in the tree.")).toHaveClass("is-full");
         expect(screen.getByText("apple")).toBeInTheDocument();
         expect(screen.queryByLabelText(/要補上的答案/)).not.toBeInTheDocument();
