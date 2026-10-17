@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { FiCheck, FiChevronRight, FiDelete } from "react-icons/fi";
 import SpeakingQuestionClip from "./SpeakingQuestionClip";
-import { letterTiles } from "../../utils/speakingGuidedSteps";
+import { letterTiles, spellingPlan } from "../../utils/speakingGuidedSteps";
 
 const STEPS = [
     { key: "listen", label: "聽" },
@@ -34,10 +34,9 @@ export function GuidedListenStep({ clip, onNext, nextLabel }) {
 
 // 第 2 步：用字母方塊拼出挖空的單字。全部填滿才檢查；錯的字母標紅，可以點掉重拼。
 export function GuidedSpellStep({ answers, onDone, clip }) {
-    const target = useMemo(() => answers.join(" "), [answers]);
-    const slots = useMemo(() => target.split("").map((char, index) => ({ index, char, fixed: !/[A-Za-z]/.test(char) })), [target]);
+    const slots = useMemo(() => spellingPlan(answers).map(slot => ({ ...slot, fixed: !slot.spell })), [answers]);
     const letterSlots = slots.filter(slot => !slot.fixed);
-    const [tiles] = useState(() => letterTiles(answers));
+    const [tiles] = useState(() => letterTiles([letterSlots.map(slot => slot.char).join("")]));
     const [filled, setFilled] = useState([]);
     const [checked, setChecked] = useState(false);
     const complete = filled.length === letterSlots.length;
@@ -69,13 +68,19 @@ export function GuidedSpellStep({ answers, onDone, clip }) {
         return () => window.removeEventListener("keydown", onKey);
     }, [tiles, letterSlots.length]);
 
+    // 一個字的格子放在一起，換行時不會把同一個字拆成兩行。
+    const words = slots.reduce((groups, slot) => {
+        if (slot.char === " ") groups.push([]);
+        else groups[groups.length - 1].push(slot);
+        return groups;
+    }, [[]]).filter(word => word.length);
     let letterIndex = -1;
     return <section className="speaking-guided-step speaking-guided-spell" aria-label="第 2 步：拼出挖空的單字">
         <p className="speaking-guided-step__title">拼出空格裡的單字</p>
         {clip?.type === "audio" && <SpeakingQuestionClip clip={clip} label="再聽一次" />}
-        <div className={`speaking-spell-slots${checked && !correct ? " is-wrong" : ""}${correct ? " is-right" : ""}`} aria-live="polite" aria-label={`已拼 ${filled.length}／${letterSlots.length} 個字母`}>
-            {slots.map(slot => {
-                if (slot.fixed) return <span key={slot.index} className="speaking-spell-gap" aria-hidden="true" />;
+        <div style={{ "--spell-word": Math.max(...words.map(word => word.length)) }} className={`speaking-spell-slots${letterSlots.length > 9 ? " is-many" : ""}${checked && !correct ? " is-wrong" : ""}${correct ? " is-right" : ""}`} aria-live="polite" aria-label={`已拼 ${filled.length}／${letterSlots.length} 個字母`}>
+            {words.map(word => <span key={word[0].index} className="speaking-spell-word">{word.map(slot => {
+                if (slot.fixed) return <span key={slot.index} className={/[A-Za-z]/.test(slot.char) ? "speaking-spell-given" : "speaking-spell-mark"} aria-hidden="true">{slot.char}</span>;
                 letterIndex += 1;
                 const position = letterIndex;
                 const tile = filled[position];
@@ -83,13 +88,13 @@ export function GuidedSpellStep({ answers, onDone, clip }) {
                 return <button type="button" key={slot.index} className={`speaking-spell-slot${tile ? " is-filled" : ""}${wrong ? " is-wrong" : ""}`} onClick={() => tile && !correct && removeAt(position)} disabled={!tile || correct} aria-label={tile ? `第 ${position + 1} 個字母 ${tile.letter}${wrong ? "，不對" : ""}，點一下可以刪掉` : `第 ${position + 1} 個字母，空白`}>
                     {tile?.letter || ""}
                 </button>;
-            })}
+            })}</span>)}
         </div>
         {checked && !correct && <p className="speaking-spell-feedback" role="status">紅色的字母不對，點一下刪掉再拼一次。</p>}
         {correct ? <>
             <p className="speaking-spell-feedback is-right" role="status"><FiCheck aria-hidden="true" />拼對了！</p>
             <button type="button" className="speaking-guided-next is-ready" onClick={onDone}>下一步：看著句子念<FiChevronRight aria-hidden="true" /></button>
-        </> : <div className="speaking-spell-tiles">
+        </> : <div className={`speaking-spell-tiles${tiles.length > 11 ? " is-many" : ""}`}>
             {tiles.map(tile => <button type="button" key={tile.id} className="speaking-spell-tile" onClick={() => place(tile)} disabled={complete || filled.some(item => item.id === tile.id)} aria-label={`字母 ${tile.letter}`}>{tile.letter}</button>)}
             <button type="button" className="speaking-spell-tile speaking-spell-tile--back" onClick={removeLast} disabled={!filled.length} aria-label="刪掉最後一個字母"><FiDelete aria-hidden="true" /></button>
         </div>}

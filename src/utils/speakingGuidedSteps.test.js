@@ -1,4 +1,4 @@
-import { gapAnswersFromPattern, initialGuidedStep, letterTiles, nextGuidedStep, spellingTargetFor } from "./speakingGuidedSteps";
+import { gapAnswersFromPattern, initialGuidedStep, letterTiles, nextGuidedStep, spellingTargetFor, spellingPlan } from "./speakingGuidedSteps";
 
 describe("gapAnswersFromPattern", () => {
     it("finds the missing words of one or more blanks", () => {
@@ -48,5 +48,34 @@ describe("letterTiles", () => {
         const decoys = letters.filter(letter => !"hereyes".includes(letter));
         expect(decoys).toHaveLength(2);
         expect(new Set(tiles.map(tile => tile.id)).size).toBe(9);
+    });
+});
+
+describe("真實題庫的空格", () => {
+    it("句尾的中文提示不影響比對（Workbook P4）", () => {
+        expect(gapAnswersFromPattern("It is ____.( 一隻 )", "It is an eye.")).toEqual(["an eye"]);
+        expect(gapAnswersFromPattern("It is ____. ( 一顆 )", "It is a tooth.")).toEqual(["a tooth"]);
+        expect(gapAnswersFromPattern("____ are ____.( 我爸的肩膀 )", "They are my father's shoulders.")).toEqual(["They", "my father's shoulders"]);
+    });
+
+    it("英文括號仍是句子的一部分", () => {
+        expect(gapAnswersFromPattern("What is this? It is a ____. Is it yours? Yes, it's mine. (No, it's not.)", "What is this? It is a pencil case. Is it yours? Yes, it's mine. (No, it's not.)")).toEqual(["pencil case"]);
+    });
+});
+
+describe("spellingPlan", () => {
+    const spelled = plan => plan.filter(slot => slot.spell).map(slot => slot.char).join("");
+    const shown = plan => plan.map(slot => slot.char).join("");
+
+    it("10 個字母以內全部拼", () => {
+        expect(spelled(spellingPlan(["pencil case"]))).toBe("pencilcase");
+        expect(spelled(spellingPlan(["xylophone"]))).toBe("xylophone");
+    });
+
+    it("太長只拼最長的字，只顯示那一格", () => {
+        const plan = spellingPlan(["They", "my father's shoulders"]);
+        expect(shown(plan)).toBe("my father's shoulders");
+        expect(spelled(plan)).toBe("shoulders");
+        expect(spelled(spellingPlan(["They", "her eyes"]))).toBe("eyes");
     });
 });

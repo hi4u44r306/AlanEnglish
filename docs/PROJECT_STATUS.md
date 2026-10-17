@@ -1,5 +1,13 @@
 # Alan English 專案狀態
 
+### 口說麥克風心跳＋關卡頂列一排（2026-10-17，分支 `feat/mic-button-heartbeat`，PR #606，尚未部署）
+
+- 麥克風：無光暈、心跳動畫；錄音中綠色打勾「說完了」（`SpeakingPronunciationRecorder.jsx`、`SpeakingMinimalLevel.scss`）。
+- 頂列：拿掉頁碼（P.x）；「先聽本關教材」用 portal 放進關卡標題列（`SpeakingHeaderTools`＋`SpeakingHeaderToolsContext`），與題數進度同一排；標題列不存在時（讀取／結果）仍在上方。
+- 拼字：`gapAnswersFromPattern` 比對前去掉句尾中文提示括號（P4 的 10 題原本因此沒有拼字）；`spellingPlan` 超過 10 個字母只拼最長字、只顯示那一格；字母格依最長字以 `cqw` 縮小。
+- 一畫面：句子 >60／>110 字元縮小字級（`is-long`／`is-very-long`），`max-height: 740px` 縮小圖片、字母方塊、麥克風與間距。正式題庫 92 題看圖補句以 P11、P24、P4、P90 最長情況實測：375×667、412×844、1280×800 拼與念兩步卡片都在畫面內、無側向溢出；320×640 的 P11／P4／P90 仍需少量捲動（16–97px）。
+- 驗證：口說相關 7 個測試檔 134 項通過；本機 320／375／412／1280 截圖。只改前端。
+
 ### 外觀只限管理員、其他人固定淺色（2026-10-17，分支 `feat/light-theme-for-students`，尚未部署）
 
 - `ThemeContext` 新增 `canChoose`（localStorage `ae-theme-admin`）；非管理員 resolved 一律 light。`ThemeRoleBridge`（AuthProvider 內）在登入確定後依 role 設定；`index.html` 開機腳本只有管理員旗標才套深色，避免學生先閃深色。MainNavbar 外觀列只給 admin；StudentNavbar 與 StudentSettings 移除外觀。

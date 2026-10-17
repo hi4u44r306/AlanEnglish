@@ -3,6 +3,7 @@ import { FiChevronLeft, FiChevronRight, FiRefreshCw, FiVolume2 } from "react-ico
 import { createPictureChallengeRound, tokenizeSpeakingSentence } from "../../utils/speakingPictureChallenge";
 import SpeakingPracticeSteps from "./SpeakingPracticeSteps";
 import SpeakingQuestionClip from "./SpeakingQuestionClip";
+import SpeakingHeaderTools from "./SpeakingHeaderTools";
 import SpeakingVisualAid from "./SpeakingVisualAid";
 import { createSpeakingChallengeSessionId } from "../../utils/speakingChallengeSession";
 import { initialGuidedStep } from "../../utils/speakingGuidedSteps";
@@ -24,16 +25,6 @@ const copyByType = {
     }
 };
 
-const challengePageLabel = challenge => {
-    const pages = [...new Set((challenge?.source_pages || challenge?.generation_metadata?.source_pages || [])
-        .map(Number)
-        .filter(page => Number.isInteger(page) && page > 0))]
-        .sort((left, right) => left - right);
-    if (pages.length) return pages.length === 1 ? `P.${pages[0]}` : `P.${pages[0]}～${pages.at(-1)}`;
-    const titlePage = String(challenge?.title || "").match(/^\s*P[.\s]*(\d+(?:\s*[～~-]\s*\d+)?)/i);
-    return titlePage ? `P.${titlePage[1].replace(/\s+/g, "")}` : challenge?.title || "口說挑戰";
-};
-
 // Image descriptions read like "一把鑰匙" or "一顆蘋果和一棵蘋果樹"; the cue is the first thing
 // named, without its measure word.
 export const pictureCueZh = alt => String(alt || "")
@@ -42,11 +33,16 @@ export const pictureCueZh = alt => String(alt || "")
     .replace(/^[一兩二三四五六七八九十幾]?[顆隻條個把張本支枝件雙棵朵台臺輛位片塊杯瓶頂座間架艘匹頭群些對枚根盒碗盤包串粒種名]/, "")
     .trim();
 
+// 句子越長字越小，長對話題也能和拼字、麥克風留在同一個畫面。
+const sentenceSizeClass = text => {
+    const length = String(text || "").length;
+    return length > 110 ? " is-very-long" : length > 60 ? " is-long" : "";
+};
+
 export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, staffAudioPreview = false, onComplete, onPracticeOnly, onExit, onFinished, staffPreview = false, adminScoringPreview = false, challengeMode = "easy", onRevealHint }) {
     const interactionType = String(challenge?.generation_metadata?.interaction_type || "");
     const gapMode = interactionType === "picture_gap_sentence";
     const copy = copyByType[interactionType] || copyByType.picture_qa;
-    const pageLabel = challengePageLabel(challenge);
     const sourceQuestions = useMemo(() => [...(challenge?.speaking_questions || [])]
         .sort((a, b) => Number(a.sort_order) - Number(b.sort_order)), [challenge]);
     const [phase, setPhase] = useState("instructions");
@@ -160,7 +156,7 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, s
     const remainingCount = staffPreview ? 0 : sourceQuestions.filter(question => question.progress_status !== "completed" && !completedIds.has(question.id)).length;
 
     if (phase === "instructions") return <main className="speaking-challenge-page speaking-challenge-detail speaking-foundation-page speaking-picture-page speaking-immersive-play">
-        <header className="speaking-lesson-header"><button className="speaking-back" type="button" onClick={onExit}><FiChevronLeft />全部大挑戰</button><strong className="speaking-lesson-page">{pageLabel}</strong><div className="speaking-lesson-heading"><span>{copy.eyebrow}</span><h1>{challenge.title}</h1><p>{copy.instruction}</p></div></header>
+        <header className="speaking-lesson-header"><button className="speaking-back" type="button" onClick={onExit}><FiChevronLeft />全部大挑戰</button><div className="speaking-lesson-heading"><span>{copy.eyebrow}</span><h1>{challenge.title}</h1><p>{copy.instruction}</p></div></header>
         <section className="speaking-foundation-intro"><FiVolume2 aria-hidden="true" /><h2>{copy.title}</h2><p>{copy.instruction}</p><button type="button" className="primary" onClick={startRound}>{staffPreview ? "預覽題目" : "開始挑戰"}</button></section>
     </main>;
 
@@ -181,9 +177,9 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, s
     return <main className="speaking-challenge-page speaking-challenge-detail speaking-foundation-page speaking-picture-page speaking-immersive-play">
         <header className="speaking-lesson-header">
             <button className="speaking-back" type="button" onClick={onExit}><FiChevronLeft />退出本輪</button>
-            <strong className="speaking-lesson-page">{pageLabel}</strong>
             <div className="speaking-lesson-heading"><span>{copy.eyebrow}</span><h1>{challenge.title}</h1><p>{copy.instruction}</p></div>
             <div className="speaking-lesson-progress"><div><span>第 {activeIndex + 1} / {round.length} 題</span><strong>{progress}%</strong></div><div className="speaking-progress-track" role="progressbar" aria-label="本輪進度" aria-valuemin="0" aria-valuemax="100" aria-valuenow={progress}><span style={{ width: `${progress}%` }} /></div></div>
+            <SpeakingHeaderTools />
         </header>
         <section className="speaking-question-stage"><article ref={phaseFocusRef} tabIndex="-1" aria-label={`第 ${activeIndex + 1} 題，共 ${round.length} 題`} key={activeQuestion.id} className="speaking-focus-card speaking-foundation-card speaking-picture-card">
             <div className="speaking-game-question-card">
@@ -196,7 +192,7 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, s
                 disabled={!activeQuestion.picture_interaction?.sentence_audio_url || audioToken !== null}
                 aria-label="播放整句發音；每個挖空處停留 2 秒"
             ><FiVolume2 aria-hidden="true" />{audioToken === "sentence" ? "整句播放中…" : "聽整句（每個挖空停 2 秒）"}</button>}
-                {gapMode && <div className={`speaking-gap-sentence${fullSentence ? " is-full" : ""}`} aria-label={sentenceText}>
+                {gapMode && <div className={`speaking-gap-sentence${fullSentence ? " is-full" : ""}${sentenceSizeClass(sentenceText)}`} aria-label={sentenceText}>
                 {sentenceTokens.map(token => token.kind === "word"
                     ? <span key={token.tokenIndex} className="sentence-word">{token.text}</span>
                     : token.kind === "blank"
