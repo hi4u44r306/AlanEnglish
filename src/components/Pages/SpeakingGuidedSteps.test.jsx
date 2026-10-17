@@ -36,7 +36,7 @@ describe("跟著念三步（聽→拼→念）", () => {
 
         fireEvent.click(screen.getByRole("button", { name: /下一步：拼單字/ }));
         expect(onStep).toHaveBeenLastCalledWith("spell");
-        expect(screen.getByText("拼出空格裡的單字")).toBeInTheDocument();
+        expect(screen.getByText(/拼出空格裡的單字/)).toBeInTheDocument();
         expect(screen.queryByText("麥克風")).not.toBeInTheDocument();
 
         spell("eye");
@@ -47,13 +47,38 @@ describe("跟著念三步（聽→拼→念）", () => {
         expect(screen.getByRole("button", { name: "再聽一次" })).toBeInTheDocument();
     });
 
-    it("拼錯會標紅，可以刪掉重拼；鍵盤也能拼", () => {
+    it("拼錯不標出哪個字母，整排清空重拼；鍵盤也能拼", () => {
+        jest.useFakeTimers();
         render(<SpeakingPracticeSteps question={gapQuestion} challengeMode="easy" showAnswerByDefault />);
-        expect(screen.getByText("拼出空格裡的單字")).toBeInTheDocument();
-        act(() => { ["e", "e", "y"].forEach(key => window.dispatchEvent(new KeyboardEvent("keydown", { key }))); });
-        expect(screen.getByText(/紅色的字母不對/)).toBeInTheDocument();
-        act(() => { ["Backspace", "Backspace", "y", "e"].forEach(key => window.dispatchEvent(new KeyboardEvent("keydown", { key }))); });
+        expect(screen.getByText("還有 3 次機會")).toBeInTheDocument();
+        const typeKeys = keys => act(() => { keys.forEach(key => window.dispatchEvent(new KeyboardEvent("keydown", { key }))); });
+        typeKeys(["e", "e", "y"]);
+        expect(screen.getByRole("status")).toHaveTextContent("拼錯了，還有 2 次機會。");
+        expect(screen.queryByText(/不對/)).not.toBeInTheDocument();
+        typeKeys(["Backspace"]);
+        expect(screen.getAllByRole("button", { name: /個字母 [a-z]，/ })).toHaveLength(3);
+        act(() => { jest.advanceTimersByTime(1000); });
+        expect(screen.queryAllByRole("button", { name: /個字母 [a-z]，/ })).toHaveLength(0);
+        typeKeys(["e", "y", "e"]);
         expect(screen.getByText("拼對了！")).toBeInTheDocument();
+        jest.useRealTimers();
+    });
+
+    it("3 次都拼錯：這題不過，不用念，直接下一題", () => {
+        jest.useFakeTimers();
+        const onSpellFailed = jest.fn();
+        render(<SpeakingPracticeSteps question={gapQuestion} challengeMode="easy" showAnswerByDefault onSpellFailed={onSpellFailed} />);
+        for (let attempt = 0; attempt < 3; attempt += 1) {
+            act(() => { ["y", "e", "e"].forEach(key => window.dispatchEvent(new KeyboardEvent("keydown", { key }))); });
+            act(() => { jest.advanceTimersByTime(1000); });
+        }
+        expect(screen.getByRole("status")).toHaveTextContent("3 次都沒拼對");
+        expect(screen.queryByRole("button", { name: /下一步：看著句子念/ })).not.toBeInTheDocument();
+        expect(screen.queryByText("麥克風")).not.toBeInTheDocument();
+        expect(screen.queryAllByRole("button", { name: /字母 [a-z]$/ })).toHaveLength(0);
+        fireEvent.click(screen.getByRole("button", { name: /下一題/ }));
+        expect(onSpellFailed).toHaveBeenCalledTimes(1);
+        jest.useRealTimers();
     });
 
     it("自己說不出現三步，直接念", () => {

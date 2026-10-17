@@ -73,7 +73,8 @@ export default function SpeakingPracticeSteps({
     readAloud = false,
     promptTitle = "直接開口回答",
     promptDetail = "不用打字，按下麥克風後用完整英文句子回答。",
-    onGuidedStepChange
+    onGuidedStepChange,
+    onSpellFailed
 }) {
     const [showHelp, setShowHelp] = useState(false);
     const [revealedAnswer, setRevealedAnswer] = useState(null);
@@ -173,7 +174,7 @@ export default function SpeakingPracticeSteps({
     </section>;
     if (guidedStep === "spell" && spellingAnswers) return <section className="speaking-practice-flow">
         {stepper}
-        <GuidedSpellStep key={question.id} answers={spellingAnswers} clip={question.clip} onDone={() => goToStep("speak")} />
+        <GuidedSpellStep key={question.id} answers={spellingAnswers} clip={question.clip} onDone={() => goToStep("speak")} onFail={onSpellFailed} />
     </section>;
 
     return <section className="speaking-practice-flow">
