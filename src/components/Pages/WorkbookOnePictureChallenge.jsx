@@ -33,6 +33,12 @@ export const pictureCueZh = alt => String(alt || "")
     .replace(/^[一兩二三四五六七八九十幾]?[顆隻條個把張本支枝件雙棵朵台臺輛位片塊杯瓶頂座間架艘匹頭群些對枚根盒碗盤包串粒種名]/, "")
     .trim();
 
+// 句子越長字越小，長對話題也能和拼字、麥克風留在同一個畫面。
+const sentenceSizeClass = text => {
+    const length = String(text || "").length;
+    return length > 110 ? " is-very-long" : length > 60 ? " is-long" : "";
+};
+
 export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, staffAudioPreview = false, onComplete, onPracticeOnly, onExit, onFinished, staffPreview = false, adminScoringPreview = false, challengeMode = "easy", onRevealHint }) {
     const interactionType = String(challenge?.generation_metadata?.interaction_type || "");
     const gapMode = interactionType === "picture_gap_sentence";
@@ -186,7 +192,7 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, s
                 disabled={!activeQuestion.picture_interaction?.sentence_audio_url || audioToken !== null}
                 aria-label="播放整句發音；每個挖空處停留 2 秒"
             ><FiVolume2 aria-hidden="true" />{audioToken === "sentence" ? "整句播放中…" : "聽整句（每個挖空停 2 秒）"}</button>}
-                {gapMode && <div className={`speaking-gap-sentence${fullSentence ? " is-full" : ""}`} aria-label={sentenceText}>
+                {gapMode && <div className={`speaking-gap-sentence${fullSentence ? " is-full" : ""}${sentenceSizeClass(sentenceText)}`} aria-label={sentenceText}>
                 {sentenceTokens.map(token => token.kind === "word"
                     ? <span key={token.tokenIndex} className="sentence-word">{token.text}</span>
                     : token.kind === "blank"

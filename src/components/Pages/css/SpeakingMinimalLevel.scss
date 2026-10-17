@@ -357,3 +357,56 @@ body.speaking-challenge-active .speaking-lesson-tools .speaking-listening-busy {
 @media (max-width: 380px) {
   body.speaking-challenge-active .speaking-lesson-tools .speaking-lesson-preparation > a { padding-inline: 10px; font-size: 14px !important; }
 }
+
+// ---- Keep a whole question on one screen. Long sentences get smaller type (and a smaller picture),
+// many letters get smaller tiles, and short screens tighten the gaps.
+body.speaking-challenge-active .speaking-gap-sentence.is-long { font-size: clamp(22px, 5.8vw, 30px) !important; line-height: 1.4 !important; }
+body.speaking-challenge-active .speaking-gap-sentence.is-very-long { font-size: clamp(17px, 4.5vw, 22px) !important; line-height: 1.45 !important; }
+body.speaking-challenge-active .speaking-game-question-card:has(.speaking-gap-sentence.is-very-long) .speaking-visual-aid { width: 84px !important; }
+body.speaking-challenge-active .speaking-gap-sentence .punctuation { white-space: nowrap; }
+.speaking-spell-slots.is-many { gap: 4px; }
+.speaking-spell-slots.is-many .speaking-spell-slot { width: 30px; height: 40px; font-size: 22px; border-bottom-width: 3px; }
+.speaking-spell-tiles.is-many { gap: 6px; }
+.speaking-spell-tiles.is-many .speaking-spell-tile { width: 44px; height: 44px; border-radius: 12px; font-size: 22px; }
+@media (max-width: 767px) {
+  body.speaking-challenge-active .speaking-immersive-play .speaking-lesson-header { margin-bottom: 8px !important; }
+  body.speaking-challenge-active .speaking-guided-stepper { margin-bottom: 6px; }
+  body.speaking-challenge-active .speaking-guided-step { gap: 10px; }
+  body.speaking-challenge-active .speaking-guided-step__title { font-size: 18px; }
+}
+// Short phones (iPhone SE and similar): a smaller picture and tiles so the keyboard stays in view.
+@media (max-height: 740px) {
+  body.speaking-challenge-active .speaking-game-question-card .speaking-visual-aid { width: 96px !important; }
+  body.speaking-challenge-active .speaking-gap-sentence:not(.is-long):not(.is-very-long) { font-size: clamp(24px, 6.6vw, 32px) !important; line-height: 1.4 !important; }
+  .speaking-spell-slot { width: 36px; height: 44px; font-size: 24px; }
+  .speaking-spell-tile { width: 46px; height: 46px; font-size: 22px; }
+}
+// Words stay whole when the slots wrap; given words (long answers spell only the main word) read as plain text.
+.speaking-spell-slots { column-gap: 14px; row-gap: 8px; }
+.speaking-spell-word { display: inline-flex; align-items: flex-end; }
+.speaking-spell-word > .speaking-spell-slot { margin-inline: 3px; }
+.speaking-spell-slots.is-many .speaking-spell-word > .speaking-spell-slot { margin-inline: 2px; }
+.speaking-spell-given, .speaking-spell-mark { align-self: center; color: var(--ae-text, #17365d); font-size: 26px; font-weight: 800; line-height: 1; }
+// Short phones, second pass: seven tiles per row (backspace included) and less air between the parts.
+@media (max-height: 740px) {
+  body.speaking-challenge-active .speaking-practice-flow { padding-top: 2px !important; }
+  body.speaking-challenge-active .speaking-focus-card { gap: 6px !important; }
+  body.speaking-challenge-active .speaking-game-question-card:has(.speaking-gap-sentence.is-long) .speaking-visual-aid { width: 76px !important; }
+  body.speaking-challenge-active .speaking-game-question-card:has(.speaking-gap-sentence.is-very-long) .speaking-visual-aid { width: 64px !important; }
+  body.speaking-challenge-active .speaking-practice-flow { padding-inline: 4px !important; }
+  .speaking-spell-tiles, .speaking-spell-tiles.is-many { gap: 5px; }
+  .speaking-spell-tile, .speaking-spell-tiles.is-many .speaking-spell-tile { width: 40px; height: 42px; border-radius: 11px; font-size: 21px; }
+  .speaking-spell-slot { width: 32px; height: 40px; font-size: 22px; }
+}
+@media (max-height: 740px) {
+  body.speaking-challenge-active .speaking-question-stage { margin-top: 4px !important; }
+  body.speaking-challenge-active .speaking-pronunciation { padding-block: 14px 6px !important; }
+  body.speaking-challenge-active .speaking-pronunciation-mic.speaking-pronunciation-mic { width: 92px !important; height: 92px !important; margin-bottom: 38px !important; }
+  body.speaking-challenge-active .speaking-pronunciation-mic.speaking-pronunciation-mic > svg { width: 38px !important; height: 38px !important; }
+  body.speaking-challenge-active .speaking-pronunciation-mic.speaking-pronunciation-mic > span { top: calc(100% + 10px); }
+}
+// A word never wraps, so its boxes shrink until the longest word fits the card at any width.
+.speaking-spell-slots { width: 100%; container-type: inline-size; }
+.speaking-spell-slots .speaking-spell-word > .speaking-spell-slot { width: min(44px, calc(100cqw / var(--spell-word, 6) - 6px)); }
+.speaking-spell-slots.is-many .speaking-spell-word > .speaking-spell-slot { width: min(32px, calc(100cqw / var(--spell-word, 6) - 4px)); }
+@media (max-height: 740px) { .speaking-spell-slots .speaking-spell-word > .speaking-spell-slot { width: min(32px, calc(100cqw / var(--spell-word, 6) - 6px)); } }

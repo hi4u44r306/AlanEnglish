@@ -12,7 +12,8 @@ const normalize = value => String(value || "")
 // 對不上、或空格裡沒有英文字母時回傳 null，就不出拼字題。
 export const gapAnswersFromPattern = (pattern, answer) => {
     // 相鄰的空格（____ ____）當成同一格，答案可以是好幾個字。
-    const pieces = normalize(pattern).replace(/[_＿﹍﹎]{2,}(?:\s+[_＿﹍﹎]{2,})+/g, "____").split(BLANK);
+    // 句尾的中文提示（例如「It is ____.( 一隻 )」）只是給學生看的，比對答案時拿掉。
+    const pieces = normalize(pattern).replace(/s*[（(][^A-Za-z()（）]*[)）]s*$/, "").replace(/[_＿﹍﹎]{2,}(?:\s+[_＿﹍﹎]{2,})+/g, "____").split(BLANK);
     if (pieces.length < 2) return null;
     const full = normalize(answer);
     const lower = full.toLowerCase();
@@ -52,6 +53,27 @@ export const initialGuidedStep = (question, challengeMode) => {
 export const nextGuidedStep = (step, question) => (
     step === "listen" && spellingTargetFor(question) ? "spell" : "speak"
 );
+
+// 要拼的部分：字母不多（10 個以內）就全部拼；太長就只拼最長的那個字（同長取後面的），
+// 只顯示那個空格，同一格的其他字直接填好，免得字母方塊多到超出畫面。回傳每個字元與它是否要學生拼。
+export const SPELL_LETTER_LIMIT = 10;
+export const spellingPlan = answers => {
+    let target = answers.join(" ");
+    let focus = null;
+    if (target.replace(/[^A-Za-z]/g, "").length > SPELL_LETTER_LIMIT) {
+        answers.forEach(answer => {
+            for (const match of answer.matchAll(/[A-Za-z]+/g)) {
+                if (!focus || match[0].length >= focus.text.length) focus = { answer, start: match.index, text: match[0] };
+            }
+        });
+        target = focus.answer;
+    }
+    return target.split("").map((char, index) => ({
+        index,
+        char,
+        spell: /[A-Za-z]/.test(char) && (!focus || (index >= focus.start && index < focus.start + focus.text.length))
+    }));
+};
 
 // 字母方塊：答案的字母加上幾個不在答案裡的字母，打亂順序。random 可注入以便測試。
 export const letterTiles = (answers, extra = 2, random = Math.random) => {
