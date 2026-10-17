@@ -31,7 +31,9 @@ import {
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-    "Access-Control-Allow-Methods": "POST, OPTIONS"
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    // 瀏覽器記住預檢結果（Chrome 最多 2 小時、Safari 10 分鐘），每次評分少一趟來回。
+    "Access-Control-Max-Age": "7200"
 };
 const json = (status: number, payload: Record<string, unknown>) => new Response(JSON.stringify(payload), {
     status, headers: { ...corsHeaders, "Content-Type": "application/json; charset=utf-8" }

@@ -1,5 +1,11 @@
 # Alan English 專案狀態
 
+### 口說評分加速 第 1 步：預檢快取（2026-10-17，分支 `perf/cors-preflight-cache`，尚未部署）
+
+- 量測（正式站 24 小時）：本機轉文字估 1～8 秒（base 模型超過 8 秒才換 tiny，未記錄實際值）；`pronunciation-coach` POST 平均 783ms、p90 1046ms；答對再呼叫 `speaking-challenge` POST 平均 1155ms、p90 1848ms；兩者每次都有 OPTIONS 預檢約 270ms。45 次 POST 全部 200。
+- 本步：`pronunciation-coach`、`speaking-challenge` 的 CORS 加 `Access-Control-Max-Age: 7200`，瀏覽器快取預檢。需重新部署這兩支 Function。
+- 下一步（擁有者已同意方向）：② 轉完文字在瀏覽器以同一套規則先顯示結果，伺服器評分與存進度改背景（規則版本不符則等伺服器；存檔失敗自動重試，最終失敗提示「剛剛沒存到，請再念一次」；整輪結算前確認全部存好）；③ 記錄轉文字實際秒數再調模型門檻。
+
 ### 口說麥克風心跳＋關卡頂列一排（2026-10-17，分支 `feat/mic-button-heartbeat`，PR #606，尚未部署）
 
 - 麥克風：無光暈、心跳動畫；錄音中綠色打勾「說完了」（`SpeakingPronunciationRecorder.jsx`、`SpeakingMinimalLevel.scss`）。
