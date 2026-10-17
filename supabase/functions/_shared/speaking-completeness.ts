@@ -44,7 +44,7 @@ export function assessReadingCompleteness(question: { answerTemplate: string; ac
     if (typeof recognizedText !== "string" || recognizedText.length > 2000 || !/[a-z]/i.test(recognizedText)) {
         throw Object.assign(new Error("沒有辨識到有效英文，請重新錄音。"), { status: 422, code: "speech_no_match" });
     }
-    const text = recognizedText.replace(/[\u0000-\u001f]/g, " ").trim();
+    const text = recognizedText.replace(/[\x00-\x1f]/g, " ").trim();
     const templates = [question.answerTemplate, ...question.acceptedAnswers].flatMap(readingAnswerAlternatives);
     const hasSlots = templates.some(hasSpeakingAnswerSlots);
     const structuredMatch = templates.some(template => hasSpeakingAnswerSlots(template) && matchesSpeakingAnswerTemplate(template, text));
@@ -53,7 +53,7 @@ export function assessReadingCompleteness(question: { answerTemplate: string; ac
         throw Object.assign(new Error("這個題型尚未支援本機朗讀評分。"), { status: 422, code: "local_question_unsupported" });
     }
     const strictMatch = strictType && matchesFoundationAnswer(question.interactionType, templates[0], text, templates.slice(1));
-    const candidates = templates.map(template => readingCoverage(template.replace(/[\u005B［][^\u005D］]+[\u005D］]/g, ""), text));
+    const candidates = templates.map(template => readingCoverage(template.replace(/[\[［][^\]］]+[\]］]/g, ""), text));
     const coverage = candidates.reduce((best, next) => next.score > best.score ? next : best);
     const alphabet = ["alphabet_round", "letter_spelling"].includes(question.interactionType);
     // Letter aliases and personal slots are all-or-nothing; missing/personal text
