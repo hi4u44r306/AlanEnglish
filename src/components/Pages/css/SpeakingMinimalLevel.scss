@@ -341,3 +341,19 @@ body.speaking-challenge-active .speaking-question-clip--hero .speaking-question-
 .speaking-spell-feedback { margin: 0; color: var(--ae-danger, #c62828); font-size: 16px; font-weight: 700; }
 .speaking-spell-feedback.is-right { display: inline-flex; align-items: center; gap: 6px; color: var(--ae-success, #1b6344); font-size: 20px; }
 @media (max-width: 380px) { .speaking-spell-slot { width: 36px; height: 46px; font-size: 24px; } .speaking-spell-tile { width: 46px; height: 46px; font-size: 22px; } }
+
+// ---- One top row: back arrow, question count with its bar, and "listen to this level first".
+// The page label is gone; the listening pill sits in the header next to the progress.
+body.speaking-challenge-active .speaking-immersive-play .speaking-lesson-header {
+  display: flex !important; align-items: center; gap: 12px; min-height: 0 !important;
+}
+body.speaking-challenge-active .speaking-immersive-play .speaking-lesson-progress { flex: 1 1 auto; width: auto !important; min-width: 0; margin: 0 !important; padding: 0 !important; }
+body.speaking-challenge-active .speaking-lesson-tools { flex: 0 0 auto; display: flex; }
+body.speaking-challenge-active .speaking-lesson-tools:empty { display: none; }
+body.speaking-challenge-active .speaking-lesson-tools .speaking-lesson-preparation { width: auto; margin: 0; }
+body.speaking-challenge-active .speaking-lesson-tools .speaking-lesson-preparation > a { min-height: 44px; padding: 8px 14px; white-space: nowrap; }
+body.speaking-challenge-active .speaking-lesson-tools .speaking-listening-busy { max-width: 180px; color: var(--ae-text-muted, #526780); font-size: 13px; font-weight: 700; line-height: 1.35; }
+// Narrow phones: the pill keeps its icon and a shorter label so the count still has room.
+@media (max-width: 380px) {
+  body.speaking-challenge-active .speaking-lesson-tools .speaking-lesson-preparation > a { padding-inline: 10px; font-size: 14px !important; }
+}

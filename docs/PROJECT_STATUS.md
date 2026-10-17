@@ -1,5 +1,11 @@
 # Alan English 專案狀態
 
+### 口說麥克風心跳＋關卡頂列一排（2026-10-17，分支 `feat/mic-button-heartbeat`，PR #606，尚未部署）
+
+- 麥克風：無光暈、心跳動畫；錄音中綠色打勾「說完了」（`SpeakingPronunciationRecorder.jsx`、`SpeakingMinimalLevel.scss`）。
+- 頂列：拿掉頁碼（P.x）；「先聽本關教材」用 portal 放進關卡標題列（`SpeakingHeaderTools`＋`SpeakingHeaderToolsContext`），與題數進度同一排；標題列不存在時（讀取／結果）仍在上方。
+- 驗證：口說相關 5 個測試檔 104 項通過；本機 320／412／1280 截圖無溢出。只改前端。
+
 ### 外觀只限管理員、其他人固定淺色（2026-10-17，分支 `feat/light-theme-for-students`，尚未部署）
 
 - `ThemeContext` 新增 `canChoose`（localStorage `ae-theme-admin`）；非管理員 resolved 一律 light。`ThemeRoleBridge`（AuthProvider 內）在登入確定後依 role 設定；`index.html` 開機腳本只有管理員旗標才套深色，避免學生先閃深色。MainNavbar 外觀列只給 admin；StudentNavbar 與 StudentSettings 移除外觀。

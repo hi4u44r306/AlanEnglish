@@ -15,6 +15,7 @@ import SpeakingChallengeLoading from "./SpeakingChallengeLoading";
 import SpeakingChallengeRules from "./SpeakingChallengeRules";
 import { ChallengePreviewDialog, SpeakingMapGoal, speakingLessonTopic } from "./SpeakingMapEntry";
 import SpeakingAdventureSession from "./SpeakingAdventureSession";
+import SpeakingHeaderTools from "./SpeakingHeaderTools";
 import { SpeakingChallengeCompletion, SpeakingChallengeReturn } from "./SpeakingChallengeAnimation";
 import WorkbookOneFoundationChallenge from "./WorkbookOneFoundationChallenge";
 import WorkbookOnePictureChallenge from "./WorkbookOnePictureChallenge";
@@ -592,7 +593,6 @@ export default function TextbookSpeakingChallenge() {
     return renderScene(<main className="speaking-challenge-page speaking-challenge-detail speaking-immersive-play">
         <header className="speaking-lesson-header">
             <button className="speaking-back" onClick={returnToBookCatalog}><FiChevronLeft />關卡列表</button>
-            <strong className="speaking-lesson-page">{levelReference(challenge) || challenge.title}</strong>
             <div className="speaking-lesson-heading">
                 <span>{challenge.books?.name || "教材"}</span>
                 <h1>{challenge.title}</h1>
@@ -603,6 +603,7 @@ export default function TextbookSpeakingChallenge() {
                 <div className="speaking-progress-track" role="progressbar" aria-label="大挑戰完成進度" aria-valuemin="0" aria-valuemax="100" aria-valuenow={progressPercent}><span style={{ width: `${progressPercent}%` }} /></div>
             </div>
             {Number.isFinite(Number(challenge.reward_xp)) && <div className="speaking-lesson-reward"><FiAward aria-hidden="true" /><span>通關獎勵</span><strong>{Number(challenge.reward_xp)} XP</strong></div>}
+            <SpeakingHeaderTools />
         </header>
 
         <section className="speaking-question-stage">
