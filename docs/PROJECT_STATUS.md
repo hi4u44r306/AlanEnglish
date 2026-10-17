@@ -1,5 +1,11 @@
 # Alan English 專案狀態
 
+### 外觀只限管理員、其他人固定淺色（2026-10-17，分支 `feat/light-theme-for-students`，尚未部署）
+
+- `ThemeContext` 新增 `canChoose`（localStorage `ae-theme-admin`）；非管理員 resolved 一律 light。`ThemeRoleBridge`（AuthProvider 內）在登入確定後依 role 設定；`index.html` 開機腳本只有管理員旗標才套深色，避免學生先閃深色。MainNavbar 外觀列只給 admin；StudentNavbar 與 StudentSettings 移除外觀。
+- 每題片段（聽這題）：擁有者 2026-10-17 試聽 WB2 P4 發現題號與截斷，決定不要單句聽力；正式庫 906 筆片段全部改為 archived（可回復），程式保留但不顯示。
+- 驗證：theme／Navbar／StudentSettings 60 項通過；`CI=true npm run build` 成功。
+
 ### 教學影片在平台內播放＋觀看紀錄（2026-10-17，分支 `feat/lesson-video`，PR #604）
 
 - 前端：`LessonVideoDialog`（YouTube IFrame API、youtube-nocookie、rel=0、fs=0；每秒取樣只累計連續播放，看滿 80% 送 complete；hidden 暫停並送 pause_hidden；播放時暫停頁面上的 audio；portal＋背景鎖捲）；`MusicCard` 的「看影片」改開視窗（lazy 載入），Playlist 在口說聽力準備頁也顯示（context=speaking_prep）。段落取自 `workbookVideoChapters`（本頁章節到下一章節）。
