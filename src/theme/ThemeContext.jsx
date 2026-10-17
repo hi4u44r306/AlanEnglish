@@ -2,6 +2,8 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useS
 
 export const THEME_STORAGE_KEY = "ae-theme";
 export const THEME_CHOICES = ["light", "dark", "system"];
+// 只有管理員可以換外觀；學生、老師與未登入一律淺色。記在 localStorage 讓 index.html 開機時就不會閃深色。
+export const THEME_ADMIN_KEY = "ae-theme-admin";
 const THEME_COLORS = { light: "#073763", dark: "#121212" };
 
 const readStoredChoice = () => {
@@ -10,6 +12,14 @@ const readStoredChoice = () => {
         return THEME_CHOICES.includes(stored) ? stored : "system";
     } catch (error) {
         return "system";
+    }
+};
+
+const readAdminFlag = () => {
+    try {
+        return window.localStorage.getItem(THEME_ADMIN_KEY) === "1";
+    } catch (error) {
+        return false;
     }
 };
 
@@ -31,14 +41,15 @@ export const applyTheme = resolved => {
     document.querySelector('meta[name="theme-color"]')?.setAttribute("content", THEME_COLORS[resolved]);
 };
 
-const ThemeContext = createContext({ choice: "system", resolved: "light", setChoice: () => {}, setForcedLight: () => {} });
+const ThemeContext = createContext({ choice: "system", resolved: "light", canChoose: false, setChoice: () => {}, setForcedLight: () => {}, setCanChoose: () => {} });
 
 export function ThemeProvider({ children }) {
     const [choice, setChoiceState] = useState(readStoredChoice);
     const [prefersDark, setPrefersDark] = useState(systemPrefersDark);
     // 公開首頁等頁面固定淺色（看起來較專業），不跟著使用者的外觀選擇。
     const [forcedLight, setForcedLight] = useState(false);
-    const resolved = forcedLight ? "light" : resolveTheme(choice, prefersDark);
+    const [canChoose, setCanChooseState] = useState(readAdminFlag);
+    const resolved = forcedLight || !canChoose ? "light" : resolveTheme(choice, prefersDark);
 
     useEffect(() => {
         let media;
@@ -56,7 +67,15 @@ export function ThemeProvider({ children }) {
         try { window.localStorage.setItem(THEME_STORAGE_KEY, next); } catch (error) { /* 無痕模式存不了時，本次仍然有效 */ }
     }, []);
 
-    const value = useMemo(() => ({ choice, resolved, setChoice, setForcedLight }), [choice, resolved, setChoice]);
+    const setCanChoose = useCallback(allowed => {
+        setCanChooseState(Boolean(allowed));
+        try {
+            if (allowed) window.localStorage.setItem(THEME_ADMIN_KEY, "1");
+            else window.localStorage.removeItem(THEME_ADMIN_KEY);
+        } catch (error) { /* 存不了時本次仍然有效 */ }
+    }, []);
+
+    const value = useMemo(() => ({ choice, resolved, canChoose, setChoice, setForcedLight, setCanChoose }), [choice, resolved, canChoose, setChoice, setCanChoose]);
     return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }
 
@@ -70,3 +89,13 @@ export const useForcedLightTheme = () => {
         return () => setForcedLight(false);
     }, [setForcedLight]);
 };
+
+// 登入狀態確定後，依角色決定能不能換外觀（放在 AuthProvider 裡）。
+export function ThemeRoleSync({ role, authLoading }) {
+    const { setCanChoose } = useTheme();
+    useEffect(() => {
+        if (authLoading) return;
+        setCanChoose(role === "admin");
+    }, [role, authLoading, setCanChoose]);
+    return null;
+}

@@ -54,6 +54,7 @@ import SpeakingContentAdmin from "../components/Pages/SpeakingContentAdmin";
 import Support from "../components/Pages/Support";
 import AdminSupport from "../components/Pages/AdminSupport";
 import { AuthProvider } from "../auth/AuthContext";
+import ThemeRoleBridge from "../theme/ThemeRoleBridge";
 import ProtectedRoute from "../auth/ProtectedRoute";
 import RoleHomeRedirect from "../auth/RoleHomeRedirect";
 import { StoreProvider } from "../store/StoreContext";
@@ -125,6 +126,7 @@ const App = () => {
             <RouteScrollToTop />
             <SpeakingRecognizerWarmup />
             <AuthProvider>
+                <ThemeRoleBridge />
                 <StoreProvider>
                 <ToastContainer
                     position="top-center"
