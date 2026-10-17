@@ -1,5 +1,12 @@
 # Alan English 專案狀態
 
+### 拼字 3 次機會（2026-10-17，分支 `feat/spell-three-tries`，尚未部署）
+
+- `GuidedSpellStep`：填滿才判斷；拼錯整排標紅 0.9 秒後清空，不標個別字母；填滿後鎖住刪改；`SPELL_TRIES = 3`，3 次錯呼叫 `onFail`（`SpeakingPracticeSteps.onSpellFailed` → `WorkbookOnePictureChallenge.skipQuestion`），題目不算完成、下一輪再出現。只改前端。
+- 驗證：口說相關測試通過（含新增 3 次失敗案例）；本機 412 截圖（剩餘次數、3 次失敗）。
+
+### 口說麥克風心跳＋關卡頂列一排（2026-10-17，分支 `feat/mic-button-heartbeat`，PR #606，尚未部署）
+
 ### 口說麥克風心跳＋關卡頂列一排（2026-10-17，分支 `feat/mic-button-heartbeat`，PR #606，2026-10-17 已合併並部署）
 
 - 麥克風：無光暈、心跳動畫；錄音中綠色打勾「說完了」（`SpeakingPronunciationRecorder.jsx`、`SpeakingMinimalLevel.scss`）。

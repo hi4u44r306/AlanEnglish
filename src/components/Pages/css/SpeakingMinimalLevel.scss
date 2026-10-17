@@ -410,3 +410,10 @@ body.speaking-challenge-active .speaking-gap-sentence .punctuation { white-space
 .speaking-spell-slots .speaking-spell-word > .speaking-spell-slot { width: min(44px, calc(100cqw / var(--spell-word, 6) - 6px)); }
 .speaking-spell-slots.is-many .speaking-spell-word > .speaking-spell-slot { width: min(32px, calc(100cqw / var(--spell-word, 6) - 4px)); }
 @media (max-height: 740px) { .speaking-spell-slots .speaking-spell-word > .speaking-spell-slot { width: min(32px, calc(100cqw / var(--spell-word, 6) - 6px)); } }
+
+// Spelling tries: a small counter by the title; a wrong word turns the whole row red (never one letter).
+.speaking-spell-tries { display: inline-block; margin-left: 10px; padding: 3px 10px; border-radius: 999px; background: var(--ae-surface-muted, #eef3f9); color: var(--ae-text-muted, #526780); font-size: 14px; font-weight: 700; vertical-align: middle; }
+.speaking-spell-tries.is-used { background: var(--ae-warning-bg, #fff4d6); color: var(--ae-warning, #7a5300); }
+.speaking-spell-slots.is-wrong .speaking-spell-slot { border-bottom-color: var(--ae-danger, #c62828); background: var(--ae-danger-bg, #fdecec); color: var(--ae-danger, #c62828); animation: speaking-spell-shake .35s ease-in-out; }
+@keyframes speaking-spell-shake { 25% { transform: translateX(-3px); } 75% { transform: translateX(3px); } }
+@media (prefers-reduced-motion: reduce) { .speaking-spell-slots.is-wrong .speaking-spell-slot { animation: none; } }

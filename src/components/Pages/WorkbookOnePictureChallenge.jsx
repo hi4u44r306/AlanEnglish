@@ -218,6 +218,7 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, s
                 onGuidedStepChange={step => setGuided({ id: activeQuestion.id, step })}
                 onPracticeOnly={onPracticeOnly}
                 onIncorrect={() => setCanSkip(true)}
+                onSpellFailed={skipQuestion}
             />}
         </article></section>
         {!staffPreview && canSkip && <button type="button" className="speaking-continue-button" onClick={skipQuestion}>先看下一題 <FiChevronRight aria-hidden="true" /></button>}
