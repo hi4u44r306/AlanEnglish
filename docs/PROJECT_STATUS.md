@@ -1,5 +1,10 @@
 # Alan English 專案狀態
 
+### 電腦版學生頂端列：名字移到左邊（2026-10-18，分支 `fix/student-navbar-account-left`，只改 CSS）
+
+- `StudentNavbar.scss`：1280px 以上 `.ae-student-desktop-account` 改 `display: contents`，名字 chip 排到 Lv 卡片左邊，通知與登出留右邊；平板／手機不變。
+- 驗證：本機 3000 以 Test 2 看 1920、1280、1024、768 寬，無重疊；未跑測試與 build（純樣式）。
+
 ### 口說評分計時（2026-10-18，分支 `feat/speaking-timing`，接在 PR #619 之後；需 migration＋pronunciation-coach 部署）
 
 - 前端：`utils/speakingClientTiming.js`；`localSpeakingRecognizer.transcribe` 回傳 transcribeMs／inferenceMs／model；`pronunciationCoachService` 送 `client_timing`，並記錄送評分與再確認往返，附在下一次。

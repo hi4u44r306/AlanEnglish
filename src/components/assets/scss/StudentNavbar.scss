@@ -862,3 +862,12 @@ html:has(.ae-student-navbar) { overscroll-behavior-y: none; }
 .student-materials-page { box-sizing: border-box; width: min(720px, calc(100% - 32px)); margin: 0 auto; padding-top: 20px; color: var(--ae-text, #17365d); }
 .student-materials-page > h1 { margin: 0 0 16px; font-size: 28px; font-weight: 800; }
 .student-materials-page .ae-student-menu-status button { margin-left: 8px; min-height: 44px; padding: 0 4px; border: 0; background: none; color: var(--ae-accent, #245fc5); font: inherit; font-weight: 700; text-decoration: underline; cursor: pointer; }
+
+// Desktop: the name chip (opens 設定) sits on the left next to the level chip, like tablets and phones;
+// notifications and logout stay on the right.
+@media (min-width: 1280px) {
+  .ae-student-navbar .ae-student-desktop-account { display: contents; }
+  .ae-student-navbar .ae-student-account-link { order: -2; margin-right: -10px; }
+  .ae-student-navbar .ae-growth-header { order: -1; }
+  .ae-student-navbar .ae-notification-dropdown { margin-right: -12px; }
+}
