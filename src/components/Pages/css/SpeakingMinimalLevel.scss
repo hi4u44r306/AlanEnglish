@@ -424,3 +424,7 @@ body.speaking-challenge-active .speaking-gap-sentence .punctuation { white-space
 
 // A correct answer whose progress could not be saved after retries: a short note above the level.
 .speaking-save-notice { flex: 1 1 100%; margin: 0; padding: 10px 14px; border: 1px solid #f2b51e; border-radius: 14px; background: var(--ae-warning-bg, #fffbea); color: var(--ae-warning, #5c4a12); font-size: 16px; font-weight: 700; line-height: 1.5; }
+
+// Spelling a gap sentence: the blank being spelled gets a yellow frame; blanks that are not spelled show their answer.
+body.speaking-challenge-active .speaking-gap-sentence .answer-blank.is-spell-target { padding: 0 .12em; border-radius: .2em; outline: .09em solid #f2b61c; outline-offset: .04em; background: #fff1bf !important; }
+body.speaking-challenge-active .speaking-gap-sentence .answer-given { color: var(--ae-text, #17365d); text-decoration: underline dotted #9cb7d3; text-underline-offset: .15em; }

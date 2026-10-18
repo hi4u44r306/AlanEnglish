@@ -1,4 +1,4 @@
-import { gapAnswersFromPattern, initialGuidedStep, letterTiles, nextGuidedStep, spellingTargetFor, spellingPlan } from "./speakingGuidedSteps";
+import { gapAnswersFromPattern, initialGuidedStep, letterTiles, nextGuidedStep, spellingFocusIndex, spellingTargetFor, spellingPlan } from "./speakingGuidedSteps";
 
 describe("gapAnswersFromPattern", () => {
     it("finds the missing words of one or more blanks", () => {
@@ -77,5 +77,14 @@ describe("spellingPlan", () => {
         expect(shown(plan)).toBe("my father's shoulders");
         expect(spelled(plan)).toBe("shoulders");
         expect(spelled(spellingPlan(["They", "her eyes"]))).toBe("eyes");
+    });
+});
+
+describe("spellingFocusIndex", () => {
+    it("只拼其中一格時指出是第幾格，每格都拼時回傳 -1", () => {
+        expect(spellingFocusIndex(["They", "her eyes"])).toBe(1);
+        expect(spellingFocusIndex(["They", "my father's shoulders"])).toBe(1);
+        expect(spellingFocusIndex(["pencil case"])).toBe(-1);
+        expect(spellingFocusIndex(["an eye"])).toBe(-1);
     });
 });
