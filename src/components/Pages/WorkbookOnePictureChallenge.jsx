@@ -6,7 +6,7 @@ import SpeakingQuestionClip from "./SpeakingQuestionClip";
 import SpeakingHeaderTools from "./SpeakingHeaderTools";
 import SpeakingVisualAid from "./SpeakingVisualAid";
 import { createSpeakingChallengeSessionId } from "../../utils/speakingChallengeSession";
-import { initialGuidedStep } from "../../utils/speakingGuidedSteps";
+import { initialGuidedStep, spellingFocusIndex, spellingTargetFor } from "../../utils/speakingGuidedSteps";
 
 const copyByType = {
     picture_qa: {
@@ -126,6 +126,21 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, s
     // has one blank, as a single cue line when it has several.
     const gapCue = pictureCueZh(activeQuestion?.visual_aid?.alt_zh);
     const blankCue = !fullSentence && sentenceTokens.filter(token => token.kind === "blank").length === 1 ? gapCue : "";
+    // 拼字時：不用拼的空格直接填上答案，要拼的空格用黃框標出來，學生知道正在拼哪一格。
+    // 相鄰的空格（____ ____）算同一格，和拼字的答案一一對應。
+    const spellAnswers = gapMode && !fullSentence && guidedStep === "spell" ? spellingTargetFor(activeQuestion) : null;
+    const spellFocus = spellAnswers ? spellingFocusIndex(spellAnswers) : -1;
+    const blankGroups = useMemo(() => {
+        let group = -1;
+        let previousBlank = false;
+        return sentenceTokens.map(token => {
+            if (token.kind !== "blank") { previousBlank = false; return null; }
+            const first = !previousBlank;
+            if (first) group += 1;
+            previousBlank = true;
+            return { group, first };
+        });
+    }, [sentenceTokens]);
 
     const playAudio = (url, token, errorMessage, blockedMessage) => {
         if (!url) return;
@@ -234,10 +249,12 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, s
                 aria-label="播放整句發音；每個挖空處停留 2 秒"
             ><FiVolume2 aria-hidden="true" />{audioToken === "sentence" ? "整句播放中…" : "聽整句（每個挖空停 2 秒）"}</button>}
                 {gapMode && <div className={`speaking-gap-sentence${fullSentence ? " is-full" : ""}${sentenceSizeClass(sentenceText)}`} aria-label={sentenceText}>
-                {sentenceTokens.map(token => token.kind === "word"
+                {sentenceTokens.map((token, position) => token.kind === "word"
                     ? <span key={token.tokenIndex} className="sentence-word">{token.text}</span>
                     : token.kind === "blank"
-                        ? <span key={token.tokenIndex} className={`answer-blank${blankCue ? " has-cue" : ""}`} aria-label={blankCue ? `要補上的答案：${blankCue}` : "要補上的答案"}>{blankCue || "____"}</span>
+                        ? spellAnswers && spellFocus >= 0 && blankGroups[position]?.group !== spellFocus
+                            ? blankGroups[position]?.first ? <span key={token.tokenIndex} className="answer-given">{spellAnswers[blankGroups[position].group]}</span> : null
+                            : <span key={token.tokenIndex} className={`answer-blank${blankCue ? " has-cue" : ""}${spellAnswers ? " is-spell-target" : ""}`} aria-label={`${blankCue ? `要補上的答案：${blankCue}` : "要補上的答案"}${spellAnswers ? "，正在拼這一格" : ""}`}>{blankCue || "____"}</span>
                         : <span key={token.tokenIndex} className="punctuation" aria-hidden="true">{token.text}</span>)}
             </div>}
                 {gapMode && !fullSentence && gapCue && !blankCue && <p className="speaking-gap-cue">（{gapCue}）</p>}
