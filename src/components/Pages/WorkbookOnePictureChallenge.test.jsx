@@ -27,7 +27,7 @@ describe("WorkbookOnePictureChallenge", () => {
     it("only a fully completed page opens the shared celebration with actual rewards", async () => {
         const reward = { challenge_completed: true, xp_awarded: 30, ae_points_awarded: 3 };
         const onFinished = jest.fn();
-        render(<WorkbookOnePictureChallenge challenge={{ id: 21, title: "P21", generation_metadata: { interaction_type: "picture_qa" },
+        render(<WorkbookOnePictureChallenge correctPauseMs={0} challenge={{ id: 21, title: "P21", generation_metadata: { interaction_type: "picture_qa" },
             speaking_questions: [{ id: 1, visual_aid: privateVisual, picture_interaction: { type: "picture_qa" } }] }}
             firebaseUser={{ uid: "student" }} onComplete={jest.fn().mockResolvedValue(reward)} onFinished={onFinished} />);
         fireEvent.click(screen.getByRole("button", { name: "開始挑戰" }));
@@ -39,7 +39,7 @@ describe("WorkbookOnePictureChallenge", () => {
 
     it("老師按來源順序唯讀預覽看圖題並可切換，不啟用錄音", () => {
         const onComplete = jest.fn();
-        render(<WorkbookOnePictureChallenge
+        render(<WorkbookOnePictureChallenge correctPauseMs={0}
             challenge={{
                 id: 21,
                 title: "P21 看圖問答",
@@ -68,7 +68,7 @@ describe("WorkbookOnePictureChallenge", () => {
 
     it("P21 只顯示經審核圖片，不洩漏問句或回答", async () => {
         const onComplete = jest.fn().mockResolvedValue(true);
-        render(<WorkbookOnePictureChallenge
+        render(<WorkbookOnePictureChallenge correctPauseMs={0}
             challenge={{
                 id: 21,
                 title: "P21 看圖問答",
@@ -118,7 +118,7 @@ describe("WorkbookOnePictureChallenge", () => {
             picture_interaction: { type: "picture_qa" }
         }));
         const onComplete = jest.fn().mockResolvedValue(true);
-        render(<WorkbookOnePictureChallenge
+        render(<WorkbookOnePictureChallenge correctPauseMs={0}
             challenge={{
                 id: 21,
                 title: "P21 看圖問答",
@@ -149,11 +149,12 @@ describe("WorkbookOnePictureChallenge", () => {
         expect(new Set(completedIds).size).toBe(3);
     });
 
-    it("P21 完成紀錄保存失敗時留在原圖，重試成功後才前進", async () => {
+    it("答對後不等存檔就換題；存不到的題目加到這一輪最後面再念一次", async () => {
         jest.spyOn(Math, "random").mockReturnValue(0);
+        let failSave;
         const onComplete = jest.fn()
-            .mockResolvedValueOnce(false)
-            .mockResolvedValueOnce(true);
+            .mockImplementationOnce(() => new Promise(resolve => { failSave = () => resolve(false); }))
+            .mockResolvedValue(true);
         const questions = [1, 2].map((number, index) => ({
             id: 2100 + number,
             sort_order: index,
@@ -164,7 +165,7 @@ describe("WorkbookOnePictureChallenge", () => {
             },
             picture_interaction: { type: "picture_qa" }
         }));
-        render(<WorkbookOnePictureChallenge
+        render(<WorkbookOnePictureChallenge correctPauseMs={0}
             challenge={{
                 id: 21,
                 title: "P21 看圖問答",
@@ -178,23 +179,18 @@ describe("WorkbookOnePictureChallenge", () => {
 
         fireEvent.click(screen.getByRole("button", { name: "開始挑戰" }));
         const firstImageUrl = screen.getByRole("img").getAttribute("src");
-        await act(async () => {
-            fireEvent.click(screen.getByRole("button", { name: "模擬完整回答" }));
-            await Promise.resolve();
-        });
-        expect(onComplete).toHaveBeenCalledTimes(1);
-        expect(screen.getByRole("article", { name: "第 1 題，共 2 題" })).toBeInTheDocument();
-        expect(screen.getByRole("img")).toHaveAttribute("src", firstImageUrl);
-        expect(screen.getByRole("button", { name: "重試儲存" })).toBeInTheDocument();
-        expect(screen.queryByText(/本題已完成！/)).not.toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "模擬完整回答" }));
+        // 第一題的存檔還沒回來，就已經換到第二題。
+        expect(await screen.findByRole("article", { name: "第 2 題，共 2 題" })).toBeInTheDocument();
+        await act(async () => { failSave(); await Promise.resolve(); });
+        expect(await screen.findByText(/第 2 \/ 3 題/)).toBeInTheDocument();
 
-        await act(async () => {
-            fireEvent.click(screen.getByRole("button", { name: "重試儲存" }));
-            await Promise.resolve();
-        });
-        expect(onComplete).toHaveBeenCalledTimes(2);
-        expect(screen.getByRole("article", { name: "第 2 題，共 2 題" })).toBeInTheDocument();
-        expect(screen.getByRole("img")).not.toHaveAttribute("src", firstImageUrl);
+        fireEvent.click(screen.getByRole("button", { name: "模擬完整回答" }));
+        expect(await screen.findByRole("article", { name: "第 3 題，共 3 題" })).toBeInTheDocument();
+        expect(screen.getByRole("img")).toHaveAttribute("src", firstImageUrl);
+        fireEvent.click(screen.getByRole("button", { name: "模擬完整回答" }));
+        expect(await screen.findByRole("heading", { name: "太棒了，全部完成！" })).toBeInTheDocument();
+        expect(onComplete).toHaveBeenCalledTimes(3);
     });
 
     it("重開看圖關卡時只重試沒有通過的題目", async () => {
@@ -206,10 +202,11 @@ describe("WorkbookOnePictureChallenge", () => {
             picture_interaction: { type: "picture_qa" },
             progress_status: "opened"
         }));
-        render(<WorkbookOnePictureChallenge challenge={{ id: 21, title: "P21", generation_metadata: { interaction_type: "picture_qa" }, speaking_questions: questions }}
+        render(<WorkbookOnePictureChallenge correctPauseMs={0} challenge={{ id: 21, title: "P21", generation_metadata: { interaction_type: "picture_qa" }, speaking_questions: questions }}
             firebaseUser={{ uid: "student" }} onComplete={jest.fn().mockResolvedValue(true)} onExit={jest.fn()} />);
         fireEvent.click(screen.getByRole("button", { name: "開始挑戰" }));
         await act(async () => { fireEvent.click(screen.getByRole("button", { name: "模擬完整回答" })); await Promise.resolve(); });
+        await screen.findByRole("article", { name: "第 2 題，共 2 題" });
         fireEvent.click(screen.getByRole("button", { name: "模擬不完整回答" }));
         fireEvent.click(screen.getByRole("button", { name: "先看下一題" }));
         expect(screen.getByText("已完成 1／2 題")).toBeInTheDocument();
@@ -219,7 +216,7 @@ describe("WorkbookOnePictureChallenge", () => {
     });
 
     it("P22 學生看圖補句即使舊回應含網址也不顯示播放入口", () => {
-        render(<WorkbookOnePictureChallenge
+        render(<WorkbookOnePictureChallenge correctPauseMs={0}
             challenge={{
                 id: 22, title: "P22 看圖補句", generation_metadata: { interaction_type: "picture_gap_sentence" },
                 speaking_questions: [{ id: 2201, sort_order: 0, visual_aid: privateVisual, picture_interaction: {
@@ -240,7 +237,7 @@ describe("WorkbookOnePictureChallenge", () => {
         const gapChallenge = { id: 22, title: "P22 看圖補句", generation_metadata: { interaction_type: "picture_gap_sentence" },
             speaking_questions: [{ id: 2201, sort_order: 0, visual_aid: privateVisual, model_answer: "The apple is in the tree.", picture_interaction: {
                 type: "picture_gap_sentence", sentence_pattern: "The ____ is in the tree." } }] };
-        const { unmount } = render(<WorkbookOnePictureChallenge challenge={gapChallenge} challengeMode="easy" firebaseUser={{ uid: "student" }} onComplete={jest.fn()} onExit={jest.fn()} />);
+        const { unmount } = render(<WorkbookOnePictureChallenge correctPauseMs={0} challenge={gapChallenge} challengeMode="easy" firebaseUser={{ uid: "student" }} onComplete={jest.fn()} onExit={jest.fn()} />);
         fireEvent.click(screen.getByRole("button", { name: "開始挑戰" }));
         expect(screen.getByRole("img", { name: "樹上的蘋果" })).toBeInTheDocument();
         // 先拼字：此時只看得到挖空句，看不到 apple。
@@ -254,7 +251,7 @@ describe("WorkbookOnePictureChallenge", () => {
         expect(screen.queryByLabelText("跟著念參考答案")).not.toBeInTheDocument();
         unmount();
         const challenge = { ...gapChallenge, speaking_questions: [{ ...gapChallenge.speaking_questions[0], model_answer: "" }] };
-        render(<WorkbookOnePictureChallenge challenge={challenge} challengeMode="challenge" firebaseUser={{ uid: "student" }} onComplete={jest.fn()} onExit={jest.fn()} />);
+        render(<WorkbookOnePictureChallenge correctPauseMs={0} challenge={challenge} challengeMode="challenge" firebaseUser={{ uid: "student" }} onComplete={jest.fn()} onExit={jest.fn()} />);
         fireEvent.click(screen.getByRole("button", { name: "開始挑戰" }));
         expect(screen.getByRole("img", { name: "樹上的蘋果" })).toBeInTheDocument();
         expect(screen.getByLabelText(/要補上的答案/)).toBeInTheDocument();
@@ -269,7 +266,7 @@ describe("WorkbookOnePictureChallenge", () => {
             return audio;
         });
         const onComplete = jest.fn().mockResolvedValue(true);
-        render(<WorkbookOnePictureChallenge
+        render(<WorkbookOnePictureChallenge correctPauseMs={0}
             challenge={{
                 id: 22,
                 title: "P22 看圖補句",
@@ -325,7 +322,7 @@ describe("WorkbookOnePictureChallenge", () => {
         global.Audio = jest.fn()
             .mockImplementationOnce(() => blockedAudio)
             .mockImplementationOnce(() => retryAudio);
-        render(<WorkbookOnePictureChallenge
+        render(<WorkbookOnePictureChallenge correctPauseMs={0}
             challenge={{
                 id: 22,
                 title: "P22 看圖補句",
@@ -369,7 +366,7 @@ describe("WorkbookOnePictureChallenge", () => {
         global.Audio = jest.fn()
             .mockImplementationOnce(() => failedAudio)
             .mockImplementationOnce(() => retryAudio);
-        render(<WorkbookOnePictureChallenge
+        render(<WorkbookOnePictureChallenge correctPauseMs={0}
             challenge={{
                 id: 22,
                 title: "P22 看圖補句",

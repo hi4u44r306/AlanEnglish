@@ -1,5 +1,12 @@
 # Alan English 專案狀態
 
+### 口說評分加速 第 2 步：進度背景存檔（2026-10-18，分支 `perf/background-progress-save`，尚未部署）
+
+- 依據：答對時 `pronunciation-coach` 已寫入 attempt（answer_match 由伺服器判定），之後的 `speaking-challenge complete_question` 只標記進度（正式站平均 1155ms、p90 1848ms），原本畫面等它完成才播音效／換題。
+- 改為：`TextbookSpeakingChallenge.saveInBackground` 先把題目標為完成，`markComplete` 以 `utils/retryTransient`（無狀態碼或 5xx 重試，1s、3s）背景存；最終失敗或 hint_used 時改回未完成並顯示 `speaking-save-notice`。`WorkbookOnePictureChallenge.handleCorrect` 不再 await，停 `correctPauseMs`（1200；有 `pronunciation_tips` 為 2600）後換題，存檔失敗把該題加回本輪最後；最後一題等所有存檔完成才結算。A–Z（foundation round）不變。
+- 與原計畫差異：未把評分搬到瀏覽器（第二級需隱藏答案，且不會出現「先顯示通過、伺服器後來不通過」）。
+- 驗證：口說相關 10 個測試檔 177 項通過（含 `retryTransient` 3 項、背景存檔失敗重排 1 項）。
+
 ### 2026-10-18 部署紀錄（PR #607–#611，擁有者同意「全部合併並部署」）
 
 - 合併：#607 文件、#608 拼字 3 次、#609 th 放寬、#610 預檢快取（四者先在本機整合，測試 274 項與 `CI=true npm run build` 通過）；#611 把 `speaking-completeness.ts` 的 `\u` 正規式改成等價寫法（部署工具會解碼 `\uXXXX`）。

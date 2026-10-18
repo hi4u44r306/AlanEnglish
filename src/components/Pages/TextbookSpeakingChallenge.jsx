@@ -16,6 +16,7 @@ import SpeakingChallengeRules from "./SpeakingChallengeRules";
 import { ChallengePreviewDialog, SpeakingMapGoal, speakingLessonTopic } from "./SpeakingMapEntry";
 import SpeakingAdventureSession from "./SpeakingAdventureSession";
 import SpeakingHeaderTools from "./SpeakingHeaderTools";
+import { retryTransient } from "../../utils/retryTransient";
 import { SpeakingChallengeCompletion, SpeakingChallengeReturn } from "./SpeakingChallengeAnimation";
 import WorkbookOneFoundationChallenge from "./WorkbookOneFoundationChallenge";
 import WorkbookOnePictureChallenge from "./WorkbookOnePictureChallenge";
@@ -135,6 +136,7 @@ export default function TextbookSpeakingChallenge() {
     const mapGestureRef = useRef({ key: null, moved: false });
     const [completionCatalog, setCompletionCatalog] = useState([]);
     const [retryNotice, setRetryNotice] = useState(false);
+    const [saveNotice, setSaveNotice] = useState("");
     const [challengeSessionId, setChallengeSessionId] = useState("");
     const [selectedLesson, setSelectedLesson] = useState(null);
     const audioRef = useRef(null);
@@ -231,7 +233,7 @@ export default function TextbookSpeakingChallenge() {
         if (returnTransition) return <SpeakingChallengeReturn toCatalog={returnTransition.path === "/student/speaking-challenges"} />;
         if (!completionNotice) return questionSetReady && !loaderFinishing
             ? <SpeakingAdventureSession key={`${questionSetId}:${challengeMode}`} challenge={challenge} pages={levelReference(challenge)} mode={challengeMode} firebaseUser={firebaseUser}
-                notice={staffPreview ? <aside className="speaking-staff-preview-banner" role="status"><FiBookOpen aria-hidden="true" /><span><strong>{adminScoringPreview ? "管理員評分示範" : "工作人員唯讀預覽"}</strong>{adminScoringPreview ? "可以送出評分；不會寫入學生進度、發放獎勵或計入每日挑戰額度。" : "所有已發布題目都可查看，不會寫入學生進度或發放獎勵。"}</span></aside> : null}>{content}</SpeakingAdventureSession>
+                notice={staffPreview ? <aside className="speaking-staff-preview-banner" role="status"><FiBookOpen aria-hidden="true" /><span><strong>{adminScoringPreview ? "管理員評分示範" : "工作人員唯讀預覽"}</strong>{adminScoringPreview ? "可以送出評分；不會寫入學生進度、發放獎勵或計入每日挑戰額度。" : "所有已發布題目都可查看，不會寫入學生進度或發放獎勵。"}</span></aside> : saveNotice ? <p className="speaking-save-notice" role="alert">{saveNotice}</p> : null}>{content}</SpeakingAdventureSession>
             : content;
         const bookPath = challengeBookCatalogPath(challenge);
         const items = (completionCatalog.length ? completionCatalog : staffPreview ? catalog : [])
@@ -388,7 +390,7 @@ export default function TextbookSpeakingChallenge() {
         if (staffPreview) return { success: true, demo_mode: true };
         const requestKey = activeRouteRef.current;
         try {
-            const response = await completeSpeakingChallengeQuestion(firebaseUser, challenge.id, question.id, challengeMode, sessionId);
+            const response = await retryTransient(() => completeSpeakingChallengeQuestion(firebaseUser, challenge.id, question.id, challengeMode, sessionId));
             if (leavingRef.current || activeRouteRef.current !== requestKey) return response || true;
             setChallenge(current => ({ ...current, speaking_questions: current.speaking_questions.map(item => item.id === question.id ? { ...item, progress_status: "completed" } : item) }));
             if (response?.challenge_completed || response?.completed_challenge || response?.challenge_complete || response?.practice_completed) showCompletion(response);
@@ -402,6 +404,30 @@ export default function TextbookSpeakingChallenge() {
     };
 
     const markScored = (question, _result, sessionId) => markComplete(question, sessionId || challengeSessionId);
+
+    // 答對時伺服器已經記下這次評分，這裡只是把進度標成完成：先在畫面上算完成，進度在背景存（自動重試），
+    // 學生不必等。真的存不到時改回未完成並提醒，這題之後會再出現。
+    const setQuestionStatus = (questionId, status) => setChallenge(current => current ? {
+        ...current,
+        speaking_questions: current.speaking_questions.map(item => item.id === questionId ? { ...item, progress_status: status } : item)
+    } : current);
+    const saveInBackground = (question, _result, sessionId) => {
+        if (staffPreview) return Promise.resolve({ success: true, demo_mode: true });
+        const previousStatus = question.progress_status;
+        setQuestionStatus(question.id, "completed");
+        return markComplete(question, sessionId || challengeSessionId).then(saved => {
+            if (saved === false || saved?.hint_used) {
+                setQuestionStatus(question.id, previousStatus === "completed" ? "opened" : previousStatus || "opened");
+                setSaveNotice(saved?.hint_used ? "有一題看過提示，這次不算通過，等一下再試一次。" : "剛剛有一題沒存到，等一下會再出現，請再念一次。");
+            }
+            return saved;
+        });
+    };
+    useEffect(() => {
+        if (!saveNotice) return undefined;
+        const timer = window.setTimeout(() => setSaveNotice(""), 8000);
+        return () => window.clearTimeout(timer);
+    }, [saveNotice]);
 
     const revealHint = (question, sessionId) => staffPreview
         ? Promise.resolve({
@@ -542,7 +568,7 @@ export default function TextbookSpeakingChallenge() {
         challengeMode={challengeMode}
         onRevealHint={revealHint}
         staffAudioPreview={staffPreview}
-        onComplete={markScored}
+        onComplete={saveInBackground}
         onPracticeOnly={switchToPractice}
         staffPreview={staffPreview}
         adminScoringPreview={adminScoringPreview}
@@ -616,7 +642,7 @@ export default function TextbookSpeakingChallenge() {
                     <SpeakingVisualAid aid={activeQuestion.visual_aid} />
                 </div>
                 {staffPreview && activeInteractionType === "picture_gap_sentence" && <button type="button" className="speaking-gap-sentence-audio" onClick={() => playModelAudio({ ...activeQuestion, model_audio_url: activeQuestion.picture_interaction?.sentence_audio_url })} disabled={!activeQuestion.picture_interaction?.sentence_audio_url || audioWorking === String(activeQuestion.id)}><FiVolume2 aria-hidden="true" />{audioWorking === String(activeQuestion.id) ? "整句播放中…" : "聽整句（每個挖空停 2 秒）"}</button>}
-                {staffPreview && !adminScoringPreview ? <>{activeQuestion.clip && <SpeakingQuestionClip clip={activeQuestion.clip} />}<p className="speaking-staff-preview-banner" role="status">老師唯讀預覽：可使用下方按鈕逐題查看，不啟用麥克風。</p></> : <SpeakingPracticeSteps onPracticeOnly={switchToPractice} firebaseUser={firebaseUser} question={activeQuestion} challengeSessionId={challengeSessionId} challengeMode={challengeMode} showAnswerByDefault={!activeReadAloud && challengeMode === "easy"} onRevealHint={revealHint} interactionType={activeInteractionType} hideHelp={activeReadAloud || (activePictureMode && staffPreview && !adminScoringPreview)} readAloud={activeReadAloud} deferAnswerHelp={activeZhToEn || activeGrammarCue} allowModelAudio={activeReadAloud || staffPreview} audioWorking={audioWorking === String(activeQuestion.id)} onPlayAudio={() => playModelAudio(activeQuestion)} onCompleted={() => markScored(activeQuestion)} promptTitle={activeReadAloud ? "看著文字，開口念" : activeZhToEn ? "看中文，說英文" : activeGrammarCue ? "看提示，說完整句" : activeTextQa ? "看題目，完整回答" : "直接開口回答"} promptDetail={activeReadAloud ? "照著題目文字念，需要時可以先聽示範。" : activeZhToEn ? "先自己說一次完整英文翻譯，之後可以查看提示。" : activeGrammarCue ? "依照文法提示說完整英文句子，之後可以查看示範答案。" : activeTextQa ? "不用圖片；題目未指定性別時，男生或女生答案選一種說完整即可。" : "不用打字，按下麥克風後用完整英文句子回答。"} />}
+                {staffPreview && !adminScoringPreview ? <>{activeQuestion.clip && <SpeakingQuestionClip clip={activeQuestion.clip} />}<p className="speaking-staff-preview-banner" role="status">老師唯讀預覽：可使用下方按鈕逐題查看，不啟用麥克風。</p></> : <SpeakingPracticeSteps onPracticeOnly={switchToPractice} firebaseUser={firebaseUser} question={activeQuestion} challengeSessionId={challengeSessionId} challengeMode={challengeMode} showAnswerByDefault={!activeReadAloud && challengeMode === "easy"} onRevealHint={revealHint} interactionType={activeInteractionType} hideHelp={activeReadAloud || (activePictureMode && staffPreview && !adminScoringPreview)} readAloud={activeReadAloud} deferAnswerHelp={activeZhToEn || activeGrammarCue} allowModelAudio={activeReadAloud || staffPreview} audioWorking={audioWorking === String(activeQuestion.id)} onPlayAudio={() => playModelAudio(activeQuestion)} onCompleted={() => { saveInBackground(activeQuestion); return true; }} promptTitle={activeReadAloud ? "看著文字，開口念" : activeZhToEn ? "看中文，說英文" : activeGrammarCue ? "看提示，說完整句" : activeTextQa ? "看題目，完整回答" : "直接開口回答"} promptDetail={activeReadAloud ? "照著題目文字念，需要時可以先聽示範。" : activeZhToEn ? "先自己說一次完整英文翻譯，之後可以查看提示。" : activeGrammarCue ? "依照文法提示說完整英文句子，之後可以查看示範答案。" : activeTextQa ? "不用圖片；題目未指定性別時，男生或女生答案選一種說完整即可。" : "不用打字，按下麥克風後用完整英文句子回答。"} />}
                 {audioError && <p className="speaking-audio-notice" role="alert">{audioError}</p>}
                 <small className="speaking-no-reward">{staffPreview ? "示範評分不會寫入學生進度、發放獎勵或計入每日挑戰額度。" : challengeMode === "challenge" ? "每一題都通過，完成全關才算通關；首次通關領取獎勵並解鎖下一頁。" : "練習可評分，不算正式通關、不發獎勵，也不解鎖下一頁。"}</small>
             </article>
