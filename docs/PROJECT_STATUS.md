@@ -1,5 +1,13 @@
 # Alan English 專案狀態
 
+### 拼字標出正在拼的空格（2026-10-18，PR #615，已部署；正式站 main.aeb6cbd9）
+
+- `speakingGuidedSteps.spellingFocusIndex`：只拼其中一格時回傳第幾格（-1 表示全拼）；`WorkbookOnePictureChallenge` 拼字步驟把非目標空格填答案（`.answer-given`）、目標空格加 `.is-spell-target`；相鄰空格視為同一格。測試 40 項通過。
+
+### 下一步：本機先判、接近才送 Azure 複查（擁有者 2026-10-18 同意方向；每人每月全部服務成本目標約 NT$35）
+
+- 計畫調查中，尚未實作；屬重大改動（評分流程、付費服務、可能新增 migration），實作與部署前需再取得同意。
+
 ### 口說評分加速 第 2 步：進度背景存檔（2026-10-18，PR #613，2026-10-18 已部署；正式站 main.cc9b2716）
 
 - 依據：答對時 `pronunciation-coach` 已寫入 attempt（answer_match 由伺服器判定），之後的 `speaking-challenge complete_question` 只標記進度（正式站平均 1155ms、p90 1848ms），原本畫面等它完成才播音效／換題。
