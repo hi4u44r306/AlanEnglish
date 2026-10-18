@@ -6,6 +6,7 @@ import { convertAudioBlobToWav } from "../../utils/audioWav";
 import { playSpeakingFeedbackSound, prepareSpeakingFeedbackSound } from "../../utils/speakingFeedbackSound";
 import "./css/SpeakingPronunciationRecorder.scss";
 import { microphoneIssue } from "../../utils/microphoneIssue";
+import { diffSpokenWords } from "../../utils/speakingWordDiff";
 import MicrophonePermissionHelp from "../fragment/MicrophonePermissionHelp";
 import { SpeakingActivityContext } from "./SpeakingActivityContext";
 import { speakingRecordingSeconds, SPEAKING_BUDGET_ERROR_CODES } from "../../utils/speakingRecordingPolicy";
@@ -284,6 +285,12 @@ export default function SpeakingPronunciationRecorder({
     const assessmentUncertain = result?.assessment_status === "uncertain";
     const answerMatched = !assessmentUncertain && result?.answer_match !== false;
     const resultTone = assessmentUncertain ? "practice" : answerMatched ? scoreTone(pronunciationScore) : "retry";
+    // 沒過時讓學生看到系統聽到了什麼。只有「跟著念」的一般句子題手機上有題目原句（評分也用它），
+    // 才逐字標出不一樣的字；看圖、問答與「自己說」只顯示聽到的句子，不透露答案。
+    const heardText = !azureLetters && result && !answerMatched && !assessmentUncertain ? String(result.recognized_text || "").trim() : "";
+    const comparable = challengeMode === "easy" && ["", "standard_sentence"].includes(String(interactionType || question.interaction_type || ""));
+    const heardDiff = heardText && comparable && question.model_answer ? diffSpokenWords(question.model_answer, heardText) : null;
+    const renderWords = words => words.map((word, index) => <React.Fragment key={index}>{index ? " " : ""}<span className={word.ok ? undefined : "is-off"}>{word.text}</span></React.Fragment>);
     const accessibleDisabledReason = /\d+\s*秒後播放提示音/.test(disabledReason)
         ? "三秒後播放提示音。"
         : disabledReason;
@@ -327,6 +334,11 @@ export default function SpeakingPronunciationRecorder({
         {result && <div className={`speaking-pronunciation-result is-${resultTone}`} role="status" aria-live="polite" aria-atomic="true">
             <header>{answerMatched ? <FiCheckCircle aria-hidden="true" /> : <FiAlertCircle aria-hidden="true" />}<span>本次練習結果</span><strong>{answerMatched ? scoreLabel(pronunciationScore) : assessmentUncertain ? "系統沒有聽清楚" : "回答方式還差一點"}</strong></header>
             <p className="speaking-completeness-score"><span>{azureLetters ? "字母發音" : "朗讀完整度"}</span><strong>{pronunciationScore} 分</strong></p>
+            {heardText && <div className="speaking-heard">
+                <p><span>系統聽到</span><strong lang="en">{heardDiff ? renderWords(heardDiff.heard) : heardText}</strong></p>
+                {heardDiff && <p><span>題目是</span><strong lang="en">{renderWords(heardDiff.expected)}</strong></p>}
+                <small>{heardDiff ? "標色的字和題目不一樣。" : ""}如果你確定念對了，可能是系統聽錯：按「回聽我的錄音」聽聽看，再慢一點、清楚一點念一次。</small>
+            </div>}
             {previewUrl && <details className="speaking-result-replay"><summary>回聽我的錄音</summary><audio controls src={previewUrl} aria-label="回聽我的錄音">你的瀏覽器不支援錄音播放。</audio></details>}
             {answerMatched && result.pronunciation_tips?.length > 0 && <p className="speaking-pronunciation-tip"><strong>th 可以再念清楚</strong><span>{result.pronunciation_tips.map(tip => `${tip.word}（系統聽成 ${tip.heard}）`).join("、")}。下次把舌尖輕放在上下牙齒中間再念，會更標準。</span></p>}
             {assessmentUncertain && <p className="speaking-pronunciation-feedback"><span>{result.feedback || "這次沒有聽清楚，不算你答錯，請再試一次。"}</span></p>}
