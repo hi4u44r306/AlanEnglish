@@ -1,5 +1,12 @@
 # Alan English 專案狀態
 
+### 口說轉文字加速（2026-10-18，分支 `feat/speaking-faster-local`，只改前端，隨 PR 上線）
+
+- 擁有者要求單題等待約 3 秒內：`localSpeakingRecognizer` 大模型改為單次超過 3 秒（原 8 秒）就換小模型；`worker.mjs`（v=3）載入後先用 1 秒靜音暖機並回報 `warmupMs`，大模型暖機超過 3 秒就在第一題前改載小模型。
+- 不剪錄音前後空白：Whisper 固定以 30 秒視窗計算，剪掉也幾乎不會變快。
+- 計時 migration 檔改名為正式版本 `20261018104520_speaking_local_client_timing.sql`。
+- 上一批部署驗證（PR #620）：計時 migration 已套用正式 `20261018104520`（`authenticated` 不能執行摘要函式）；pronunciation-coach v64 由 main 部署，和 main 16 檔一致；OPTIONS 200（max-age 7200）、未登入／錯誤 token 401；正式站前端含計時程式。
+
 ### 電腦版學生頂端列：名字移到左邊（2026-10-18，分支 `fix/student-navbar-account-left`，只改 CSS）
 
 - `StudentNavbar.scss`：1280px 以上 `.ae-student-desktop-account` 改 `display: contents`，名字 chip 排到 Lv 卡片左邊，通知與登出留右邊；平板／手機不變。
@@ -9,7 +16,7 @@
 
 - 前端：`utils/speakingClientTiming.js`；`localSpeakingRecognizer.transcribe` 回傳 transcribeMs／inferenceMs／model；`pronunciationCoachService` 送 `client_timing`，並記錄送評分與再確認往返，附在下一次。
 - 後端：`pronunciation-coach` `sanitizeClientTiming`，本機請求完成時寫入 `speaking_local_reading_requests.client_timing`。
-- Migration `20261018120000_speaking_local_client_timing.sql`：欄位（物件、≤1 KB）＋ `speaking_client_timing_summary_v1`。
+- Migration `20261018104520_speaking_local_client_timing.sql`：欄位（物件、≤1 KB）＋ `speaking_client_timing_summary_v1`。
 - 驗證：前端 64 項、後端 40 項（local-handler 新增計時 1 項）、SQL 2 項（PGlite）。
 
 ### 再確認沒過的顯示修正（2026-10-18，分支 `fix/recheck-display`）

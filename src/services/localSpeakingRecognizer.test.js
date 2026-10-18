@@ -103,6 +103,21 @@ describe("本機辨識引擎", () => {
         expect(prefersLargeSpeakingModel()).toBe(false);
         delete navigator.connection;
     });
+    it("暖機超過 3 秒的裝置，在第一題之前就換成小模型", async () => {
+        const engine = new LocalSpeakingRecognizer(), progress = jest.fn(), prepare = engine.prepare(progress);
+        await Promise.resolve();
+        workers[0].reply({ type: "mode", model: "base", accelerated: true }); workers[0].reply({ type: "ready", model: "base", warmupMs: 4800 });
+        await Promise.resolve(); await Promise.resolve();
+        expect(workers[0].terminate).toHaveBeenCalled();
+        expect(workers[1].message).toMatchObject({ model: "tiny", preferSimd: true });
+        expect(progress).toHaveBeenCalledWith("這台裝置改用較快的辨識模型…");
+        workers[1].reply({ type: "mode", model: "tiny", accelerated: true }); workers[1].reply({ type: "ready", model: "tiny", warmupMs: 4800 });
+        await prepare;
+        expect(engine.ready).toBe(true);
+        expect(engine.model).toBe("tiny");
+        expect(prefersLargeSpeakingModel()).toBe(false);
+        engine.dispose();
+    });
     it("大模型評分一段錄音太久，這台裝置立刻換成小模型", async () => {
         const engine = new LocalSpeakingRecognizer(), prepare = engine.prepare();
         await Promise.resolve();

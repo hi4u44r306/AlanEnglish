@@ -9,7 +9,7 @@ before(async () => {
     await db.exec(`create role anon; create role authenticated; create role service_role;
         create table public.speaking_local_reading_requests(id uuid primary key default gen_random_uuid(), student_id bigint,
             status text default 'reserved', created_at timestamptz default now());`);
-    await db.exec(readFileSync(new URL("../supabase/migrations/20261018120000_speaking_local_client_timing.sql", import.meta.url), "utf8"));
+    await db.exec(readFileSync(new URL("../supabase/migrations/20261018104520_speaking_local_client_timing.sql", import.meta.url), "utf8"));
 });
 after(() => db.close());
 
