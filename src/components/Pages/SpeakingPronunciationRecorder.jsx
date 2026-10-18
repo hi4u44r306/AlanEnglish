@@ -254,9 +254,11 @@ export default function SpeakingPronunciationRecorder({
             // 只差一點沒過：伺服器同意時，用同一段錄音請 Azure 再確認；失敗或逾時就用本機結果。
             if (!azureLetters && score?.answer_match === false && score?.recheck) {
                 setRechecking(true);
+                // Azure 依參考句辨識，聽到的文字會往答案靠；畫面上「系統聽到」一律用這台裝置聽到的句子。
+                const localHeard = score.recognized_text;
                 try {
-                    score = await submitSpeakingRecheck({ firebaseUser, questionId: question.id, audio, attemptId: score.recheck.attempt_id,
-                        recognizedText: transcription?.recognizedText || "", challengeSessionId, challengeMode });
+                    score = { ...await submitSpeakingRecheck({ firebaseUser, questionId: question.id, audio, attemptId: score.recheck.attempt_id,
+                        recognizedText: transcription?.recognizedText || "", challengeSessionId, challengeMode }), local_recognized_text: localHeard };
                 } catch {
                     score = { ...score, recheck: null };
                 } finally { if (token === generationRef.current) setRechecking(false); }
@@ -301,7 +303,7 @@ export default function SpeakingPronunciationRecorder({
     const resultTone = assessmentUncertain ? "practice" : answerMatched ? scoreTone(pronunciationScore) : "retry";
     // 沒過時讓學生看到系統聽到了什麼。只有「跟著念」的一般句子題手機上有題目原句（評分也用它），
     // 才逐字標出不一樣的字；看圖、問答與「自己說」只顯示聽到的句子，不透露答案。
-    const heardText = !azureLetters && result && !answerMatched && !assessmentUncertain ? String(result.recognized_text || "").trim() : "";
+    const heardText = !azureLetters && result && !answerMatched && !assessmentUncertain ? String(result.local_recognized_text || result.recognized_text || "").trim() : "";
     const comparable = challengeMode === "easy" && ["", "standard_sentence"].includes(String(interactionType || question.interaction_type || ""));
     const heardDiff = heardText && comparable && !rechecked && question.model_answer ? diffSpokenWords(question.model_answer, heardText) : null;
     const renderWords = words => words.map((word, index) => <React.Fragment key={index}>{index ? " " : ""}<span className={word.ok ? undefined : "is-off"}>{word.text}</span></React.Fragment>);
@@ -348,7 +350,7 @@ export default function SpeakingPronunciationRecorder({
         {rechecking && <p className="speaking-recheck-status" role="status">差一點！正在請系統再確認一次…</p>}
         {result && <div className={`speaking-pronunciation-result is-${resultTone}`} role="status" aria-live="polite" aria-atomic="true">
             <header>{answerMatched ? <FiCheckCircle aria-hidden="true" /> : <FiAlertCircle aria-hidden="true" />}<span>本次練習結果</span><strong>{answerMatched ? scoreLabel(pronunciationScore) : assessmentUncertain ? "系統沒有聽清楚" : "回答方式還差一點"}</strong></header>
-            <p className="speaking-completeness-score"><span>{azureLetters ? "字母發音" : rechecked ? "發音評分" : "朗讀完整度"}</span><strong>{pronunciationScore} 分</strong></p>
+            {!(rechecked && !answerMatched) && <p className="speaking-completeness-score"><span>{azureLetters ? "字母發音" : rechecked ? "發音評分" : "朗讀完整度"}</span><strong>{pronunciationScore} 分</strong></p>}
             {heardText && <div className="speaking-heard">
                 <p><span>系統聽到</span><strong lang="en">{heardDiff ? renderWords(heardDiff.heard) : heardText}</strong></p>
                 {heardDiff && <p><span>題目是</span><strong lang="en">{renderWords(heardDiff.expected)}</strong></p>}

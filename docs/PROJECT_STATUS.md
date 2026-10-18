@@ -1,5 +1,17 @@
 # Alan English 專案狀態
 
+### 再確認沒過的顯示修正（2026-10-18，分支 `fix/recheck-display`）
+
+- 擁有者以管理員試用：念 "It is a bar"（答案 car），Azure 正確判定沒過，但畫面「系統聽到」顯示 Azure 依參考句辨識的 "It is a car."、顯示 81 分、提示出現兩次。
+- 修正（只改前端）：Recorder 再確認時保留本機辨識文字 `local_recognized_text` 作為「系統聽到」；再確認沒過不顯示分數；SpeakingPracticeSteps 對 `rechecked` 結果不重複顯示 feedback。測試：Recorder 新增 1 項；口說相關 8 個測試檔 198 項通過。
+
+### Azure 再確認上線驗證（2026-10-18，PR #618）
+
+- Migration `20261018072826` 已套用（擁有者同意）；`pronunciation-coach` v62 由 main 部署，部署前確認線上 v61 與合併前 main 一致，部署後 16 檔逐檔與 main 相同；OPTIONS 回 max-age 7200，無登入／錯誤 token 皆 401。
+- 前端：Cloudflare 正式站 main.7ed5298b，含再確認樣式。
+- `recheck_mode` 已依擁有者同意改為 `staff`（只有管理員試用）；改為 `all` 前需擁有者確認。
+- 注意：本次 migration 在 PR 合併前從功能分支套用，內容與合併後 main 相同；之後依規則先合併再套用。
+
 ### Azure 再確認與費用上限（2026-10-18，PR #618；migration 已於 2026-10-18 套用正式 `20261018072826`（擁有者同意），pronunciation-coach 於合併後由 main 部署；再確認預設 off，擁有者同意先開 staff）
 
 - Migration `20261018072826_speaking_azure_recheck_and_letter_cap.sql`：`speaking_azure_cost_policy`（recheck_mode off／staff／all、每日 5、同題 2、每月 600 秒、字母＋拼字每月 2250 秒）；attempts／requests 新增 `recheck_of_attempt_id`（唯一）；`reserve_speaking_azure_recheck_request_v1`；A–Z 與拼字預約加每月秒數上限（以線上定義為基礎）；`unified_cost_month_v1` 的 Azure 含 `azure_sentence_recheck`。
