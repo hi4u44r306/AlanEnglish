@@ -3,7 +3,7 @@ import { cleanup, act, fireEvent, render, screen, waitFor } from "@testing-libra
 import "@testing-library/jest-dom";
 import SpeakingPronunciationRecorder from "./SpeakingPronunciationRecorder";
 import { SpeakingActivityContext } from "./SpeakingActivityContext";
-import { submitSpeakingPronunciationAttempt, submitAlphabetPronunciationAttempt } from "../../services/pronunciationCoachService";
+import { submitSpeakingPronunciationAttempt, submitAlphabetPronunciationAttempt, submitSpeakingRecheck } from "../../services/pronunciationCoachService";
 import { convertAudioBlobToWav } from "../../utils/audioWav";
 import { playSpeakingFeedbackSound, prepareSpeakingFeedbackSound } from "../../utils/speakingFeedbackSound";
 import { retainLocalSpeakingRecognizer } from "../../services/localSpeakingRecognizer";
@@ -11,7 +11,7 @@ import { retainLocalSpeakingRecognizer } from "../../services/localSpeakingRecog
 jest.mock("../../services/localSpeakingRecognizer", () => ({ retainLocalSpeakingRecognizer: jest.fn(() => ({ recognizer: { ready: true, mode: "相容加速模式", prepare: jest.fn().mockResolvedValue(), transcribe: jest.fn().mockResolvedValue({recognizedText:"My name is Amy.",audioSeconds:2}) }, release: jest.fn() })) }));
 
 jest.mock("../../services/pronunciationCoachService", () => ({
-    submitSpeakingPronunciationAttempt: jest.fn(), submitAlphabetPronunciationAttempt: jest.fn()
+    submitSpeakingPronunciationAttempt: jest.fn(), submitAlphabetPronunciationAttempt: jest.fn(), submitSpeakingRecheck: jest.fn()
 }));
 jest.mock("../../utils/audioWav", () => ({
     convertAudioBlobToWav: jest.fn()
@@ -374,15 +374,55 @@ describe("SpeakingPronunciationRecorder", () => {
         await waitFor(() => expect(convertAudioBlobToWav).toHaveBeenCalledTimes(1));
         fireEvent.click(await screen.findByRole("button", { name: /送出評分/ }));
         expect(await screen.findByText("系統聽到")).toBeInTheDocument();
-        expect(screen.getByText(/可能是系統聽錯/)).toBeInTheDocument();
         if (comparable) {
+            expect(screen.getByText(/標色的字和題目不一樣/)).toBeInTheDocument();
             expect(screen.getByText("題目是")).toBeInTheDocument();
             expect(screen.getByText("bed")).toHaveClass("is-off");
             expect(screen.getByText("red")).toHaveClass("is-off");
         } else {
+            expect(screen.getByText(/可能是系統聽錯/)).toBeInTheDocument();
             expect(screen.queryByText("題目是")).not.toBeInTheDocument();
             expect(screen.getByText("I like bed apples")).toBeInTheDocument();
         }
+    });
+
+    const recordAndSubmit = async () => {
+        fireEvent.click(screen.getByRole("button", { name: /開始錄音/ }));
+        fireEvent.click(await screen.findByRole("button", { name: "先停止並回聽" }));
+        await waitFor(() => expect(convertAudioBlobToWav).toHaveBeenCalled());
+        fireEvent.click(await screen.findByRole("button", { name: /送出評分/ }));
+    };
+    const nearMiss = { assessment_kind: "local_completeness_v1", answer_match: false, assessment_status: "assessed",
+        recognized_text: "I like caps", scores: { completeness: 67 }, words: [], recheck: { attempt_id: 41 } };
+
+    it("只差一點沒過：用同一段錄音再確認，通過就用再確認的結果", async () => {
+        const wav = new Blob([new Uint8Array(1600)], { type: "audio/wav" });
+        convertAudioBlobToWav.mockResolvedValue(wav);
+        submitSpeakingPronunciationAttempt.mockResolvedValue(nearMiss);
+        submitSpeakingRecheck.mockResolvedValue({ assessment_kind: "azure_pronunciation", answer_match: true, rechecked: true,
+            recognized_text: "I like cats.", scores: { pronunciation: 84, completeness: 100 }, words: [], feedback: "再確認後通過了！" });
+        const onScored = jest.fn().mockResolvedValue(true);
+        render(<SpeakingPronunciationRecorder firebaseUser={{ getIdToken: jest.fn() }} challengeSessionId="s1"
+            question={{ id: 16, interaction_type: "standard_sentence", model_answer: "I like cats." }} onScored={onScored} />);
+        await recordAndSubmit();
+        await waitFor(() => expect(onScored).toHaveBeenCalledWith(expect.objectContaining({ answer_match: true, rechecked: true })));
+        expect(submitSpeakingRecheck).toHaveBeenCalledWith(expect.objectContaining({ questionId: 16, audio: wav, attemptId: 41, challengeSessionId: "s1" }));
+        expect(onScored).toHaveBeenCalledTimes(1);
+        expect(await screen.findByText("發音評分")).toBeInTheDocument();
+    });
+
+    it("再確認失敗或逾時：退回本機結果，不鎖住之後的送評", async () => {
+        convertAudioBlobToWav.mockResolvedValue(new Blob([new Uint8Array(1600)], { type: "audio/wav" }));
+        submitSpeakingPronunciationAttempt.mockResolvedValue(nearMiss);
+        submitSpeakingRecheck.mockRejectedValue(Object.assign(new Error("額度用完"), { status: 429, code: "student_audio_budget_exhausted" }));
+        const onScored = jest.fn();
+        render(<SpeakingPronunciationRecorder firebaseUser={{ getIdToken: jest.fn() }}
+            question={{ id: 17, interaction_type: "standard_sentence", model_answer: "I like cats." }} onScored={onScored} />);
+        await recordAndSubmit();
+        expect(await screen.findByText("系統聽到")).toBeInTheDocument();
+        expect(screen.getByText("朗讀完整度")).toBeInTheDocument();
+        expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+        expect(onScored).toHaveBeenCalledWith(expect.objectContaining({ answer_match: false }));
     });
 
     it("分數抵達就通知外層儲存，不等待四秒、不顯示百分比", async () => {

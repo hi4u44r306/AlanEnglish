@@ -110,11 +110,11 @@ export const normalizedSpokenSentence = (value: unknown) => String(value || "")
     .replace(/\s+/g, " ")
     .trim();
 
-const OPTIONAL_GRAMMAR_WORDS = new Set([
+export const OPTIONAL_GRAMMAR_WORDS = new Set([
     "a", "an", "the", "am", "are", "is", "was", "were", "do", "does", "did",
     "to", "of", "in", "on", "at", "for", "and", "please"
 ]);
-const POLARITY_WORDS = new Set(["yes", "no", "not"]);
+export const POLARITY_WORDS = new Set(["yes", "no", "not"]);
 
 const canonicalSentenceTokens = (value: unknown) => normalizedSpokenSentence(value)
     .replace(/\b(i'm)\b/g, "i am")

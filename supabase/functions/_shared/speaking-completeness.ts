@@ -1,5 +1,5 @@
 import { hasSpeakingAnswerSlots, matchesSpeakingAnswerTemplate } from "./speaking-pronunciation-reference.ts";
-import { FOUNDATION_INTERACTION_TYPES, alignThSoundAlikes, matchesFoundationAnswer } from "./speaking-foundation-answer.ts";
+import { FOUNDATION_INTERACTION_TYPES, OPTIONAL_GRAMMAR_WORDS, POLARITY_WORDS, alignThSoundAlikes, matchesFoundationAnswer } from "./speaking-foundation-answer.ts";
 
 export const readingWords = (text: string): string[] => text.toLowerCase().replace(/[’‘]/g, "'")
     .replace(/\bi'm\b/g, "i am").replace(/\bcan't\b/g, "cannot").replace(/\bwon't\b/g, "will not").replace(/n't\b/g, " not")
@@ -75,4 +75,53 @@ export function assessReadingCompleteness(question: { answerTemplate: string; ac
             : alphabet ? "請聽示範，再把字母分開唸清楚；辨識也可能聽錯，可以重錄。"
                 : "請再確認題目，用完整且正確的句子回答。辨識也可能聽錯，可以重錄。"
     };
+}
+
+// ---- Azure 再確認：本機判沒過、但只差一點（多半是辨識聽錯）時才值得花錢再確認。
+// 只在伺服器判斷；前端送來的文字不可信，所以這裡也只決定「要不要再確認」，最後仍由 Azure 判定。
+const RECHECK_TYPES = new Set(["", "standard_sentence", "text_qa", "picture_qa", "picture_gap_sentence"]);
+// 換了這些字是意思不同（他／她、數字、是否），不是聽錯，不送再確認。
+export const MEANING_SWAP_WORDS = new Set([
+    "he", "she", "his", "her", "him", "they", "we", "i", "you", "it", "my", "your", "our", "their", "me", "us", "them",
+    "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve",
+    "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen", "twenty"
+]);
+export const RECHECK_RULES = Object.freeze({ minCoverage: 60, minWords: 3, maxWords: 20, maxExtraWords: 2 });
+
+const isCoreWord = (word: string) => !OPTIONAL_GRAMMAR_WORDS.has(word) && !POLARITY_WORDS.has(word);
+const polarity = (words: string[]) => words.filter(word => POLARITY_WORDS.has(word)).join(" ");
+
+export function localRecheckCandidate(
+    question: { answerTemplate: string; acceptedAnswers: string[]; interactionType: string },
+    recognizedText: unknown
+): { eligible: boolean; reason: string; referenceText?: string } {
+    if (!RECHECK_TYPES.has(String(question.interactionType || ""))) return { eligible: false, reason: "type" };
+    if (typeof recognizedText !== "string" || !/[a-z]/i.test(recognizedText)) return { eligible: false, reason: "no_text" };
+    const templates = [question.answerTemplate, ...question.acceptedAnswers].flatMap(readingAnswerAlternatives);
+    if (templates.some(hasSpeakingAnswerSlots)) return { eligible: false, reason: "slots" };
+    const heard = readingWords(recognizedText);
+    const ranked = templates
+        .map(template => {
+            const coverage = readingCoverage(template, recognizedText);
+            const missingCore = coverage.words.filter(word => word.status !== "good" && isCoreWord(word.text)).map(word => word.text);
+            return { template, coverage, missingCore };
+        })
+        .sort((left, right) => right.coverage.score - left.coverage.score || left.missingCore.length - right.missingCore.length);
+    const best = ranked[0];
+    if (!best) return { eligible: false, reason: "no_template" };
+    const expected = readingWords(best.template);
+    if (expected.length < RECHECK_RULES.minWords || expected.length > RECHECK_RULES.maxWords) return { eligible: false, reason: "length" };
+    if (polarity(expected) !== polarity(heard)) return { eligible: false, reason: "polarity" };
+    if (best.coverage.score < RECHECK_RULES.minCoverage) return { eligible: false, reason: "far" };
+    const allowedMissing = expected.length >= 8 ? 2 : 1;
+    if (!best.missingCore.length || best.missingCore.length > allowedMissing) return { eligible: false, reason: "core_words" };
+    if (best.missingCore.some(word => MEANING_SWAP_WORDS.has(word))) return { eligible: false, reason: "meaning_swap" };
+    // 念成別的字（聽到的字數不少於題目）才算聽錯；漏念不送。
+    if (heard.length < expected.length) return { eligible: false, reason: "omission" };
+    if (heard.length - expected.length > RECHECK_RULES.maxExtraWords) return { eligible: false, reason: "extra_words" };
+    // 被取代的字不能是句子裡另一個答案字（只是換位置）。
+    const substitutes = heard.filter(word => !expected.includes(word));
+    if (!substitutes.length) return { eligible: false, reason: "reordered" };
+    if (substitutes.some(word => MEANING_SWAP_WORDS.has(word))) return { eligible: false, reason: "meaning_swap" };
+    return { eligible: true, reason: "close", referenceText: best.template.replace(/[\[［][^\]］]+[\]］]/g, "").replace(/\s+/g, " ").trim() };
 }
