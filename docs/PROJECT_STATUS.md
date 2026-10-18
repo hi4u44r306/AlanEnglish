@@ -1,6 +1,6 @@
 # Alan English 專案狀態
 
-### Azure 複查 第 1 階段：沒過時顯示系統聽到（2026-10-18，分支 `feat/speaking-heard-diff`，尚未部署）
+### Azure 複查 第 1 階段：沒過時顯示系統聽到（2026-10-18，PR #617，合併即部署）
 
 - `src/utils/speakingWordDiff.js`：與伺服器 `speaking-completeness.ts` 相同的正規化、縮寫展開、LCS 與 th 對齊，只供顯示。
 - `SpeakingPronunciationRecorder`：本機評分沒過（非 uncertain、非 Azure 字母）時顯示 `recognized_text`；easy＋standard_sentence（含空字串題型）且有 `model_answer` 時另列題目並標出不同字（`.is-off`）。
