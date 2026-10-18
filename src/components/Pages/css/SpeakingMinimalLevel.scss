@@ -428,3 +428,11 @@ body.speaking-challenge-active .speaking-gap-sentence .punctuation { white-space
 // Spelling a gap sentence: the blank being spelled gets a yellow frame; blanks that are not spelled show their answer.
 body.speaking-challenge-active .speaking-gap-sentence .answer-blank.is-spell-target { padding: 0 .12em; border-radius: .2em; outline: .09em solid #f2b61c; outline-offset: .04em; background: #fff1bf !important; }
 body.speaking-challenge-active .speaking-gap-sentence .answer-given { color: var(--ae-text, #17365d); text-decoration: underline dotted #9cb7d3; text-underline-offset: .15em; }
+
+// A missed answer: what the recognizer heard, and (for read-aloud in 跟著念) the sentence, with differing words marked.
+.speaking-heard { display: grid; gap: 6px; margin: 4px 0 0; padding: 10px 14px; border-radius: 14px; background: var(--ae-surface-muted, #f1f5fa); text-align: left; }
+.speaking-heard p { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin: 0; }
+.speaking-heard p > span { flex: none; color: var(--ae-text-muted, #526780); font-size: 14px; font-weight: 700; }
+.speaking-heard strong { color: var(--ae-text, #17365d); font-size: 18px; font-weight: 800; line-height: 1.45; overflow-wrap: anywhere; }
+.speaking-heard .is-off { padding: 0 .15em; border-radius: .25em; background: var(--ae-danger-bg, #fdecec); color: var(--ae-danger, #c62828); }
+.speaking-heard small { color: var(--ae-text-muted, #526780); font-size: 14px; line-height: 1.5; }
