@@ -39,7 +39,11 @@ const sentenceSizeClass = text => {
     return length > 110 ? " is-very-long" : length > 60 ? " is-long" : "";
 };
 
-export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, staffAudioPreview = false, onComplete, onPracticeOnly, onExit, onFinished, staffPreview = false, adminScoringPreview = false, challengeMode = "easy", onRevealHint }) {
+// 答對後停一下讓學生看到結果、聽到音效再換題；有發音提醒（例如 th）時停久一點。
+const CORRECT_PAUSE_MS = 1200;
+const TIP_PAUSE_MS = 2600;
+
+export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, staffAudioPreview = false, onComplete, onPracticeOnly, onExit, onFinished, staffPreview = false, adminScoringPreview = false, challengeMode = "easy", onRevealHint, correctPauseMs = CORRECT_PAUSE_MS, tipPauseMs = TIP_PAUSE_MS }) {
     const interactionType = String(challenge?.generation_metadata?.interaction_type || "");
     const gapMode = interactionType === "picture_gap_sentence";
     const copy = copyByType[interactionType] || copyByType.picture_qa;
@@ -56,6 +60,12 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, s
     const [guided, setGuided] = useState({ id: null, step: null });
     const audioRef = useRef(null);
     const phaseFocusRef = useRef(null);
+    // 背景存檔用：這一輪的題目、已完成的題目、還在存的請求、最後一次存檔結果、換題計時器。
+    const roundRef = useRef([]);
+    const doneRef = useRef(new Set());
+    const pendingSavesRef = useRef(new Set());
+    const lastSavedRef = useRef(null);
+    const advanceTimerRef = useRef(null);
 
     const stopAudio = () => {
         audioRef.current?.pause();
@@ -63,10 +73,20 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, s
         setAudioToken(null);
     };
 
-    useEffect(() => () => stopAudio(), []);
+    const markDone = (questionId, done) => {
+        const next = new Set(doneRef.current);
+        if (done) next.add(questionId); else next.delete(questionId);
+        doneRef.current = next;
+        setCompletedIds(next);
+    };
+
+    useEffect(() => () => { stopAudio(); window.clearTimeout(advanceTimerRef.current); }, []);
     useEffect(() => {
         stopAudio();
+        window.clearTimeout(advanceTimerRef.current);
         setPhase("instructions");
+        roundRef.current = [];
+        doneRef.current = new Set();
         setRound([]);
         setActiveIndex(0);
         setAudioError("");
@@ -79,7 +99,9 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, s
         stopAudio();
         const remaining = staffPreview ? sourceQuestions : sourceQuestions.filter(question => question.progress_status !== "completed" && !completedIds.has(question.id));
         const roundQuestions = remaining.length ? remaining : sourceQuestions;
-        setRound(staffPreview ? roundQuestions : createPictureChallengeRound(roundQuestions));
+        window.clearTimeout(advanceTimerRef.current);
+        roundRef.current = staffPreview ? roundQuestions : createPictureChallengeRound(roundQuestions);
+        setRound(roundRef.current);
         setActiveIndex(0);
         setCanSkip(false);
         setAudioError("");
@@ -134,18 +156,37 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, s
         "瀏覽器阻擋了播放，請再按一次聽整句。"
     );
 
-    const handleCorrect = async result => {
-        const saved = await onComplete?.(activeQuestion, result, challengeSessionId);
-        if (saved === false) { setCanSkip(true); return false; }
-        if (saved?.hint_used) return saved;
-        setCompletedIds(current => new Set([...current, activeQuestion.id]));
-        stopAudio();
-        if (activeIndex >= round.length - 1) {
+    // 伺服器已判定答對並記下這次評分；這裡把進度存在背景（上層會自動重試），畫面不等。
+    // 真的存不到（或這題看過提示）就改回未完成，加到這一輪最後面再念一次。
+    const handleCorrect = result => {
+        const question = activeQuestion;
+        const index = activeIndex;
+        markDone(question.id, true);
+        const save = Promise.resolve(onComplete?.(question, result, challengeSessionId))
+            .catch(() => false)
+            .then(saved => {
+                if (saved === false || saved?.hint_used) {
+                    markDone(question.id, false);
+                    roundRef.current = [...roundRef.current, question];
+                    setRound(roundRef.current);
+                } else lastSavedRef.current = saved;
+                return saved;
+            });
+        pendingSavesRef.current.add(save);
+        save.finally(() => pendingSavesRef.current.delete(save));
+        setCanSkip(false);
+        window.clearTimeout(advanceTimerRef.current);
+        advanceTimerRef.current = window.setTimeout(async () => {
+            stopAudio();
+            if (index < roundRef.current.length - 1) { setActiveIndex(index + 1); return; }
+            // 最後一題：等所有存檔都有結果，才結算這一輪。
+            await Promise.all([...pendingSavesRef.current]);
+            if (index < roundRef.current.length - 1) { setActiveIndex(index + 1); return; }
             setPhase("result");
-            const allCompleted = staffPreview || sourceQuestions.every(question => question.progress_status === "completed" || completedIds.has(question.id) || question.id === activeQuestion.id);
-            if (allCompleted) onFinished?.(saved);
-        }
-        else { setCanSkip(false); setActiveIndex(index => index + 1); }
+            const allCompleted = staffPreview || sourceQuestions.every(item => item.progress_status === "completed" || doneRef.current.has(item.id));
+            if (allCompleted) onFinished?.(lastSavedRef.current ?? true);
+        }, result?.pronunciation_tips?.length ? tipPauseMs : correctPauseMs);
+        return true;
     };
     const skipQuestion = () => {
         stopAudio();

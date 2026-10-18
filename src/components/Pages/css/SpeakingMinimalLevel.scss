@@ -421,3 +421,6 @@ body.speaking-challenge-active .speaking-gap-sentence .punctuation { white-space
 .speaking-spell-slots.is-wrong .speaking-spell-slot { border-bottom-color: var(--ae-danger, #c62828); background: var(--ae-danger-bg, #fdecec); color: var(--ae-danger, #c62828); animation: speaking-spell-shake .35s ease-in-out; }
 @keyframes speaking-spell-shake { 25% { transform: translateX(-3px); } 75% { transform: translateX(3px); } }
 @media (prefers-reduced-motion: reduce) { .speaking-spell-slots.is-wrong .speaking-spell-slot { animation: none; } }
+
+// A correct answer whose progress could not be saved after retries: a short note above the level.
+.speaking-save-notice { flex: 1 1 100%; margin: 0; padding: 10px 14px; border: 1px solid #f2b51e; border-radius: 14px; background: var(--ae-warning-bg, #fffbea); color: var(--ae-warning, #5c4a12); font-size: 16px; font-weight: 700; line-height: 1.5; }
