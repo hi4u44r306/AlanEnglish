@@ -88,6 +88,7 @@ export class LocalSpeakingRecognizer {
     }
     async transcribe(wav, maxSeconds) {
         if (!this.ready) throw failure("local_not_ready", "請先準備語音辨識。" );
+        const started = typeof performance !== "undefined" ? performance.now() : Date.now();
         // Input is our own bounded mono 16 kHz PCM WAV; no second audio decode.
         const buffer = await wav.arrayBuffer();
         const view = new DataView(buffer);
@@ -107,7 +108,8 @@ export class LocalSpeakingRecognizer {
             writeModelState({ small: true }); this.dispose(); this.prepare().catch(() => {});
         }
         if (!/[a-z]/i.test(result.text || "")) throw failure("speech_no_match", "沒有辨識到英文，請重新錄音。" );
-        return { recognizedText: result.text, audioSeconds: length / 16000 };
+        const transcribeMs = (typeof performance !== "undefined" ? performance.now() : Date.now()) - started;
+        return { recognizedText: result.text, audioSeconds: length / 16000, inferenceMs: result.inferenceMs, transcribeMs, model: this.model };
     }
 }
 export function retainLocalSpeakingRecognizer() {

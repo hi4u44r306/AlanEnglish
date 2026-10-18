@@ -1,5 +1,12 @@
 # Alan English 專案狀態
 
+### 口說評分計時（2026-10-18，分支 `feat/speaking-timing`，接在 PR #619 之後；需 migration＋pronunciation-coach 部署）
+
+- 前端：`utils/speakingClientTiming.js`；`localSpeakingRecognizer.transcribe` 回傳 transcribeMs／inferenceMs／model；`pronunciationCoachService` 送 `client_timing`，並記錄送評分與再確認往返，附在下一次。
+- 後端：`pronunciation-coach` `sanitizeClientTiming`，本機請求完成時寫入 `speaking_local_reading_requests.client_timing`。
+- Migration `20261018120000_speaking_local_client_timing.sql`：欄位（物件、≤1 KB）＋ `speaking_client_timing_summary_v1`。
+- 驗證：前端 64 項、後端 40 項（local-handler 新增計時 1 項）、SQL 2 項（PGlite）。
+
 ### 再確認沒過的顯示修正（2026-10-18，分支 `fix/recheck-display`）
 
 - 擁有者以管理員試用：念 "It is a bar"（答案 car），Azure 正確判定沒過，但畫面「系統聽到」顯示 Azure 依參考句辨識的 "It is a car."、顯示 81 分、提示出現兩次。

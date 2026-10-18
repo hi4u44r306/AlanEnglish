@@ -105,13 +105,37 @@ const reserveProviderRequest = async (admin: any, studentId: number, question: a
  ? "今天已開始 10 次口說大挑戰，明天再繼續吧！" : data?.code === "speaking_level_completed_today" ? "這一關今天已完成，可以錄音回聽，明天再評分。" : "短時間練習次數較多，請休息一下再繼續。"), {status:429,code:data?.code || "rate_limited"});
  return {requestId:String(data.request_id),challengeUsage:data.challenge_usage || null};
 };
-const finishProviderRequest = async (admin: any, requestId: string, status: string, errorCode: string | null = null, table = "speaking_local_reading_requests") => {
+// 手機回報的計時（轉文字多久、上一次送評分往返多久）。只留數字與固定選項，其他一律丟掉。
+const timingNumber = (value: unknown, max: number) => {
+    const number = Number(value);
+    return Number.isFinite(number) && number >= 0 && number <= max ? Math.round(number) : null;
+};
+const sanitizeClientTiming = (value: any) => {
+    if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+    const memory = Number(value.memory_gb);
+    return {
+        v: 1,
+        transcribe_ms: timingNumber(value.transcribe_ms, 300000),
+        inference_ms: timingNumber(value.inference_ms, 300000),
+        model: ["tiny", "base"].includes(value.model) ? value.model : null,
+        audio_ms: timingNumber(value.audio_ms, 30000),
+        platform: ["ios", "android", "desktop", "other"].includes(value.platform) ? value.platform : null,
+        cores: timingNumber(value.cores, 64),
+        memory_gb: Number.isFinite(memory) && memory > 0 && memory <= 64 ? memory : null,
+        network: ["slow-2g", "2g", "3g", "4g"].includes(value.network) ? value.network : null,
+        previous_submit_ms: timingNumber(value.previous_submit_ms, 120000),
+        previous_recheck_ms: timingNumber(value.previous_recheck_ms, 120000)
+    };
+};
+
+const finishProviderRequest = async (admin: any, requestId: string, status: string, errorCode: string | null = null, table = "speaking_local_reading_requests", extra: Record<string, unknown> = {}) => {
     let lastError: any = null;
     for (let tryIndex = 0; tryIndex < 2; tryIndex += 1) {
         const { data, error } = await admin.from(table).update({
             status,
             error_code: errorCode,
-            completed_at: new Date().toISOString()
+            completed_at: new Date().toISOString(),
+            ...extra
         }).eq("id", requestId).eq("status", "reserved").select("id").maybeSingle();
         if (data?.id) return;
         lastError = error;
@@ -374,7 +398,9 @@ Deno.serve(async (req: Request) => {
                 if (!Number.isInteger(attemptId) || attemptId <= 0) throw new Error("發音評分紀錄無法建立");
                 return { attempt: attemptId, round: foundationAssessment };
             } : undefined,
-            finishRequest: (requestId, status, errorCode) => finishProviderRequest(admin, requestId, status, errorCode, azureRequest ? "speaking_pronunciation_requests" : "speaking_local_reading_requests"),
+            finishRequest: (requestId, status, errorCode) => finishProviderRequest(admin, requestId, status, errorCode,
+                azureRequest ? "speaking_pronunciation_requests" : "speaking_local_reading_requests",
+                azureRequest ? {} : { client_timing: sanitizeClientTiming(body.client_timing) }),
             releaseClaim: foundationRoundId
                 ? claimToken => releaseFoundationRoundClaim(admin, Number(user.id), foundationRoundId!, claimToken)
                 : undefined,

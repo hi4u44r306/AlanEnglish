@@ -221,3 +221,15 @@ test("再確認：自己說沒過時，回應不含答案字", async () => {
     assert.deepEqual(result.words, []);
     assert.doesNotMatch(result.feedback + result.recognized_text + JSON.stringify(result.words), /cats/);
 });
+test("計時：只存數字與固定選項，亂塞的欄位丟掉", async () => {
+    const h = harness();
+    await h.handler(request({ client_timing: { transcribe_ms: 3200.4, model: "base", platform: "ios", network: "4g", cores: 6,
+        memory_gb: 4, previous_submit_ms: 900, student_name: "Amy", recognized_text: "secret", transcribe_extra: "x" } }));
+    const update = h.writes.find(row => row.table === "speaking_local_reading_requests" && row.value.client_timing);
+    assert.ok(update, "完成時一起存");
+    assert.deepEqual(JSON.parse(JSON.stringify(update.value.client_timing)), { v: 1, transcribe_ms: 3200, inference_ms: null, model: "base", audio_ms: null,
+        platform: "ios", cores: 6, memory_gb: 4, network: "4g", previous_submit_ms: 900, previous_recheck_ms: null });
+    const junk = harness();
+    await junk.handler(request({ client_timing: "not an object" }));
+    assert.equal(junk.writes.find(row => row.table === "speaking_local_reading_requests")?.value.client_timing, null);
+});
