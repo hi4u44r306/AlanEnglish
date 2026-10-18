@@ -436,3 +436,6 @@ body.speaking-challenge-active .speaking-gap-sentence .answer-given { color: var
 .speaking-heard strong { color: var(--ae-text, #17365d); font-size: 18px; font-weight: 800; line-height: 1.45; overflow-wrap: anywhere; }
 .speaking-heard .is-off { padding: 0 .15em; border-radius: .25em; background: var(--ae-danger-bg, #fdecec); color: var(--ae-danger, #c62828); }
 .speaking-heard small { color: var(--ae-text-muted, #526780); font-size: 14px; line-height: 1.5; }
+
+// Waiting for the Azure re-check of a near miss.
+.speaking-recheck-status { margin: 8px 0 0; padding: 10px 14px; border-radius: 14px; background: var(--ae-info-bg, #e8f1ff); color: var(--ae-accent, #1d4fa8); font-size: 16px; font-weight: 800; text-align: center; }

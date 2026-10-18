@@ -2,7 +2,8 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { assertBookEntitled, relationOne } from "../_shared/book-entitlement.ts";
 import { loadEffectiveAccess } from "../_shared/effective-access.ts";
 import { verifyFirebaseRequest } from "../_shared/firebase-auth.ts";
-import { assessReadingCompleteness } from "../_shared/speaking-completeness.ts";
+import { assessReadingCompleteness, localRecheckCandidate } from "../_shared/speaking-completeness.ts";
+import { evaluateAzureSentenceAssessment, publicRecheckResult, requestAzureSentenceAssessment } from "../_shared/speaking-azure-sentence.ts";
 import { assessAzureAlphabet } from "../_shared/speaking-azure-alphabet.ts";
 import { inspectPcm16Wav } from "../_shared/speaking-pcm-wav.ts";
 import {
@@ -130,6 +131,19 @@ const finishProviderRequest = async (admin: any, requestId: string, status: stri
     });
 };
 
+// 再確認的開關：off 都不送；staff 只有管理員試用；all 全部學生。
+const recheckModeAllows = async (admin: any, adminDemo: boolean) => {
+    const { data, error } = await admin.from("speaking_azure_cost_policy").select("recheck_mode").eq("id", true).maybeSingle();
+    if (error) return false;
+    return data?.recheck_mode === "all" || (data?.recheck_mode === "staff" && adminDemo);
+};
+
+const recheckRefusal = (code: string) => code === "recheck_limit_reached"
+    ? "今天的再確認次數已用完，請再念一次。"
+    : code === "student_audio_budget_exhausted" || code === "global_audio_budget_exhausted"
+        ? "這個月的再確認額度已用完，請再念一次。"
+        : "這一題目前不能再確認，請再念一次。";
+
 const releaseFoundationRoundClaim = async (admin: any, studentId: number, roundId: string, claimToken: string) => {
     const { data, error } = await admin.rpc("release_speaking_foundation_round_claim_v1", {
         p_student_id: studentId,
@@ -159,9 +173,10 @@ Deno.serve(async (req: Request) => {
         const azureRequest = req.headers.get("content-type")?.includes("multipart/form-data");
         const form = azureRequest ? await req.formData().catch(() => null) : null;
         const audio = form?.get("audio");
-        if (azureRequest && (!form || form.get("assessment_kind") !== "azure_alphabet_v1")) return json(409, {error:"請重新整理口說頁面",code:"local_client_required"});
+        const recheckRequest = azureRequest && form?.get("assessment_kind") === "azure_sentence_recheck_v1";
+        if (azureRequest && (!form || !recheckRequest && form.get("assessment_kind") !== "azure_alphabet_v1")) return json(409, {error:"請重新整理口說頁面",code:"local_client_required"});
         if (!azureRequest && !req.headers.get("content-type")?.includes("application/json")) return json(409, {error:"口說已改用本機辨識，請重新整理頁面。",code:"local_client_required"});
-        const rawBody = azureRequest ? JSON.stringify(Object.fromEntries(["question_id","foundation_round_id","challenge_session_id","challenge_mode"].map(key => [key,form?.get(key)]))) : await req.text();
+        const rawBody = azureRequest ? JSON.stringify(Object.fromEntries(["question_id","foundation_round_id","challenge_session_id","challenge_mode","recheck_of_attempt_id","recognized_text"].map(key => [key,form?.get(key)]))) : await req.text();
         if (rawBody.length > 6000) return json(413, {error:"辨識資料過長"});
         let body: any;
         try { body = JSON.parse(rawBody); } catch { return json(400, {error:"辨識資料格式不正確"}); }
@@ -177,14 +192,15 @@ Deno.serve(async (req: Request) => {
         }
         const question = await assertPublishedQuestionAccess(admin, questionId, user, effectiveAccess);
         const letterAssessment = ["alphabet_round", "letter_spelling"].includes(question.interactionType);
-        if (azureRequest && !letterAssessment) return json(400, {error:"只有字母與拼字題使用 Azure 評分",code:"azure_alphabet_only"});
+        if (azureRequest && !letterAssessment && !recheckRequest) return json(400, {error:"只有字母與拼字題使用 Azure 評分",code:"azure_alphabet_only"});
+        if (recheckRequest && letterAssessment) return json(400, {error:"字母與拼字不使用再確認",code:"recheck_not_allowed"});
         if (!azureRequest && letterAssessment) return json(409, {error:"字母與拼字已使用 Azure 評分，請重新整理",code:"alphabet_client_required"});
         let audioBuffer: ArrayBuffer | null = null;
         if (azureRequest) {
-            if (!(audio instanceof File) || audio.size > 400000) return json(413, {error:"字母錄音資料不正確"});
+            if (!(audio instanceof File) || audio.size > (recheckRequest ? 820000 : 400000)) return json(413, {error:"錄音資料不正確"});
             audioBuffer = await audio.arrayBuffer();
             const info = inspectPcm16Wav(audioBuffer);
-            if (!info || !validSpeakingAudioDuration(info.durationSeconds,"alphabet_round")) return json(413,{error:"字母錄音須在 12 秒內",code:"audio_duration_invalid"});
+            if (!info || !validSpeakingAudioDuration(info.durationSeconds, recheckRequest ? question.interactionType : "alphabet_round")) return json(413,{error:recheckRequest ? "錄音長度不正確" : "字母錄音須在 12 秒內",code:"audio_duration_invalid"});
             if (info.peak < 0.002 || info.rms < 0.0002) return json(422,{error:"錄音太小聲，請重錄",code:"audio_too_quiet"});
             body.audio_seconds = info.durationSeconds;
         }
@@ -214,6 +230,33 @@ Deno.serve(async (req: Request) => {
         if (!Number.isFinite(body.audio_seconds) || !validSpeakingAudioDuration(body.audio_seconds, question.interactionType)) {
             return json(413, {error:"錄音長度須在 " + maxAudioSeconds + " 秒內",code:"audio_duration_invalid"});
         }
+        // 再確認：必須接著同一題、同一場次剛剛本機沒過的那一筆，而且伺服器用那一筆存下的文字重新判定「只差一點」。
+        let recheckOfAttemptId: number | null = null;
+        let recheckReference = "";
+        let recheckLocalText = "";
+        if (recheckRequest) {
+            const attemptId = Number(body.recheck_of_attempt_id);
+            if (Number.isInteger(attemptId) && attemptId > 0) {
+                const { data: localAttempt, error: localError } = await admin.from("speaking_pronunciation_attempts")
+                    .select("id,student_id,question_id,answer_match,recognized_text,client_session_id,challenge_mode,recheck_of_attempt_id,created_at")
+                    .eq("id", attemptId).maybeSingle();
+                if (localError) throw localError;
+                if (!localAttempt || Number(localAttempt.student_id) !== Number(user.id) || Number(localAttempt.question_id) !== question.questionId
+                    || localAttempt.answer_match !== false || localAttempt.recheck_of_attempt_id
+                    || String(localAttempt.client_session_id || "") !== challengeSessionId || localAttempt.challenge_mode !== challengeMode) {
+                    return json(409, { error: recheckRefusal("recheck_not_allowed"), code: "recheck_not_allowed" });
+                }
+                recheckOfAttemptId = attemptId;
+                recheckLocalText = String(localAttempt.recognized_text || "");
+            } else if (adminDemo) {
+                recheckLocalText = String(body.recognized_text || "").slice(0, 2000);
+            } else {
+                return json(409, { error: recheckRefusal("recheck_not_allowed"), code: "recheck_not_allowed" });
+            }
+            const candidate = localRecheckCandidate(question, recheckLocalText);
+            if (!candidate.eligible || !candidate.referenceText) return json(409, { error: recheckRefusal("recheck_not_allowed"), code: "recheck_not_allowed" });
+            recheckReference = candidate.referenceText;
+        }
         // Recalculate from approved answers. Client text cannot attest real speech.
         const localResult = azureRequest ? null : assessReadingCompleteness(question, body.recognized_text);
         let challengeUsage: any = null;
@@ -241,13 +284,22 @@ Deno.serve(async (req: Request) => {
                 return { status: "claimed" as const, claimToken: String(claim.claim_token) };
             } : undefined,
             reserve: async () => {
+                if (recheckRequest) {
+                    const { data, error } = await admin.rpc("reserve_speaking_azure_recheck_request_v1", {
+                        p_student_id: Number(user.id), p_question_set_id: question.questionSetId, p_question_id: question.questionId,
+                        p_interaction_type: question.interactionType || null, p_audio_seconds: Math.ceil(body.audio_seconds),
+                        p_recheck_of_attempt_id: recheckOfAttemptId, p_is_staff: adminDemo });
+                    if (error) throw error;
+                    if (data?.allowed !== true || !data?.request_id) throw Object.assign(new Error(recheckRefusal(String(data?.code || ""))), { status: 429, code: data?.code || "recheck_not_allowed" });
+                    return String(data.request_id);
+                }
                 if (azureRequest) {
                     const spellingRequest = question.interactionType === "letter_spelling";
                     const {data,error} = await admin.rpc(spellingRequest ? "reserve_speaking_azure_spelling_request_v1" : "reserve_speaking_azure_alphabet_request_v1", {
                         p_student_id:Number(user.id),p_question_set_id:question.questionSetId,p_question_id:question.questionId,
                         p_audio_seconds:Math.ceil(body.audio_seconds),p_client_session_id:adminDemo ? null : challengeSessionId });
                     if (error) throw error;
-                    if (data?.allowed !== true || !data.request_id) throw Object.assign(new Error(data?.code === "speaking_daily_limit_reached" ? "今天已開始 10 輪，明天再繼續" : data?.code === "alphabet_letter_daily_limit_reached" ? "這個字母今天已評分三次，可以先錄音回聽，明天再挑戰。" : data?.code === "speaking_level_completed_today" ? "這一關今天已完成，可以錄音回聽，明天再評分。" : "短時間送評較多，請稍候"),{status:429,code:data?.code || "rate_limited"});
+                    if (data?.allowed !== true || !data.request_id) throw Object.assign(new Error(data?.code === "speaking_daily_limit_reached" ? "今天已開始 10 輪，明天再繼續" : data?.code === "alphabet_letter_daily_limit_reached" ? "這個字母今天已評分三次，可以先錄音回聽，明天再挑戰。" : data?.code === "speaking_level_completed_today" ? "這一關今天已完成，可以錄音回聽，明天再評分。" : data?.code === "letter_monthly_budget_exhausted" ? "這個月的字母評分額度已用完，可以先錄音回聽，下個月再評分。" : "短時間送評較多，請稍候"),{status:429,code:data?.code || "rate_limited"});
                     alphabetUsage = spellingRequest ? null : { letter: data.letter, remaining: data.letter_remaining, daily_limit: 3 };
                     challengeUsage = data.challenge_usage; return String(data.request_id);
                 }
@@ -256,8 +308,20 @@ Deno.serve(async (req: Request) => {
                 challengeUsage = reserved.challengeUsage;
                 return reserved.requestId;
             },
-            assess: async () => ({ ok: true as const, value: azureRequest ? await assessAzureAlphabet(audioBuffer!,question.answerTemplate,
-                Deno.env.get("AZURE_SPEECH_KEY") || "",String(Deno.env.get("AZURE_SPEECH_REGION") || "").trim().toLowerCase(),question.interactionType) : localResult! }),
+            assess: async () => {
+                if (recheckRequest) {
+                    try {
+                        const payload = await requestAzureSentenceAssessment(audioBuffer!, recheckReference,
+                            Deno.env.get("AZURE_SPEECH_KEY") || "", String(Deno.env.get("AZURE_SPEECH_REGION") || "").trim().toLowerCase());
+                        return { ok: true as const, value: evaluateAzureSentenceAssessment(payload) as any };
+                    } catch (providerError) {
+                        return { ok: false as const, failure: providerError, ledgerStatus: "provider_failed" as const,
+                            errorCode: String((providerError as any)?.code || "provider_failed").slice(0, 120) };
+                    }
+                }
+                return { ok: true as const, value: azureRequest ? await assessAzureAlphabet(audioBuffer!,question.answerTemplate,
+                    Deno.env.get("AZURE_SPEECH_KEY") || "",String(Deno.env.get("AZURE_SPEECH_REGION") || "").trim().toLowerCase(),question.interactionType) : localResult! };
+            },
             saveAttempt: adminDemo ? async () => null : !foundationRoundId ? async normalized => {
                 const { data: attempt, error: saveError } = await admin.from("speaking_pronunciation_attempts").insert({
                     student_id: user.id, question_set_id: question.questionSetId, question_id: question.questionId,
@@ -267,7 +331,8 @@ Deno.serve(async (req: Request) => {
                     word_results: normalized.words, answer_match: normalized.answer_match,
                     challenge_mode: challengeMode,
                     client_session_id: challengeSessionId || null,
-                    hint_used: hintUsed
+                    hint_used: hintUsed,
+                    recheck_of_attempt_id: recheckOfAttemptId
                 }).select("id").single();
                 if (saveError || !attempt?.id) throw saveError || new Error("發音評分紀錄無法建立");
                 return Number(attempt.id);
@@ -326,7 +391,17 @@ Deno.serve(async (req: Request) => {
         if (flow.status === "invalid") {
             return json(409, { error: "這一輪已失效，請從第一題重新開始", code: "foundation_round_invalid" });
         }
-        if (flow.status === "provider_failure") return json(500, { error: "本機朗讀結果無法處理，請稍後重試" });
+        if (flow.status === "provider_failure") return recheckRequest
+            ? json(502, { error: "再確認暫時無法完成，請再念一次。", code: "recheck_unavailable" })
+            : json(500, { error: "本機朗讀結果無法處理，請稍後重試" });
+
+        // 本機判沒過、但只差一點：告訴前端可以用同一段錄音再確認（回應不含原因與答案）。
+        const flowValue: any = flow.value;
+        let recheck: { attempt_id: number | null } | null = null;
+        if (!azureRequest && body.recheck_supported === true && flowValue?.answer_match === false && flowValue?.assessment_status !== "uncertain"
+            && localRecheckCandidate(question, flowValue?.recognized_text).eligible && await recheckModeAllows(admin, adminDemo)) {
+            recheck = { attempt_id: Number.isInteger(Number(flow.attempt)) && Number(flow.attempt) > 0 ? Number(flow.attempt) : null };
+        }
 
         return json(200, {
             success: true,
@@ -338,7 +413,9 @@ Deno.serve(async (req: Request) => {
             hint_used: hintUsed,
             reference_text: question.interactionType ? null : (question.referenceText || null),
             foundation_round: flow.round,
-            ...flow.value
+            ...(recheckRequest ? publicRecheckResult(flowValue, challengeMode, recheckLocalText) : flowValue),
+            recheck,
+            rechecked: recheckRequest
         });
     } catch (error) {
         const status = Number((error as any)?.status || 500);

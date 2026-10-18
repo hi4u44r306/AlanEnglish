@@ -1,5 +1,13 @@
 # Alan English 專案狀態
 
+### Azure 再確認與費用上限（2026-10-18，PR #618；migration 已於 2026-10-18 套用正式 `20261018072826`（擁有者同意），pronunciation-coach 於合併後由 main 部署；再確認預設 off，擁有者同意先開 staff）
+
+- Migration `20261018072826_speaking_azure_recheck_and_letter_cap.sql`：`speaking_azure_cost_policy`（recheck_mode off／staff／all、每日 5、同題 2、每月 600 秒、字母＋拼字每月 2250 秒）；attempts／requests 新增 `recheck_of_attempt_id`（唯一）；`reserve_speaking_azure_recheck_request_v1`；A–Z 與拼字預約加每月秒數上限（以線上定義為基礎）；`unified_cost_month_v1` 的 Azure 含 `azure_sentence_recheck`。
+- 後端：`speaking-completeness.localRecheckCandidate`、新檔 `speaking-azure-sentence.ts`（REST、逐字判定、challenge 失敗不回答案）；`pronunciation-coach` 本機沒過且接近時回 `recheck`，新增 multipart `azure_sentence_recheck_v1`（以存下的本機文字重判、預約、Azure、存 attempt）。
+- 前端：`submitSpeakingRecheck`（20 秒逾時）、Recorder 再確認狀態與退回本機結果、「發音評分」標籤、精簡提示；`letter_monthly_budget_exhausted` 納入額度錯誤。
+- 正式資料庫唯讀確認：`speaking_audio_budget_policy` 實際為每人 7200 秒／全站 360000 秒（非 repo 初值）；A–Z 預約原本無每月上限；拼字 provider 亦為 `azure_alphabet_basic`。
+- 驗證：後端 51 項（completeness、azure-sentence 新檔、local-handler 新增 5 項、alphabet、flow）；前端 8 個測試檔 180 項。Migration 隔離驗證：`scripts/speaking-azure-recheck-sql.test.mjs` 於 PGlite 0.5.10（裝在暫存資料夾、以 PGLITE_MODULE 指定，未改 package.json）執行真實 ledger／每日場次／月預算 migration 後套用本 migration，7 項通過（開關、單筆只能一次、他人／已通過／逾時拒絕、每日 5／同題 2、每月 600 秒且不占每日 10 輪、字母＋拼字 2250 秒、權限）。正式套用後唯讀確認：policy 為 off／5／2／600／2250、authenticated 無執行權、A–Z 函式含月上限、成本函式含再確認、本月字母用量最高 168 秒。`guardian-email` 錄音次數尚未排除再確認那筆（每天最多 5 筆）。
+
 ### Azure 複查 第 1 階段：沒過時顯示系統聽到（2026-10-18，PR #617，合併即部署）
 
 - `src/utils/speakingWordDiff.js`：與伺服器 `speaking-completeness.ts` 相同的正規化、縮寫展開、LCS 與 th 對齊，只供顯示。

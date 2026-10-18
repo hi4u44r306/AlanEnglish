@@ -88,3 +88,20 @@ test("th 放寬不放過其他錯字：答案字不對仍不通過", () => {
     assert.equal(exact.answer_match, true);
     assert.deepEqual(exact.pronunciation_tips, []);
 });
+import { localRecheckCandidate } from "../supabase/functions/_shared/speaking-completeness.ts";
+test("再確認：只差一個字（多半是聽錯）才送 Azure", () => {
+    const gap = question("It is her mouth.", "picture_gap_sentence");
+    assert.equal(localRecheckCandidate(gap, "It is her moth").eligible, true);
+    assert.equal(localRecheckCandidate(gap, "It is her moth").referenceText, "It is her mouth.");
+    assert.equal(localRecheckCandidate(gap, "It is his mouth").eligible, false, "代名詞換掉是意思錯");
+    assert.equal(localRecheckCandidate(gap, "It is her").eligible, false, "漏念不送");
+    assert.equal(localRecheckCandidate(gap, "It is not her mouth").eligible, false, "否定詞不同不送");
+    assert.equal(localRecheckCandidate(gap, "I like apples very much").eligible, false, "差很多不送");
+    assert.equal(localRecheckCandidate(question("What is this? It is a cat.", "picture_qa"), "What is this? It is a cap").eligible, true);
+    assert.equal(localRecheckCandidate(question("I have three apples."), "I have four apples").eligible, false, "數字換掉是意思錯");
+    assert.equal(localRecheckCandidate(question("I like red apples."), "I like bed apples").eligible, true);
+});
+test("再確認：字母、拼字與個人化答案不送", () => {
+    assert.equal(localRecheckCandidate(question("A", "alphabet_round"), "B").eligible, false);
+    assert.equal(localRecheckCandidate(question("My name is [name].", "picture_qa"), "My name is Amy").eligible, false);
+});
