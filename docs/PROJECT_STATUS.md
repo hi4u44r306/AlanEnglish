@@ -6,7 +6,7 @@
 - 後端：`speaking-completeness.localRecheckCandidate`、新檔 `speaking-azure-sentence.ts`（REST、逐字判定、challenge 失敗不回答案）；`pronunciation-coach` 本機沒過且接近時回 `recheck`，新增 multipart `azure_sentence_recheck_v1`（以存下的本機文字重判、預約、Azure、存 attempt）。
 - 前端：`submitSpeakingRecheck`（20 秒逾時）、Recorder 再確認狀態與退回本機結果、「發音評分」標籤、精簡提示；`letter_monthly_budget_exhausted` 納入額度錯誤。
 - 正式資料庫唯讀確認：`speaking_audio_budget_policy` 實際為每人 7200 秒／全站 360000 秒（非 repo 初值）；A–Z 預約原本無每月上限；拼字 provider 亦為 `azure_alphabet_basic`。
-- 驗證：後端 51 項（completeness、azure-sentence 新檔、local-handler 新增 5 項、alphabet、flow）；前端 8 個測試檔 180 項。待辦：migration 隔離驗證、正式部署需擁有者同意；`guardian-email` 錄音次數尚未排除再確認那筆（每天最多 5 筆）。
+- 驗證：後端 51 項（completeness、azure-sentence 新檔、local-handler 新增 5 項、alphabet、flow）；前端 8 個測試檔 180 項。Migration 隔離驗證：`scripts/speaking-azure-recheck-sql.test.mjs` 於 PGlite 0.5.10（裝在暫存資料夾、以 PGLITE_MODULE 指定，未改 package.json）執行真實 ledger／每日場次／月預算 migration 後套用本 migration，7 項通過（開關、單筆只能一次、他人／已通過／逾時拒絕、每日 5／同題 2、每月 600 秒且不占每日 10 輪、字母＋拼字 2250 秒、權限）。待辦：正式部署需擁有者同意；`guardian-email` 錄音次數尚未排除再確認那筆（每天最多 5 筆）。
 
 ### Azure 複查 第 1 階段：沒過時顯示系統聽到（2026-10-18，PR #617，合併即部署）
 
