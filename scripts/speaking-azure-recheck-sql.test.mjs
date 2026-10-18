@@ -38,7 +38,7 @@ before(async () => {
     // Columns later migrations added to the ledger (provider, alphabet letter) before the alphabet RPC existed.
     await db.exec(`alter table public.speaking_pronunciation_requests add column if not exists provider text not null default 'azure';
         alter table public.speaking_pronunciation_requests add column if not exists alphabet_letter text;`);
-    await db.exec(read("20261018090000_speaking_azure_recheck_and_letter_cap.sql"));
+    await db.exec(read("20261018072826_speaking_azure_recheck_and_letter_cap.sql"));
 });
 beforeEach(async () => {
     await db.exec(`delete from public.speaking_pronunciation_requests; delete from public.speaking_challenge_sessions;

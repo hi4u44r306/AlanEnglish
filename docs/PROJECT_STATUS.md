@@ -2,7 +2,7 @@
 
 ### Azure 再確認與費用上限（2026-10-18，分支 `feat/azure-recheck`；需 migration＋pronunciation-coach 部署，再確認預設 off）
 
-- Migration `20261018090000_speaking_azure_recheck_and_letter_cap.sql`：`speaking_azure_cost_policy`（recheck_mode off／staff／all、每日 5、同題 2、每月 600 秒、字母＋拼字每月 2250 秒）；attempts／requests 新增 `recheck_of_attempt_id`（唯一）；`reserve_speaking_azure_recheck_request_v1`；A–Z 與拼字預約加每月秒數上限（以線上定義為基礎）；`unified_cost_month_v1` 的 Azure 含 `azure_sentence_recheck`。
+- Migration `20261018072826_speaking_azure_recheck_and_letter_cap.sql`：`speaking_azure_cost_policy`（recheck_mode off／staff／all、每日 5、同題 2、每月 600 秒、字母＋拼字每月 2250 秒）；attempts／requests 新增 `recheck_of_attempt_id`（唯一）；`reserve_speaking_azure_recheck_request_v1`；A–Z 與拼字預約加每月秒數上限（以線上定義為基礎）；`unified_cost_month_v1` 的 Azure 含 `azure_sentence_recheck`。
 - 後端：`speaking-completeness.localRecheckCandidate`、新檔 `speaking-azure-sentence.ts`（REST、逐字判定、challenge 失敗不回答案）；`pronunciation-coach` 本機沒過且接近時回 `recheck`，新增 multipart `azure_sentence_recheck_v1`（以存下的本機文字重判、預約、Azure、存 attempt）。
 - 前端：`submitSpeakingRecheck`（20 秒逾時）、Recorder 再確認狀態與退回本機結果、「發音評分」標籤、精簡提示；`letter_monthly_budget_exhausted` 納入額度錯誤。
 - 正式資料庫唯讀確認：`speaking_audio_budget_policy` 實際為每人 7200 秒／全站 360000 秒（非 repo 初值）；A–Z 預約原本無每月上限；拼字 provider 亦為 `azure_alphabet_basic`。
