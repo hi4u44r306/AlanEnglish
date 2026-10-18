@@ -1,6 +1,6 @@
 # Alan English 專案狀態
 
-### 口說評分加速 第 2 步：進度背景存檔（2026-10-18，分支 `perf/background-progress-save`，尚未部署）
+### 口說評分加速 第 2 步：進度背景存檔（2026-10-18，PR #613，2026-10-18 已部署；正式站 main.cc9b2716）
 
 - 依據：答對時 `pronunciation-coach` 已寫入 attempt（answer_match 由伺服器判定），之後的 `speaking-challenge complete_question` 只標記進度（正式站平均 1155ms、p90 1848ms），原本畫面等它完成才播音效／換題。
 - 改為：`TextbookSpeakingChallenge.saveInBackground` 先把題目標為完成，`markComplete` 以 `utils/retryTransient`（無狀態碼或 5xx 重試，1s、3s）背景存；最終失敗或 hint_used 時改回未完成並顯示 `speaking-save-notice`。`WorkbookOnePictureChallenge.handleCorrect` 不再 await，停 `correctPauseMs`（1200；有 `pronunciation_tips` 為 2600）後換題，存檔失敗把該題加回本輪最後；最後一題等所有存檔完成才結算。A–Z（foundation round）不變。
