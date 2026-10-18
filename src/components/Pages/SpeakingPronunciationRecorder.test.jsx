@@ -411,6 +411,20 @@ describe("SpeakingPronunciationRecorder", () => {
         expect(await screen.findByText("發音評分")).toBeInTheDocument();
     });
 
+    it("再確認沒過：系統聽到顯示這台裝置聽到的句子，不顯示分數，提示只出現一次", async () => {
+        convertAudioBlobToWav.mockResolvedValue(new Blob([new Uint8Array(1600)], { type: "audio/wav" }));
+        submitSpeakingPronunciationAttempt.mockResolvedValue({ ...nearMiss, recognized_text: "It is a bar" });
+        submitSpeakingRecheck.mockResolvedValue({ assessment_kind: "azure_pronunciation", answer_match: false, rechecked: true, assessment_status: "assessed",
+            recognized_text: "It is a car.", scores: { pronunciation: 81, completeness: 100 }, words: [], feedback: "再確認後還差一點：car 要再念清楚。" });
+        render(<SpeakingPronunciationRecorder firebaseUser={{ getIdToken: jest.fn() }}
+            question={{ id: 18, interaction_type: "picture_qa", model_answer: "It is a car." }} onScored={jest.fn()} />);
+        await recordAndSubmit();
+        expect(await screen.findByText("It is a bar")).toBeInTheDocument();
+        expect(screen.queryByText("It is a car.")).not.toBeInTheDocument();
+        expect(screen.queryByText(/81/)).not.toBeInTheDocument();
+        expect(screen.getAllByText(/car 要再念清楚/)).toHaveLength(1);
+    });
+
     it("再確認失敗或逾時：退回本機結果，不鎖住之後的送評", async () => {
         convertAudioBlobToWav.mockResolvedValue(new Blob([new Uint8Array(1600)], { type: "audio/wav" }));
         submitSpeakingPronunciationAttempt.mockResolvedValue(nearMiss);
