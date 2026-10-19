@@ -439,3 +439,22 @@ body.speaking-challenge-active .speaking-gap-sentence .answer-given { color: var
 
 // Waiting for the Azure re-check of a near miss.
 .speaking-recheck-status { margin: 8px 0 0; padding: 10px 14px; border-radius: 14px; background: var(--ae-info-bg, #e8f1ff); color: var(--ae-accent, #1d4fa8); font-size: 16px; font-weight: 800; text-align: center; }
+
+// ---- "Listen once" sits on the step row, right of 1 拼 2 念 (owner request 2026-10-18): the two
+// things a child needs before answering stay just under the question, not up in the header.
+.speaking-step-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; margin: 0 0 12px; }
+.speaking-step-row:not(:has(.speaking-guided-stepper)):not(:has(.speaking-lesson-preparation)) { display: none; }
+.speaking-step-row .speaking-guided-stepper { margin: 0; }
+body.speaking-challenge-active .speaking-step-row .speaking-lesson-tools .speaking-lesson-preparation > a { min-height: 44px; padding: 6px 14px; font-size: 16px !important; }
+body.speaking-challenge-active .speaking-step-row .speaking-listening-busy { max-width: 150px; text-align: left; }
+@media (max-width: 767px) {
+  body.speaking-challenge-active .speaking-step-row { margin-bottom: 6px; }
+}
+@media (max-width: 380px) {
+  .speaking-step-row { gap: 6px; }
+  .speaking-step-row .speaking-guided-stepper { gap: 6px; }
+  .speaking-step-row .speaking-guided-stepper li { padding: 6px 10px; }
+  body.speaking-challenge-active .speaking-step-row .speaking-lesson-tools .speaking-lesson-preparation > a { padding-inline: 10px; font-size: 15px !important; }
+}
+// While recording or scoring the pill stays in place, greyed, with a short "評分後再聽".
+body.speaking-challenge-active .speaking-step-row .speaking-listening-busy { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; max-width: none; padding: 6px 14px; border: 1px dashed var(--ae-border, #c5d6e8); border-radius: 22px; color: var(--ae-text-muted, #526780); font-size: 15px; white-space: nowrap; }

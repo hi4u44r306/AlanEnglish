@@ -3,7 +3,6 @@ import { FiChevronLeft, FiChevronRight, FiRefreshCw, FiVolume2 } from "react-ico
 import { createPictureChallengeRound, tokenizeSpeakingSentence } from "../../utils/speakingPictureChallenge";
 import SpeakingPracticeSteps from "./SpeakingPracticeSteps";
 import SpeakingQuestionClip from "./SpeakingQuestionClip";
-import SpeakingHeaderTools from "./SpeakingHeaderTools";
 import SpeakingVisualAid from "./SpeakingVisualAid";
 import { createSpeakingChallengeSessionId } from "../../utils/speakingChallengeSession";
 import { initialGuidedStep, spellingFocusIndex, spellingTargetFor } from "../../utils/speakingGuidedSteps";
@@ -235,7 +234,6 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, s
             <button className="speaking-back" type="button" onClick={onExit}><FiChevronLeft />退出本輪</button>
             <div className="speaking-lesson-heading"><span>{copy.eyebrow}</span><h1>{challenge.title}</h1><p>{copy.instruction}</p></div>
             <div className="speaking-lesson-progress"><div><span>第 {activeIndex + 1} / {round.length} 題</span><strong>{progress}%</strong></div><div className="speaking-progress-track" role="progressbar" aria-label="本輪進度" aria-valuemin="0" aria-valuemax="100" aria-valuenow={progress}><span style={{ width: `${progress}%` }} /></div></div>
-            <SpeakingHeaderTools />
         </header>
         <section className="speaking-question-stage"><article ref={phaseFocusRef} tabIndex="-1" aria-label={`第 ${activeIndex + 1} 題，共 ${round.length} 題`} key={activeQuestion.id} className="speaking-focus-card speaking-foundation-card speaking-picture-card">
             <div className="speaking-game-question-card">
