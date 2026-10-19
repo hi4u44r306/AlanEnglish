@@ -206,3 +206,12 @@ test("放寬規則不改變是否題：No, it isn't. 唸成 Yes, it is. 仍不�
     assert.equal(passes("No, it isn't.", "Yes, it is."), false);
     assert.equal(passes("Is it your bag? No, it isn't.", "Is it your bag? Yes, it is.", "text_qa"), false);
 });
+test("同一句同時有 it is 和 its；斜線後是兩句以上的選項", () => {
+    assert.equal(assess(question("Yes, it is its heart.", "text_qa"), "Yes, it's it's heart.").answer_match, true);
+    assert.equal(assess(question("Yes, it is its heart.", "text_qa"), "Yes, it's heart.").answer_match, false);
+    assert.equal(assess(question("Please give me some, thank you./ No way. I hate it.", "text_qa"), "Please give me some, thank you.").answer_match, true);
+    assert.equal(assess(question("Please give me some, thank you./ No way. I hate it.", "text_qa"), "No way. I hate it.").answer_match, true);
+});
+test("合併 it's／you're 時挑對位置", () => {
+    assert.equal(assess(question("Don't give your number to a stranger. You're asking for trouble.", "text_qa"), "Don't give you're number to a stranger. You're asking for trouble.").answer_match, true);
+});

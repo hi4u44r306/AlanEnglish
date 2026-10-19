@@ -1,6 +1,14 @@
 # Alan English 專案狀態
 
-### 口說連音 y（2026-10-19，分支 `fix/speaking-linking-y`；需 pronunciation-coach 部署）
+### 口說常見辨識差異放寬（2026-10-19，分支 `fix/speaking-linking-y`；需 pronunciation-coach 部署）
+
+- 擁有者要求「看過全部題庫，放寬常讓本機辨識出錯的字」。已發布 1,425 題（扣字母 72、[slots] 19、空 1 → 實測 1,333）。
+- 規則（speaking-foundation-answer／speaking-completeness）：數字轉英文字（`spellOutNumbers`）、its/it's 等片語同音（依對齊挑合併位置）、連寫／分開、英美拼法與人名、題目內斜線與括號展開（每題最多 32 種）。
+- 模擬「學生念其中一個版本＋辨識常見寫法」：main 1,286／1,333 通過 → 分支 1,333／1,333，無題目退步；錯字替換抽樣 200 題，通過數 main 155、分支 155，無新增放行。
+- 已知（main 原本就有，未改）：text_qa 長句換掉一個名詞仍常通過（例 They come from Italy. 念 Japan 也過），待擁有者決定是否收緊。
+- 題庫錯字 5 題（set 31 Q7 pruple、244 Q2 lenghth、301 Q4/Q5 straigh-A、302 Q6 yoursel f），需擁有者同意後修正題目文字。
+
+### 口說連音 y（2026-10-19，同分支）
 
 - 擁有者用學生帳號實測「They are its ears.」被聽成「its years」沒過；學生帳號因 `recheck_mode = staff` 不會再確認。
 - `alignThSoundAlikes`：聽到「y＋母音開頭答案字」時對回答案字。completeness 21 項（新增 1）、azure-sentence 4、local-handler 17。

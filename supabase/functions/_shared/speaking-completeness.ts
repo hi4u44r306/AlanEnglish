@@ -127,6 +127,9 @@ const expandSlashUnits = (units: string[], memo: Map<string, string[]>): string[
             }
             if (leftEndsSentence) {
                 options.push(keepLeft(rightSpan));
+                // "Please give me some, thank you./ No way. I hate it.": the right choice can be several sentences.
+                const rightChoice = right.indexOf("/") < 0 ? right.length : right.indexOf("/");
+                if (rightChoice > rightSpan) options.push(keepLeft(rightChoice));
                 if (/^[A-Z]/.test(right[0])) options.push(keepRight(leftSpan));
             }
             result = uniqueRoundRobin(options

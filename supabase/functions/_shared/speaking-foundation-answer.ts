@@ -280,25 +280,42 @@ const sequenceAt = (tokens: string[], sequence: string[], start: number) => (
 const containsSequence = (tokens: string[], sequence: string[]) => (
     tokens.some((_, index) => sequenceAt(tokens, sequence, index))
 );
-const replaceSequence = (tokens: string[], from: string[], to: string[]) => {
-    const result: string[] = [];
-    for (let index = 0; index < tokens.length;) {
-        if (sequenceAt(tokens, from, index)) {
-            result.push(...to);
-            index += from.length;
-        } else {
-            result.push(tokens[index]);
-            index += 1;
+const countSequence = (tokens: string[], sequence: string[]) => (
+    tokens.filter((_, index) => sequenceAt(tokens, sequence, index)).length
+);
+const commonLength = (left: string[], right: string[]) => {
+    let previous = new Array(right.length + 1).fill(0);
+    for (const token of left) {
+        const current = [0];
+        right.forEach((other, index) => current.push(token === other ? previous[index] + 1 : Math.max(previous[index + 1], current[index])));
+        previous = current;
+    }
+    return previous[right.length];
+};
+// Rewrite `limit` matches, each time the one that best lines up with the answer: "Yes, it is its heart."
+// heard as "yes it is it is heart" keeps the real "it is" and turns the extra one back into "its".
+const replaceBestSequences = (expected: string[], tokens: string[], from: string[], to: string[], limit: number) => {
+    let result = tokens;
+    for (let round = 0; round < limit; round += 1) {
+        let best: string[] | null = null;
+        let bestScore = -1;
+        for (let index = 0; index + from.length <= result.length; index += 1) {
+            if (!sequenceAt(result, from, index)) continue;
+            const candidate = [...result.slice(0, index), ...to, ...result.slice(index + from.length)];
+            const score = commonLength(expected, candidate);
+            if (score > bestScore) { best = candidate; bestScore = score; }
         }
+        if (!best) break;
+        result = best;
     }
     return result;
 };
 const alignPhraseHomophones = (expected: string[], spoken: string[]) => {
-    const expectedWords = new Set(expected);
     for (const [word, phrase] of PHRASE_HOMOPHONES) {
-        const expectedHasPhrase = containsSequence(expected, phrase);
-        if (expectedWords.has(word) && !expectedHasPhrase) spoken = replaceSequence(spoken, phrase, [word]);
-        else if (expectedHasPhrase && !expectedWords.has(word)) spoken = replaceSequence(spoken, [word], phrase);
+        const extraPhrases = countSequence(spoken, phrase) - countSequence(expected, phrase);
+        const missingWords = countSequence(expected, [word]) - countSequence(spoken, [word]);
+        if (extraPhrases > 0 && missingWords > 0) spoken = replaceBestSequences(expected, spoken, phrase, [word], Math.min(extraPhrases, missingWords));
+        else if (extraPhrases < 0 && missingWords < 0) spoken = replaceBestSequences(expected, spoken, [word], phrase, Math.min(-extraPhrases, -missingWords));
     }
     return spoken;
 };
