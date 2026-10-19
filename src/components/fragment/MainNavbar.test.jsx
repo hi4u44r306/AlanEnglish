@@ -127,12 +127,12 @@ describe("MainNavbar student navigation", () => {
         expect(screen.queryByRole("link", { name: "每週報告" })).not.toBeInTheDocument();
         expect(screen.queryByRole("link", { name: "學習排行榜" })).not.toBeInTheDocument();
         // This student has no speaking entitlement, so 冒險 is shown locked in both bars.
-        expect(screen.getAllByRole("button", { name: "冒險，需要有效發音練習權限" })).toHaveLength(2);
+        expect(screen.getAllByRole("button", { name: "冒險，需要口說方案" })).toHaveLength(2);
         expect(screen.queryByRole("button", { name: "我的學習" })).not.toBeInTheDocument();
         expect(screen.getByRole("button", { name: "開啟功能選單" })).toBeInTheDocument();
         expect(screen.getByRole("button", { name: "開啟設定" })).toHaveAttribute("aria-controls", "student-navigation-drawer");
         screen.getAllByRole("link", { name: "我的進度" }).forEach(link => expect(link).toHaveAttribute("href", "/student/settings"));
-        expect([...screen.getByRole("navigation", { name: "學生主要導覽" }).children].map(item => item.getAttribute("aria-label") || item.textContent)).toEqual(["我的進度", "作業", "教材", "冒險，需要有效發音練習權限"]);
+        expect([...screen.getByRole("navigation", { name: "學生主要導覽" }).children].map(item => item.getAttribute("aria-label") || item.textContent)).toEqual(["我的進度", "作業", "教材", "冒險，需要口說方案"]);
         screen.getAllByRole("link", { name: "作業" }).forEach(link => expect(link).toHaveAttribute("href", "/student/assignments"));
         expect(screen.getAllByRole("link", { name: "作業" })).toHaveLength(2);
         const bottomNavigation = screen.getByRole("navigation", { name: "學生主要導覽" });
@@ -161,7 +161,7 @@ describe("MainNavbar student navigation", () => {
         const desktop = screen.getByRole("navigation", { name: "學生桌面導覽" });
         expect(within(desktop).getByRole("link", { name: "我的進度" })).toHaveClass("active");
         expect(within(desktop).getByRole("link", { name: "教材" })).toHaveAttribute("href", "/student/books");
-        expect(within(desktop).getByRole("button", { name: "冒險，需要有效發音練習權限" })).toBeDisabled();
+        expect(within(desktop).getByRole("button", { name: "冒險，需要口說方案" })).toHaveAttribute("aria-disabled", "true");
         expect(within(screen.getByRole("navigation", { name: "學生主要導覽" })).getByRole("link", { name: "我的進度" })).toHaveClass("active");
     });
 
@@ -361,7 +361,7 @@ describe("MainNavbar student navigation", () => {
         ["no pronunciation entitlement", true, false, "mobile"],
         ["inactive membership", false, true, "desktop"],
         ["inactive membership", false, true, "mobile"]
-    ])("keeps challenges disabled for students with %s (case %#)", (_label, isActive, pronunciation, surface) => {
+    ])("keeps challenges disabled for students with %s (case %#)", async (_label, isActive, pronunciation, surface) => {
         useAuth.mockReturnValue({
             firebaseUser: { uid: "speaking-entry-test" },
             role: "student",
@@ -378,9 +378,16 @@ describe("MainNavbar student navigation", () => {
 
         render(<MemoryRouter initialEntries={["/student/dashboard"]}><MainNavbar /></MemoryRouter>);
         const bar = screen.getByRole("navigation", { name: surface === "desktop" ? "學生桌面導覽" : "學生主要導覽" });
-        expect(within(bar).getByRole("button", { name: "冒險，需要有效發音練習權限" })).toBeDisabled();
+        expect(within(bar).getByRole("button", { name: "冒險，需要口說方案" })).toHaveAttribute("aria-disabled", "true");
         expect(within(bar).queryByRole("link", { name: "冒險" })).not.toBeInTheDocument();
         expect(screen.queryByText("口說教練")).not.toBeInTheDocument();
+        // Clicking the locked entry only explains why; it never opens the adventure.
+        fireEvent.click(within(bar).getByRole("button", { name: "冒險，需要口說方案" }));
+        const dialog = await screen.findByRole("dialog");
+        expect(within(dialog).getByText("冒險需要「口說方案」。請問老師或家長。")).toBeInTheDocument();
+        expect(within(dialog).getByRole("link", { name: "看會員與功能" })).toHaveAttribute("href", "/student/membership");
+        fireEvent.click(within(dialog).getByRole("button", { name: "知道了" }));
+        await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
     });
 
     it.each(["admin", "teacher"])("preserves the coach destination in desktop and mobile menus for %s", async role => {
@@ -394,7 +401,7 @@ describe("MainNavbar student navigation", () => {
         expect(await screen.findAllByRole("link", { name: coachName })).toHaveLength(2);
     });
 
-    it("gives admins 學生／作業／教材／設定 and no entry for switched-off pages", async () => {
+    it("gives admins 學生／作業／教材／設定, with less-used admin pages under 設定 › 其他工具", async () => {
         useAuth.mockReturnValue({
             firebaseUser: { uid: "admin-test" },
             role: "admin",
@@ -423,7 +430,14 @@ describe("MainNavbar student navigation", () => {
 
         expect(await screen.findAllByRole("link", { name: "音檔管理" })).toHaveLength(2);
         expect(screen.getAllByRole("link", { name: "口說題庫" })).toHaveLength(2);
-        ["新增連結", "獎品與兌換管理", "教材商品包", "商城訂單與出貨", "等級與晉級測驗", "班級排行榜"].forEach(name => expect(screen.queryByRole("link", { name })).not.toBeInTheDocument());
+        // Every admin route has an entry: the less-used ones sit under 設定 › 其他工具 in both menus.
+        [["等級與晉級測驗", "/admin/levels"], ["教材連結管理", "/admin/links"], ["獎品與兌換管理", "/admin/rewards"], ["教材商品包管理", "/admin/material-packages"], ["商城訂單與出貨", "/admin/store-orders"], ["Boss 挑戰預覽", "/admin/boss-preview"], ["學習排行榜", "/admin/leaderboard"]].forEach(([name, href]) => {
+            const links = screen.getAllByRole("link", { name });
+            expect(links).toHaveLength(2);
+            links.forEach(link => expect(link).toHaveAttribute("href", href));
+        });
+        expect(screen.getAllByText("其他工具")).toHaveLength(2);
+        ["新增連結", "班級排行榜"].forEach(name => expect(screen.queryByRole("link", { name })).not.toBeInTheDocument());
         expect(screen.queryByRole("link", { name: "建立音檔" })).not.toBeInTheDocument();
     });
 

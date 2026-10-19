@@ -397,6 +397,26 @@
     color: var(--ae-success, #26755f);
 }
 
+// 混合任務裡學生還不能做的步驟（指定聽力／指定發音）先隱藏；整份都還不能做時顯示灰色提示。
+.student-homework-status.waiting {
+    background: var(--ae-surface-muted, #eef2f7);
+    color: var(--ae-text-muted, #66768a);
+}
+
+.student-homework-task.is-waiting .student-homework-task__title h3 {
+    color: var(--ae-text-muted, #66768a);
+}
+
+.student-homework-pack-waiting {
+    margin: 4px 0 0;
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: var(--ae-surface-muted, #eef2f7);
+    color: var(--ae-text-muted, #66768a);
+    font-size: 14px;
+    font-weight: 700;
+}
+
 .student-homework-task__title {
     margin: 20px 0 14px;
 }

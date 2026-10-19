@@ -83,11 +83,11 @@ const Showcase = () => {
                                 每一次有效聆聽、答題與通關都留下紀錄，讓孩子知道下一步，也讓家長與老師看見真正完成的內容。
                             </p>
                             <div className="showcase-hero-actions">
-                                <Link className="showcase-primary-btn" to="/login">學生登入 <BiChevronRight /></Link>
-                                <a className="showcase-secondary-btn" href="#features">
-                                    看看平台特色
+                                <Link className="showcase-primary-btn" to="/try">免費試一課 <BiChevronRight /></Link>
+                                <Link className="showcase-secondary-btn" to="/login">
+                                    已有帳號？登入
                                     <BiChevronRight />
-                                </a>
+                                </Link>
                             </div>
                             <InstallEntry />
                             <div className="showcase-trust-row">
@@ -260,7 +260,10 @@ const Showcase = () => {
                             <span className="showcase-kicker">QUESTIONS & ANSWERS</span>
                             <h2>家長最常問的問題。</h2>
                             <p>了解適用年齡、學習方式與支援的裝置。</p>
-                            <Link className="showcase-primary-btn" to="/login">已有帳號，前往登入</Link>
+                            <div className="showcase-hero-actions">
+                                <Link className="showcase-primary-btn" to="/try">免費試一課 <BiChevronRight /></Link>
+                                <Link className="showcase-secondary-btn" to="/login">已有帳號？登入 <BiChevronRight /></Link>
+                            </div>
                         </div>
                         <div className="showcase-faq-list">
                             {faqs.map((faq, index) => (

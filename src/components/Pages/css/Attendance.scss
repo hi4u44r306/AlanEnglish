@@ -189,6 +189,11 @@ $muted: #5b6785;
     .attendance-primary { background: #ffc83d; color: var(--ae-text, #14213d); }
 }
 
+// 底部播放器出現時，儲存列要停在播放器上方，不被蓋住（--app-player-space 由 Containerfull 設定）。
+.app-content.has-player:not(.has-mini-player) .attendance-save {
+    bottom: calc(var(--app-player-space, 110px) + 12px + env(safe-area-inset-bottom));
+}
+
 .attendance-overview {
     display: grid; gap: 12px;
 

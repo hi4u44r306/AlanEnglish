@@ -31,6 +31,11 @@ import "./css/StudentAssignmentsJourney.scss";
 import "./css/StudentAssignmentsMinimal.scss";
 
 const EMPTY_LIST = [];
+// 混合任務中，學生端目前只開放「教材選擇題」。指定聽力與指定發音尚未接上作答流程，
+// 先不顯示給學生，也不算進學生看到的待完成數量（後端進度不變）。
+const STUDENT_READY_ACTIVITY_TYPES = new Set(["ai_quiz"]);
+const studentReadyActivities = assignment => (assignment.activities || []).filter(activity => STUDENT_READY_ACTIVITY_TYPES.has(activity.item_type));
+const isWaitingForTeacher = assignment => !assignment.progress?.completed && studentReadyActivities(assignment).length === 0;
 
 const formatDateTime = value => {
     if (!value) return "—";
@@ -157,14 +162,15 @@ const StudentAssignments = () => {
         setV2Result(null);
     }, [firebaseUser?.uid]);
 
+    const countableAssignments = useMemo(() => [...assignments, ...v2Assignments.filter(item => !isWaitingForTeacher(item))], [assignments, v2Assignments]);
     const counts = useMemo(() => ({
-        total: assignments.length + v2Assignments.length,
-        completed: [...assignments, ...v2Assignments].filter(item => item.progress?.completed).length,
-        pending: [...assignments, ...v2Assignments].filter(item => !item.progress?.completed).length
-    }), [assignments, v2Assignments]);
+        total: countableAssignments.length,
+        completed: countableAssignments.filter(item => item.progress?.completed).length,
+        pending: countableAssignments.filter(item => !item.progress?.completed).length
+    }), [countableAssignments]);
 
     const filterCounts = Object.fromEntries(Object.keys(assignmentStateLabel).map(state => [state,
-        [...assignments, ...v2Assignments].filter(item => getAssignmentState(item) === state).length
+        countableAssignments.filter(item => getAssignmentState(item) === state).length
     ]));
     const matchesFilter = item => taskFilter === "all" || getAssignmentState(item) === taskFilter;
     const visibleAssignments = assignments.filter(matchesFilter);
@@ -673,23 +679,21 @@ const StudentAssignments = () => {
                     </div>
 
                     {visibleV2Assignments.length > 0 && <div className="student-homework-task-list assignment-v2-list" aria-label="混合任務">
-                        {visibleV2Assignments.map((assignment, assignmentIndex) => <article className={`student-homework-task mission-pack${assignment.progress?.completed ? " completed" : ""}`} key={assignment.id} id={`learning-task-v2-${assignment.id}`} tabIndex={-1}>
+                        {visibleV2Assignments.map((assignment, assignmentIndex) => { const readyActivities = studentReadyActivities(assignment); const waiting = isWaitingForTeacher(assignment); const readyDone = readyActivities.filter(activity => activity.progress?.status === "completed").length; return <article className={`student-homework-task mission-pack${assignment.progress?.completed ? " completed" : ""}${waiting ? " is-waiting" : ""}`} key={assignment.id} id={`learning-task-v2-${assignment.id}`} tabIndex={-1}>
                             <div className="student-homework-task__rail" aria-hidden="true"><span>{assignmentIndex + 1}</span></div>
                             <div className="student-homework-task__body">
-                                <div className="student-homework-task__top"><div className="student-homework-task__type"><span><Layers3 size={20} /></span><div><strong>老師的任務</strong></div></div><span className={`student-homework-status ${assignment.progress?.completed ? "completed" : "pending"}`}>{assignment.progress?.completed ? <Check size={15} /> : <Clock3 size={15} />}{assignmentStateLabel[getAssignmentState(assignment)]}</span></div>
+                                <div className="student-homework-task__top"><div className="student-homework-task__type"><span><Layers3 size={20} /></span><div><strong>老師的任務</strong></div></div><span className={`student-homework-status ${assignment.progress?.completed ? "completed" : waiting ? "waiting" : "pending"}`}>{assignment.progress?.completed ? <Check size={15} /> : <Clock3 size={15} />}{waiting ? "老師稍後開放" : assignmentStateLabel[getAssignmentState(assignment)]}</span></div>
                                 {assignment.due_at && <p>{formatDateTime(assignment.due_at)} 截止</p>}
                                 <div className="student-homework-task__title"><h3>{assignmentDisplayTitle(assignment.title)}</h3>{assignment.description && <p>{assignment.description}</p>}</div>
-                                <div className="student-homework-pack-progress"><div><span>整份作業進度</span><strong>{assignment.progress?.task_completed_count || 0} / {assignment.progress?.total_tasks || 0} 個步驟</strong></div><div aria-hidden="true"><span style={{ width: `${assignment.progress?.total_tasks ? Math.round((assignment.progress?.task_completed_count || 0) / assignment.progress.total_tasks * 100) : 0}%` }} /></div></div>
+                                {waiting ? <p className="student-homework-pack-waiting">老師稍後開放，現在先不用做。</p> : <><div className="student-homework-pack-progress"><div><span>整份作業進度</span><strong>{assignment.progress?.completed ? readyActivities.length : readyDone} / {readyActivities.length} 個步驟</strong></div><div aria-hidden="true"><span style={{ width: `${readyActivities.length ? Math.round((assignment.progress?.completed ? readyActivities.length : readyDone) / readyActivities.length * 100) : 0}%` }} /></div></div>
                                 <div className="student-homework-pack-steps">
-                                    {(assignment.activities || []).map((activity, activityIndex) => <section className={`student-homework-pack-step ${activity.item_type}-step${activity.progress?.status === "completed" ? " completed" : ""}`} key={activity.id}>
+                                    {readyActivities.map((activity, activityIndex) => <section className={`student-homework-pack-step ${activity.item_type}-step${activity.progress?.status === "completed" ? " completed" : ""}`} key={activity.id}>
                                         <div className="student-homework-pack-step__heading"><span>{activity.progress?.status === "completed" ? <Check size={17} /> : activity.item_type === "listening" ? <Headphones size={17} /> : activity.item_type === "ai_quiz" ? <Sparkles size={17} /> : <Target size={17} />}</span><div><small>步驟 {activityIndex + 1}</small><strong>{activity.item_type === "listening" ? "指定聽力" : activity.item_type === "ai_quiz" ? "教材選擇題" : "指定發音練習"}</strong></div><em>{activity.progress?.status === "completed" ? "完成" : "待完成"}</em></div>
                                         {activity.item_type === "ai_quiz" && <><div className="student-homework-pack-ai"><div><span>最高分</span><strong>{activity.progress?.best_score || 0}</strong></div><div><span>作答次數</span><strong>{activity.progress?.attempt_count || 0}</strong></div><div><span>通過標準</span><strong>{activity.ai?.passing_score || 80}</strong></div></div><button type="button" className="student-homework-pack-action" onClick={() => openV2Quiz(assignment, activity)}>{activity.progress?.status === "completed" ? "再次複習" : "開始測驗"}<ArrowRight size={17} /></button></>}
-                                        {activity.item_type === "listening" && <p className="student-homework-track syncing">指定 {activity.tracks?.length || 0} 檔音檔；播放器串接完成後可在此開始。</p>}
-                                        {activity.item_type === "pronunciation" && <p className="student-homework-track syncing">指定 {activity.prompts?.length || 0} 句朗讀；作業專用評分串接完成後可在此開始。</p>}
                                     </section>)}
-                                </div>
+                                </div></>}
                             </div>
-                        </article>)}
+                        </article>; })}
                     </div>}
                 </section>
 
