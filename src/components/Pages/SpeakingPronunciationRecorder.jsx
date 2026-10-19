@@ -350,7 +350,8 @@ export default function SpeakingPronunciationRecorder({
         {rechecking && <p className="speaking-recheck-status" role="status">差一點！正在請系統再確認一次…</p>}
         {result && <div className={`speaking-pronunciation-result is-${resultTone}`} role="status" aria-live="polite" aria-atomic="true">
             <header>{answerMatched ? <FiCheckCircle aria-hidden="true" /> : <FiAlertCircle aria-hidden="true" />}<span>本次練習結果</span><strong>{answerMatched ? scoreLabel(pronunciationScore) : assessmentUncertain ? "系統沒有聽清楚" : "回答方式還差一點"}</strong></header>
-            {!(rechecked && !answerMatched) && <p className="speaking-completeness-score"><span>{azureLetters ? "字母發音" : rechecked ? "發音評分" : "朗讀完整度"}</span><strong>{pronunciationScore} 分</strong></p>}
+            {/* 沒過不顯示分數：「75 分」看起來像過了，孩子會誤會；改看下面「系統聽到」。 */}
+            {(answerMatched || azureLetters) && <p className="speaking-completeness-score"><span>{azureLetters ? "字母發音" : rechecked ? "發音評分" : "朗讀完整度"}</span><strong>{pronunciationScore} 分</strong></p>}
             {heardText && <div className="speaking-heard">
                 <p><span>系統聽到</span><strong lang="en">{heardDiff ? renderWords(heardDiff.heard) : heardText}</strong></p>
                 {heardDiff && <p><span>題目是</span><strong lang="en">{renderWords(heardDiff.expected)}</strong></p>}
