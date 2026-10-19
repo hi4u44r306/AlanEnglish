@@ -105,3 +105,13 @@ test("再確認：字母、拼字與個人化答案不送", () => {
     assert.equal(localRecheckCandidate(question("A", "alphabet_round"), "B").eligible, false);
     assert.equal(localRecheckCandidate(question("My name is [name].", "picture_qa"), "My name is Amy").eligible, false);
 });
+test("同音字算對：eye 聽成 I、two 聽成 to 都通過，而且不提醒", () => {
+    const eye = assess(question("It is an eye.", "picture_gap_sentence"), 'It is an "I".');
+    assert.equal(eye.answer_match, true);
+    assert.deepEqual(eye.pronunciation_tips, []);
+    assert.equal(assess(question("I have two cats."), "I have to cats.").answer_match, true);
+    assert.equal(assess(question("I can see a bee.", "standard_sentence"), "I can sea a be.").scores.completeness, 100);
+    // 不同音的錯字仍不通過；no／know 不算同音放寬。
+    assert.equal(assess(question("It is an eye.", "picture_gap_sentence"), "It is an ear.").answer_match, false);
+    assert.equal(assess(question("Yes, I know.", "text_qa"), "Yes, I no.").scores.completeness < 100, true);
+});

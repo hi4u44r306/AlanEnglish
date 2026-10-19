@@ -1,5 +1,13 @@
 # Alan English 專案狀態
 
+### 口說同音字與沒過畫面（2026-10-19，分支 `fix/speaking-homophones`；需 pronunciation-coach 部署）
+
+- 擁有者實測「It is an eye.」被聽成「It is an "I".」沒過、且畫面同一件事講三次並顯示 75 分。
+- 後端 `speaking-foundation-answer.ts`：`alignThSoundAlikes` 先把同音字（HOMOPHONE_GROUPS，排除 no／know）對回答案字，`readingCoverage` 與 `matchesChildFriendlySentence` 都適用。
+- 前端：沒過不顯示分數（字母 Azure 題除外）；`SpeakingPracticeSteps` 底部紅字只留給字母題與 uncertain。
+- 驗證：speaking-completeness 20 項（新增同音字 1 項）、azure-sentence 4、local-handler 17；前端口說 267 項，`SpeakingChallengeFlow` 下一關測試偶發失敗（單獨重跑 4 次皆過，main 上同樣偶發）。
+- PR #624（全站按鈕整理）2026-10-19 已部署，正式站 main.8a21778e。
+
 ### 全站按鈕 UX 整理（2026-10-19，分支 `fix/ux-audit`，只改前端，隨 PR 上線）
 
 - 依程式碼審查的 49 項分 4 批修（commit c246184c、d1376ec4、8e0ccf88、13fc9d9f）：誤按／弄丟資料加確認、觸控 44px、返回鍵與按鈕位置統一、公開頁入口與後台危險操作分開。手冊 v4.66 列出各角色變化。

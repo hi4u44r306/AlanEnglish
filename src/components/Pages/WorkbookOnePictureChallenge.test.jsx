@@ -95,7 +95,7 @@ describe("WorkbookOnePictureChallenge", () => {
 
         fireEvent.click(screen.getByRole("button", { name: "模擬不完整回答" }));
         expect(onComplete).not.toHaveBeenCalled();
-        expect(screen.getByText("先用提示中的完整句型回答，再送出一次。")).toBeInTheDocument();
+        expect(screen.queryByText("先用提示中的完整句型回答，再送出一次。")).not.toBeInTheDocument();
 
         fireEvent.click(screen.getByRole("button", { name: "模擬完整回答" }));
         expect(await screen.findByRole("heading", { name: "太棒了，全部完成！" })).toBeInTheDocument();

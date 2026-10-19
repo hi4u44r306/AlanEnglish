@@ -168,12 +168,31 @@ export const thSoundAlikes = (word: string): string[] => {
     return [...variants];
 };
 
-// Replace heard words that differ from an answer word only in its th; report which ones.
+// Words that sound exactly alike: the recognizer cannot tell them apart ("It is an eye." comes back
+// as "It is an I."), so hearing one when the answer has the other is not a mistake. No/know and other
+// pairs that change yes/no meaning are left out on purpose.
+const HOMOPHONE_GROUPS = [
+    ["eye", "i"], ["two", "to", "too"], ["four", "for"], ["eight", "ate"], ["one", "won"],
+    ["see", "sea"], ["be", "bee"], ["right", "write"], ["hear", "here"], ["their", "there"],
+    ["buy", "by", "bye"], ["son", "sun"], ["meet", "meat"], ["pear", "pair"], ["week", "weak"],
+    ["blue", "blew"], ["flower", "flour"], ["night", "knight"], ["new", "knew"], ["hour", "our"],
+    ["whole", "hole"], ["wear", "where"], ["wood", "would"], ["deer", "dear"], ["road", "rode"],
+    ["tail", "tale"], ["mail", "male"], ["plane", "plain"], ["sail", "sale"]
+];
+const HOMOPHONES = new Map<string, string[]>();
+for (const group of HOMOPHONE_GROUPS) for (const word of group) {
+    HOMOPHONES.set(word, [...new Set([...(HOMOPHONES.get(word) || []), ...group.filter(other => other !== word)])]);
+}
+
+// Replace heard words that are a homophone of an answer word, or differ from it only in its th;
+// report the th ones (homophones are not the child's mistake, so no tip).
 export const alignThSoundAlikes = (expected: string[], spoken: string[]) => {
     const tips: { word: string; heard: string }[] = [];
+    const expectedWords = new Set(expected);
+    spoken = spoken.map(token => expectedWords.has(token) ? token
+        : (HOMOPHONES.get(token) || []).find(word => expectedWords.has(word)) || token);
     const thWords = [...new Set(expected.filter(token => token.includes("th")))];
     if (!thWords.length) return { spoken, tips };
-    const expectedWords = new Set(expected);
     const aligned = spoken.map(token => {
         if (expectedWords.has(token)) return token;
         const word = thWords.find(candidate => thSoundAlikes(candidate).includes(token));

@@ -434,7 +434,8 @@ describe("SpeakingPronunciationRecorder", () => {
             question={{ id: 17, interaction_type: "standard_sentence", model_answer: "I like cats." }} onScored={onScored} />);
         await recordAndSubmit();
         expect(await screen.findByText("系統聽到")).toBeInTheDocument();
-        expect(screen.getByText("朗讀完整度")).toBeInTheDocument();
+        // 沒過不顯示分數，免得「75 分」看起來像過了。
+        expect(screen.queryByText("朗讀完整度")).not.toBeInTheDocument();
         expect(screen.queryByRole("alert")).not.toBeInTheDocument();
         expect(onScored).toHaveBeenCalledWith(expect.objectContaining({ answer_match: false }));
     });

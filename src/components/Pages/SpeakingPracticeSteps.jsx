@@ -251,8 +251,9 @@ export default function SpeakingPracticeSteps({
         {!saving && lastResult?.answer_match !== false && lastResult && !lastResult.hint_used && !lastResult.save_failed && <p className="speaking-practice-finished" role="status"><FiCheck aria-hidden="true" /> 本題已完成！你可以繼續挑戰或再練一次。</p>}
         {lastResult?.save_failed && <div className="speaking-save-retry" role="alert"><strong>回答已評分，通關紀錄尚未儲存。</strong><p>保留這次回答，重試儲存即可。</p><button type="button" onClick={() => handleScored(lastResult)} disabled={saving}>{saving ? "儲存中…" : "重試儲存"}</button></div>}
         {lastResult?.hint_used && !revealedAnswer && <p className="speaking-practice-retry" role="status">這題先練習，稍後不看答案再試一次。</p>}
-        {/* 再確認過的結果，錄音結果裡已經寫了哪些字要念清楚，這裡不重複。 */}
-        {lastResult?.answer_match === false && !lastResult.rechecked && (
+        {/* 句子題沒過時，錄音結果的「系統聽到」已經說明怎麼做，這裡不重複；只留給字母題與沒聽清楚的情況。 */}
+        {lastResult?.answer_match === false && !lastResult.rechecked
+          && (["letter_spelling", "alphabet_round"].includes(interactionType) || lastResult.assessment_status === "uncertain") && (
           <p className="speaking-practice-retry">
             <FiHelpCircle aria-hidden="true" />{" "}
             {lastResult.feedback || (

@@ -115,7 +115,8 @@ describe("SpeakingPracticeSteps", () => {
 
         fireEvent.click(screen.getByRole("button", { name: "模擬不完整回答" }));
         expect(onCompleted).not.toHaveBeenCalled();
-        expect(screen.getByText("先用提示中的完整句型回答，再送出一次。")).toBeInTheDocument();
+        // 沒過的說明由錄音結果的「系統聽到」負責，底下不再重複一段紅字。
+        expect(screen.queryByText("先用提示中的完整句型回答，再送出一次。")).not.toBeInTheDocument();
 
         fireEvent.click(screen.getByRole("button", { name: "模擬正確回答" }));
         expect(onCompleted).toHaveBeenCalledTimes(1);
