@@ -116,7 +116,71 @@ export const OPTIONAL_GRAMMAR_WORDS = new Set([
 ]);
 export const POLARITY_WORDS = new Set(["yes", "no", "not"]);
 
-const canonicalSentenceTokens = (value: unknown) => normalizedSpokenSentence(value)
+// Speech recognizers write numbers as digits ("8:30", "5.1", "3,940", "8th") while answers may spell
+// them out, or the other way round. Both sides are rewritten to the same English words before they
+// are tokenized, so the digit form and the spoken form compare equal.
+const NUMBER_ONES = [
+    "zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten",
+    "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen", "seventeen", "eighteen", "nineteen"
+];
+const NUMBER_TENS = ["", "", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"];
+const ORDINAL_WORDS: Record<string, string> = {
+    one: "first", two: "second", three: "third", five: "fifth", eight: "eighth", nine: "ninth", twelve: "twelfth"
+};
+const underHundredWords = (n: number) => n < 20
+    ? NUMBER_ONES[n]
+    : NUMBER_TENS[Math.floor(n / 10)] + (n % 10 ? " " + NUMBER_ONES[n % 10] : "");
+const integerWords = (n: number): string => {
+    if (n < 100) return underHundredWords(n);
+    if (n < 1000) return NUMBER_ONES[Math.floor(n / 100)] + " hundred" + (n % 100 ? " " + underHundredWords(n % 100) : "");
+    return underHundredWords(Math.floor(n / 1000)) + " thousand" + (n % 1000 ? " " + integerWords(n % 1000) : "");
+};
+const digitWords = (digits: string) => digits.split("").map(digit => NUMBER_ONES[Number(digit)]).join(" ");
+const numberWords = (digits: string) => {
+    if (digits.length > 1 && digits.startsWith("0")) return digitWords(digits);
+    const n = Number(digits);
+    if (!Number.isInteger(n) || n > 9999) return digits;
+    // Years are read in pairs: 1999 is "nineteen ninety nine", 1905 is "nineteen oh five".
+    if (n >= 1100 && n <= 1999) {
+        const low = n % 100;
+        return underHundredWords(Math.floor(n / 100)) + " "
+            + (low === 0 ? "hundred" : low < 10 ? "oh " + NUMBER_ONES[low] : underHundredWords(low));
+    }
+    return integerWords(n);
+};
+const replaceLastWord = (words: string, change: (word: string) => string) => {
+    const parts = words.split(" ");
+    parts[parts.length - 1] = change(parts[parts.length - 1]);
+    return parts.join(" ");
+};
+const ordinalWords = (digits: string) => replaceLastWord(numberWords(digits), word => ORDINAL_WORDS[word]
+    || (word.endsWith("y") ? word.slice(0, -1) + "ieth" : word + "th"));
+const pluralNumberWords = (digits: string) => replaceLastWord(numberWords(digits), word => (
+    word.endsWith("y") ? word.slice(0, -1) + "ies" : word + "s"
+));
+export const spellOutNumbers = (value: unknown) => String(value || "")
+    // 3,940 -> 3940 (only real thousands groups, so "1, 2, 3" lists are left alone)
+    .replace(/(\d),(?=\d{3}(?!\d))/g, "$1")
+    // 8:30 -> eight thirty, 7:00 -> seven o'clock, 8:05 -> eight oh five
+    .replace(/\b(\d{1,2}):([0-5]\d)\b/g, (_, hour: string, minute: string) => {
+        const m = Number(minute);
+        return " " + numberWords(String(Number(hour))) + " "
+            + (m === 0 ? "o'clock" : m < 10 ? "oh " + NUMBER_ONES[m] : underHundredWords(m)) + " ";
+    })
+    // 5.1 -> five point one
+    .replace(/\b(\d+)\.(\d+)\b/g, (_, whole: string, fraction: string) => (
+        " " + numberWords(whole) + " point " + digitWords(fraction) + " "
+    ))
+    // 8th -> eighth, 21st -> twenty first
+    .replace(/\b(\d+)(st|nd|rd|th)\b/gi, (_, digits: string) => " " + ordinalWords(digits) + " ")
+    // 20s -> twenties, 1990s -> nineteen nineties
+    .replace(/\b(\d*0)s\b/gi, (_, digits: string) => " " + pluralNumberWords(digits) + " ")
+    // 2pm -> 2 pm, E1 -> E 1
+    .replace(/(\d)([A-Za-z])/g, "$1 $2")
+    .replace(/([A-Za-z])(\d)/g, "$1 $2")
+    .replace(/\d+/g, digits => " " + numberWords(digits) + " ");
+
+const canonicalSentenceTokens = (value: unknown) => normalizedSpokenSentence(spellOutNumbers(value))
     .replace(/\b(i'm)\b/g, "i am")
     .replace(/\b(you're|we're|they're)\b/g, match => ({ "you're": "you are", "we're": "we are", "they're": "they are" }[match] || match))
     .replace(/\b(it's|he's|she's|that's|what's|where's|who's)\b/g, match => ({
@@ -177,18 +241,104 @@ const HOMOPHONE_GROUPS = [
     ["buy", "by", "bye"], ["son", "sun"], ["meet", "meat"], ["pear", "pair"], ["week", "weak"],
     ["blue", "blew"], ["flower", "flour"], ["night", "knight"], ["new", "knew"], ["hour", "our"],
     ["whole", "hole"], ["wear", "where"], ["wood", "would"], ["deer", "dear"], ["road", "rode"],
-    ["tail", "tale"], ["mail", "male"], ["plane", "plain"], ["sail", "sale"]
+    ["tail", "tale"], ["mail", "male"], ["plane", "plain"], ["sail", "sale"],
+    // American / British spellings and spelling variants say the same word.
+    ["color", "colour"], ["colors", "colours"], ["favorite", "favourite"], ["gray", "grey"], ["mom", "mum"],
+    ["meter", "metre"], ["meters", "metres"], ["kilometers", "kilometres"], ["centimeters", "centimetres"],
+    ["neighbor", "neighbour"], ["neighbors", "neighbours"], ["flavor", "flavour"], ["favor", "favour"],
+    ["center", "centre"], ["theater", "theatre"], ["pajamas", "pyjamas"], ["ok", "okay"], ["mr", "mister"],
+    ["donuts", "doughnuts"], ["traveling", "travelling"], ["practice", "practise"],
+    // Names the recognizer may spell another way.
+    ["sean", "shawn", "shaun"], ["jenny", "jennie"], ["vicky", "vicki", "vickie"], ["cindy", "sindy"],
+    ["ann", "anne"], ["sara", "sarah"], ["jeff", "geoff"], ["mandy", "mandi"], ["kenny", "kenney"],
+    ["louisa", "luisa"], ["helen", "hellen"], ["jill", "gill"], ["judy", "judi"], ["tony", "toni"],
+    ["sue", "su"], ["alan", "allen", "allan"], ["susan", "suzan"], ["betty", "bettie"], ["sally", "sallie"],
+    ["lucy", "lucie"], ["jim", "gym"], ["tina", "teena"], ["yilan", "ilan"], ["keelung", "keelong", "kilung", "jilong"],
+    ["nick", "nic"], ["mike", "mic"]
 ];
+// Groups that share a word are merged, so every spelling maps to every other one.
 const HOMOPHONES = new Map<string, string[]>();
-for (const group of HOMOPHONE_GROUPS) for (const word of group) {
-    HOMOPHONES.set(word, [...new Set([...(HOMOPHONES.get(word) || []), ...group.filter(other => other !== word)])]);
+{
+    const groupOf = new Map<string, Set<string>>();
+    for (const group of HOMOPHONE_GROUPS) {
+        const merged = new Set<string>(group);
+        for (const word of group) for (const other of groupOf.get(word) || []) merged.add(other);
+        for (const word of merged) groupOf.set(word, merged);
+    }
+    for (const [word, group] of groupOf) HOMOPHONES.set(word, [...group].filter(other => other !== word));
 }
+
+// A contraction is split into two words by both tokenizers, so "it's" (it is) and "its" no longer
+// line up one to one. These sound the same, so the heard form is rewritten to the answer's form.
+const PHRASE_HOMOPHONES: [string, string[]][] = [
+    ["its", ["it", "is"]], ["whose", ["who", "is"]], ["your", ["you", "are"]],
+    ["their", ["they", "are"]], ["there", ["they", "are"]]
+];
+const sequenceAt = (tokens: string[], sequence: string[], start: number) => (
+    sequence.every((token, offset) => tokens[start + offset] === token)
+);
+const containsSequence = (tokens: string[], sequence: string[]) => (
+    tokens.some((_, index) => sequenceAt(tokens, sequence, index))
+);
+const replaceSequence = (tokens: string[], from: string[], to: string[]) => {
+    const result: string[] = [];
+    for (let index = 0; index < tokens.length;) {
+        if (sequenceAt(tokens, from, index)) {
+            result.push(...to);
+            index += from.length;
+        } else {
+            result.push(tokens[index]);
+            index += 1;
+        }
+    }
+    return result;
+};
+const alignPhraseHomophones = (expected: string[], spoken: string[]) => {
+    const expectedWords = new Set(expected);
+    for (const [word, phrase] of PHRASE_HOMOPHONES) {
+        const expectedHasPhrase = containsSequence(expected, phrase);
+        if (expectedWords.has(word) && !expectedHasPhrase) spoken = replaceSequence(spoken, phrase, [word]);
+        else if (expectedHasPhrase && !expectedWords.has(word)) spoken = replaceSequence(spoken, [word], phrase);
+    }
+    return spoken;
+};
+
+// Compound words and abbreviations are written together or apart ("living room" / "livingroom",
+// "p m" / "pm", "t v" / "tv"): join 2-3 heard words that spell one answer word, or split one heard
+// word that spells two neighbouring answer words.
+const withoutApostrophes = (word: string) => word.replace(/'/g, "");
+const alignJoinedWords = (expected: string[], spoken: string[]) => {
+    const expectedWords = new Set(expected);
+    const expectedByLetters = new Map(expected.map(word => [withoutApostrophes(word), word]));
+    const result: string[] = [];
+    for (let index = 0; index < spoken.length;) {
+        const size = [3, 2].find(length => {
+            const window = spoken.slice(index, index + length);
+            return window.length === length && expectedByLetters.has(withoutApostrophes(window.join("")))
+                && !containsSequence(expected, window);
+        });
+        if (size) {
+            result.push(expectedByLetters.get(withoutApostrophes(spoken.slice(index, index + size).join(""))) as string);
+            index += size;
+            continue;
+        }
+        const token = spoken[index];
+        const split = expectedWords.has(token) ? -1 : expected.findIndex((word, position) => (
+            position + 1 < expected.length && withoutApostrophes(word + expected[position + 1]) === withoutApostrophes(token)
+        ));
+        if (split >= 0) result.push(expected[split], expected[split + 1]);
+        else result.push(token);
+        index += 1;
+    }
+    return result;
+};
 
 // Replace heard words that are a homophone of an answer word, or differ from it only in its th;
 // report the th ones (homophones are not the child's mistake, so no tip).
 export const alignThSoundAlikes = (expected: string[], spoken: string[]) => {
     const tips: { word: string; heard: string }[] = [];
     const expectedWords = new Set(expected);
+    spoken = alignJoinedWords(expected, alignPhraseHomophones(expected, spoken));
     // Linking: "its ears" run together comes back as "its years" (a y sound slips in before a
     // vowel-initial word), so "y" + an answer word that starts with a vowel counts as that word.
     spoken = spoken.map(token => expectedWords.has(token) ? token

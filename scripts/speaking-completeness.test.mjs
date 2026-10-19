@@ -122,3 +122,87 @@ test("連音算對：its ears 聽成 its years 也通過；本來就是 years �
     assert.equal(assess(question("I am ten years old."), "I am ten ears old.").scores.completeness < 100, true);
     assert.equal(assess(question("They are its ears.", "picture_gap_sentence"), "They are its yes.").answer_match, false);
 });
+import { readingAnswerAlternatives } from "../supabase/functions/_shared/speaking-completeness.ts";
+const passes = (answer, spoken, type = "") => assess(question(answer, type), spoken).answer_match;
+test("數字：阿拉伯數字與英文念法互通，數字不同仍不通過", () => {
+    for (const type of ["", "text_qa"]) {
+        assert.equal(passes("I take a bath at 8:30.", "I take a bath at eight thirty.", type), true);
+        assert.equal(passes("I take a bath at eight thirty.", "I take a bath at 8:30.", type), true);
+        assert.equal(passes("It's 5.1 meters.", "It's five point one meters.", type), true);
+        assert.equal(passes("I get up at 7:00.", "I get up at seven o'clock.", type), true);
+        assert.equal(passes("It is the 8th day.", "It is the eighth day.", type), true);
+        assert.equal(passes("There are 3,940 people.", "There are three thousand nine hundred forty people.", type), true);
+        assert.equal(passes("She was born in 1999.", "She was born in nineteen ninety-nine.", type), true);
+        assert.equal(passes("He is seventy-five.", "He is 75.", type), true);
+        assert.equal(passes("She is in her 20s.", "She is in her twenties.", type), true);
+    }
+    // 長句本來就容許錯一個字（70%）；短句才看得出數字念錯。
+    assert.equal(passes("It's 8:30.", "It's nine thirty.", "text_qa"), false);
+    assert.equal(passes("5.1", "five point two", "text_qa"), false);
+    assert.equal(passes("3 apples.", "four apples.", "text_qa"), false);
+});
+test("its／it's、your／you're 等同音片語互通，代名詞不同仍不通過", () => {
+    assert.equal(passes("They are its ears.", "They are it's ears.", "picture_gap_sentence"), true);
+    assert.equal(passes("They are its ears.", "They are it's ears."), true);
+    assert.equal(passes("It's a cat.", "Its a cat.", "text_qa"), true);
+    assert.equal(passes("Whose bag is this?", "Who's bag is this?", "text_qa"), true);
+    assert.equal(passes("Your bag is red.", "You're bag is red.", "text_qa"), true);
+    assert.equal(passes("They're my friends.", "There my friends.", "text_qa"), true);
+    assert.equal(passes("They are its ears.", "They are his ears.", "picture_gap_sentence"), false);
+    assert.equal(passes("Your bag is red.", "My bag is red.", "text_qa"), false);
+});
+test("複合字與縮寫連寫或分開都算對，不同字仍不通過", () => {
+    assert.equal(passes("I am in the living room.", "I am in the livingroom.", "text_qa"), true);
+    assert.equal(passes("I am in the livingroom.", "I am in the living room.", "text_qa"), true);
+    assert.equal(passes("It's 2 p.m.", "It's 2pm.", "text_qa"), true);
+    assert.equal(passes("I watch TV.", "I watch T V.", "text_qa"), true);
+    assert.equal(passes("I watch TV every day.", "I watch T V every day."), true);
+    assert.equal(passes("I am in the living room.", "I am in the bedroom.", "text_qa"), false);
+    assert.equal(passes("It's 2 p.m.", "It's 2am.", "text_qa"), false);
+});
+test("英美拼法與人名拼法互通，不同人名或名詞仍不通過", () => {
+    assert.equal(passes("My favourite colour is blue.", "My favorite color is blue.", "text_qa"), true);
+    assert.equal(passes("It is 5 metres long.", "It is five meters long.", "text_qa"), true);
+    assert.equal(passes("This is Sean.", "This is Shawn.", "text_qa"), true);
+    assert.equal(passes("Hi, I'm Sarah.", "Hi, I'm Sara.", "text_qa"), true);
+    assert.equal(passes("I live in Keelung.", "I live in Jilong.", "text_qa"), true);
+    assert.equal(passes("This is Sean.", "This is John.", "text_qa"), false);
+    assert.equal(passes("It is grey.", "It is gray.", "text_qa"), true);
+    assert.equal(passes("It is grey.", "It is green.", "text_qa"), false);
+});
+test("題目括號：可省略、可唸出、大寫或縮寫可替換前一字", () => {
+    for (const type of ["", "text_qa"]) {
+        assert.equal(passes("She wants two dozen (of) beer.", "She wants two dozen beer.", type), true);
+        assert.equal(passes("She wants two dozen (of) beer.", "She wants two dozen of beer.", type), true);
+        assert.equal(passes("I'm (We're) in bed.", "We're in bed.", type), true);
+        assert.equal(passes("I'm (We're) in bed.", "I'm in bed.", type), true);
+        assert.equal(passes("It can (also) save you (as well).", "It can save you as well.", type), true);
+    }
+    assert.equal(passes("I'm (We're) in bed.", "They're in bed.", "text_qa"), false);
+    assert.equal(passes("I want (some) beer.", "I want milk.", "text_qa"), false);
+    assert.equal(readingAnswerAlternatives("It can (also) save you (as well).").some(text => /[()]/.test(text)), false);
+});
+test("題目斜線：任選一個說法都算對，兩個都漏或換成別的字不通過", () => {
+    for (const type of ["", "text_qa"]) {
+        assert.equal(passes("Your passport/card is out of date.", "Your card is out of date.", type), true);
+        assert.equal(passes("Your passport/card is out of date.", "Your passport is out of date.", type), true);
+        assert.equal(passes("I feel worried/nervous.", "I feel nervous.", type), true);
+        assert.equal(passes("It is cloudy/partly cloudy.", "It is partly cloudy.", type), true);
+        assert.equal(passes("Mind the gap. / Mind your step.", "Mind your step.", type), true);
+        assert.equal(passes("I like fried chicken./ chocolate cake./ bananas.", "I like chocolate cake.", type), true);
+        assert.equal(passes("Are you ready to order?/ Can I take your order? What's your specialty?", "Can I take your order? What's your specialty?", type), true);
+    }
+    // 長句本來就容許漏一個字（70%）；短句才看得出兩個選項都沒唸。
+    assert.equal(passes("Your passport/card is lost.", "Your is lost.", "text_qa"), false);
+    assert.equal(passes("Your passport/card is lost.", "Your bag is lost.", "text_qa"), false);
+    assert.equal(passes("I feel worried/nervous.", "I feel happy.", "text_qa"), false);
+    assert.equal(passes("I like fried chicken./ chocolate cake./ bananas.", "bananas"), false);
+    const variants = readingAnswerAlternatives("I like fried chicken./ chocolate cake./ bananas. Mind the gap. / Mind your step. A/B/C/D");
+    assert.equal(variants.length <= 32 && variants.length > 0, true);
+    assert.equal(variants.some(text => /[/()]/.test(text) || !/[a-z]/i.test(text)), false);
+});
+test("放寬規則不改變是否題：No, it isn't. 唸成 Yes, it is. 仍不通過", () => {
+    assert.equal(passes("No, it isn't.", "Yes, it is.", "text_qa"), false);
+    assert.equal(passes("No, it isn't.", "Yes, it is."), false);
+    assert.equal(passes("Is it your bag? No, it isn't.", "Is it your bag? Yes, it is.", "text_qa"), false);
+});
