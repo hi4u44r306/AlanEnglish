@@ -205,12 +205,9 @@ const StudentNavbar = ({
                     </Nav>
                     <div className="ae-student-desktop-account">
                         {notificationMenu}
-                        {/* On desktop the name opens the same settings menu the hamburger opens on phones. */}
+                        {/* On desktop the name opens the same settings menu the hamburger opens on phones; 登出 is its last item. */}
                         <button type="button" data-tour="settings" className="ae-student-account-link" onClick={() => openDrawer("menu")} aria-label="開啟設定" aria-expanded={drawerOpen && drawer === "menu"} aria-controls="student-navigation-drawer">
                             <span className="ae-student-account-chip"><span>{profileAvatar}</span><strong>{profileName}</strong></span>
-                        </button>
-                        <button type="button" className="ae-student-desktop-logout" onClick={onLogout} disabled={loggingOut} aria-label={loggingOut ? "登出中..." : "登出"} title="登出">
-                            <FiLogOut aria-hidden="true" />
                         </button>
                     </div>
                     <div className="ae-student-mobile-account">
@@ -230,6 +227,7 @@ const StudentNavbar = ({
                     {drawer === "menu" && (
                         <>
                             {settingsLinks}
+                            <hr className="ae-student-drawer-divider" aria-hidden="true" />
                             <button type="button" className="ae-student-drawer-logout" onClick={onLogout} disabled={loggingOut}><FiLogOut />{loggingOut ? "登出中..." : "登出"}</button>
                         </>
                     )}

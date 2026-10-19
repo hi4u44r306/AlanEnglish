@@ -395,9 +395,9 @@ const TeacherAttendance = () => {
                 <section className="attendance-confirm-dialog" role="alertdialog" aria-modal="true" aria-labelledby="attendance-switch-title">
                     <h2 id="attendance-switch-title">還有沒儲存的點名，要先儲存嗎？</h2>
                     <div>
-                        <button type="button" className="attendance-primary" disabled={saving} onClick={() => finishSwitch("save")}>儲存後切換</button>
-                        <button type="button" className="attendance-ghost" onClick={() => finishSwitch("discard")}>不儲存</button>
                         <button type="button" className="attendance-ghost" autoFocus onClick={() => finishSwitch("cancel")}>取消</button>
+                        <button type="button" className="attendance-ghost" onClick={() => finishSwitch("discard")}>不儲存</button>
+                        <button type="button" className="attendance-primary" disabled={saving} onClick={() => finishSwitch("save")}>儲存後切換</button>
                     </div>
                 </section>
             </div>}

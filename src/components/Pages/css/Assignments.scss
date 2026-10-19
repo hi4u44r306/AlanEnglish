@@ -518,7 +518,7 @@
     gap: 10px;
 }
 
-.assignment-list article {
+.assignment-list > article {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -528,12 +528,12 @@
     border-radius: 15px;
 }
 
-.assignment-list article > div:first-child strong,
-.assignment-list article > div:first-child span {
+.assignment-list > article > div:first-child strong,
+.assignment-list > article > div:first-child span {
     display: block;
 }
 
-.assignment-list article > div:first-child span {
+.assignment-list > article > div:first-child span {
     margin-top: 4px;
     color: var(--ae-text-muted, #8a93a6);
     font-size: 12px;
@@ -615,9 +615,24 @@
     align-items: center;
     justify-content: center;
     gap: 6px;
+    // 危險操作：紅色外框、放在最後並和其他按鈕拉開距離。
     color: var(--ae-danger, #b83d49);
-    background: var(--ae-surface-muted, #fff7f7);
-    border-color: var(--ae-border, #f0c8cd);
+    background: var(--ae-surface, #fff);
+    border-color: var(--ae-danger, #b83d49);
+}
+
+.assignment-history-buttons .assignment-delete {
+    margin-left: 16px;
+}
+
+.assignment-draft-tools .assignment-draft-discard {
+    margin-left: auto;
+    border-color: transparent;
+    background: transparent;
+    color: var(--ae-danger, #b83d49);
+    font-weight: 800;
+    text-decoration: underline;
+    text-underline-offset: 3px;
 }
 
 .assignment-history-actions .assignment-delete:hover {
@@ -1239,7 +1254,7 @@
     cursor: wait;
 }
 
-.teacher-assignment-page .assignment-list article {
+.teacher-assignment-page .assignment-list > article {
     align-items: flex-start;
     flex-direction: column;
 }
@@ -1468,3 +1483,19 @@
 .assignment-confirm-overview { margin: 16px 0; overflow-wrap: anywhere; }
 .assignment-confirm-overview p { margin: 6px 0 0; color: var(--ae-accent, #53647d); }
 .assignment-source-tools > summary { min-height: 44px; padding: 12px 0; font-weight: 700; cursor: pointer; }
+
+// 第 3 步的動作列：上一步在左，先預覽／發布在右。
+.assignment-publish-actions { flex-wrap: wrap; align-items: center; }
+.assignment-publish-actions .assignment-history-buttons { margin-left: auto; justify-content: flex-end; }
+.assignment-publish-actions .assignment-primary { min-width: 176px; }
+@media (max-width: 767px) {
+    // 手機版：下方預留空間，固定的播放器不會蓋住發布按鈕。
+    .assignment-publish-actions { padding-bottom: calc(88px + env(safe-area-inset-bottom)); }
+    .assignment-publish-actions .assignment-history-buttons { width: 100%; }
+    .assignment-publish-actions .assignment-history-buttons button { flex: 1 1 auto; }
+}
+
+// 「查看進度」結果：放在該份作業下面，標題右側有「關閉」。
+.assignment-list > .assignment-results { margin: 0; }
+.assignment-results__heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.assignment-results__heading > button { flex: 0 0 auto; }

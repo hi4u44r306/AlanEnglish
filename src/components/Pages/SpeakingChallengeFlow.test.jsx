@@ -74,7 +74,7 @@ describe("speaking return and completion flow", () => {
         completeSpeakingChallengeQuestion.mockResolvedValue({ challenge_completed: true, xp_awarded: 0 });
         mount(mode);
         const oldSession = (await screen.findByRole("button", { name: "通過本題" })).getAttribute("data-session");
-        fireEvent.click(screen.getByRole("button", { name: "先看下一題" }));
+        fireEvent.click(screen.getByRole("button", { name: "跳過這題" }));
         expect(screen.getByText("已完成 2／3 題")).toBeInTheDocument();
         expect(screen.getByRole("heading", { name: "只剩 1 題，再試一次！" })).toBeInTheDocument();
         if (mode === "challenge") expect(screen.getByText("看過提示的題目，這次試著不用提示回答。")).toBeInTheDocument();
@@ -88,7 +88,7 @@ describe("speaking return and completion flow", () => {
     });
     it("return has a short animation, unmounts recording content, and preserves the map location", async () => {
         mount(); await screen.findByRole("button", { name: "通過本題" });
-        fireEvent.click(screen.getByRole("button", { name: "關卡列表" }));
+        fireEvent.click(screen.getByRole("button", { name: "離開這關" })); fireEvent.click(screen.getByRole("button", { name: "確定離開" }));
         expect(screen.getByText("回到地圖中…")).toBeInTheDocument();
         expect(screen.queryByRole("button", { name: "通過本題" })).not.toBeInTheDocument();
         await screen.findByRole("heading", { name: "地圖已返回" });
@@ -114,7 +114,7 @@ describe("speaking return and completion flow", () => {
         let resolve;
         completeSpeakingChallengeQuestion.mockImplementation(() => new Promise(done => { resolve = done; }));
         mount(); fireEvent.click(await screen.findByRole("button", { name: "通過本題" }));
-        fireEvent.click(screen.getByRole("button", { name: "關卡列表" }));
+        fireEvent.click(screen.getByRole("button", { name: "離開這關" })); fireEvent.click(screen.getByRole("button", { name: "確定離開" }));
         await act(async () => resolve({ challenge_completed: true, xp_awarded: 30 }));
         expect(screen.getByText("回到地圖中…")).toBeInTheDocument();
         expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
@@ -147,7 +147,7 @@ describe("speaking return and completion flow", () => {
         let reject;
         completeSpeakingChallengeQuestion.mockImplementation(() => new Promise((resolve, fail) => { reject = fail; }));
         mount(); fireEvent.click(await screen.findByRole("button", { name: "通過本題" }));
-        fireEvent.click(screen.getByRole("button", { name: "關卡列表" }));
+        fireEvent.click(screen.getByRole("button", { name: "離開這關" })); fireEvent.click(screen.getByRole("button", { name: "確定離開" }));
         await act(async () => reject(new Error("無法儲存練習紀錄")));
         expect(screen.getByText("回到地圖中…")).toBeInTheDocument();
         expect(screen.queryByText("無法儲存練習紀錄")).not.toBeInTheDocument();
@@ -156,7 +156,7 @@ describe("speaking return and completion flow", () => {
     it("a lesson with only book_id returns to its workbook map", async () => {
         getSpeakingChallengeSet.mockResolvedValue({ challenge: { ...fixture, books: undefined, book_id: 1 } });
         mount(); await screen.findByRole("button", { name: "通過本題" });
-        fireEvent.click(screen.getByRole("button", { name: "關卡列表" }));
+        fireEvent.click(screen.getByRole("button", { name: "離開這關" })); fireEvent.click(screen.getByRole("button", { name: "確定離開" }));
         await screen.findByRole("heading", { name: "地圖已返回" });
         expect(screen.getByTestId("route")).toHaveTextContent("/student/speaking-challenges/book/book-1");
     });

@@ -185,6 +185,13 @@ function Playlist() {
                                     返回這份作業
                                 </Link>
                             )}
+                            {/* 一般從教材列表進來時，也給一個回教材列表的連結（樣式同「返回這份作業」）。 */}
+                            {!homeworkContext.active && !speakingContext && role === "student" && (
+                                <Link className="playlist-homework-back" to="/student/books">
+                                    <ArrowLeft aria-hidden="true" size={16} />
+                                    回教材
+                                </Link>
+                            )}
                             <div className="playlist-header__title">
                                 <h1>{book?.name || playlistId}</h1>
                                 {plainList && tracks.length > 0 && <strong className="playlist-header__count" aria-label={progressStatus === "ready" ? `已完成 ${stats.completed} 個，共 ${stats.total} 個音檔` : `共 ${stats.total} 個音檔`}>{progressStatus === "ready" ? `${stats.completed} / ${stats.total}` : stats.total}</strong>}

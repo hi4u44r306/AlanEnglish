@@ -116,6 +116,7 @@ const TeacherAssignmentsEditor = () => {
     const [message, setMessage] = useState("");
     const [results, setResults] = useState(null);
     const [resultsLoading, setResultsLoading] = useState(false);
+    const [resultsAssignmentId, setResultsAssignmentId] = useState(null);
     const [bookId, setBookId] = useState("");
     const [trackIds, setTrackIds] = useState([]);
     const [rangeStart, setRangeStart] = useState("");
@@ -536,7 +537,13 @@ const TeacherAssignmentsEditor = () => {
         }
     };
 
+    const closeResults = () => {
+        setResultsAssignmentId(null);
+        setResults(null);
+    };
+
     const openResults = async assignment => {
+        setResultsAssignmentId(assignment.id);
         setResultsLoading(true);
         setResults(null);
         try {
@@ -591,6 +598,91 @@ const TeacherAssignmentsEditor = () => {
         panel?.querySelector("input, select, button")?.focus();
     }, [workspace, creationStep]);
 
+    // 「查看進度」的結果直接顯示在那份作業下面，並可以關閉。
+    const renderResults = () => (results || resultsLoading) && (
+                <section
+                    className="assignment-card assignment-results"
+                    id="assignment-results"
+                >
+                    <div className="assignment-card-heading assignment-results__heading">
+                        <div>
+                            <span>RESULTS</span>
+                            <h2>{resultsLoading ? "載入中..." : results.assignment?.title}</h2>
+                        </div>
+                        <button type="button" className="assignment-secondary" onClick={closeResults}>關閉</button>
+                    </div>
+
+                    {!resultsLoading && (
+                        <div className="assignment-result-table">
+                            <div className="assignment-result-row header">
+                                <span>學生</span>
+                                <span>班級</span>
+                                <span>成績 / 進度</span>
+                                <span>狀態</span>
+                            </div>
+                            {(results.rows || []).map(row => {
+                                const latestAttempt = row.latest_attempt;
+                                const wrongQuestions = latestAttempt?.wrong_questions || [];
+
+                                return (
+                                    <div className="assignment-result-entry" key={row.student.id}>
+                                        <div className="assignment-result-row">
+                                            <span>{row.student.name}</span>
+                                            <span>{row.student.class || "—"}</span>
+                                            <span>{resultSummary(results.assignment, row)}</span>
+                                            <span>{row.completed ? "✅ 已完成" : "⏳ 未完成"}</span>
+                                        </div>
+
+                                        {latestAttempt && (
+                                            <details className={
+                                                "assignment-wrong-review "
+                                                + (wrongQuestions.length ? "has-wrong" : "perfect")
+                                            }>
+                                                <summary>
+                                                    <span>
+                                                        最近一次 {latestAttempt.score} 分
+                                                        {latestAttempt.attempted_at
+                                                            ? " · " + formatDateTime(latestAttempt.attempted_at)
+                                                            : ""}
+                                                    </span>
+                                                    <strong>
+                                                        {wrongQuestions.length
+                                                            ? "查看 " + wrongQuestions.length + " 題錯題"
+                                                            : "本次沒有錯題"}
+                                                    </strong>
+                                                </summary>
+
+                                                {wrongQuestions.length > 0 && (
+                                                    <div className="assignment-wrong-list">
+                                                        {wrongQuestions.map((question, index) => (
+                                                            <article key={`${row.student.id}-${question.index}-${index}`}>
+                                                                <span>Q{Number(question.index || 0) + 1}</span>
+                                                                <div>
+                                                                    <strong>{question.question || "題目內容"}</strong>
+                                                                    <p className="student-answer">
+                                                                        學生答案：{question.selected_answer || "未作答"}
+                                                                    </p>
+                                                                    <p className="correct-answer">
+                                                                        正確答案：{question.correct_answer || "—"}
+                                                                    </p>
+                                                                    {question.explanation && (
+                                                                        <small>{question.explanation}</small>
+                                                                    )}
+                                                                </div>
+                                                            </article>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </details>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+                </section>
+    );
+
     return (
         <main className="assignment-page teacher-assignment-page">
             <section className="assignment-hero">
@@ -621,7 +713,8 @@ const TeacherAssignmentsEditor = () => {
                     ) : assignments.length ? (
                         <div className="assignment-list">
                             {assignments.map(assignment => (
-                                <article key={assignment.id}>
+                                <React.Fragment key={assignment.id}>
+                                <article>
                                     <div>
                                         <strong>{assignment.title}</strong>
                                         <span>
@@ -638,7 +731,7 @@ const TeacherAssignmentsEditor = () => {
                                         </span>
                                         <div className="assignment-history-buttons">
                                             <button type="button" disabled={saving || savingSource || loading || Boolean(pendingDraft)} onClick={() => copyAssignment(assignment)}>複製作業</button>
-                                            <button type="button" onClick={() => openResults(assignment)}>
+                                            <button type="button" aria-expanded={resultsAssignmentId === assignment.id} onClick={() => openResults(assignment)}>
                                                 查看進度
                                             </button>
                                             <button
@@ -648,11 +741,13 @@ const TeacherAssignmentsEditor = () => {
                                                 disabled={deletingId === assignment.id}
                                             >
                                                 <Trash2 aria-hidden="true" size={15} />
-                                                {deletingId === assignment.id ? "刪除中..." : "刪除功課"}
+                                                {deletingId === assignment.id ? "刪除中..." : "刪除作業"}
                                             </button>
                                         </div>
                                     </div>
                                 </article>
+                                {resultsAssignmentId === assignment.id && renderResults()}
+                                </React.Fragment>
                             ))}
                         </div>
                     ) : (
@@ -669,7 +764,8 @@ const TeacherAssignmentsEditor = () => {
                             <p>找到未發布草稿（{formatDateTime(pendingDraft.savedAt)}）。恢復後請核對日期與教材。</p>
                             <button type="button" disabled={loading || saving} onClick={() => { applyDraft(pendingDraft.draft); setWorkspace("create"); setMessage("已恢復草稿，請核對班級、日期與活動內容。"); }}>恢復草稿</button>
                         </> : <p role="status">{draftStatus ? draftStatus.persistent ? `草稿已自動儲存 · ${formatDateTime(draftStatus.savedAt)}` : "本機儲存不可用；草稿只暫存於此頁，刷新前請先複製文字。" : "未發布內容會自動儲存在這個瀏覽器，保留 30 天。"}</p>}
-                        <button type="button" disabled={saving || savingSource} onClick={() => { if (window.confirm("確定捨棄尚未發布的草稿？此操作不會刪除已發布作業。")) resetDraft(); }}>捨棄草稿</button>
+                        {/* 有草稿才顯示「捨棄草稿」，並和「恢復草稿」分開、用紅字提醒。 */}
+                        {(pendingDraft || draftStatus) && <button type="button" className="assignment-draft-discard" disabled={saving || savingSource} onClick={() => { if (window.confirm("確定捨棄尚未發布的草稿？此操作不會刪除已發布作業。")) resetDraft(); }}>捨棄草稿</button>}
                     </section>
                     <fieldset className="assignment-authoring-fields" disabled={saving || savingSource || loading || Boolean(pendingDraft)}><div className="assignment-card-heading">
                         <span>NEW MISSION</span>
@@ -992,100 +1088,24 @@ const TeacherAssignmentsEditor = () => {
                                 <small>{copiedItems ? "請核對上方各活動的完成條件" : `${trackIds.length} 個音檔${mixedMode ? ` · ${selectedPageContentIds.length} 個頁面來源` : ""}`}</small>
                             </span>
                         </div>
+                    </div>
+{mixedMode && preview && <section className="assignment-selected-tracks" aria-label="混合作業發布預覽">
+                        <div className="assignment-selected-tracks__heading"><div><strong>發布預覽</strong><span>{preview.target_class} 班 · {preview.total_items} 個活動</span></div></div>
+                        {(preview.items || []).map(item => <p key={item.sort_order}>{item.sort_order + 1}. {item.item_type === "listening" ? `聽力 ${item.track_count} 檔，每檔 ${item.config?.required_listens} 次` : item.item_type === "ai_quiz" ? `AI 選擇題 ${item.question_count} 題` : `發音練習 ${item.pronunciation_prompt_count} 句`}</p>)}
+                    </section>}
+                    {/* 第 3 步：預覽在上，最下面一列是「上一步」（左）與「先預覽／發布」（右）。 */}
+                    <div className="assignment-step-actions assignment-publish-actions">
+                        <button type="button" className="assignment-secondary" onClick={() => setCreationStep(1)}>上一步</button>
                         <div className="assignment-history-buttons">
                             {mixedMode && <button className="assignment-secondary" type="button" disabled={saving || loading} onClick={previewMixedAssignment}>先預覽</button>}
                             <button className="assignment-primary" type="submit" disabled={saving || loading || (mixedMode && taskCount === 0)}>
                                 {saving ? "處理中..." : mixedMode ? "確認發布混合作業" : "發布作業"}
                             </button>
                         </div>
-                    </div>
-{mixedMode && preview && <section className="assignment-selected-tracks" aria-label="混合作業發布預覽">
-                        <div className="assignment-selected-tracks__heading"><div><strong>發布預覽</strong><span>{preview.target_class} 班 · {preview.total_items} 個活動</span></div></div>
-                        {(preview.items || []).map(item => <p key={item.sort_order}>{item.sort_order + 1}. {item.item_type === "listening" ? `聽力 ${item.track_count} 檔，每檔 ${item.config?.required_listens} 次` : item.item_type === "ai_quiz" ? `AI 選擇題 ${item.question_count} 題` : `發音練習 ${item.pronunciation_prompt_count} 句`}</p>)}
-                    </section>}</section><div className="assignment-step-actions">{creationStep > 0 && <button type="button" className="assignment-secondary" onClick={() => setCreationStep(current => current - 1)}>上一步</button>}{creationStep < 2 && <button type="button" className="assignment-primary" onClick={() => goToStep(creationStep + 1)}>下一步</button>}</div></fieldset>
+                    </div></section>{creationStep < 2 && <div className="assignment-step-actions">{creationStep > 0 && <button type="button" className="assignment-secondary" onClick={() => setCreationStep(current => current - 1)}>上一步</button>}<button type="button" className="assignment-primary" onClick={() => goToStep(creationStep + 1)}>下一步</button></div>}</fieldset>
                 </form>
 </ManagementWorkspace>
 
-            {(results || resultsLoading) && (
-                <section
-                    className="assignment-card assignment-results"
-                    id="assignment-results"
-                >
-                    <div className="assignment-card-heading">
-                        <span>RESULTS</span>
-                        <h2>{resultsLoading ? "載入中..." : results.assignment?.title}</h2>
-                    </div>
-
-                    {!resultsLoading && (
-                        <div className="assignment-result-table">
-                            <div className="assignment-result-row header">
-                                <span>學生</span>
-                                <span>班級</span>
-                                <span>成績 / 進度</span>
-                                <span>狀態</span>
-                            </div>
-                            {(results.rows || []).map(row => {
-                                const latestAttempt = row.latest_attempt;
-                                const wrongQuestions = latestAttempt?.wrong_questions || [];
-
-                                return (
-                                    <div className="assignment-result-entry" key={row.student.id}>
-                                        <div className="assignment-result-row">
-                                            <span>{row.student.name}</span>
-                                            <span>{row.student.class || "—"}</span>
-                                            <span>{resultSummary(results.assignment, row)}</span>
-                                            <span>{row.completed ? "✅ 已完成" : "⏳ 未完成"}</span>
-                                        </div>
-
-                                        {latestAttempt && (
-                                            <details className={
-                                                "assignment-wrong-review "
-                                                + (wrongQuestions.length ? "has-wrong" : "perfect")
-                                            }>
-                                                <summary>
-                                                    <span>
-                                                        最近一次 {latestAttempt.score} 分
-                                                        {latestAttempt.attempted_at
-                                                            ? " · " + formatDateTime(latestAttempt.attempted_at)
-                                                            : ""}
-                                                    </span>
-                                                    <strong>
-                                                        {wrongQuestions.length
-                                                            ? "查看 " + wrongQuestions.length + " 題錯題"
-                                                            : "本次沒有錯題"}
-                                                    </strong>
-                                                </summary>
-
-                                                {wrongQuestions.length > 0 && (
-                                                    <div className="assignment-wrong-list">
-                                                        {wrongQuestions.map((question, index) => (
-                                                            <article key={`${row.student.id}-${question.index}-${index}`}>
-                                                                <span>Q{Number(question.index || 0) + 1}</span>
-                                                                <div>
-                                                                    <strong>{question.question || "題目內容"}</strong>
-                                                                    <p className="student-answer">
-                                                                        學生答案：{question.selected_answer || "未作答"}
-                                                                    </p>
-                                                                    <p className="correct-answer">
-                                                                        正確答案：{question.correct_answer || "—"}
-                                                                    </p>
-                                                                    {question.explanation && (
-                                                                        <small>{question.explanation}</small>
-                                                                    )}
-                                                                </div>
-                                                            </article>
-                                                        ))}
-                                                    </div>
-                                                )}
-                                            </details>
-                                        )}
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    )}
-                </section>
-            )}
         </main>
     );
 };

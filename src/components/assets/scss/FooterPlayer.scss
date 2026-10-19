@@ -903,7 +903,8 @@
 
 .mobile-player-overlay {
   position: fixed;
-  z-index: 1028;
+  // 全螢幕播放器要蓋過學生底部導覽列（1032），但仍低於手機 Sidebar（Bootstrap Offcanvas 1040／1045）。
+  z-index: 1035;
   top: calc(62px + env(safe-area-inset-top));
   right: 0;
   bottom: 0;

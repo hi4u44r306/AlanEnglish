@@ -26,7 +26,7 @@ export default function SpeakingChallengeLoading({ mode, singlePractice = false,
                 <p>{workbookEntry ? "準備好，開始你的口說冒險！" : singlePractice ? "看著文字開口念，需要時可以聽示範" : isChallenge ? "看問題，試著自己回答" : "看著答案，勇敢說出口"}</p>
                 <small>{workbookEntry ? "正在準備關卡與冒險地圖" : "準備題目中"}</small>
             </div>
-            <button type="button" className="speaking-mode-loading-card__return" onClick={onReturn}>{workbookEntry ? "返回全部教材" : "返回地圖"}</button>
+            <button type="button" className="speaking-mode-loading-card__return" onClick={onReturn}>{workbookEntry ? "返回全部教材" : "回到地圖"}</button>
         </section>
     </main>;
 }

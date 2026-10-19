@@ -193,17 +193,15 @@ describe("MainNavbar student navigation", () => {
         expect(within(bottom).getByRole("link", { name: "教材" })).not.toHaveClass("active");
     });
 
-    it("keeps a direct desktop logout action while mobile logout remains in the offcanvas menu", async () => {
+    it("keeps logout as the last item of the settings menu on desktop and mobile", async () => {
         render(<MemoryRouter initialEntries={["/student/dashboard"]}><MainNavbar /></MemoryRouter>);
 
-        const logoutButtons = screen.getAllByRole("button", { name: "登出" });
-        expect(logoutButtons).toHaveLength(1);
-        expect(logoutButtons[0]).toHaveClass("ae-student-desktop-logout");
+        expect(screen.queryByRole("button", { name: "登出" })).not.toBeInTheDocument();
 
-        fireEvent.click(screen.getByRole("button", { name: "開啟功能選單" }));
-        const expandedLogoutButtons = await screen.findAllByRole("button", { name: "登出" });
-        expect(expandedLogoutButtons).toHaveLength(2);
-        expect(expandedLogoutButtons[1]).toHaveClass("ae-student-drawer-logout");
+        fireEvent.click(screen.getByRole("button", { name: "開啟設定" }));
+        const logoutButtons = await screen.findAllByRole("button", { name: "登出" });
+        expect(logoutButtons).toHaveLength(1);
+        expect(logoutButtons[0]).toHaveClass("ae-student-drawer-logout");
     });
 
     it("uses client-side routing when a mobile offcanvas destination is selected", async () => {

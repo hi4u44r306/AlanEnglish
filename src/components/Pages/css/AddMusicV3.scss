@@ -205,3 +205,7 @@
     .r2-actions { flex-direction: column; }
     .r2-actions button { width: 100%; }
 }
+
+// 進階：R2 搬移工具（一次性）— 預設收合在頁面最下方。
+.r2-panel-toggle > summary { display: flex; align-items: center; min-height: 44px; font-weight: 800; cursor: pointer; }
+.r2-panel-toggle[open] > summary { margin-bottom: 14px; }

@@ -1002,17 +1002,19 @@ export default function SpeakingContentAdmin() {
 
     return <main className="platform-page speaking-content-admin">
         {role === "admin" && <SpeakingAlphabetCostPanel firebaseUser={firebaseUser} />}
-        <header className="platform-hero speaking-admin-hero"><div><h1>教材 AI 口說題庫</h1><p>每本教材、每一頁就是一個關卡；從來源、草稿、待發布到正式版本清楚分流。</p></div><button type="button" className="platform-primary speaking-create-shortcut" onClick={() => setActiveWorkspace("create")}><Plus size={18} />建立新關卡</button></header>
+        <header className="platform-hero speaking-admin-hero"><div><h1>教材 AI 口說題庫</h1><p>每本教材、每一頁就是一個關卡；從來源、草稿、待發布到正式版本清楚分流。</p></div></header>
 
         <section className="platform-card speaking-admin-command" aria-labelledby="speaking-admin-command-title">
             <div className="speaking-admin-command__intro">
                 <h2 id="speaking-admin-command-title">關卡製作流程</h2>
             </div>
             <nav className="speaking-admin-command__actions" aria-label="口說題庫快速操作">
-                <button type="button" className={activeWorkspace === "sources" ? "is-primary" : ""} onClick={() => setActiveWorkspace("sources")}><UploadCloud /><span><strong>1 教材來源</strong><small>{reviewQueueCount} 個項目待核對</small></span></button>
-                <button type="button" className={activeWorkspace === "drafts" ? "is-primary" : ""} onClick={() => openQuestionWorkspace("drafts")}><Wrench /><span><strong>2 製作中草稿</strong><small>{questionSetCounts.draft} 份需要處理</small></span></button>
-                <button type="button" className={activeWorkspace === "ready" ? "is-primary" : ""} onClick={() => openQuestionWorkspace("ready")}><CheckCircle2 /><span><strong>3 待發布</strong><small>{questionSetCounts.ready} 份已通過內容檢查</small></span></button>
-                <button type="button" className={activeWorkspace === "published" ? "is-primary" : ""} onClick={() => openQuestionWorkspace("published")}><FileText /><span><strong>4 已發布</strong><small>{questionSetCounts.published} 個學生版本</small></span></button>
+                {/* 「建立新關卡」是流程的起點；建立模式時標示為目前步驟。 */}
+                <button type="button" className={`speaking-admin-command__create${activeWorkspace === "create" ? " is-primary" : ""}`} aria-current={activeWorkspace === "create" ? "step" : undefined} onClick={() => setActiveWorkspace("create")}><Plus /><span><strong>建立新關卡</strong><small>從這裡開始</small></span></button>
+                <button type="button" className={activeWorkspace === "sources" ? "is-primary" : ""} aria-current={activeWorkspace === "sources" ? "step" : undefined} onClick={() => setActiveWorkspace("sources")}><UploadCloud /><span><strong>1 教材來源</strong><small>{reviewQueueCount} 個項目待核對</small></span></button>
+                <button type="button" className={activeWorkspace === "drafts" ? "is-primary" : ""} aria-current={activeWorkspace === "drafts" ? "step" : undefined} onClick={() => openQuestionWorkspace("drafts")}><Wrench /><span><strong>2 製作中草稿</strong><small>{questionSetCounts.draft} 份需要處理</small></span></button>
+                <button type="button" className={activeWorkspace === "ready" ? "is-primary" : ""} aria-current={activeWorkspace === "ready" ? "step" : undefined} onClick={() => openQuestionWorkspace("ready")}><CheckCircle2 /><span><strong>3 待發布</strong><small>{questionSetCounts.ready} 份已通過內容檢查</small></span></button>
+                <button type="button" className={activeWorkspace === "published" ? "is-primary" : ""} aria-current={activeWorkspace === "published" ? "step" : undefined} onClick={() => openQuestionWorkspace("published")}><FileText /><span><strong>4 已發布</strong><small>{questionSetCounts.published} 個學生版本</small></span></button>
             </nav>
         </section>
 

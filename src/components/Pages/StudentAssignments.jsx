@@ -478,8 +478,6 @@ const StudentAssignments = () => {
                                         </div>
 
                                         {getAssignmentState(item) === "overdue" && <p className="student-homework-overdue" role="note">這份作業遲交了，請向老師確認是否可以補做。{item.listening_progress_mode === "assignment_window" ? "目前繼續聆聽不會增加這份作業的次數。" : ""}</p>}
-                                        {!isMissionPack && includesListening && listening.url && <Link className="student-homework-quick-start" to={listening.url}><Headphones size={18} />{isCompleted ? "再次聆聽" : getAssignmentState(item) === "overdue" ? "查看指定音檔" : "繼續完成作業"}<ArrowRight size={18} /></Link>}
-
                                         {isMissionPack ? (
                                             <>
                                                 <div className="student-homework-pack-progress">
@@ -650,7 +648,14 @@ const StudentAssignments = () => {
                                                         {isCompleted ? "再次複習" : "開始作業"}
                                                         <ArrowRight aria-hidden="true" size={18} />
                                                     </button>
-                                                ) : listening.url ? null : (
+                                                ) : listening.url ? (
+                                                    // 主要按鈕一律放在卡片最下方，和教材作答卡片一致。
+                                                    <Link className="student-homework-action" to={listening.url}>
+                                                        <Headphones aria-hidden="true" size={18} />
+                                                        {isCompleted ? "再次聆聽" : getAssignmentState(item) === "overdue" ? "查看指定音檔" : "繼續完成作業"}
+                                                        <ArrowRight aria-hidden="true" size={18} />
+                                                    </Link>
+                                                ) : (
                                                     <button
                                                         className="student-homework-action"
                                                         type="button"

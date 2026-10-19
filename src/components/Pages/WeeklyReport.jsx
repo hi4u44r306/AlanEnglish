@@ -191,7 +191,7 @@ const WeeklyReport = () => {
                     <h1>週報載入失敗</h1>
                     <p>{error || "目前沒有可顯示的報告"}</p>
                     <button type="button" onClick={loadReport}><FiRefreshCw /> 重新整理</button>
-                    <Link to={backPath}>返回首頁</Link>
+                    <Link to={backPath}>{isManager ? "回管理首頁" : "回我的進度"}</Link>
                 </div>
             </main>
         );
@@ -256,7 +256,7 @@ const WeeklyReport = () => {
         <main className={`weekly-report-page ${isManager ? "weekly-report-page--manager" : "weekly-report-page--student"}`}>
             <div className="weekly-report-shell">
                 <nav className="weekly-report-toolbar" aria-label="週報工具列">
-                    <Link to={backPath}><FiArrowLeft /> 返回{isManager ? "管理首頁" : "我的進度"}</Link>
+                    <Link to={backPath}><FiArrowLeft aria-hidden="true" /> {isManager ? "回管理首頁" : "回我的進度"}</Link>
                     <div className="weekly-report-toolbar__actions">
                         <button type="button" onClick={handleCopy} disabled={!report.family_message}><FiCopy /> 複製文字摘要</button>
                         <button type="button" onClick={() => window.print()}><FiPrinter /> 列印／存 PDF</button>

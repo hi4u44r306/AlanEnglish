@@ -580,7 +580,7 @@ export default function TextbookSpeakingChallenge() {
     const remainingCount = questions.length - completedCount;
     const progressPercent = questions.length ? Math.round((completedCount / questions.length) * 100) : 0;
 
-    if (!activeQuestion) return renderScene(<main className="speaking-challenge-page"><section className="speaking-challenge-empty"><FiBookOpen /><h1>這個大挑戰還沒有小關卡</h1><p>請稍後再回來練習。</p><button type="button" className="speaking-back" onClick={returnToBookCatalog}><FiChevronLeft />關卡列表</button></section></main>);
+    if (!activeQuestion) return renderScene(<main className="speaking-challenge-page"><section className="speaking-challenge-empty"><FiBookOpen /><h1>這個大挑戰還沒有小關卡</h1><p>請稍後再回來練習。</p><button type="button" className="speaking-back" onClick={returnToBookCatalog}><FiChevronLeft />回到地圖</button></section></main>);
 
     const isCompleted = staffPreview || activeQuestion.progress_status === "completed";
     const activeInteractionType = String(activeQuestion.picture_interaction?.type || activeQuestion.interaction_type || "");
@@ -619,7 +619,7 @@ export default function TextbookSpeakingChallenge() {
 
     return renderScene(<main className="speaking-challenge-page speaking-challenge-detail speaking-immersive-play">
         <header className="speaking-lesson-header">
-            <button className="speaking-back" type="button" onClick={staffPreview ? returnToBookCatalog : () => setExitDialogOpen(true)}><FiChevronLeft />關卡列表</button>
+            <button className="speaking-back" type="button" onClick={staffPreview ? returnToBookCatalog : () => setExitDialogOpen(true)}><FiChevronLeft />離開這關</button>
             <div className="speaking-lesson-heading">
                 <span>{challenge.books?.name || "教材"}</span>
                 <h1>{challenge.title}</h1>
@@ -661,7 +661,7 @@ export default function TextbookSpeakingChallenge() {
             <h2 id="speaking-retry-title">只剩 {remainingCount} 題，再試一次！</h2>
             <p>已通過的題目會保留，不必重念。</p>
             {challengeMode === "challenge" && <p>看過提示的題目，這次試著不用提示回答。</p>}
-            <div><button type="button" onClick={returnToBookCatalog}>回到關卡列表</button><button type="button" className="primary" onClick={() => {
+            <div><button type="button" onClick={returnToBookCatalog}>回到地圖</button><button type="button" className="primary" onClick={() => {
                 setChallengeSessionId(createSpeakingChallengeSessionId());
                 setActiveQuestionIndex(questions.findIndex(question => question.progress_status !== "completed"));
                 setRetryNotice(false);
@@ -669,7 +669,7 @@ export default function TextbookSpeakingChallenge() {
         </section></div>}
         {exitDialogOpen && <div className="speaking-exit-dialog-backdrop" role="presentation">
             <section className="speaking-exit-dialog" role="alertdialog" aria-modal="true" aria-labelledby="speaking-lesson-exit-title" aria-describedby="speaking-lesson-exit-description">
-                <h2 id="speaking-lesson-exit-title">確定要回到關卡列表嗎？</h2>
+                <h2 id="speaking-lesson-exit-title">確定要離開這關嗎？</h2>
                 <p id="speaking-lesson-exit-description">已經通過的題目會保留；還沒念完的題目，下次要再念一次。</p>
                 <div><button type="button" className="secondary" autoFocus onClick={() => setExitDialogOpen(false)}>取消</button><button type="button" className="primary" onClick={() => { setExitDialogOpen(false); returnToBookCatalog(); }}>確定離開</button></div>
             </section>

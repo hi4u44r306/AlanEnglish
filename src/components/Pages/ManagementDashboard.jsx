@@ -343,6 +343,7 @@ function ManagementDashboard() {
                                                             >
                                                                 {noticeLoadingId === student.id ? "準備中..." : "提醒家長"}
                                                             </button>
+                                                            {!guardianReady && <small className="reminder-disabled-note">{student.guardian?.email ? "家長資料尚未允許寄送提醒" : "請先設定家長 Email"}</small>}
                                                         </div>
                                                     </td>
                                                 </tr>

@@ -667,3 +667,10 @@ textarea { resize: vertical; }
 .platform-support-tabs { display: flex; gap: 8px; margin: 0 0 14px; }
 .platform-support-tabs button[aria-pressed="true"] { background: var(--ae-solid, #17365d); color: #fff; border-color: var(--ae-solid, #17365d); }
 .platform-support-urgent { color: var(--ae-danger, #b42318); }
+
+// 教材管理：「永久刪除」放最後並和其他按鈕拉開；改 Code 對話框。
+.platform-link-button.platform-danger-last { margin-left: 16px; }
+.platform-code-dialog { width: min(480px, 100%); }
+.platform-code-dialog .platform-code-warning { margin: 0; padding: 10px 12px; border-radius: 12px; background: var(--ae-warning-bg, #fff8df); color: var(--ae-warning, #7a5410); font-weight: 800; }
+.platform-code-dialog small { color: var(--ae-text-muted, #64728a); }
+.platform-code-dialog .platform-modal-actions button { min-height: 44px; }

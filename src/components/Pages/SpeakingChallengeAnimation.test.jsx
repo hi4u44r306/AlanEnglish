@@ -37,7 +37,7 @@ describe("SpeakingChallengeCompletion", () => {
         const previousOverflow = document.body.style.overflow;
         const { unmount } = render(<SpeakingChallengeCompletion staffPreview notice={{ xp_awarded: 30, ae_points_awarded: 3 }} onReturn={onReturn} onNext={onNext} />);
         const next = screen.getByRole("button", { name: "前往下一關" });
-        const back = screen.getByRole("button", { name: "返回地圖" });
+        const back = screen.getByRole("button", { name: "回到地圖" });
         expect(next).toHaveFocus();
         expect(screen.getByLabelText("本次獲得 0 XP")).toBeInTheDocument();
         fireEvent.keyDown(next, { key: "Tab", shiftKey: true });

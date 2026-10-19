@@ -303,34 +303,6 @@
   color: var(--ae-accent, #2355c7) !important;
 }
 
-.ae-student-desktop-logout {
-  min-height: 44px;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 11px;
-  border: 1px solid var(--ae-border, #f0d8d8);
-  border-radius: 14px;
-  color: var(--ae-danger, #aa3030);
-  background: var(--ae-surface-muted, #fff8f8);
-  font: inherit;
-  font-size: 13px;
-  font-weight: 900;
-}
-
-.ae-student-desktop-logout:hover:not(:disabled) {
-  border-color: #e7aaaa;
-  background: var(--ae-surface-muted, #fff0f0);
-}
-
-.ae-student-desktop-logout:focus-visible {
-  outline: 3px solid #f4bd37;
-  outline-offset: 2px;
-}
-
-.ae-student-desktop-logout:disabled { opacity: 0.65; cursor: wait; }
-.ae-student-desktop-logout svg { width: 17px; height: 17px; stroke-width: 2.6; }
-
 .ae-student-account-chip {
   display: inline-flex;
   align-items: center;
@@ -842,6 +814,7 @@ html { background: var(--ae-surface-muted, #f7f9fc); }
   &.is-orange { background: var(--ae-warning-bg, #ffe1cc); color: var(--ae-warning, #b54708); }
   &.is-purple { background: var(--ae-purple-bg, #ece3f8); color: var(--ae-accent, #6a3aa8); }
 }
+.ae-student-drawer-divider { width: 100%; margin: 8px 0 4px; border: 0; border-top: 1px solid var(--ae-border, #e2e8f0); opacity: 1; }
 .ae-student-drawer.is-menu .ae-student-drawer-logout { min-height: 56px; border: 1px solid var(--ae-border, #f0c9c4); border-radius: 18px; background: var(--ae-surface, #fff); color: var(--ae-danger, #b3261e); font-size: 17px; font-weight: 700; }
 
 // 個人資料 shows its title; 我的進度 keeps it for assistive technology only.

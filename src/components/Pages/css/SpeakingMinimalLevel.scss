@@ -189,7 +189,7 @@ body.speaking-challenge-active .speaking-challenge-page { background: transparen
 
 // Top bar floats without a box; progress is a fat, friendly bar.
 body.speaking-challenge-active .speaking-lesson-header { border: 0 !important; background: transparent !important; padding-inline: 4px !important; }
-// The round back button shows only its arrow at every width; its label stays for screen readers.
+// The round back button shows only its arrow on wide screens (phones add a small "離開"); its label stays for screen readers.
 body.speaking-challenge-active .speaking-lesson-header .speaking-back { flex: 0 0 48px; justify-content: center; width: 48px; min-width: 48px; height: 48px; min-height: 48px; padding: 0 !important; border-radius: 50% !important; background: var(--ae-surface, #fff) !important; border: 1px solid var(--ae-border, #d5e3f0) !important; font-size: 0 !important; }
 body.speaking-challenge-active .speaking-lesson-header .speaking-back svg { width: 26px; height: 26px; flex: none; }
 body.speaking-challenge-active .speaking-lesson-page { padding: 6px 16px; border-radius: 16px; background: var(--ae-solid, #17365d); color: #fff !important; font-size: 18px !important; letter-spacing: .02em; }
@@ -373,6 +373,11 @@ body.speaking-challenge-active .speaking-gap-sentence .punctuation { white-space
 .speaking-spell-tiles.is-many .speaking-spell-tile { width: 44px; height: 44px; border-radius: 12px; font-size: 22px; }
 @media (max-width: 767px) {
   body.speaking-challenge-active .speaking-immersive-play .speaking-lesson-header { margin-bottom: 8px !important; }
+  // 手機上箭頭旁邊顯示小小的「離開」，按鈕仍至少 44px，320px 寬也維持同一列。
+  body.speaking-challenge-active .speaking-lesson-header .speaking-back { flex: 0 0 auto; gap: 2px; width: auto; min-width: 44px; height: 44px; min-height: 44px; padding: 0 10px 0 4px !important; border-radius: 22px !important; }
+  body.speaking-challenge-active .speaking-lesson-header .speaking-back svg { width: 22px; height: 22px; }
+  body.speaking-challenge-active .speaking-lesson-header .speaking-back::after { content: "離開"; font-size: 12px; font-weight: 800; line-height: 1; white-space: nowrap; }
+  body.speaking-challenge-active .speaking-immersive-play .speaking-lesson-header { gap: 8px; }
   body.speaking-challenge-active .speaking-guided-stepper { margin-bottom: 6px; }
   body.speaking-challenge-active .speaking-guided-step { gap: 10px; }
   body.speaking-challenge-active .speaking-guided-step__title { font-size: 18px; }

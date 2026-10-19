@@ -719,8 +719,47 @@ const AddMusicV3 = () => {
                 </section>
             </div>
 
+            <section className="admin-card library-panel">
+                <div className="library-header">
+                    <div><span className="admin-eyebrow">Library</span><h2>{selectedBook ? `${selectedBook.name} 音檔` : "教材音檔"}</h2></div>
+                    <input type="text" placeholder="搜尋 P21-1、Track 37、Question 或檔名..." value={searchText} onChange={event => setSearchText(event.target.value)} disabled={!selectedBook} />
+                </div>
+
+                {!selectedBook ? (
+                    <div className="library-empty">先選擇一本教材。</div>
+                ) : filteredTracks.length === 0 ? (
+                    <div className="library-empty">這本教材目前還沒有音檔。</div>
+                ) : (
+                    <div className="track-grid">
+                        {filteredTracks.map(track => (
+                            <div className="track-card track-card-v3" key={track.id}>
+                                <div className="track-top">
+                                    <span className="track-page">{track.display_page || track.page}</span>
+                                    <div className="track-badges">
+                                        <span className={`storage-badge ${track.storage_provider === "r2" ? "storage-r2" : "storage-supabase"}`}>{track.storage_provider === "r2" ? "R2" : "Supabase"}</span>
+                                        <span className={track.enabled ? "track-enabled" : "track-disabled"}>{track.enabled ? "顯示中" : "已隱藏"}</span>
+                                    </div>
+                                </div>
+                                <strong>{track.music_name}</strong>
+                                <span className="track-path">{TRACK_TYPE_LABELS[track.track_type] || track.track_type}{track.part_number ? ` · 第 ${track.part_number} 段` : ""}</span>
+                                <span className="track-path">{track.audio_url}</span>
+                                {track.preview_url ? <LibraryAudio src={track.preview_url} /> : <span className="track-path">預覽網址暫時無法使用</span>}
+                                <div className="track-admin-actions">
+                                    <button type="button" className="track-edit-button" onClick={() => openRename(track)} disabled={savingTrackId === track.id || deletingTrackId === track.id}>修改名稱</button>
+                                    <button type="button" className="track-delete-button" onClick={() => handleDeleteTrack(track)} disabled={deletingTrackId === track.id || savingTrackId === track.id}>
+                                        {deletingTrackId === track.id ? "刪除中..." : "刪除音檔"}
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </section>
+
+            {/* 一次性的 R2 搬移工具放在頁面最下方，平常收合，避免和上傳、音檔清單混在一起。 */}
             {role === "admin" && (
-                <section className="admin-card r2-panel">
+                <details className="admin-card r2-panel r2-panel-toggle">
+                    <summary>進階：R2 搬移工具（一次性）</summary>
                     <div className="library-header">
                         <div>
                             <span className="admin-eyebrow">PRIVATE AUDIO STORAGE</span>
@@ -760,45 +799,8 @@ const AddMusicV3 = () => {
                             <pre>{R2_CORS_POLICY}</pre>
                         </details>
                     )}
-                </section>
+                </details>
             )}
-
-            <section className="admin-card library-panel">
-                <div className="library-header">
-                    <div><span className="admin-eyebrow">Library</span><h2>{selectedBook ? `${selectedBook.name} 音檔` : "教材音檔"}</h2></div>
-                    <input type="text" placeholder="搜尋 P21-1、Track 37、Question 或檔名..." value={searchText} onChange={event => setSearchText(event.target.value)} disabled={!selectedBook} />
-                </div>
-
-                {!selectedBook ? (
-                    <div className="library-empty">先選擇一本教材。</div>
-                ) : filteredTracks.length === 0 ? (
-                    <div className="library-empty">這本教材目前還沒有音檔。</div>
-                ) : (
-                    <div className="track-grid">
-                        {filteredTracks.map(track => (
-                            <div className="track-card track-card-v3" key={track.id}>
-                                <div className="track-top">
-                                    <span className="track-page">{track.display_page || track.page}</span>
-                                    <div className="track-badges">
-                                        <span className={`storage-badge ${track.storage_provider === "r2" ? "storage-r2" : "storage-supabase"}`}>{track.storage_provider === "r2" ? "R2" : "Supabase"}</span>
-                                        <span className={track.enabled ? "track-enabled" : "track-disabled"}>{track.enabled ? "顯示中" : "已隱藏"}</span>
-                                    </div>
-                                </div>
-                                <strong>{track.music_name}</strong>
-                                <span className="track-path">{TRACK_TYPE_LABELS[track.track_type] || track.track_type}{track.part_number ? ` · 第 ${track.part_number} 段` : ""}</span>
-                                <span className="track-path">{track.audio_url}</span>
-                                {track.preview_url ? <LibraryAudio src={track.preview_url} /> : <span className="track-path">預覽網址暫時無法使用</span>}
-                                <div className="track-admin-actions">
-                                    <button type="button" className="track-edit-button" onClick={() => openRename(track)} disabled={savingTrackId === track.id || deletingTrackId === track.id}>修改名稱</button>
-                                    <button type="button" className="track-delete-button" onClick={() => handleDeleteTrack(track)} disabled={deletingTrackId === track.id || savingTrackId === track.id}>
-                                        {deletingTrackId === track.id ? "刪除中..." : "刪除音檔"}
-                                    </button>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                )}
-            </section>
 
             {editingTrack && (
                 <div className="music-edit-overlay" onMouseDown={event => event.target === event.currentTarget && setEditingTrack(null)}>

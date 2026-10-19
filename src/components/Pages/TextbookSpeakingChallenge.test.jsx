@@ -99,7 +99,7 @@ describe("TextbookSpeakingChallenge model audio", () => {
         fireEvent.click(await screen.findByRole("button", { name: /P.15，問候，尚未解鎖/ }));
         expect(screen.getByRole("button", { name: "關閉關卡摘要" })).toHaveFocus();
         expect(screen.getByRole("button", { name: "尚未解鎖" })).toBeDisabled();
-        expect(screen.queryByRole("button", { name: "返回地圖" })).not.toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: "回到地圖" })).not.toBeInTheDocument();
         fireEvent.keyDown(document, { key: "Tab", shiftKey: true });
         expect(screen.getByRole("button", { name: "關閉關卡摘要" })).toHaveFocus();
     });
@@ -403,9 +403,9 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(screen.getByRole("button", { name: "跳過這題" })).toHaveClass("is-skip");
         expect(screen.queryByRole("button", { name: /繼續挑戰/ })).not.toBeInTheDocument();
 
-        // 挑戰進行中按「關卡列表」要先確認，取消後留在原題。
-        fireEvent.click(screen.getByRole("button", { name: "關卡列表" }));
-        const dialog = screen.getByRole("alertdialog", { name: "確定要回到關卡列表嗎？" });
+        // 挑戰進行中按「離開這關」要先確認，取消後留在原題。
+        fireEvent.click(screen.getByRole("button", { name: "離開這關" }));
+        const dialog = screen.getByRole("alertdialog", { name: "確定要離開這關嗎？" });
         expect(within(dialog).getByRole("button", { name: "取消" })).toHaveFocus();
         expect(within(dialog).getByRole("button", { name: "確定離開" })).toBeInTheDocument();
         fireEvent.click(within(dialog).getByRole("button", { name: "取消" }));
@@ -761,7 +761,7 @@ describe("TextbookSpeakingChallenge model audio", () => {
             <Route path="/student/speaking-challenges/:questionSetId" element={<TextbookSpeakingChallenge />} />
             <Route path="/student/speaking-challenges/book/:bookKey" element={<h1>Workbook 1 地圖</h1>} />
         </Routes><LocationProbe /></MemoryRouter>);
-        fireEvent.click(screen.getByRole("button", { name: "返回地圖" }));
+        fireEvent.click(screen.getByRole("button", { name: "回到地圖" }));
         await waitFor(() => expect(screen.getByTestId("location-path")).toHaveTextContent("/student/speaking-challenges/book/book-1"));
         await act(async () => resolveChallenge({ challenge: { id: 7, speaking_questions: [{ id: 9, question_text: "Late question" }] } }));
         expect(screen.getByRole("heading", { name: "Workbook 1 地圖" })).toBeInTheDocument();

@@ -8,7 +8,7 @@
 .speaking-admin-command { order: 1; display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 14px; border-color: #efc78e; background: var(--ae-surface-muted, linear-gradient(135deg, #fff9ef, #fff4e6)); }
 .speaking-admin-command__intro h2 { margin: 0; color: var(--ae-text, #17233f); font-size: 16px; white-space: nowrap; }
 .speaking-admin-command__intro p { margin: 0; color: var(--ae-text-muted, #65758c); line-height: 1.55; }
-.speaking-admin-command__actions { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 7px; }
+.speaking-admin-command__actions { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 7px; }
 .speaking-admin-command__actions button { min-width: 0; min-height: 48px; display: grid; grid-template-columns: 30px minmax(0, 1fr); align-items: center; gap: 8px; padding: 6px 10px; border: 1px solid var(--ae-border, #efd4ad); border-radius: 10px; color: var(--ae-warning, #79431f); background: var(--ae-surface-glass, rgba(255, 255, 255, .94)); text-align: left; transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease; }
 .speaking-admin-command__actions button:hover { border-color: #e69a58; box-shadow: 0 8px 20px rgba(174, 91, 35, .12); transform: translateY(-1px); }
 .speaking-admin-command__actions button:focus-visible { outline: 3px solid rgba(222, 116, 57, .28); outline-offset: 2px; }
@@ -441,3 +441,9 @@
 .speaking-clip-review details[open] > * + * { margin-top: 8px; }
 .speaking-clip-review details label { display: grid; gap: 4px; }
 .speaking-clip-review textarea, .speaking-clip-review select { box-sizing: border-box; width: 100%; min-height: 44px; font: inherit; }
+
+// 「建立新關卡」放在流程最前面；手機版自己佔一整列。
+.speaking-admin-command__actions .speaking-admin-command__create:not(.is-primary) { border-style: dashed; }
+@media (max-width: 767px) {
+    .speaking-admin-command__actions .speaking-admin-command__create { grid-column: 1 / -1; }
+}

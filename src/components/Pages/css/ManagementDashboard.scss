@@ -692,12 +692,13 @@
 
 .management-edit-actions {
   display: flex;
+  justify-content: flex-end;
   gap: 10px;
   margin-top: 16px;
 }
 
 .management-save-button {
-  min-height: 38px;
+  min-height: 44px;
   padding: 0 16px;
   background: #3478db;
   color: #fff;
@@ -713,7 +714,7 @@
 }
 
 .management-cancel-button {
-  min-height: 38px;
+  min-height: 44px;
   padding: 0 16px;
   background: var(--ae-surface-muted, #edf0f4);
   color: var(--ae-text-muted, #4b5563);

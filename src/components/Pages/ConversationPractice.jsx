@@ -584,7 +584,19 @@ const pickNaturalEnglishVoice = voices => {
     );
 };
 
+// 手機（767px 以下）任務清單預設收合，讓作答區早一點出現；桌機一律展開。
+const MOBILE_QUERY = "(max-width: 767px)";
+const isMobileWidth = () => typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia(MOBILE_QUERY).matches;
+
 function ConversationPractice() {
+    const [missionListOpen, setMissionListOpen] = useState(() => !isMobileWidth());
+    useEffect(() => {
+        if (typeof window === "undefined" || typeof window.matchMedia !== "function") return undefined;
+        const query = window.matchMedia(MOBILE_QUERY);
+        const sync = () => setMissionListOpen(!query.matches);
+        query.addEventListener?.("change", sync);
+        return () => query.removeEventListener?.("change", sync);
+    }, []);
     const {
         firebaseUser,
         role
@@ -2338,6 +2350,14 @@ function ConversationPractice() {
                         </div>
                     </div>
 
+                    <details
+                        className="mission-list-toggle"
+                        open={missionListOpen}
+                        onToggle={event => setMissionListOpen(event.currentTarget.open)}
+                    >
+                        <summary>
+                            任務清單（{progressValue} / {SCENARIO_STEPS.length}）
+                        </summary>
                     <div className="mission-list">
                         {SCENARIO_STEPS.map(
                             (
@@ -2390,6 +2410,7 @@ function ConversationPractice() {
                             }
                         )}
                     </div>
+                    </details>
 
                     <div className="conversation-privacy-note">
                         <strong>

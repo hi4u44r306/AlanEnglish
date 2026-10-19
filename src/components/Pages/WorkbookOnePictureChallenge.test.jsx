@@ -208,26 +208,26 @@ describe("WorkbookOnePictureChallenge", () => {
         await act(async () => { fireEvent.click(screen.getByRole("button", { name: "模擬完整回答" })); await Promise.resolve(); });
         await screen.findByRole("article", { name: "第 2 題，共 2 題" });
         fireEvent.click(screen.getByRole("button", { name: "模擬不完整回答" }));
-        fireEvent.click(screen.getByRole("button", { name: "先看下一題" }));
+        fireEvent.click(screen.getByRole("button", { name: "跳過這題" }));
         expect(screen.getByText("已完成 1／2 題")).toBeInTheDocument();
         expect(screen.getByRole("heading", { name: "只剩 1 題，再試一次！" })).toBeInTheDocument();
         fireEvent.click(screen.getByRole("button", { name: "再挑戰這 1 題" }));
         expect(screen.getByRole("article", { name: "第 1 題，共 1 題" })).toBeInTheDocument();
     });
 
-    it("挑戰進行中按退出本輪要先確認，取消留在本輪，確定才離開", () => {
+    it("挑戰進行中按離開這關要先確認，取消留在本輪，確定才離開", () => {
         const onExit = jest.fn();
         render(<WorkbookOnePictureChallenge correctPauseMs={0} challenge={{ id: 21, title: "P21", generation_metadata: { interaction_type: "picture_qa" },
             speaking_questions: [{ id: 1, visual_aid: privateVisual, picture_interaction: { type: "picture_qa" } }] }}
             firebaseUser={{ uid: "student" }} onComplete={jest.fn()} onExit={onExit} />);
         fireEvent.click(screen.getByRole("button", { name: "開始挑戰" }));
-        fireEvent.click(screen.getByRole("button", { name: "退出本輪" }));
-        const dialog = screen.getByRole("alertdialog", { name: "確定要離開這一輪嗎？" });
+        fireEvent.click(screen.getByRole("button", { name: "離開這關" }));
+        const dialog = screen.getByRole("alertdialog", { name: "確定要離開這關嗎？" });
         expect(screen.getByRole("button", { name: "取消" })).toHaveFocus();
         fireEvent.click(screen.getByRole("button", { name: "取消" }));
         expect(dialog).not.toBeInTheDocument();
         expect(onExit).not.toHaveBeenCalled();
-        fireEvent.click(screen.getByRole("button", { name: "退出本輪" }));
+        fireEvent.click(screen.getByRole("button", { name: "離開這關" }));
         fireEvent.click(screen.getByRole("button", { name: "確定離開" }));
         expect(onExit).toHaveBeenCalledTimes(1);
     });
