@@ -215,3 +215,33 @@ test("同一句同時有 it is 和 its；斜線後是兩句以上的選項", () 
 test("合併 it's／you're 時挑對位置", () => {
     assert.equal(assess(question("Don't give your number to a stranger. You're asking for trouble.", "text_qa"), "Don't give you're number to a stranger. You're asking for trouble.").answer_match, true);
 });
+test("重要名詞與地名人名一定要念對", () => {
+    const passes = (answer, text, type = "") => assess(question(answer, type), text).answer_match;
+    for (const type of ["", "text_qa"]) {
+        assert.equal(passes("They come from Italy.", "They come from Japan.", type), false);
+        assert.equal(passes("They come from Italy.", "They come from Italy.", type), true);
+        assert.equal(passes("I need some milk and salt.", "I need some sugar and salt.", type), false);
+        assert.equal(passes("I need some milk and salt.", "I need some milk salt.", type), true);
+        // 單複數不同仍算念到；不規則複數不互通。
+        assert.equal(passes("I have two cats.", "I have two cat.", type), true);
+        assert.equal(passes("There are two boxes on the table.", "There are two box on the table.", type), true);
+        // 不在名單裡、句中大寫的人名也要念對。
+        assert.equal(passes("This is Zelda's bag.", "This is Linda's bag.", type), false);
+        assert.equal(passes("This is Zelda's bag.", "This is Zelda's bag.", type), true);
+        // 拼法、同音與人名的不同寫法仍算對。
+        assert.equal(passes("My favourite colour is blue.", "My favorite color is blue.", type), true);
+        assert.equal(passes("My favorite color is blue.", "My favourite colour is blue.", type), true);
+        assert.equal(passes("My best friend is Sean.", "My best friend is Shawn.", type), true);
+        assert.equal(passes("It is an eye.", "It is an I.", type), true);
+    }
+    // 分數不變，只有是否通過改變。
+    assert.equal(assess(question("They come from Italy."), "They come from Japan.").scores.completeness, 75);
+});
+test("找出重要字：名詞、句中大寫的人名地名，不含句首與 I", async () => {
+    const { keyWordsOf } = await import("../supabase/functions/_shared/speaking-key-nouns.ts");
+    assert.deepEqual(keyWordsOf("They come from Italy."), ["italy"]);
+    assert.deepEqual(keyWordsOf("I need some milk and salt."), ["milk", "salt"]);
+    assert.deepEqual(keyWordsOf("This is Zelda's bag."), ["zelda's", "bag"]);
+    assert.deepEqual(keyWordsOf("Good morning. I am happy."), ["morning"]);
+    assert.deepEqual(keyWordsOf("Stand up. / Sit down."), []);
+});

@@ -1,5 +1,6 @@
 import { readAzureWordAssessment } from "./azure-pronunciation.ts";
 import { hasSpeakingAnswerSlots, matchesSpeakingAnswerTemplate } from "./speaking-pronunciation-reference.ts";
+import { missingKeyWords } from "./speaking-key-nouns.ts";
 
 export const FOUNDATION_INTERACTION_TYPES = new Set([
     "alphabet_round",
@@ -386,6 +387,8 @@ export const matchesChildFriendlySentence = (expectedAnswer: unknown, recognized
     const expectedPolarity = expected.filter(token => POLARITY_WORDS.has(token));
     const spokenPolarity = spoken.filter(token => POLARITY_WORDS.has(token));
     if (expectedPolarity.join(" ") !== spokenPolarity.join(" ")) return false;
+    // Important nouns and names must be said: "They come from Japan." is not "They come from Italy."
+    if (missingKeyWords(expectedAnswer, spoken).length) return false;
 
     const expectedCore = expected.filter(token => !OPTIONAL_GRAMMAR_WORDS.has(token) && !POLARITY_WORDS.has(token));
     const spokenCore = spoken.filter(token => !OPTIONAL_GRAMMAR_WORDS.has(token) && !POLARITY_WORDS.has(token));

@@ -1,5 +1,6 @@
 import { hasSpeakingAnswerSlots, matchesSpeakingAnswerTemplate } from "./speaking-pronunciation-reference.ts";
 import { FOUNDATION_INTERACTION_TYPES, OPTIONAL_GRAMMAR_WORDS, POLARITY_WORDS, alignThSoundAlikes, matchesFoundationAnswer, spellOutNumbers } from "./speaking-foundation-answer.ts";
+import { missingKeyWords } from "./speaking-key-nouns.ts";
 
 export const readingWords = (text: string): string[] => spellOutNumbers(text).toLowerCase().replace(/[’‘]/g, "'")
     .replace(/\bi'm\b/g, "i am").replace(/\bcan't\b/g, "cannot").replace(/\bwon't\b/g, "will not").replace(/n't\b/g, " not")
@@ -172,22 +173,31 @@ export function assessReadingCompleteness(question: { answerTemplate: string; ac
         throw Object.assign(new Error("這個題型尚未支援本機朗讀評分。"), { status: 422, code: "local_question_unsupported" });
     }
     const strictMatch = strictType && matchesFoundationAnswer(question.interactionType, templates[0], text, templates.slice(1));
-    const candidates = templates.map(template => readingCoverage(template.replace(/[\[［][^\]］]+[\]］]/g, ""), text));
+    const variants = templates.map(template => template.replace(/[\[［][^\]］]+[\]］]/g, ""));
+    const candidates = variants.map(variant => readingCoverage(variant, text));
     const coverage = candidates.reduce((best, next) => next.score > best.score ? next : best);
+    // A long sentence reaches 70% even with a wrong noun or name, so the variant read must also have
+    // every key word heard ("They come from Japan." does not pass for "They come from Italy.").
+    const heardKeyWords = (variant: string) => !missingKeyWords(variant, alignThSoundAlikes(readingWords(variant), readingWords(text)).spoken).length;
+    const keyMatch = candidates
+        .filter((candidate, index) => candidate.score >= 70 && candidate.total > 0 && heardKeyWords(variants[index]))
+        .reduce<typeof coverage | null>((best, next) => !best || next.score > best.score ? next : best, null);
     const alphabet = ["alphabet_round", "letter_spelling"].includes(question.interactionType);
     // Letter aliases and personal slots are all-or-nothing; missing/personal text
     // must never be reported as a measured phoneme score.
     const score = alphabet || hasSlots ? (strictMatch || structuredMatch ? 100 : 0) : coverage.score;
-    const answerMatch = score >= 70 && (hasSlots ? structuredMatch || strictMatch : strictType ? strictMatch : coverage.total > 0);
+    const answerMatch = score >= 70 && (hasSlots ? structuredMatch || strictMatch : strictType ? strictMatch : Boolean(keyMatch));
     const revealReference = answerMatch && !hasSlots && !alphabet;
+    // Show the variant that passed (the best-scoring one may have missed a key word).
+    const shown = answerMatch && !strictType && !hasSlots && keyMatch ? keyMatch : coverage;
     // Passed, but a th word was heard as s/f/t/d/z: pass it and say which word to practise.
-    const pronunciationTips = answerMatch && !alphabet ? coverage.thTips.map(tip => ({ ...tip, sound: "th" })) : [];
+    const pronunciationTips = answerMatch && !alphabet ? shown.thTips.map(tip => ({ ...tip, sound: "th" })) : [];
     return {
         assessment_kind: "local_completeness_v1", assessment_status: "assessed", evidence_source: "client_transcript",
         recognized_text: text, answer_match: answerMatch, pronunciation_tips: pronunciationTips,
         // Null explicitly means not measured. Historical Azure results stay intact.
         scores: { completeness: score, pronunciation: null, accuracy: null, fluency: null, prosody: null },
-        words: revealReference ? coverage.words : readingWords(text).map(text => ({ text, status: "practice" })),
+        words: revealReference ? shown.words : readingWords(text).map(text => ({ text, status: "practice" })),
         feedback: answerMatch ? pronunciationTips.length
             ? `通過了！不過 ${pronunciationTips.map(tip => tip.word).join("、")} 的 th 可能沒念清楚（系統聽成 ${pronunciationTips.map(tip => tip.heard).join("、")}）。下次把舌尖輕放在上下牙齒中間再念，會更標準。`
             : "已完成這次朗讀！這是朗讀完整度，不是發音準確度。"
