@@ -21,7 +21,7 @@ export default function SpeakingLessonPreparation({ challenge, mode, firebaseUse
     if (listening?.id !== challenge.id || listening.mode !== mode) return null;
     return <aside className="speaking-lesson-preparation" aria-label="本關教材聽力">
         {busy
-            ? <span className="speaking-listening-busy">完成這次錄音與評分後，就能去聽教材。</span>
-            : <Link to={listening.path}><FiHeadphones aria-hidden="true" />先聽本關教材</Link>}
+            ? <span className="speaking-listening-busy" aria-label="完成這次錄音與評分後，就能去聽教材。"><FiHeadphones aria-hidden="true" />評分後再聽</span>
+            : <Link to={listening.path} aria-label="先聽一次本關教材"><FiHeadphones aria-hidden="true" />先聽一次</Link>}
     </aside>;
 }

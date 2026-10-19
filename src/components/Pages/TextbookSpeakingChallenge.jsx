@@ -15,7 +15,6 @@ import SpeakingChallengeLoading from "./SpeakingChallengeLoading";
 import SpeakingChallengeRules from "./SpeakingChallengeRules";
 import { ChallengePreviewDialog, SpeakingMapGoal, speakingLessonTopic } from "./SpeakingMapEntry";
 import SpeakingAdventureSession from "./SpeakingAdventureSession";
-import SpeakingHeaderTools from "./SpeakingHeaderTools";
 import { retryTransient } from "../../utils/retryTransient";
 import { SpeakingChallengeCompletion, SpeakingChallengeReturn } from "./SpeakingChallengeAnimation";
 import WorkbookOneFoundationChallenge from "./WorkbookOneFoundationChallenge";
@@ -629,7 +628,6 @@ export default function TextbookSpeakingChallenge() {
                 <div className="speaking-progress-track" role="progressbar" aria-label="大挑戰完成進度" aria-valuemin="0" aria-valuemax="100" aria-valuenow={progressPercent}><span style={{ width: `${progressPercent}%` }} /></div>
             </div>
             {Number.isFinite(Number(challenge.reward_xp)) && <div className="speaking-lesson-reward"><FiAward aria-hidden="true" /><span>通關獎勵</span><strong>{Number(challenge.reward_xp)} XP</strong></div>}
-            <SpeakingHeaderTools />
         </header>
 
         <section className="speaking-question-stage">

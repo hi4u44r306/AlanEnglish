@@ -4,5 +4,5 @@ import { createContext } from "react";
 // 獨立成小檔案，讓播放元件不必載入整個關卡（含登入）模組。
 export const SpeakingActivityContext = createContext(null);
 
-// 關卡標題列右側的位置：「先聽本關教材」放進去，和題數排成同一列。
+// 步驟列右邊的位置：「先聽一次」（本關教材聽力）放進去，和 1 拼 2 念排成同一列。
 export const SpeakingHeaderToolsContext = createContext(null);

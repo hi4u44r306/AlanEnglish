@@ -1,5 +1,11 @@
 # Alan English 專案狀態
 
+### 口說「先聽一次」移到步驟列（2026-10-19，分支 `feat/speaking-listen-once-button`，只改前端，隨 PR 上線）
+
+- `SpeakingPracticeSteps` 新增 `.speaking-step-row`（步驟 + `SpeakingHeaderTools` 插槽）；兩個關卡頁標題列移除插槽；`SpeakingLessonPreparation` 文字改「先聽一次」（aria「先聽一次本關教材」），忙碌時改灰色「評分後再聽」。
+- 驗證：口說相關 5 個測試檔 102 項；本機 320／375／412／1280 截圖無溢出。
+- PR #622（轉文字加速）已於 2026-10-18 部署，正式站 main.68f7342d 含 worker v=3。
+
 ### 口說轉文字加速（2026-10-18，分支 `feat/speaking-faster-local`，只改前端，隨 PR 上線）
 
 - 擁有者要求單題等待約 3 秒內：`localSpeakingRecognizer` 大模型改為單次超過 3 秒（原 8 秒）就換小模型；`worker.mjs`（v=3）載入後先用 1 秒靜音暖機並回報 `warmupMs`，大模型暖機超過 3 秒就在第一題前改載小模型。

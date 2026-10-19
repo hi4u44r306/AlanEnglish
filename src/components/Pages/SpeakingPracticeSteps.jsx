@@ -3,6 +3,7 @@ import { FiCheck, FiHelpCircle, FiMic, FiVolume2 } from "react-icons/fi";
 import SpeakingPronunciationRecorder from "./SpeakingPronunciationRecorder";
 import SpeakingLearningJourney from "./SpeakingLearningJourney";
 import SpeakingQuestionClip from "./SpeakingQuestionClip";
+import SpeakingHeaderTools from "./SpeakingHeaderTools";
 import { GuidedListenStep, GuidedSpellStep, GuidedStepper } from "./SpeakingGuidedSteps";
 import { initialGuidedStep, nextGuidedStep, spellingTargetFor } from "../../utils/speakingGuidedSteps";
 
@@ -166,7 +167,8 @@ export default function SpeakingPracticeSteps({
         ? [question.clip?.type === "audio" && "listen", spellingAnswers && "spell", "speak"].filter(Boolean)
         : [];
     const goToStep = step => { setGuidedStep(step); onGuidedStepChange?.(step); };
-    const stepper = guidedSteps.length > 1 && <GuidedStepper steps={guidedSteps} current={guidedStep} />;
+    // 步驟（1 拼 2 念）和「先聽一次」排成同一列：孩子做題前最常需要的兩樣東西放在題目正下方。
+    const stepper = <div className="speaking-step-row">{guidedSteps.length > 1 && <GuidedStepper steps={guidedSteps} current={guidedStep} />}<SpeakingHeaderTools /></div>;
 
     if (guidedStep === "listen" && question.clip) return <section className="speaking-practice-flow">
         {stepper}
