@@ -77,19 +77,21 @@
 
 .gamification-segment {
     display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
     padding: 4px;
     border: 1px solid var(--ae-border, #e7e3da);
     border-radius: 14px;
     background: var(--ae-surface-glass, rgba(255, 255, 255, .82));
 
     button {
-        min-height: 34px;
-        padding: 0 13px;
+        min-height: 44px;
+        padding: 0 16px;
         border: 0;
         border-radius: 10px;
         background: transparent;
         color: var(--ae-text-muted, #737985);
-        font-size: 13px;
+        font-size: 15px;
         font-weight: 800;
         cursor: pointer;
 

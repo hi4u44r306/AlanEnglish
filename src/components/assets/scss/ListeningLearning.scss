@@ -86,9 +86,9 @@ body:has(.playlist-page) .app-player {
   .rhap_main-controls .rhap_play-pause-button { width: 48px; min-width: 48px; height: 48px; border-color: #e8b937; background: var(--ae-warning-bg, #ffd45d); color: var(--ae-text, #183963) !important; }
   .rhap_main-controls > button:focus-visible { outline: 3px solid #183963; outline-offset: 2px; }
   @media (max-width: 900px) {
-    .player-mobile-expand { right: 156px; }
+    .player-mobile-expand { right: 172px; }
     .player-track-art { width: 38px; min-width: 38px; height: 38px; border-radius: 12px; }
-    .rhap_main-controls { gap: 2px; }
+    .rhap_main-controls { gap: 8px; }
     .player-mobile-expand { gap: 8px; }
   }
   @media (max-width: 360px) { .player-track-art { display: none; } }

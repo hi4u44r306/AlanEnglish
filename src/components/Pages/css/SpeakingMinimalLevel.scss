@@ -369,7 +369,7 @@ body.speaking-challenge-active .speaking-game-question-card:has(.speaking-gap-se
 body.speaking-challenge-active .speaking-gap-sentence .punctuation { white-space: nowrap; }
 .speaking-spell-slots.is-many { gap: 4px; }
 .speaking-spell-slots.is-many .speaking-spell-slot { width: 30px; height: 40px; font-size: 22px; border-bottom-width: 3px; }
-.speaking-spell-tiles.is-many { gap: 6px; }
+.speaking-spell-tiles.is-many { gap: 8px; }
 .speaking-spell-tiles.is-many .speaking-spell-tile { width: 44px; height: 44px; border-radius: 12px; font-size: 22px; }
 @media (max-width: 767px) {
   body.speaking-challenge-active .speaking-immersive-play .speaking-lesson-header { margin-bottom: 8px !important; }
@@ -390,15 +390,15 @@ body.speaking-challenge-active .speaking-gap-sentence .punctuation { white-space
 .speaking-spell-word > .speaking-spell-slot { margin-inline: 3px; }
 .speaking-spell-slots.is-many .speaking-spell-word > .speaking-spell-slot { margin-inline: 2px; }
 .speaking-spell-given, .speaking-spell-mark { align-self: center; color: var(--ae-text, #17365d); font-size: 26px; font-weight: 800; line-height: 1; }
-// Short phones, second pass: seven tiles per row (backspace included) and less air between the parts.
+// Short phones, second pass: tiles stay 44px (rows wrap when needed) and less air between the parts.
 @media (max-height: 740px) {
   body.speaking-challenge-active .speaking-practice-flow { padding-top: 2px !important; }
   body.speaking-challenge-active .speaking-focus-card { gap: 6px !important; }
   body.speaking-challenge-active .speaking-game-question-card:has(.speaking-gap-sentence.is-long) .speaking-visual-aid { width: 76px !important; }
   body.speaking-challenge-active .speaking-game-question-card:has(.speaking-gap-sentence.is-very-long) .speaking-visual-aid { width: 64px !important; }
   body.speaking-challenge-active .speaking-practice-flow { padding-inline: 4px !important; }
-  .speaking-spell-tiles, .speaking-spell-tiles.is-many { gap: 5px; }
-  .speaking-spell-tile, .speaking-spell-tiles.is-many .speaking-spell-tile { width: 40px; height: 42px; border-radius: 11px; font-size: 21px; }
+  .speaking-spell-tiles, .speaking-spell-tiles.is-many { gap: 8px; }
+  .speaking-spell-tile, .speaking-spell-tiles.is-many .speaking-spell-tile { width: 44px; height: 44px; border-radius: 11px; font-size: 21px; }
   .speaking-spell-slot { width: 32px; height: 40px; font-size: 22px; }
 }
 @media (max-height: 740px) {
@@ -461,3 +461,12 @@ body.speaking-challenge-active .speaking-step-row .speaking-listening-busy { max
 }
 // While recording or scoring the pill stays in place, greyed, with a short "評分後再聽".
 body.speaking-challenge-active .speaking-step-row .speaking-listening-busy { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; max-width: none; padding: 6px 14px; border: 1px dashed var(--ae-border, #c5d6e8); border-radius: 22px; color: var(--ae-text-muted, #526780); font-size: 15px; white-space: nowrap; }
+
+// The delete key is not a letter: a muted outline with a visible 「刪除」 label, always last in the row.
+.speaking-spell-tiles .speaking-spell-tile.speaking-spell-tile--back,
+.speaking-spell-tiles.is-many .speaking-spell-tile.speaking-spell-tile--back { display: inline-flex; align-items: center; justify-content: center; gap: 4px; order: 99; width: auto; min-width: 44px; height: 52px; padding: 0 12px; border: 1px dashed var(--ae-danger, #c62828); background: transparent; box-shadow: none; color: var(--ae-danger, #c62828); font-size: 15px; font-weight: 800; }
+.speaking-spell-tile--back > svg { width: 20px; height: 20px; flex: none; }
+.speaking-spell-tile--back:disabled { border-color: var(--ae-border, #c5d6e8); color: var(--ae-text-muted, #526780); }
+.speaking-spell-tiles.is-many .speaking-spell-tile.speaking-spell-tile--back { height: 44px; }
+@media (max-width: 380px) { .speaking-spell-tiles .speaking-spell-tile.speaking-spell-tile--back { height: 46px; } }
+@media (max-height: 740px) { .speaking-spell-tiles .speaking-spell-tile.speaking-spell-tile--back, .speaking-spell-tiles.is-many .speaking-spell-tile.speaking-spell-tile--back { height: 44px; padding: 0 10px; } }

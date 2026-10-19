@@ -116,6 +116,7 @@ function LearningLeaderboard() {
                         <button
                             className={leaderboardScope === "class" ? "active" : ""}
                             type="button"
+                            aria-pressed={leaderboardScope === "class"}
                             onClick={() => setLeaderboardScope("class")}
                             disabled={isStudent && !studentProfile?.class}
                         >
@@ -124,6 +125,7 @@ function LearningLeaderboard() {
                         <button
                             className={leaderboardScope === "overall" ? "active" : ""}
                             type="button"
+                            aria-pressed={leaderboardScope === "overall"}
                             onClick={() => setLeaderboardScope("overall")}
                         >
                             綜合排行
@@ -137,12 +139,13 @@ function LearningLeaderboard() {
                             </select>
                         </label>
                     )}
-                    <div className="gamification-segment">
+                    <div className="gamification-segment" role="group" aria-label="排行榜期間">
                         {PERIODS.map(item => (
                             <button
                                 className={period === item.value ? "active" : ""}
                                 key={item.value}
                                 type="button"
+                                aria-pressed={period === item.value}
                                 onClick={() => setPeriod(item.value)}
                             >
                                 {item.label}

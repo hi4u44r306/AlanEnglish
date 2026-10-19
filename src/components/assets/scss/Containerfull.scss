@@ -121,14 +121,15 @@
     justify-content: center;
     gap: 6px;
     border: 0;
+    min-height: 44px;
     border-radius: 999px;
-    padding: 6px 11px;
+    padding: 0 14px;
     background: var(--ae-solid, #17233f);
     color: #ffffff;
     font-family:
       "Nunito",
       sans-serif;
-    font-size: 12px;
+    font-size: 14px;
     font-weight: 800;
     cursor: pointer;
   }
@@ -141,7 +142,7 @@
     min-height: 78px;
     height: auto;
     padding:
-      42px 12px 10px;
+      60px 12px 10px;
     box-shadow: none;
   }
 
@@ -185,20 +186,21 @@
   }
 
   .rhap_play-pause-button {
-    width: 42px;
-    height: 42px;
-    font-size: 42px;
+    width: 48px;
+    min-width: 48px;
+    height: 48px;
+    font-size: 46px;
   }
 }
 
 .app-player:not(.mini)
 > .app-player-toggle {
   position: absolute;
-  top: -34px;
+  top: -44px;
   right: 18px;
   z-index: 4;
   display: inline-flex;
-  height: 34px;
+  height: 44px;
   align-items: center;
   justify-content: center;
   gap: 6px;
@@ -207,14 +209,14 @@
   border-bottom: 0;
   border-radius:
     12px 12px 0 0;
-  padding: 0 14px;
+  padding: 0 16px;
   background:
     var(--ae-surface-glass, rgba(255, 255, 255, 0.98));
   color: var(--ae-text, #17233f);
   font-family:
     "Nunito",
     sans-serif;
-  font-size: 12px;
+  font-size: 14px;
   font-weight: 800;
   cursor: pointer;
 }
@@ -277,16 +279,43 @@ body {
   }
 }
 
-/* 手機／窄螢幕的作業迷你播放器：「展開播放器」按鈕獨立一排，不壓到播放鍵。 */
+/* 手機／窄螢幕的作業迷你播放器：「展開播放器」放在播放鍵左邊同一排，44px 高、隔 8px 以上。 */
 @media only screen and (max-width: 900px) {
   .app-player.mini .footer-player {
-    padding-top: 34px;
+    padding-top: 0;
+  }
+
+  .app-player.mini .rhap_container {
+    min-height: 72px;
+    padding: 8px 10px;
   }
 
   .app-player.mini .app-player-toggle {
-    top: 6px;
-    right: 8px;
-    padding: 5px 11px;
+    top: 50%;
+    right: 70px;
+    padding: 0 12px;
+    transform: translateY(-50%);
+  }
+
+  .app-player.mini .player-mobile-expand {
+    right: 196px;
+  }
+}
+
+@media only screen and (max-width: 360px) {
+  .app-player.mini .app-player-toggle > span {
+    display: none;
+  }
+
+  .app-player.mini .player-mobile-expand {
+    right: 172px;
+  }
+}
+
+/* 作業頁展開後，「縮小」浮在播放器上方，內容多留 52px 不被蓋住。 */
+@media (max-width: 1279px) {
+  body:has(.ae-student-bottom-nav):not(.speaking-challenge-active):not(.sr-immersive) .app-content.has-player.has-player-toggle:not(.has-mini-player) {
+    padding-bottom: calc(228px + var(--student-bottom-nav-offset)) !important;
   }
 }
 

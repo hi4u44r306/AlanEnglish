@@ -286,7 +286,10 @@
 .speaking-set__selector small { color: var(--ae-text-muted, #718096); }
 .speaking-set__selector:focus-visible { outline: 3px solid rgba(49, 95, 169, .28); outline-offset: 6px; border-radius: 6px; }
 .speaking-set__actions { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 8px; }
-.speaking-set__actions button, .speaking-set__actions a { min-height: 40px; padding-inline: 11px; text-decoration: none; }
+.speaking-set__actions button, .speaking-set__actions a { min-height: 44px; padding-inline: 14px; text-decoration: none; }
+// 刪除草稿／下架：外框紅字、永遠排最後，和「發布」隔開，避免誤按。
+.speaking-set__actions > .platform-danger { order: 99; margin-left: 20px; border: 1px solid #e4a8a3; color: var(--ae-danger, #963a33); background: transparent; box-shadow: none; }
+.speaking-set__actions > .platform-danger:hover:not(:disabled) { border-color: var(--ae-danger, #963a33); background: var(--ae-danger-bg, #fdecec); }
 .platform-danger { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 0 14px; border: 1px solid #e4a8a3; border-radius: 10px; color: var(--ae-danger, #963a33); background: var(--ae-surface-muted, #fff7f6); font-weight: 850; }
 .platform-danger:disabled { cursor: not-allowed; opacity: .55; }
 .speaking-student-preview { margin: 0 0 18px; border: 1px solid var(--ae-border, #cbdaf0); border-radius: 15px; overflow: hidden; background: var(--ae-surface-muted, #f6f9ff); }
@@ -415,6 +418,7 @@
     .speaking-picture-editor__voice-candidates article { grid-template-columns: 1fr; }
     .speaking-picture-editor__actions { display: grid; grid-template-columns: 1fr; }
     .speaking-set__actions { width: 100%; display: grid; grid-template-columns: 1fr; }
+    .speaking-set__actions > .platform-danger { margin: 12px 0 0; }
 }
 @media (max-width: 420px) {
     .speaking-admin-command__actions button { grid-template-columns: 1fr; justify-items: center; min-height: 52px; text-align: center; }

@@ -48,7 +48,7 @@ const ReviewCenter = () => {
     const practicePath = hasLearningAccess && features.assignments === true ? "/student/assignments"
         : hasLearningAccess && features.ai_materials === true ? "/student/ai-generator" : "/student/dashboard";
     const practiceLabel = practicePath === "/student/assignments" ? "查看老師作業"
-        : practicePath === "/student/ai-generator" ? "開始 AI 練習" : "回到學習首頁";
+        : practicePath === "/student/ai-generator" ? "開始 AI 練習" : "回我的進度";
     const [stats, setStats] = useState(EMPTY_STATS);
     const [items, setItems] = useState([]);
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -192,7 +192,7 @@ const ReviewCenter = () => {
             <div className="review-center__shell">
                 <header className="review-hero">
                     <div className="review-hero__copy">
-                        <Link to="/student/dashboard"><FiArrowLeft /> 回到學習首頁</Link>
+                        <Link to="/student/dashboard"><FiArrowLeft /> 回我的進度</Link>
                         <span><FiTarget /> SMART REVIEW</span>
                         <h1>智慧錯題複習</h1>
                         <p>系統會從 AI 練習與老師作業找出弱點，答對三次後就能真正掌握。</p>
@@ -250,7 +250,7 @@ const ReviewCenter = () => {
                             <button type="button" onClick={() => loadReview()}>
                                 <FiRefreshCw /> 更新複習進度
                             </button>
-                            <Link to="/student/dashboard">回到學習首頁</Link>
+                            <Link to="/student/dashboard">回我的進度</Link>
                         </div>
                     </section>
                 ) : currentItem ? (
