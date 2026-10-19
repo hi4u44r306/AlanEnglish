@@ -115,3 +115,10 @@ test("同音字算對：eye 聽成 I、two 聽成 to 都通過，而且不提醒
     assert.equal(assess(question("It is an eye.", "picture_gap_sentence"), "It is an ear.").answer_match, false);
     assert.equal(assess(question("Yes, I know.", "text_qa"), "Yes, I no.").scores.completeness < 100, true);
 });
+test("連音算對：its ears 聽成 its years 也通過；本來就是 years 的題目不受影響", () => {
+    assert.equal(assess(question("They are its ears.", "picture_gap_sentence"), "They are its years.").answer_match, true);
+    assert.equal(assess(question("They are its ears."), "They are its years.").scores.completeness, 100);
+    assert.equal(assess(question("I am ten years old."), "I am ten years old.").scores.completeness, 100);
+    assert.equal(assess(question("I am ten years old."), "I am ten ears old.").scores.completeness < 100, true);
+    assert.equal(assess(question("They are its ears.", "picture_gap_sentence"), "They are its yes.").answer_match, false);
+});

@@ -189,8 +189,11 @@ for (const group of HOMOPHONE_GROUPS) for (const word of group) {
 export const alignThSoundAlikes = (expected: string[], spoken: string[]) => {
     const tips: { word: string; heard: string }[] = [];
     const expectedWords = new Set(expected);
+    // Linking: "its ears" run together comes back as "its years" (a y sound slips in before a
+    // vowel-initial word), so "y" + an answer word that starts with a vowel counts as that word.
     spoken = spoken.map(token => expectedWords.has(token) ? token
-        : (HOMOPHONES.get(token) || []).find(word => expectedWords.has(word)) || token);
+        : (HOMOPHONES.get(token) || []).find(word => expectedWords.has(word))
+            || (/^y[aeiou]/.test(token) && expectedWords.has(token.slice(1)) ? token.slice(1) : token));
     const thWords = [...new Set(expected.filter(token => token.includes("th")))];
     if (!thWords.length) return { spoken, tips };
     const aligned = spoken.map(token => {

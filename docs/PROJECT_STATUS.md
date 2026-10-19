@@ -1,5 +1,11 @@
 # Alan English 專案狀態
 
+### 口說連音 y（2026-10-19，分支 `fix/speaking-linking-y`；需 pronunciation-coach 部署）
+
+- 擁有者用學生帳號實測「They are its ears.」被聽成「its years」沒過；學生帳號因 `recheck_mode = staff` 不會再確認。
+- `alignThSoundAlikes`：聽到「y＋母音開頭答案字」時對回答案字。completeness 21 項（新增 1）、azure-sentence 4、local-handler 17。
+- PR #625 部署紀錄：v65 誤抄 `speaking-recording-policy.ts`（少 `? 12 : 25`），約 6 分鐘後 v66 修正；log 只有擁有者的檢查請求，無學生受影響。v66 與 main 16 檔一致。正式站前端 main.2f4b8193。
+
 ### 口說同音字與沒過畫面（2026-10-19，分支 `fix/speaking-homophones`；需 pronunciation-coach 部署）
 
 - 擁有者實測「It is an eye.」被聽成「It is an "I".」沒過、且畫面同一件事講三次並顯示 75 分。
