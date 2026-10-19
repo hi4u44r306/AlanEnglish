@@ -245,3 +245,8 @@ test("找出重要字：名詞、句中大寫的人名地名，不含句首與 I
     assert.deepEqual(keyWordsOf("Good morning. I am happy."), ["morning"]);
     assert.deepEqual(keyWordsOf("Stand up. / Sit down."), []);
 });
+test("同音字也是答案字、所有格的人名拼法", () => {
+    assert.equal(assess(question("Yes! I am the apple of his eye.", "text_qa"), "Yes! I am the apple of his I.").answer_match, true);
+    assert.equal(assess(question("No, she is not. She is Ann's twin brother.", "text_qa"), "No, she is not. She is Anne's twin brother.").answer_match, true);
+    assert.equal(assess(question("No, she is not. She is Ann's twin brother.", "text_qa"), "No, she is not. She is Mary's twin brother.").answer_match, false);
+});

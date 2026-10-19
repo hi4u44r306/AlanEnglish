@@ -5,7 +5,8 @@
 - 擁有者要求「看過全部題庫，放寬常讓本機辨識出錯的字」。已發布 1,425 題（扣字母 72、[slots] 19、空 1 → 實測 1,333）。
 - 規則（speaking-foundation-answer／speaking-completeness）：數字轉英文字（`spellOutNumbers`）、its/it's 等片語同音（依對齊挑合併位置）、連寫／分開、英美拼法與人名、題目內斜線與括號展開（每題最多 32 種）。
 - 模擬「學生念其中一個版本＋辨識常見寫法」：main 1,286／1,333 通過 → 分支 1,333／1,333，無題目退步；錯字替換抽樣 200 題，通過數 main 155、分支 155，無新增放行。
-- 已知（main 原本就有，未改）：text_qa 長句換掉一個名詞仍常通過（例 They come from Italy. 念 Japan 也過），待擁有者決定是否收緊。
+- 擁有者決定「重要名詞與地名人名一定要對」：新增 `speaking-key-nouns.ts`（753 字＋句中大寫字），`matchesChildFriendlySentence` 與一般朗讀都要求關鍵字全到（單複數 s 互通、不規則複數嚴格）。部署 pronunciation-coach 時檔案清單要加這個新檔。
+- 影響（全題庫，換掉最長字的錯讀 1,315 句）：仍被放過 main 948 → 放寬後 966 → 加名詞規則後 474；模擬正確念法 1,333／1,333 全過。
 - 題庫錯字 5 題（set 31 Q7 pruple、244 Q2 lenghth、301 Q4/Q5 straigh-A、302 Q6 yoursel f），需擁有者同意後修正題目文字。
 
 ### 口說連音 y（2026-10-19，同分支）

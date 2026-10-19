@@ -359,9 +359,26 @@ export const alignThSoundAlikes = (expected: string[], spoken: string[]) => {
     spoken = alignJoinedWords(expected, alignPhraseHomophones(expected, spoken));
     // Linking: "its ears" run together comes back as "its years" (a y sound slips in before a
     // vowel-initial word), so "y" + an answer word that starts with a vowel counts as that word.
+    // A possessive keeps its homophone: "Anne's" for the answer's "Ann's".
+    const homophoneOf = (token: string) => {
+        const direct = (HOMOPHONES.get(token) || []).find(word => expectedWords.has(word));
+        if (direct || !token.endsWith("'s")) return direct;
+        const base = (HOMOPHONES.get(token.slice(0, -2)) || []).find(word => expectedWords.has(word + "'s"));
+        return base ? base + "'s" : undefined;
+    };
     spoken = spoken.map(token => expectedWords.has(token) ? token
-        : (HOMOPHONES.get(token) || []).find(word => expectedWords.has(word))
+        : homophoneOf(token)
             || (/^y[aeiou]/.test(token) && expectedWords.has(token.slice(1)) ? token.slice(1) : token));
+    // A homophone that is also an answer word ("I am the apple of his eye." heard as "... his I"):
+    // when the transcript has more of it than the answer and fewer of its partner, the extra one is the partner.
+    for (const word of new Set(expected)) {
+        const missing = countSequence(expected, [word]) - countSequence(spoken, [word]);
+        if (missing <= 0) continue;
+        for (const partner of HOMOPHONES.get(word) || []) {
+            const extra = countSequence(spoken, [partner]) - countSequence(expected, [partner]);
+            if (extra > 0) spoken = replaceBestSequences(expected, spoken, [partner], [word], Math.min(missing, extra));
+        }
+    }
     const thWords = [...new Set(expected.filter(token => token.includes("th")))];
     if (!thWords.length) return { spoken, tips };
     const aligned = spoken.map(token => {
