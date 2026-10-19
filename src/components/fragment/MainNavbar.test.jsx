@@ -401,7 +401,7 @@ describe("MainNavbar student navigation", () => {
         expect(await screen.findAllByRole("link", { name: coachName })).toHaveLength(2);
     });
 
-    it("gives admins 學生／作業／教材／設定, with less-used admin pages under 設定 › 其他工具", async () => {
+    it("gives admins 學生／作業／教材／設定 and no entry for switched-off pages", async () => {
         useAuth.mockReturnValue({
             firebaseUser: { uid: "admin-test" },
             role: "admin",
@@ -430,14 +430,7 @@ describe("MainNavbar student navigation", () => {
 
         expect(await screen.findAllByRole("link", { name: "音檔管理" })).toHaveLength(2);
         expect(screen.getAllByRole("link", { name: "口說題庫" })).toHaveLength(2);
-        // Every admin route has an entry: the less-used ones sit under 設定 › 其他工具 in both menus.
-        [["等級與晉級測驗", "/admin/levels"], ["教材連結管理", "/admin/links"], ["獎品與兌換管理", "/admin/rewards"], ["教材商品包管理", "/admin/material-packages"], ["商城訂單與出貨", "/admin/store-orders"], ["Boss 挑戰預覽", "/admin/boss-preview"], ["學習排行榜", "/admin/leaderboard"]].forEach(([name, href]) => {
-            const links = screen.getAllByRole("link", { name });
-            expect(links).toHaveLength(2);
-            links.forEach(link => expect(link).toHaveAttribute("href", href));
-        });
-        expect(screen.getAllByText("其他工具")).toHaveLength(2);
-        ["新增連結", "班級排行榜"].forEach(name => expect(screen.queryByRole("link", { name })).not.toBeInTheDocument());
+        ["新增連結", "獎品與兌換管理", "教材商品包", "商城訂單與出貨", "等級與晉級測驗", "班級排行榜"].forEach(name => expect(screen.queryByRole("link", { name })).not.toBeInTheDocument());
         expect(screen.queryByRole("link", { name: "建立音檔" })).not.toBeInTheDocument();
     });
 
