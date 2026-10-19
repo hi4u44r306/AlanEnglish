@@ -74,6 +74,72 @@
     font-weight: 800;
 }
 
+/* 「從頭開始」會清除進度，改成灰色文字按鈕，不和主要按鈕搶眼。 */
+.conversation-cloud-banner button.conversation-restart-button {
+    min-height: 44px;
+    padding: 0 10px;
+    background: none;
+    color: var(--ae-text-muted, #6f7b94);
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.conversation-confirm-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1400;
+    display: grid;
+    place-items: center;
+    padding: 18px;
+    background: rgba(10, 28, 58, .62);
+}
+
+.conversation-confirm-dialog {
+    display: grid;
+    gap: 16px;
+    width: min(420px, 100%);
+    padding: 24px;
+    border-radius: 22px;
+    background: var(--ae-surface, #fff);
+    color: var(--ae-text, #17365d);
+    box-shadow: 0 24px 64px rgba(10, 28, 58, .32);
+    text-align: center;
+}
+
+.conversation-confirm-dialog h2 {
+    margin: 0;
+    font-size: 17px;
+    line-height: 1.6;
+}
+
+.conversation-confirm-dialog > div {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.conversation-confirm-dialog button {
+    min-height: 48px;
+    border: 1px solid var(--ae-border, #b8cbea);
+    border-radius: 14px;
+    background: var(--ae-surface, #fff);
+    color: var(--ae-text, #17365d);
+    font-weight: 900;
+}
+
+.conversation-confirm-dialog button.primary {
+    border-color: var(--ae-danger, #c0392b);
+    background: var(--ae-danger, #c0392b);
+    color: #fff;
+}
+
+.conversation-confirm-dialog button:focus-visible {
+    outline: 3px solid rgba(246, 190, 46, .8);
+    outline-offset: 3px;
+}
+
 @media (max-width: 640px) {
     .conversation-cloud-banner {
         align-items: flex-start;
@@ -83,5 +149,10 @@
 
     .conversation-cloud-banner button {
         width: 100%;
+    }
+
+    .conversation-cloud-banner button.conversation-restart-button {
+        width: auto;
+        align-self: flex-end;
     }
 }

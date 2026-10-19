@@ -82,6 +82,14 @@ const Containerfull = ({ children }) => {
         currMusic && speakingChallengePage
     );
 
+    // 作業頁展開後，「縮小」按鈕浮在播放器上方，內容要多留它的高度。
+    const expandedToggleVisible = Boolean(
+        currMusic &&
+        !hidePlayerForSpeaking &&
+        miniPlayerPage &&
+        playerExpanded
+    );
+
     const playerSpace =
         typeof curr_margin === 'number'
             ? `${curr_margin}px`
@@ -144,14 +152,20 @@ const Containerfull = ({ children }) => {
                      showMiniPlayer
                          ? 'has-mini-player'
                          : ''
+                 } ${
+                     expandedToggleVisible
+                         ? 'has-player-toggle'
+                         : ''
                  }`}
                 style={{
                     paddingBottom:
                         currMusic &&
                         !hidePlayerForSpeaking &&
                         !showMiniPlayer
-                            ? curr_margin ||
-                              '110px'
+                            ? expandedToggleVisible
+                                ? `calc(${playerSpace} + 52px)`
+                                : curr_margin ||
+                                  '110px'
                             : undefined
                 }}
             >

@@ -68,7 +68,7 @@ export function SpeakingChallengeCompletion({ notice, mode, reference, staffPrev
             {!staffPreview && xp === 0 && (!REWARD_SHOP_ENABLED || points === 0) && <small className="speaking-celebration-reward-note">{mode === "challenge" ? "獎勵只在首次通關發放" : REWARD_SHOP_ENABLED ? "練習不發放 XP 或 AE Points" : "練習不發放 XP"}</small>}
             {nextTopic && onNext && <p className="speaking-celebration-next-topic"><small>下一個目標</small><strong>{nextTopic}</strong></p>}
             <button type="button" className="speaking-celebration-next" onClick={onNext || onReturn}>{onNext ? "前往下一關" : "回地圖繼續冒險"}<FiArrowRight aria-hidden="true" /></button>
-            <button type="button" className="speaking-celebration-return" onClick={onReturn}>返回地圖</button>
+            <button type="button" className="speaking-celebration-return" onClick={onReturn}>回到地圖</button>
         </section>
     </main>;
 }

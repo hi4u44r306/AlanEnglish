@@ -57,7 +57,7 @@ const downloadCsv = (contents, filename) => {
 
 const displayDate = value => value || "無期限";
 
-function StudentLoginCards({ results, rows }) {
+function StudentLoginCards({ results, rows, onSaved }) {
     const successful = useMemo(() => results
         .filter(result => result.status === "success" && result.credentials?.activation_url)
         .map(result => ({
@@ -92,6 +92,7 @@ function StudentLoginCards({ results, rows }) {
         setDownloadError("");
         try {
             await downloadAcademyStudentLoginCardsDocx(results, rows);
+            onSaved?.();
         } catch (error) {
             setDownloadError(error?.message || "Word 登入卡產生失敗，請稍後再試");
         } finally {
@@ -104,6 +105,7 @@ function StudentLoginCards({ results, rows }) {
         setDownloadError("");
         try {
             await downloadAcademyStudentLoginCardsPdf(results, rows);
+            onSaved?.();
         } catch (error) {
             setDownloadError(error?.message || "PDF 登入卡產生失敗，請稍後再試");
         } finally {
@@ -126,7 +128,7 @@ function StudentLoginCards({ results, rows }) {
                     <button type="button" onClick={downloadPdf} disabled={downloadingPdf}>
                         {downloadingPdf ? "產生 PDF 中…" : "下載 PDF 登入卡"}
                     </button>
-                    <button type="button" onClick={() => window.print()}>列印 A4 登入卡</button>
+                    <button type="button" onClick={() => { window.print(); onSaved?.(); }}>列印 A4 登入卡</button>
                 </div>
             </div>
             {downloadError && <p className="academy-csv-audit-warning" role="alert">{downloadError}</p>}
@@ -180,6 +182,8 @@ function AcademyStudentCsvImport() {
     const [message, setMessage] = useState("");
     const [results, setResults] = useState([]);
     const [auditComplete, setAuditComplete] = useState(true);
+    // 這一批的結果或登入卡下載／列印過，清除畫面時就不用再問。
+    const [resultsSaved, setResultsSaved] = useState(false);
 
     const resetImport = () => {
         setFilename("");
@@ -190,7 +194,14 @@ function AcademyStudentCsvImport() {
         setResults([]);
         setSubmitted(false);
         setAuditComplete(true);
+        setResultsSaved(false);
         if (inputRef.current) inputRef.current.value = "";
+    };
+
+    const requestResetImport = () => {
+        if (results.length > 0 && !resultsSaved
+            && !window.confirm("登入卡和臨時密碼只顯示這一次，已經下載或列印了嗎？清除後就看不到了。")) return;
+        resetImport();
     };
 
     const handleFile = async event => {
@@ -249,6 +260,7 @@ function AcademyStudentCsvImport() {
             buildAcademyStudentResultCsv(results),
             `alan-english-student-import-result-${new Date().toISOString().slice(0, 10)}.csv`
         );
+        setResultsSaved(true);
     };
 
     const previewRows = Array.isArray(preview?.rows) ? preview.rows : [];
@@ -410,12 +422,12 @@ function AcademyStudentCsvImport() {
                                 </tbody>
                             </table>
                         </div>
-                        <StudentLoginCards results={results} rows={rows} />
+                        <StudentLoginCards results={results} rows={rows} onSaved={() => setResultsSaved(true)} />
                     </section>
                 )}
 
                 {(preview || results.length > 0) && (
-                    <button type="button" className="academy-csv-reset" onClick={resetImport} disabled={submitting}>
+                    <button type="button" className="academy-csv-reset" onClick={requestResetImport} disabled={submitting}>
                         清除畫面並匯入下一批
                     </button>
                 )}

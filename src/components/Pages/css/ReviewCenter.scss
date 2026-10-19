@@ -58,11 +58,20 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    margin-bottom: 22px;
-    color: rgba(255, 255, 255, 0.74);
-    font-size: 0.72rem;
+    min-height: 44px;
+    margin: -8px 0 14px -10px;
+    padding: 0 12px 0 10px;
+    border-radius: 12px;
+    color: rgba(255, 255, 255, 0.86);
+    font-size: 15px;
     font-weight: 800;
     text-decoration: none;
+  }
+
+  > a:hover,
+  > a:focus-visible {
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
   }
 
   > span {
@@ -526,17 +535,18 @@
 
   button {
     min-width: 150px;
+    min-height: 48px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    padding: 11px 17px;
+    padding: 11px 20px;
     color: #fff;
     background: var(--ae-solid, #193b63);
     border: 0;
     border-radius: 11px;
     font-family: inherit;
-    font-size: 0.73rem;
+    font-size: 16px;
     font-weight: 950;
     cursor: pointer;
   }
@@ -618,7 +628,8 @@
 .review-state__actions {
   display: flex;
   justify-content: center;
-  gap: 9px;
+  flex-wrap: wrap;
+  gap: 10px;
   margin-top: 20px;
 
   a,
@@ -627,13 +638,14 @@
     align-items: center;
     justify-content: center;
     gap: 7px;
-    padding: 10px 14px;
+    min-height: 44px;
+    padding: 10px 18px;
     color: var(--ae-accent, #274b75);
     background: var(--ae-surface-muted, #edf4fb);
     border: 0;
     border-radius: 10px;
     font-family: inherit;
-    font-size: 0.7rem;
+    font-size: 15px;
     font-weight: 900;
     text-decoration: none;
     cursor: pointer;
@@ -717,8 +729,8 @@
     padding-right: 64px;
 
     > a {
-      margin-bottom: 16px;
-      font-size: 0.64rem;
+      margin-bottom: 10px;
+      font-size: 15px;
     }
 
     h1 {

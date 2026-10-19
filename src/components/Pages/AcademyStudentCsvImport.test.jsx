@@ -100,5 +100,19 @@ describe("AcademyStudentCsvImport", () => {
         expect(await screen.findByRole("button", { name: "下載 Word 登入卡" })).toBeInTheDocument();
         expect(screen.getByRole("button", { name: "下載 PDF 登入卡" })).toBeInTheDocument();
         expect(screen.getByRole("button", { name: "列印 A4 登入卡" })).toBeInTheDocument();
+
+        // 還沒下載或列印就要清除，先確認；取消就保留結果。
+        window.confirm.mockClear().mockReturnValue(false);
+        fireEvent.click(screen.getByRole("button", { name: "清除畫面並匯入下一批" }));
+        expect(window.confirm).toHaveBeenCalledWith(expect.stringContaining("只顯示這一次"));
+        expect(screen.getByRole("button", { name: "下載 Word 登入卡" })).toBeInTheDocument();
+
+        // 列印過之後清除不用再問。
+        window.print = jest.fn();
+        window.confirm.mockClear();
+        fireEvent.click(screen.getByRole("button", { name: "列印 A4 登入卡" }));
+        fireEvent.click(screen.getByRole("button", { name: "清除畫面並匯入下一批" }));
+        expect(window.confirm).not.toHaveBeenCalled();
+        expect(screen.queryByRole("button", { name: "下載 Word 登入卡" })).not.toBeInTheDocument();
     });
 });

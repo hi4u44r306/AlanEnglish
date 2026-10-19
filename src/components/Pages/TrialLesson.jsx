@@ -48,6 +48,7 @@ export default function TrialLesson() {
     const [videoOpen, setVideoOpen] = useState(false);
     const canSpeak = typeof window !== "undefined" && Boolean(window.speechSynthesis);
     const cardRef = useRef(null);
+    const nextStepRef = useRef(null);
     const speaking = useTrialSpeaking();
     const item = COLOUR_QUESTIONS[index];
     const finished = done.size === COLOUR_QUESTIONS.length;
@@ -69,6 +70,13 @@ export default function TrialLesson() {
         setRevealed(false);
         setIndex(current => (current + 1) % COLOUR_QUESTIONS.length);
         cardRef.current?.focus({ preventScroll: true });
+    };
+    // 最後一題不再繞回第 1 題，而是帶到頁尾「想了解教材」那一段。
+    const isLastQuestion = index === COLOUR_QUESTIONS.length - 1;
+    const goToNextStep = () => {
+        const nextSection = nextStepRef.current;
+        nextSection?.scrollIntoView?.({ behavior: "smooth", block: "start" });
+        nextSection?.focus({ preventScroll: true });
     };
 
     return (
@@ -130,7 +138,9 @@ export default function TrialLesson() {
                     {status === "idle" && !revealed && <p className="trial-lesson__hint">{item.zh}是什麼顏色？按麥克風，大聲說出整句。</p>}
                     <div className="trial-lesson__actions">
                         {answered
-                            ? <button type="button" className="is-primary" onClick={next}>下一題<FiArrowRight aria-hidden="true" /></button>
+                            ? (isLastQuestion
+                                ? <button type="button" className="is-primary" onClick={goToNextStep}>看下一步<FiArrowRight aria-hidden="true" /></button>
+                                : <button type="button" className="is-primary" onClick={next}>下一題<FiArrowRight aria-hidden="true" /></button>)
                             : status === "recording"
                                 ? <button type="button" className="is-primary is-recording" onClick={speaking.stop}><FiSquare aria-hidden="true" />說完了</button>
                                 : <button type="button" className="is-primary" onClick={() => speaking.start(item.answer)} disabled={status === "preparing" || status === "checking"}><FiMic aria-hidden="true" />{status === "retry" || status === "error" ? "再說一次" : "按一下，開口說"}</button>}
@@ -141,7 +151,7 @@ export default function TrialLesson() {
                 {finished && <p className="trial-lesson__notice is-done" role="status">8 題都說過了，很棒！</p>}
             </section>
 
-            <footer className="trial-lesson__next">
+            <footer className="trial-lesson__next" id="trial-next-step" ref={nextStepRef} tabIndex={-1}>
                 <h2>課本、聽力、口說、影片是一套的</h2>
                 <p>每一頁都像這樣學：看老師教、聽課本、自己開口說。</p>
                 <div>

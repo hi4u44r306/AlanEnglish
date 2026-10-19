@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { EmailAuthProvider, reauthenticateWithCredential, updatePassword } from "firebase/auth";
 import { FiBell, FiCheck, FiLock, FiMail, FiShield } from "react-icons/fi";
 import { useAuth } from "../../auth/AuthContext";
@@ -128,7 +128,7 @@ function StudentOnboarding() {
 
     const skipNotifications = () => {
         setPushDecisionMade(true);
-        setMessage({ type: "success", text: "已略過裝置通知。之後可隨時到「我的進度」開啟。" });
+        setMessage({ type: "success", text: "已略過裝置通知。之後可隨時到選單的「通知設定」開啟。" });
     };
 
     const changePassword = async event => {
@@ -327,11 +327,12 @@ function StudentOnboarding() {
                                 </button>
                             </div>
                         )}
-                        {pushDecisionMade && !pushStatus?.active && <p className="student-onboarding-push-skipped">已略過；之後可在「我的進度」開啟。</p>}
+                        {pushDecisionMade && !pushStatus?.active && <p className="student-onboarding-push-skipped">已略過；之後可在選單的<Link to="/student/notification-settings">「通知設定」</Link>開啟。</p>}
                     </article>
                 )}
 
-                <button type="button" className="student-onboarding-logout" onClick={logout}>先登出，稍後再完成</button>
+                {/* 必要資料都完成後，就不再顯示「先登出，稍後再完成」。 */}
+                {completedCount < 3 && <button type="button" className="student-onboarding-logout" onClick={logout}>先登出，稍後再完成</button>}
             </section>
         </main>
     );

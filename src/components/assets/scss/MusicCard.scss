@@ -175,7 +175,8 @@
 .playlist-page .music-card.music-card .music-card__title { font-size: 20px !important; font-weight: 800 !important; line-height: 1.3; overflow-wrap: anywhere; }
 .playlist-page .music-card.music-card .music-card__status { grid-column: auto !important; width: auto !important; margin: 0 !important; padding: 0 !important; border: 0 !important; display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; align-items: center !important; justify-content: flex-end; gap: 8px !important; }
 .playlist-page .music-card.music-card .music-card__plays { min-width: 0; padding: 0 !important; border: 0 !important; background: none !important; box-shadow: none !important; > svg, small { display: none !important; } strong { font-size: 16px; font-weight: 800; color: var(--ae-text, #17365d); white-space: nowrap; } }
-.playlist-page .music-card.music-card .music-card__video { padding: 8px 10px; > span { display: none; } }
+// 「看影片」文字要看得到，不能只剩 YouTube 圖示。
+.playlist-page .music-card.music-card .music-card__video { gap: 4px; padding: 8px 10px; font-size: 13px; }
 .playlist-page .music-card.music-card .music-card__check > span { display: none; }
 .playlist-page .music-card.music-card .music-card__count { font-size: 16px; font-weight: 800; color: var(--ae-text, #17365d); white-space: nowrap; }
 .playlist-page .music-card--assignment .music-card__assignment { display: flex; align-items: center; margin: 0; }

@@ -57,6 +57,20 @@ $muted: #5b6785;
 .attendance-primary { border: 0; background: #2f5bea; color: #fff; }
 .attendance-secondary { border: 2px solid #2f5bea; background: var(--ae-surface, #fff); color: var(--ae-accent, #2f5bea); }
 .attendance-ghost { border: 1px solid var(--ae-border, #dfe6f3); background: var(--ae-surface, #fff); color: var(--ae-text, #14213d); }
+.attendance-primary, .attendance-secondary, .attendance-ghost { min-height: 44px; }
+
+// 確認視窗：補課「我看完了」、點名切換前提醒儲存。
+.attendance-confirm-backdrop {
+    position: fixed; inset: 0; z-index: 1400; display: grid; place-items: center; padding: 18px; background: rgba(10, 28, 58, .62);
+}
+.attendance-confirm-dialog {
+    display: grid; gap: 16px; width: min(440px, 100%); padding: 24px; border-radius: 22px;
+    background: var(--ae-surface, #fff); color: var(--ae-text, #14213d); box-shadow: 0 24px 64px rgba(10, 28, 58, .32); text-align: center;
+    h2 { margin: 0; font-size: 18px; line-height: 1.6; overflow-wrap: anywhere; }
+    > div { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+    > div button { flex: 1 1 120px; }
+}
+
 .attendance-icon {
     display: inline-grid; place-items: center; width: 44px; flex: 0 0 44px; border: 0; border-radius: 12px; background: transparent; color: var(--ae-danger, #a52222);
 }
@@ -173,6 +187,11 @@ $muted: #5b6785;
 
     p { flex: 1 1 200px; margin: 0; min-width: 0; font-weight: 700; overflow-wrap: anywhere; }
     .attendance-primary { background: #ffc83d; color: var(--ae-text, #14213d); }
+}
+
+// 底部播放器出現時，儲存列要停在播放器上方，不被蓋住（--app-player-space 由 Containerfull 設定）。
+.app-content.has-player:not(.has-mini-player) .attendance-save {
+    bottom: calc(var(--app-player-space, 110px) + 12px + env(safe-area-inset-bottom));
 }
 
 .attendance-overview {

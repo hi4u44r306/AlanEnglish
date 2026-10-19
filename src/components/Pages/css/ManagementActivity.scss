@@ -237,7 +237,17 @@
 
 .activity-row-actions {
     display: flex;
+    flex-wrap: wrap;
+    align-items: center;
     gap: 6px;
+}
+
+// 「提醒家長」不能按時，旁邊直接寫出原因。
+.reminder-disabled-note {
+    flex-basis: 100%;
+    color: var(--ae-text-muted, #64748b);
+    font-size: 12px;
+    font-weight: 700;
 }
 
 .activity-row-actions button,

@@ -846,7 +846,7 @@
     position: absolute;
     z-index: 4;
     top: 0;
-    right: 128px;
+    right: 172px;
     bottom: 0;
     left: 10px;
     display: flex;
@@ -868,21 +868,22 @@
     transform: translateY(-50%);
     justify-content: flex-end;
   }
+  // Thumb-sized controls (prev/next 44px, play 48px, 8px apart); the title truncates instead.
   .rhap_main-controls {
-    gap: 1px;
+    gap: 8px;
   }
   .rhap_main-controls > button {
-    width: 34px;
-    min-width: 34px;
-    height: 34px;
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
     color: var(--ae-text, #14213d) !important;
-    font-size: 33px;
+    font-size: 36px;
   }
   .rhap_main-controls .rhap_play-pause-button {
-    width: 40px;
-    min-width: 40px;
-    height: 40px;
-    font-size: 40px;
+    width: 48px;
+    min-width: 48px;
+    height: 48px;
+    font-size: 46px;
   }
   .rhap_volume-controls {
     display: none !important;
@@ -902,7 +903,8 @@
 
 .mobile-player-overlay {
   position: fixed;
-  z-index: 1028;
+  // 全螢幕播放器要蓋過學生底部導覽列（1032），但仍低於手機 Sidebar（Bootstrap Offcanvas 1040／1045）。
+  z-index: 1035;
   top: calc(62px + env(safe-area-inset-top));
   right: 0;
   bottom: 0;

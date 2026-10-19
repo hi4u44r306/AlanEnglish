@@ -37,7 +37,8 @@
 
 // ---- full-screen player
 .mobile-player-overlay { background: var(--ae-surface-muted, #f7f9fc) !important; box-shadow: none !important; color: var(--ae-text, #17365d) !important; }
-body:has(.ae-student-bottom-nav) .mobile-player-overlay { padding-bottom: calc(96px + var(--student-bottom-nav-offset, 20px)) !important; }
+// 全螢幕播放器已蓋過底部導覽列，不必再為導覽列預留空間。
+body:has(.ae-student-bottom-nav) .mobile-player-overlay { padding-bottom: calc(24px + env(safe-area-inset-bottom)) !important; }
 .mobile-overlay-content { justify-content: center; gap: 0; padding-bottom: 0 !important; }
 .mobile-overlay-close { background: var(--ae-surface-muted, #e6edf5) !important; color: var(--ae-text, #17365d) !important; width: 44px !important; height: 44px !important; }
 .mobile-overlay-art { display: grid !important; width: auto !important; height: auto !important; gap: 4px; place-items: center; border-radius: 0 !important; background: none !important; box-shadow: none !important; color: var(--ae-text, #17365d) !important; text-align: center; }

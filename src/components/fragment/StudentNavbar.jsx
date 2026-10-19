@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import Container from "react-bootstrap/Container";
+import Modal from "react-bootstrap/Modal";
 import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
 import NavDropdown from "react-bootstrap/NavDropdown";
@@ -70,6 +71,8 @@ const StudentNavbar = ({
     const location = useLocation();
     const [drawer, setDrawer] = useState("");
     const [drawerOpen, setDrawerOpen] = useState(false);
+    // 冒險沒有權限時仍可點：只跳出說明，不會開啟冒險。
+    const [lockedAdventureOpen, setLockedAdventureOpen] = useState(false);
     const hasActiveLearningAccess = profile?.membership?.is_active === true;
     const features = profile?.membership?.effective_access?.features || {};
     // Homework belongs to enrolled class students only; everyone else never sees the entry.
@@ -186,7 +189,7 @@ const StudentNavbar = ({
             <Link data-tour="materials" to="/student/books" aria-current={materialsActive ? "page" : undefined} className={materialsActive ? "active" : ""}><NavigationIcon tone="books"><FiBookOpen /></NavigationIcon><span>教材</span></Link>
             {hasSpeakingChallengeAccess
                 ? <Link data-tour="adventure" to="/student/speaking-challenges" aria-current={speakingActive ? "page" : undefined} className={speakingActive ? "active" : ""}><NavigationIcon tone="adventure"><PiJoystick /></NavigationIcon><span>冒險</span>{bossEvent && <span className="ae-boss-nav-badge" aria-label="Boss 挑戰出現了"><PiFireFill /></span>}</Link>
-                : <button type="button" data-tour="adventure" disabled aria-label="冒險，需要有效發音練習權限"><NavigationIcon tone="adventure"><FiLock /></NavigationIcon><span>冒險</span></button>}
+                : <button type="button" data-tour="adventure" className="is-locked" aria-disabled="true" aria-haspopup="dialog" aria-label="冒險，需要口說方案" onClick={() => setLockedAdventureOpen(true)}><NavigationIcon tone="adventure"><FiLock /></NavigationIcon><span>冒險</span></button>}
         </nav>
     );
 
@@ -201,16 +204,13 @@ const StudentNavbar = ({
                         <Nav.Link as={Link} data-tour="materials" to="/student/books" aria-current={materialsActive ? "page" : undefined} className={materialsActive ? "active" : ""}><span><NavigationIcon tone="books"><FiBookOpen /></NavigationIcon>教材</span></Nav.Link>
                         {hasSpeakingChallengeAccess
                             ? <Nav.Link as={Link} data-tour="adventure" to="/student/speaking-challenges" aria-current={speakingActive ? "page" : undefined} className={speakingActive ? "active" : ""}><span><NavigationIcon tone="adventure"><PiJoystick /></NavigationIcon>冒險{bossEvent && <PiFireFill className="ae-boss-nav-flame" aria-label="Boss 挑戰出現了" />}</span></Nav.Link>
-                            : <button type="button" className="nav-link" disabled aria-label="冒險，需要有效發音練習權限"><span><NavigationIcon tone="adventure"><FiLock /></NavigationIcon>冒險</span></button>}
+                            : <button type="button" className="nav-link is-locked" aria-disabled="true" aria-haspopup="dialog" aria-label="冒險，需要口說方案" onClick={() => setLockedAdventureOpen(true)}><span><NavigationIcon tone="adventure"><FiLock /></NavigationIcon>冒險</span></button>}
                     </Nav>
                     <div className="ae-student-desktop-account">
                         {notificationMenu}
-                        {/* On desktop the name opens the same settings menu the hamburger opens on phones. */}
+                        {/* On desktop the name opens the same settings menu the hamburger opens on phones; 登出 is its last item. */}
                         <button type="button" data-tour="settings" className="ae-student-account-link" onClick={() => openDrawer("menu")} aria-label="開啟設定" aria-expanded={drawerOpen && drawer === "menu"} aria-controls="student-navigation-drawer">
                             <span className="ae-student-account-chip"><span>{profileAvatar}</span><strong>{profileName}</strong></span>
-                        </button>
-                        <button type="button" className="ae-student-desktop-logout" onClick={onLogout} disabled={loggingOut} aria-label={loggingOut ? "登出中..." : "登出"} title="登出">
-                            <FiLogOut aria-hidden="true" />
                         </button>
                     </div>
                     <div className="ae-student-mobile-account">
@@ -230,11 +230,24 @@ const StudentNavbar = ({
                     {drawer === "menu" && (
                         <>
                             {settingsLinks}
+                            <hr className="ae-student-drawer-divider" aria-hidden="true" />
                             <button type="button" className="ae-student-drawer-logout" onClick={onLogout} disabled={loggingOut}><FiLogOut />{loggingOut ? "登出中..." : "登出"}</button>
                         </>
                     )}
                 </Offcanvas.Body>
             </Offcanvas>
+
+            <Modal show={lockedAdventureOpen} onHide={() => setLockedAdventureOpen(false)} centered size="sm" className="ae-adventure-locked-dialog" aria-labelledby="ae-adventure-locked-title">
+                <Modal.Body>
+                    <span className="ae-adventure-locked-icon" aria-hidden="true"><FiLock /></span>
+                    <h2 id="ae-adventure-locked-title">冒險還沒開放</h2>
+                    <p>冒險需要「口說方案」。請問老師或家長。</p>
+                    <div className="ae-adventure-locked-actions">
+                        <Link className="ae-adventure-locked-secondary" to="/student/membership" onClick={() => setLockedAdventureOpen(false)}>看會員與功能</Link>
+                        <button type="button" className="ae-adventure-locked-primary" onClick={() => setLockedAdventureOpen(false)}>知道了</button>
+                    </div>
+                </Modal.Body>
+            </Modal>
         </>
     );
 };

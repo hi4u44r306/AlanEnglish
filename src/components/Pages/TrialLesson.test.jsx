@@ -82,3 +82,17 @@ test("matching looks for the whole expected word only", () => {
     expect(heardExpectedWord("It's bread.", "red")).toBe(false);
     expect(heardExpectedWord("", "red")).toBe(false);
 });
+
+test("the last question leads to the next step instead of wrapping to question 1", () => {
+    renderPage();
+    for (let step = 1; step < COLOUR_QUESTIONS.length; step += 1) {
+        fireEvent.click(screen.getByRole("button", { name: "看答案" }));
+        fireEvent.click(screen.getByRole("button", { name: /下一題/ }));
+    }
+    expect(screen.getByText(`${COLOUR_QUESTIONS.length} / ${COLOUR_QUESTIONS.length}`)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "看答案" }));
+    expect(screen.queryByRole("button", { name: /下一題/ })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /看下一步/ }));
+    expect(document.activeElement).toHaveAttribute("id", "trial-next-step");
+    expect(screen.getByText(`${COLOUR_QUESTIONS.length} / ${COLOUR_QUESTIONS.length}`)).toBeInTheDocument();
+});

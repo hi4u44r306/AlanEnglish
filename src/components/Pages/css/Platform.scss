@@ -279,6 +279,7 @@ textarea { resize: vertical; }
 .platform-verification-notice { margin-top: 18px; padding: 13px 15px; border-radius: 12px; font-weight: 700; }
 .platform-verification-notice.success { color: var(--ae-success, #05603a); border: 1px solid var(--ae-border, #a6f4c5); background: var(--ae-surface-muted, #ecfdf3); }
 .platform-verification-notice.error { color: var(--ae-danger, #912018); border: 1px solid var(--ae-border, #fda29b); background: var(--ae-surface-muted, #fff1f0); }
+.membership-code-label { display: block; margin: 0 0 8px; color: var(--ae-text, #17365d); font-size: 15px; font-weight: 700; }
 .platform-inline-form { display: flex; gap: 12px; }
 .platform-inline-form input { flex: 1; text-transform: uppercase; letter-spacing: .08em; }
 .platform-check { display: flex !important; grid-template-columns: auto 1fr; align-items: center; gap: 9px !important; }
@@ -667,3 +668,10 @@ textarea { resize: vertical; }
 .platform-support-tabs { display: flex; gap: 8px; margin: 0 0 14px; }
 .platform-support-tabs button[aria-pressed="true"] { background: var(--ae-solid, #17365d); color: #fff; border-color: var(--ae-solid, #17365d); }
 .platform-support-urgent { color: var(--ae-danger, #b42318); }
+
+// 教材管理：「永久刪除」放最後並和其他按鈕拉開；改 Code 對話框。
+.platform-link-button.platform-danger-last { margin-left: 16px; }
+.platform-code-dialog { width: min(480px, 100%); }
+.platform-code-dialog .platform-code-warning { margin: 0; padding: 10px 12px; border-radius: 12px; background: var(--ae-warning-bg, #fff8df); color: var(--ae-warning, #7a5410); font-weight: 800; }
+.platform-code-dialog small { color: var(--ae-text-muted, #64728a); }
+.platform-code-dialog .platform-modal-actions button { min-height: 44px; }

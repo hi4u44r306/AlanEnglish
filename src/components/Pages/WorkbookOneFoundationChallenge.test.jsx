@@ -256,7 +256,7 @@ describe("WorkbookOneFoundationChallenge", () => {
         expect(screen.getByRole("button", { name: "開始挑戰" })).toBeEnabled();
     });
 
-    it("進入挑戰後回到列表前會警告本輪不存檔，取消留在原題、確定才退出", async () => {
+    it("進入挑戰後離開這關前會警告本輪不存檔，取消留在原題、確定才退出", async () => {
         const onExit = jest.fn();
         render(<WorkbookOneFoundationChallenge
             challenge={alphabetChallenge}
@@ -273,14 +273,14 @@ describe("WorkbookOneFoundationChallenge", () => {
             await Promise.resolve();
         });
 
-        fireEvent.click(screen.getByRole("button", { name: "回到列表" }));
+        fireEvent.click(screen.getByRole("button", { name: "離開這關" }));
         expect(screen.getByRole("alertdialog")).toHaveTextContent("挑戰紀錄不會存檔");
         expect(screen.getByRole("button", { name: "模擬自動答對" })).toBeDisabled();
         fireEvent.click(screen.getByRole("button", { name: "取消" }));
         expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
         expect(onExit).not.toHaveBeenCalled();
 
-        fireEvent.click(screen.getByRole("button", { name: "回到列表" }));
+        fireEvent.click(screen.getByRole("button", { name: "離開這關" }));
         fireEvent.click(screen.getByRole("button", { name: "確定" }));
         expect(onExit).toHaveBeenCalledTimes(1);
     });

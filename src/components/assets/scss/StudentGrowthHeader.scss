@@ -22,7 +22,6 @@
   background: var(--ae-surface-glass, rgba(255, 255, 255, .98)) !important;
   .ae-navbar-container { flex-wrap: nowrap; gap: 18px; }
   .ae-student-account-chip strong { max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .ae-student-desktop-logout { width: 44px; justify-content: center; padding: 8px; }
 }
 // The fixed shell must reserve the navbar, both borders and the device safe area.
 .app-shell:has(.ae-student-navbar) { padding-top: calc(69px + env(safe-area-inset-top, 0px)); }

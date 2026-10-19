@@ -159,6 +159,12 @@
     font-weight: 800;
 }
 
+.student-onboarding-push-skipped a {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
 .student-onboarding-card button,
 .student-onboarding-logout {
     min-height: 48px;

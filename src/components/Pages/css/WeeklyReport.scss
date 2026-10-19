@@ -200,6 +200,11 @@
     color: var(--ae-accent, #2f70d0);
     border-color: #a9c5eb;
   }
+
+  // 返回連結：字至少 14px，按起來至少 44px。
+  > a {
+    font-size: 14px;
+  }
 }
 
 .weekly-report-toolbar__actions {
@@ -1127,14 +1132,14 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      min-height: 36px;
-      padding: 0 11px;
+      min-height: 44px;
+      padding: 0 14px;
       color: #fff;
       background: var(--weekly-blue);
       border: 0;
       border-radius: 9px;
       font: inherit;
-      font-size: .7rem;
+      font-size: 14px;
       font-weight: 850;
       text-decoration: none;
       cursor: pointer;

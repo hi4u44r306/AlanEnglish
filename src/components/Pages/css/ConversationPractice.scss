@@ -456,12 +456,13 @@
 
 .listen-question-button {
     flex: 0 0 auto;
-    padding: 10px 13px;
+    min-height: 44px;
+    padding: 10px 14px;
     border: 1px solid var(--ae-border, #e1e6ef);
     border-radius: 13px;
     background: var(--ae-surface, #fff);
     color: var(--ae-accent, #34415c);
-    font-size: 11px;
+    font-size: 14px;
     font-weight: 800;
 }
 
@@ -487,7 +488,7 @@
 .sample-answer-list {
     display: flex;
     flex-wrap: wrap;
-    gap: 7px;
+    gap: 8px;
     margin-top: 10px;
 }
 
@@ -497,17 +498,20 @@
     border-radius: 999px;
     background: var(--ae-surface-muted, #fffdf6);
     color: var(--ae-warning, #715c25);
-    font-size: 10px;
+    min-height: 44px;
+    font-size: 14px;
     font-weight: 700;
+    line-height: 1.3;
 }
 
 .sample-answer-list button {
-    padding: 7px 10px;
+    padding: 8px 14px;
+    text-align: left;
 }
 
 .show-hint-button {
     margin-bottom: 12px;
-    padding: 8px 11px;
+    padding: 8px 16px;
 }
 
 .speaking-control {
@@ -654,11 +658,13 @@
 .text-answer-box button {
     flex: 0 0 auto;
     min-width: 82px;
+    min-height: 46px;
+    padding: 0 18px;
     border: 0;
     border-radius: 13px;
     background: var(--ae-solid, #14213d);
     color: #fff;
-    font-size: 11px;
+    font-size: 15px;
     font-weight: 800;
 }
 
@@ -896,5 +902,35 @@
 
     .text-answer-box button {
         min-height: 44px;
+    }
+}
+// 任務清單外框：桌機隱藏標題列、一律展開；手機收合在「任務清單」裡。
+.mission-list-toggle > summary {
+    display: none;
+}
+
+@media (max-width: 767px) {
+    // 作答區（聊天卡片）排在任務卡片前面；進度已顯示在上方的手機進度條，不重複。
+    .conversation-chat-card {
+        order: 1;
+    }
+
+    .conversation-mission-card {
+        order: 2;
+    }
+
+    .conversation-mission-card .mission-progress {
+        display: none;
+    }
+
+    .mission-list-toggle > summary {
+        display: flex;
+        min-height: 44px;
+        align-items: center;
+        padding: 0 18px;
+        color: var(--ae-text, #14213d);
+        font-size: 14px;
+        font-weight: 800;
+        cursor: pointer;
     }
 }

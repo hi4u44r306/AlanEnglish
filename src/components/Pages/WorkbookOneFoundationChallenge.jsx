@@ -376,7 +376,7 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
         const progress = Math.round((activeIndex / Math.max(round.length, 1)) * 100);
         return <header className={`speaking-lesson-header${alphabetMode ? " speaking-lesson-header--alphabet" : ""}`}>
             <button className="speaking-back" type="button" onClick={challengeActive ? requestExit : onExit} disabled={challengeActive && alphabetMode && automaticRecorderStatus === "submitting"}>
-                <FiChevronLeft />{challengeActive && alphabetMode && automaticRecorderStatus === "submitting" ? "評分中…" : challengeActive ? "回到列表" : "全部大挑戰"}
+                <FiChevronLeft />{challengeActive && alphabetMode && automaticRecorderStatus === "submitting" ? "評分中…" : challengeActive ? "離開這關" : "回到地圖"}
             </button>
             <div className="speaking-lesson-heading"><span>{copy.eyebrow}</span><h1>{challenge.title}</h1><p>{headerInstruction}</p></div>
             {showRoundProgress && <div className="speaking-lesson-progress"><div><span>第 {activeIndex + 1} / {round.length} 題</span><strong>{progress}%</strong></div><div className="speaking-progress-track" role="progressbar" aria-label="本輪進度" aria-valuemin="0" aria-valuemax="100" aria-valuenow={progress}><span style={{ width: `${progress}%` }} /></div></div>}
@@ -413,14 +413,14 @@ export default function WorkbookOneFoundationChallenge({ challenge, firebaseUser
 
     if (phase === "result") return <main className="speaking-challenge-page speaking-challenge-detail speaking-foundation-page">
         {renderLessonHeader()}
-        <section className="speaking-foundation-result"><span aria-hidden="true">★</span><h1 ref={phaseFocusRef} tabIndex="-1">太棒了，全部完成！</h1><p>你把這一關的每一道題目都說完了。</p>{statusAlert}<div className="speaking-foundation-actions">{alphabetMode && <button type="button" onClick={() => { setIntroIndex(0); setIntroComplete(false); setPhase("intro"); }}><FiHeadphones />再聽 A–Z</button>}<button type="button" className="primary" onClick={startRound} disabled={startingRound}><FiRefreshCw />{startingRound ? "正在準備…" : "再玩一次"}</button><button type="button" className="secondary" onClick={onExit}>回全部大挑戰</button></div></section>
+        <section className="speaking-foundation-result"><span aria-hidden="true">★</span><h1 ref={phaseFocusRef} tabIndex="-1">太棒了，全部完成！</h1><p>你把這一關的每一道題目都說完了。</p>{statusAlert}<div className="speaking-foundation-actions">{alphabetMode && <button type="button" onClick={() => { setIntroIndex(0); setIntroComplete(false); setPhase("intro"); }}><FiHeadphones />再聽 A–Z</button>}<button type="button" className="primary" onClick={startRound} disabled={startingRound}><FiRefreshCw />{startingRound ? "正在準備…" : "再玩一次"}</button><button type="button" className="secondary" onClick={onExit}>回到地圖</button></div></section>
     </main>;
 
     if (!activeQuestion) return null;
     const exitDialog = exitDialogOpen && <div className="speaking-exit-dialog-backdrop" role="presentation">
         <section className="speaking-exit-dialog" role="alertdialog" aria-modal="true" aria-labelledby="speaking-exit-title" aria-describedby="speaking-exit-description">
-            <h2 id="speaking-exit-title">確定要回到列表嗎？</h2>
-            <p id="speaking-exit-description">如果要回到列表，你的挑戰紀錄不會存檔，你確定要回到列表嗎？</p>
+            <h2 id="speaking-exit-title">確定要離開這關嗎？</h2>
+            <p id="speaking-exit-description">現在離開的話，這一輪的挑戰紀錄不會存檔。</p>
             <div><button type="button" className="secondary" autoFocus onClick={() => setExitDialogOpen(false)}>取消</button><button type="button" className="primary" onClick={confirmExit}>確定</button></div>
         </section>
     </div>;

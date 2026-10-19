@@ -46,3 +46,12 @@
 @media (max-width: 700px) {
     .commerce-hero aside { padding: 14px 0 0; border-left: 0; border-top: 1px solid rgba(255,255,255,.25); }
 }
+
+// 離校相關按鈕用警告色外框，和「恢復在校」的主要藍色分開。
+.commerce-admin-actions button.warning { border:2px solid var(--ae-warning, #b7791f); color:var(--ae-warning, #8a5a12); background:var(--ae-warning-bg, #fff8df); }
+.commerce-admin-actions button.warning:hover:not(:disabled) { background:var(--ae-warning-bg, #fff0c2); }
+// 「查看方案與影響」展開在該學生下方。
+.commerce-lifecycle-detail-row > td { padding:0 11px 18px; white-space:normal; background:var(--ae-surface-muted, #f7f9fc); }
+.commerce-lifecycle-detail { padding:16px 4px 0; }
+.commerce-lifecycle-detail > header { display:flex; align-items:center; gap:8px; }
+.commerce-lifecycle-detail > header h2 { margin:0; font-size:18px; }

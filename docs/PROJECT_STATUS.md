@@ -1,5 +1,14 @@
 # Alan English 專案狀態
 
+### 全站按鈕 UX 整理（2026-10-19，分支 `fix/ux-audit`，只改前端，隨 PR 上線）
+
+- 依程式碼審查的 49 項分 4 批修（commit c246184c、d1376ec4、8e0ccf88、13fc9d9f）：誤按／弄丟資料加確認、觸控 44px、返回鍵與按鈕位置統一、公開頁入口與後台危險操作分開。手冊 v4.66 列出各角色變化。
+- 未做：#30 網購者開通流程（待擁有者說明現況）；#42 關閉中的後台頁（等級、連結、獎品、商品包、商城訂單、Boss 預覽、排行榜）維持不放入口（9782790c 還原），待擁有者決定。
+- 驗證：全部 Jest 1053 項，4 項未過——3 項在 main 也失敗（StudentNotifications 好友路由、Showcase 2 項），SpeakingChallengeFlow 1 項僅在全部同跑時逾時、單獨重跑 3 次通過；build 成功；本機截圖首頁 375／1280、口說拼字 320×640／375×667 不需捲動。
+- 未驗證：登入後多數頁面（作業、會話、點名、後台）未在瀏覽器實看；播放列 iPhone 安全區需實機。
+- 已知：混合任務若後端仍等聽力／發音步驟，畫面步驟全完成但狀態仍「待完成」（需改後端完成判定）。
+- PR #623（先聽一次）2026-10-19 已部署，正式站 chunk 含 `speaking-step-row`。
+
 ### 口說「先聽一次」移到步驟列（2026-10-19，分支 `feat/speaking-listen-once-button`，只改前端，隨 PR 上線）
 
 - `SpeakingPracticeSteps` 新增 `.speaking-step-row`（步驟 + `SpeakingHeaderTools` 插槽）；兩個關卡頁標題列移除插槽；`SpeakingLessonPreparation` 文字改「先聽一次」（aria「先聽一次本關教材」），忙碌時改灰色「評分後再聽」。

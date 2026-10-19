@@ -1,9 +1,9 @@
 import React from "react";
 import "@testing-library/jest-dom";
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
-import { getTeacherStudentActivity } from "../../services/learningActivityService";
+import { createGuardianNotificationDraft, getTeacherStudentActivity } from "../../services/learningActivityService";
 import ManagementDashboard from "./ManagementDashboard";
 
 jest.mock("../../auth/AuthContext", () => ({
@@ -65,5 +65,17 @@ describe("ManagementDashboard", () => {
         expect(row.querySelector('[data-label="狀態"]')).toBeInTheDocument();
         expect(row.querySelector('[data-label="家長"]')).toBeInTheDocument();
         expect(row.querySelector('[data-label="操作"]')).toBeInTheDocument();
+    });
+
+    test("家長提醒要先開啟 Email，才能按我已寄出", async () => {
+        const { students } = await getTeacherStudentActivity();
+        getTeacherStudentActivity.mockResolvedValue({ students: [{ ...students[0], guardian: { email: "parent@example.invalid", is_primary: true, notification_enabled: true } }] });
+        createGuardianNotificationDraft.mockResolvedValue({ draft: { id: 9, email: "parent@example.invalid", subject: "提醒", message: "內容" } });
+        render(<MemoryRouter><ManagementDashboard /></MemoryRouter>);
+
+        fireEvent.click(await screen.findByRole("button", { name: "提醒家長" }));
+        const openMail = await screen.findByRole("button", { name: "開啟 Email" });
+        expect(openMail).toHaveClass("primary");
+        expect(screen.getByRole("button", { name: "我已寄出" })).toBeDisabled();
     });
 });

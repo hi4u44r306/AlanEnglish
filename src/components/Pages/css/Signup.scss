@@ -595,3 +595,31 @@
     }
   }
 }
+
+// 按「列印登入卡」時只印出帳號與 QR Code，不印按鈕和其他頁面內容。
+@media print {
+  body.academy-printing-card * {
+    visibility: hidden;
+  }
+
+  body.academy-printing-card .academy-account-success,
+  body.academy-printing-card .academy-account-success * {
+    visibility: visible;
+  }
+
+  body.academy-printing-card .academy-account-success {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    box-shadow: none;
+  }
+
+  body.academy-printing-card .academy-account-success-icon,
+  body.academy-printing-card .academy-account-success-heading p,
+  body.academy-printing-card .academy-account-copy-message,
+  body.academy-printing-card .academy-account-success-actions,
+  body.academy-printing-card .academy-account-security-note {
+    display: none;
+  }
+}

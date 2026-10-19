@@ -362,8 +362,11 @@
   .speaking-adventure-route .speaking-challenge-lesson__number { width: 68px; height: 68px; min-width: 68px; font-size: 13px; }
   .speaking-immersive-play { padding: 8px 10px calc(32px + env(safe-area-inset-bottom)); }
   .speaking-immersive-play .speaking-lesson-header { top: max(6px, env(safe-area-inset-top, 0px)); grid-template-columns: 46px minmax(0, 1fr) 86px; min-height: 68px; padding: 6px 8px; border-width: 3px; border-radius: 16px; }
-  .speaking-immersive-play .speaking-lesson-header .speaking-back { width: 44px; height: 44px; min-height: 44px; }
-  .speaking-immersive-play .speaking-lesson-header .speaking-back svg { width: 26px; height: 26px; }
+  .speaking-immersive-play .speaking-lesson-header { grid-template-columns: auto minmax(0, 1fr) 86px; }
+  // 手機上箭頭旁邊多一個小小的「離開」，孩子才知道這顆是離開；完整名稱仍給螢幕閱讀器。
+  .speaking-immersive-play .speaking-lesson-header .speaking-back { gap: 2px; width: auto; min-width: 44px; height: 44px; min-height: 44px; padding: 0 10px 0 4px; border-radius: 22px; }
+  .speaking-immersive-play .speaking-lesson-header .speaking-back svg { width: 22px; height: 22px; }
+  .speaking-immersive-play .speaking-lesson-header .speaking-back::after { content: "離開"; font-size: 12px; font-weight: 800; line-height: 1; white-space: nowrap; }
   .speaking-immersive-play .speaking-lesson-heading h1 { font-size: 14px; }
   .speaking-immersive-play .speaking-lesson-progress { grid-column: auto; width: 86px; }
   .speaking-immersive-play .speaking-lesson-progress > div:first-child { gap: 2px; font-size: 10px; }
@@ -1420,6 +1423,25 @@ body.speaking-game-world-active .speaking-challenge-page.is-book-open { width: 1
   background: var(--ae-surface-muted, #f8fbfe);
   color: var(--ae-accent, #245eaf);
   box-shadow: none;
+}
+
+/* 完成本題後的「繼續挑戰」要是明顯的主要按鈕；未完成時的「跳過這題」只是文字按鈕。 */
+.speaking-immersive-play .speaking-continue-button.is-ready {
+  border: 2px solid #f6ba27;
+  background: var(--ae-warning-bg, #ffcc41);
+  color: var(--ae-text, #17365d);
+  font-weight: 900;
+}
+
+.speaking-immersive-play .speaking-continue-button.is-skip {
+  width: auto;
+  min-height: 44px;
+  border: 0;
+  background: none;
+  color: var(--ae-text-muted, #526780);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 @media (max-width: 760px) {

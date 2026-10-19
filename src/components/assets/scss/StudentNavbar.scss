@@ -303,34 +303,6 @@
   color: var(--ae-accent, #2355c7) !important;
 }
 
-.ae-student-desktop-logout {
-  min-height: 44px;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 11px;
-  border: 1px solid var(--ae-border, #f0d8d8);
-  border-radius: 14px;
-  color: var(--ae-danger, #aa3030);
-  background: var(--ae-surface-muted, #fff8f8);
-  font: inherit;
-  font-size: 13px;
-  font-weight: 900;
-}
-
-.ae-student-desktop-logout:hover:not(:disabled) {
-  border-color: #e7aaaa;
-  background: var(--ae-surface-muted, #fff0f0);
-}
-
-.ae-student-desktop-logout:focus-visible {
-  outline: 3px solid #f4bd37;
-  outline-offset: 2px;
-}
-
-.ae-student-desktop-logout:disabled { opacity: 0.65; cursor: wait; }
-.ae-student-desktop-logout svg { width: 17px; height: 17px; stroke-width: 2.6; }
-
 .ae-student-account-chip {
   display: inline-flex;
   align-items: center;
@@ -842,6 +814,7 @@ html { background: var(--ae-surface-muted, #f7f9fc); }
   &.is-orange { background: var(--ae-warning-bg, #ffe1cc); color: var(--ae-warning, #b54708); }
   &.is-purple { background: var(--ae-purple-bg, #ece3f8); color: var(--ae-accent, #6a3aa8); }
 }
+.ae-student-drawer-divider { width: 100%; margin: 8px 0 4px; border: 0; border-top: 1px solid var(--ae-border, #e2e8f0); opacity: 1; }
 .ae-student-drawer.is-menu .ae-student-drawer-logout { min-height: 56px; border: 1px solid var(--ae-border, #f0c9c4); border-radius: 18px; background: var(--ae-surface, #fff); color: var(--ae-danger, #b3261e); font-size: 17px; font-weight: 700; }
 
 // 個人資料 shows its title; 我的進度 keeps it for assistive technology only.
@@ -871,3 +844,28 @@ html:has(.ae-student-navbar) { overscroll-behavior-y: none; }
   .ae-student-navbar .ae-growth-header { order: -1; }
   .ae-student-navbar .ae-notification-dropdown { margin-right: -12px; }
 }
+
+// When the bottom navigation is showing it already sits on the iPhone Home Indicator area and
+// the player is lifted above it, so the player must not add a second safe-area padding. The
+// content padding above (176px + nav offset) then clears nav + player + safe area exactly.
+@media only screen and (max-width: 900px) {
+  body:has(.ae-student-bottom-nav) .app-player .footer-player,
+  body:has(.ae-student-bottom-nav) .app-player .rhap_container { min-height: 84px; }
+  body:has(.ae-student-bottom-nav) .app-player .rhap_container { padding-bottom: 0; }
+}
+
+// 冒險沒有權限：按鈕看起來是鎖住的，但可以點開說明。
+.ae-student-bottom-nav > button.is-locked,
+.ae-student-desktop-nav > button.is-locked { opacity: .62; cursor: pointer; }
+.ae-student-bottom-nav > button.is-locked:focus-visible,
+.ae-student-desktop-nav > button.is-locked:focus-visible { outline: 3px solid var(--ae-accent, #2454c3); outline-offset: 2px; opacity: 1; }
+.ae-adventure-locked-dialog .modal-content { border: 0; border-radius: 20px; box-shadow: 0 18px 44px rgba(22, 47, 82, .2); }
+.ae-adventure-locked-dialog .modal-body { display: grid; justify-items: center; gap: 10px; padding: 24px 20px 20px; text-align: center; }
+.ae-adventure-locked-icon { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 50%; background: var(--ae-surface-muted, #eaf2ff); color: var(--ae-accent, #2454c3); font-size: 22px; }
+.ae-adventure-locked-dialog h2 { margin: 0; color: var(--ae-text, #17365d); font-size: 20px; font-weight: 800; }
+.ae-adventure-locked-dialog p { margin: 0; color: var(--ae-text-muted, #526780); font-size: 15px; line-height: 1.6; }
+.ae-adventure-locked-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; margin-top: 6px; }
+.ae-adventure-locked-actions > a,
+.ae-adventure-locked-actions > button { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 0 12px; border-radius: 12px; font-size: 15px; font-weight: 800; text-decoration: none; }
+.ae-adventure-locked-secondary { border: 1px solid var(--ae-border, #d8e2ee); background: var(--ae-surface, #fff); color: var(--ae-text, #17365d); }
+.ae-adventure-locked-primary { border: 0; background: var(--ae-accent, #2454c3); color: #fff; }

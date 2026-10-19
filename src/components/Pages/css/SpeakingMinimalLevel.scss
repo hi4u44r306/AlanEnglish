@@ -166,6 +166,9 @@ body.speaking-challenge-active .speaking-question-navigation > button.primary,
 body.speaking-challenge-active .speaking-foundation-intro .primary,
 body.speaking-challenge-active .speaking-focus-card button.primary { border: 0 !important; border-radius: 16px !important; background: var(--ae-warning-bg, #ffd84d) !important; background-image: none !important; box-shadow: none !important; color: var(--ae-text, #17365d) !important; font-weight: 800 !important; text-shadow: none !important; }
 body.speaking-challenge-active .speaking-question-navigation > button:disabled { opacity: .45; }
+// 題目做完才出現主要的黃色「繼續挑戰」；還沒做完只有低調的「跳過這題」文字按鈕。
+body.speaking-challenge-active .speaking-continue-button.is-ready { border: 0 !important; border-radius: 18px !important; background: var(--ae-warning-bg, #ffd84d) !important; background-image: none !important; box-shadow: none !important; color: var(--ae-text, #17365d) !important; font-size: 18px; font-weight: 800 !important; }
+body.speaking-challenge-active .speaking-continue-button.is-skip { width: auto !important; min-height: 44px !important; padding: 8px 16px; border: 0 !important; background: none !important; box-shadow: none !important; color: var(--ae-text-muted, #526780) !important; font-weight: 700 !important; text-decoration: underline; text-underline-offset: 3px; }
 
 // The opening card of a level, and the page behind it, in the same flat style.
 body.speaking-challenge-active .speaking-challenge-page { background: var(--ae-surface-muted, #f7f9fc) !important; background-image: none !important; }
@@ -186,7 +189,7 @@ body.speaking-challenge-active .speaking-challenge-page { background: transparen
 
 // Top bar floats without a box; progress is a fat, friendly bar.
 body.speaking-challenge-active .speaking-lesson-header { border: 0 !important; background: transparent !important; padding-inline: 4px !important; }
-// The round back button shows only its arrow at every width; its label stays for screen readers.
+// The round back button shows only its arrow on wide screens (phones add a small "離開"); its label stays for screen readers.
 body.speaking-challenge-active .speaking-lesson-header .speaking-back { flex: 0 0 48px; justify-content: center; width: 48px; min-width: 48px; height: 48px; min-height: 48px; padding: 0 !important; border-radius: 50% !important; background: var(--ae-surface, #fff) !important; border: 1px solid var(--ae-border, #d5e3f0) !important; font-size: 0 !important; }
 body.speaking-challenge-active .speaking-lesson-header .speaking-back svg { width: 26px; height: 26px; flex: none; }
 body.speaking-challenge-active .speaking-lesson-page { padding: 6px 16px; border-radius: 16px; background: var(--ae-solid, #17365d); color: #fff !important; font-size: 18px !important; letter-spacing: .02em; }
@@ -366,10 +369,15 @@ body.speaking-challenge-active .speaking-game-question-card:has(.speaking-gap-se
 body.speaking-challenge-active .speaking-gap-sentence .punctuation { white-space: nowrap; }
 .speaking-spell-slots.is-many { gap: 4px; }
 .speaking-spell-slots.is-many .speaking-spell-slot { width: 30px; height: 40px; font-size: 22px; border-bottom-width: 3px; }
-.speaking-spell-tiles.is-many { gap: 6px; }
+.speaking-spell-tiles.is-many { gap: 8px; }
 .speaking-spell-tiles.is-many .speaking-spell-tile { width: 44px; height: 44px; border-radius: 12px; font-size: 22px; }
 @media (max-width: 767px) {
   body.speaking-challenge-active .speaking-immersive-play .speaking-lesson-header { margin-bottom: 8px !important; }
+  // 手機上箭頭旁邊顯示小小的「離開」，按鈕仍至少 44px，320px 寬也維持同一列。
+  body.speaking-challenge-active .speaking-lesson-header .speaking-back { flex: 0 0 auto; gap: 2px; width: auto; min-width: 44px; height: 44px; min-height: 44px; padding: 0 10px 0 4px !important; border-radius: 22px !important; }
+  body.speaking-challenge-active .speaking-lesson-header .speaking-back svg { width: 22px; height: 22px; }
+  body.speaking-challenge-active .speaking-lesson-header .speaking-back::after { content: "離開"; font-size: 12px; font-weight: 800; line-height: 1; white-space: nowrap; }
+  body.speaking-challenge-active .speaking-immersive-play .speaking-lesson-header { gap: 8px; }
   body.speaking-challenge-active .speaking-guided-stepper { margin-bottom: 6px; }
   body.speaking-challenge-active .speaking-guided-step { gap: 10px; }
   body.speaking-challenge-active .speaking-guided-step__title { font-size: 18px; }
@@ -387,15 +395,15 @@ body.speaking-challenge-active .speaking-gap-sentence .punctuation { white-space
 .speaking-spell-word > .speaking-spell-slot { margin-inline: 3px; }
 .speaking-spell-slots.is-many .speaking-spell-word > .speaking-spell-slot { margin-inline: 2px; }
 .speaking-spell-given, .speaking-spell-mark { align-self: center; color: var(--ae-text, #17365d); font-size: 26px; font-weight: 800; line-height: 1; }
-// Short phones, second pass: seven tiles per row (backspace included) and less air between the parts.
+// Short phones, second pass: tiles stay 44px (rows wrap when needed) and less air between the parts.
 @media (max-height: 740px) {
   body.speaking-challenge-active .speaking-practice-flow { padding-top: 2px !important; }
   body.speaking-challenge-active .speaking-focus-card { gap: 6px !important; }
   body.speaking-challenge-active .speaking-game-question-card:has(.speaking-gap-sentence.is-long) .speaking-visual-aid { width: 76px !important; }
   body.speaking-challenge-active .speaking-game-question-card:has(.speaking-gap-sentence.is-very-long) .speaking-visual-aid { width: 64px !important; }
   body.speaking-challenge-active .speaking-practice-flow { padding-inline: 4px !important; }
-  .speaking-spell-tiles, .speaking-spell-tiles.is-many { gap: 5px; }
-  .speaking-spell-tile, .speaking-spell-tiles.is-many .speaking-spell-tile { width: 40px; height: 42px; border-radius: 11px; font-size: 21px; }
+  .speaking-spell-tiles, .speaking-spell-tiles.is-many { gap: 8px; }
+  .speaking-spell-tile, .speaking-spell-tiles.is-many .speaking-spell-tile { width: 44px; height: 44px; border-radius: 11px; font-size: 21px; }
   .speaking-spell-slot { width: 32px; height: 40px; font-size: 22px; }
 }
 @media (max-height: 740px) {
@@ -458,3 +466,12 @@ body.speaking-challenge-active .speaking-step-row .speaking-listening-busy { max
 }
 // While recording or scoring the pill stays in place, greyed, with a short "評分後再聽".
 body.speaking-challenge-active .speaking-step-row .speaking-listening-busy { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; max-width: none; padding: 6px 14px; border: 1px dashed var(--ae-border, #c5d6e8); border-radius: 22px; color: var(--ae-text-muted, #526780); font-size: 15px; white-space: nowrap; }
+
+// The delete key is not a letter: a muted outline with a visible 「刪除」 label, always last in the row.
+.speaking-spell-tiles .speaking-spell-tile.speaking-spell-tile--back,
+.speaking-spell-tiles.is-many .speaking-spell-tile.speaking-spell-tile--back { display: inline-flex; align-items: center; justify-content: center; gap: 4px; order: 99; width: auto; min-width: 44px; height: 52px; padding: 0 12px; border: 1px dashed var(--ae-danger, #c62828); background: transparent; box-shadow: none; color: var(--ae-danger, #c62828); font-size: 15px; font-weight: 800; }
+.speaking-spell-tile--back > svg { width: 20px; height: 20px; flex: none; }
+.speaking-spell-tile--back:disabled { border-color: var(--ae-border, #c5d6e8); color: var(--ae-text-muted, #526780); }
+.speaking-spell-tiles.is-many .speaking-spell-tile.speaking-spell-tile--back { height: 44px; }
+@media (max-width: 380px) { .speaking-spell-tiles .speaking-spell-tile.speaking-spell-tile--back { height: 46px; } }
+@media (max-height: 740px) { .speaking-spell-tiles .speaking-spell-tile.speaking-spell-tile--back, .speaking-spell-tiles.is-many .speaking-spell-tile.speaking-spell-tile--back { height: 44px; padding: 0 10px; } }

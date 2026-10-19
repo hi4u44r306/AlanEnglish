@@ -116,7 +116,7 @@ export function GuidedSpellStep({ answers, onDone, onFail, clip }) {
             <button type="button" className="speaking-guided-next is-ready" onClick={onDone}>下一步：看著句子念<FiChevronRight aria-hidden="true" /></button>
         </> : <div className={`speaking-spell-tiles${tiles.length > 11 ? " is-many" : ""}`}>
             {tiles.map(tile => <button type="button" key={tile.id} className="speaking-spell-tile" onClick={() => place(tile)} disabled={complete || filled.some(item => item.id === tile.id)} aria-label={`字母 ${tile.letter}`}>{tile.letter}</button>)}
-            <button type="button" className="speaking-spell-tile speaking-spell-tile--back" onClick={removeLast} disabled={!filled.length || complete} aria-label="刪掉最後一個字母"><FiDelete aria-hidden="true" /></button>
+            <button type="button" className="speaking-spell-tile speaking-spell-tile--back" onClick={removeLast} disabled={!filled.length || complete} aria-label="刪掉最後一個字母"><FiDelete aria-hidden="true" /><span aria-hidden="true">刪除</span></button>
         </div>}
     </section>;
 }
