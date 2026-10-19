@@ -83,6 +83,8 @@ function Signup() {
     const [errorMessage, setErrorMessage] = useState("");
     const [createdAccount, setCreatedAccount] = useState(null);
     const [copyMessage, setCopyMessage] = useState("");
+    // 登入卡只顯示一次；按過列印或複製完整資料，才算已經保存。
+    const [cardSaved, setCardSaved] = useState(false);
     const [activationQr, setActivationQr] = useState("");
 
     useEffect(() => {
@@ -232,6 +234,7 @@ function Signup() {
             );
 
             setCreatedAccount(result?.credentials ? result : null);
+            setCardSaved(false);
 
             window.scrollTo({
                 top: 0,
@@ -280,10 +283,28 @@ function Signup() {
         ].join("\n");
 
         copyText(accountText, "完整登入資料已複製");
+        setCardSaved(true);
+    };
+
+    // 只印登入卡：列印期間在 body 加上 class，列印樣式只顯示這張卡。
+    const handlePrintCard = () => {
+        document.body.classList.add("academy-printing-card");
+        const cleanUp = () => {
+            document.body.classList.remove("academy-printing-card");
+            window.removeEventListener("afterprint", cleanUp);
+        };
+        // 有些手機瀏覽器的 print() 不會等列印完成，所以等 afterprint 再拿掉 class。
+        window.addEventListener("afterprint", cleanUp);
+        window.print();
+        setCardSaved(true);
     };
 
     const handleCreateNext = () => {
+        if (!cardSaved && !window.confirm("登入卡只顯示這一次，已經列印或保存了嗎？")) return;
+
         setCreatedAccount(null);
+        setCardSaved(false);
+        document.body.classList.remove("academy-printing-card");
         setCopyMessage("");
         setErrorMessage("");
 
@@ -367,7 +388,7 @@ function Signup() {
                             <span>Account Created</span>
                             <h2>學生帳號建立成功</h2>
                             <p>
-                                請立即列印或複製登入資料交給學生或家長。啟用與復原原碼只顯示這一次。
+                                請立即列印或複製登入資料交給學生或家長。啟用與復原碼只顯示這一次。
                             </p>
                         </div>
 
@@ -403,6 +424,14 @@ function Signup() {
                             <button
                                 type="button"
                                 className="academy-account-primary-button"
+                                onClick={handlePrintCard}
+                            >
+                                列印登入卡
+                            </button>
+
+                            <button
+                                type="button"
+                                className="academy-account-secondary-button"
                                 onClick={handleCopyAccount}
                             >
                                 複製登入帳號
@@ -410,7 +439,7 @@ function Signup() {
 
                             <button
                                 type="button"
-                                className="academy-account-primary-button"
+                                className="academy-account-secondary-button"
                                 onClick={handleCopyActivation}
                             >
                                 複製啟用連結

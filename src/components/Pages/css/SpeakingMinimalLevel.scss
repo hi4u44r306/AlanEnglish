@@ -166,6 +166,9 @@ body.speaking-challenge-active .speaking-question-navigation > button.primary,
 body.speaking-challenge-active .speaking-foundation-intro .primary,
 body.speaking-challenge-active .speaking-focus-card button.primary { border: 0 !important; border-radius: 16px !important; background: var(--ae-warning-bg, #ffd84d) !important; background-image: none !important; box-shadow: none !important; color: var(--ae-text, #17365d) !important; font-weight: 800 !important; text-shadow: none !important; }
 body.speaking-challenge-active .speaking-question-navigation > button:disabled { opacity: .45; }
+// 題目做完才出現主要的黃色「繼續挑戰」；還沒做完只有低調的「跳過這題」文字按鈕。
+body.speaking-challenge-active .speaking-continue-button.is-ready { border: 0 !important; border-radius: 18px !important; background: var(--ae-warning-bg, #ffd84d) !important; background-image: none !important; box-shadow: none !important; color: var(--ae-text, #17365d) !important; font-size: 18px; font-weight: 800 !important; }
+body.speaking-challenge-active .speaking-continue-button.is-skip { width: auto !important; min-height: 44px !important; padding: 8px 16px; border: 0 !important; background: none !important; box-shadow: none !important; color: var(--ae-text-muted, #526780) !important; font-weight: 700 !important; text-decoration: underline; text-underline-offset: 3px; }
 
 // The opening card of a level, and the page behind it, in the same flat style.
 body.speaking-challenge-active .speaking-challenge-page { background: var(--ae-surface-muted, #f7f9fc) !important; background-image: none !important; }

@@ -1422,6 +1422,25 @@ body.speaking-game-world-active .speaking-challenge-page.is-book-open { width: 1
   box-shadow: none;
 }
 
+/* 完成本題後的「繼續挑戰」要是明顯的主要按鈕；未完成時的「跳過這題」只是文字按鈕。 */
+.speaking-immersive-play .speaking-continue-button.is-ready {
+  border: 2px solid #f6ba27;
+  background: var(--ae-warning-bg, #ffcc41);
+  color: var(--ae-text, #17365d);
+  font-weight: 900;
+}
+
+.speaking-immersive-play .speaking-continue-button.is-skip {
+  width: auto;
+  min-height: 44px;
+  border: 0;
+  background: none;
+  color: var(--ae-text-muted, #526780);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 @media (max-width: 760px) {
   .speaking-level-dialog {
     gap: 8px;

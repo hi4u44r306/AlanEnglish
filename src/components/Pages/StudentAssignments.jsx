@@ -326,9 +326,15 @@ const StudentAssignments = () => {
                     </div>
                 </section>}
 
-                {(message || assignmentsQuery.error) && <div className="assignment-message" role="alert">{message || (assignmentsQuery.data ? "目前顯示上次作業，最新資料暫時無法同步。" : assignmentsQuery.error.message)}<button type="button" onClick={() => load()}>重新讀取</button></div>}
+                {message && <div className="assignment-message" role="alert">{message}</div>}
                 {(assignmentsQuery.loading || v2Query.loading) && !loading && <p role="status">部分任務仍在讀取中…</p>}
-                {partialError && <div className="assignment-message" role="status">部分任務暫時無法讀取，清單可能不完整。<button type="button" onClick={() => load()}>重新讀取</button></div>}
+                {/* 讀取失敗要一直留在畫面上，讓學生可以按「重新讀取」；短暫提示會自己消失，按不到按鈕。 */}
+                {(assignmentsQuery.error || partialError) && <div className="assignment-load-alert" role="alert">
+                    <span>{assignmentsQuery.error
+                        ? (assignmentsQuery.data ? "目前顯示上次作業，最新資料暫時無法同步。" : assignmentsQuery.error.message)
+                        : "部分任務暫時無法讀取，清單可能不完整。"}</span>
+                    <button type="button" onClick={() => load()}>重新讀取</button>
+                </div>}
 
                 <MakeupEntry />
 

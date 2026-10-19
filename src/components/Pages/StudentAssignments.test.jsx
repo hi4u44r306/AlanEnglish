@@ -1,7 +1,7 @@
 import { clearStudentPageCache } from "../../services/studentPageCache";
 beforeEach(() => clearStudentPageCache());
 import React from "react";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { MemoryRouter } from "react-router-dom";
 import StudentAssignments from "./StudentAssignments";
@@ -36,6 +36,11 @@ test("shows a partial failure instead of claiming the task list is empty or comp
     getStudentAssignmentsV2.mockRejectedValue(new Error("unavailable"));
     render(<MemoryRouter><StudentAssignments /></MemoryRouter>);
     await screen.findByText(/部分任務暫時無法讀取/);
+    // 讀取失敗是固定的提示列，「重新讀取」按得到並會再讀一次。
+    expect(screen.getByRole("alert")).toHaveClass("assignment-load-alert");
+    const callsBefore = getStudentAssignmentsV2.mock.calls.length;
+    fireEvent.click(screen.getByRole("button", { name: "重新讀取" }));
+    await waitFor(() => expect(getStudentAssignmentsV2.mock.calls.length).toBeGreaterThan(callsBefore));
     expect(screen.queryByText("目前沒有作業")).not.toBeInTheDocument();
     expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
 });

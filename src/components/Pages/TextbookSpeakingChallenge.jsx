@@ -135,6 +135,7 @@ export default function TextbookSpeakingChallenge() {
     const mapGestureRef = useRef({ key: null, moved: false });
     const [completionCatalog, setCompletionCatalog] = useState([]);
     const [retryNotice, setRetryNotice] = useState(false);
+    const [exitDialogOpen, setExitDialogOpen] = useState(false);
     const [saveNotice, setSaveNotice] = useState("");
     const [challengeSessionId, setChallengeSessionId] = useState("");
     const [selectedLesson, setSelectedLesson] = useState(null);
@@ -195,6 +196,7 @@ export default function TextbookSpeakingChallenge() {
         setReturnTransition(null);
         setCompletionNotice(null);
         setCompletionCatalog([]);
+        setExitDialogOpen(false);
     }, [location.pathname, challengeMode]);
 
     useEffect(() => {
@@ -617,7 +619,7 @@ export default function TextbookSpeakingChallenge() {
 
     return renderScene(<main className="speaking-challenge-page speaking-challenge-detail speaking-immersive-play">
         <header className="speaking-lesson-header">
-            <button className="speaking-back" onClick={returnToBookCatalog}><FiChevronLeft />關卡列表</button>
+            <button className="speaking-back" type="button" onClick={staffPreview ? returnToBookCatalog : () => setExitDialogOpen(true)}><FiChevronLeft />關卡列表</button>
             <div className="speaking-lesson-heading">
                 <span>{challenge.books?.name || "教材"}</span>
                 <h1>{challenge.title}</h1>
@@ -650,7 +652,10 @@ export default function TextbookSpeakingChallenge() {
             <button type="button" onClick={() => setActiveQuestionIndex(current => current - 1)} disabled={activeQuestionIndex === 0}><FiChevronLeft />上一題</button>
             <span>預覽第 {activeQuestionIndex + 1} / {questions.length} 題</span>
             <button type="button" className="primary" onClick={goForward} disabled={!isCompleted}>{isLastQuestion ? "完成大挑戰" : "下一題"}<FiChevronRight /></button>
-        </nav> : !completionNotice && !retryNotice && <button type="button" className="speaking-continue-button" onClick={goForward}>{isCompleted ? "繼續挑戰" : "先看下一題"}<FiChevronRight aria-hidden="true" /></button>}
+        </nav> : !completionNotice && !retryNotice && (isCompleted
+            ? <button type="button" className="speaking-continue-button is-ready" onClick={goForward}>繼續挑戰<FiChevronRight aria-hidden="true" /></button>
+            // 還沒念完時只是低調的文字按鈕，避免學生以為要按這顆才算完成。
+            : <button type="button" className="speaking-continue-button is-skip" onClick={goForward}>跳過這題</button>)}
         {retryNotice && <div className="speaking-reward-dialog" role="dialog" aria-modal="true" aria-labelledby="speaking-retry-title"><section>
             <p>已完成 {completedCount}／{questions.length} 題</p>
             <h2 id="speaking-retry-title">只剩 {remainingCount} 題，再試一次！</h2>
@@ -662,5 +667,12 @@ export default function TextbookSpeakingChallenge() {
                 setRetryNotice(false);
             }}>{`再挑戰這 ${remainingCount} 題`}</button></div>
         </section></div>}
+        {exitDialogOpen && <div className="speaking-exit-dialog-backdrop" role="presentation">
+            <section className="speaking-exit-dialog" role="alertdialog" aria-modal="true" aria-labelledby="speaking-lesson-exit-title" aria-describedby="speaking-lesson-exit-description">
+                <h2 id="speaking-lesson-exit-title">確定要回到關卡列表嗎？</h2>
+                <p id="speaking-lesson-exit-description">已經通過的題目會保留；還沒念完的題目，下次要再念一次。</p>
+                <div><button type="button" className="secondary" autoFocus onClick={() => setExitDialogOpen(false)}>取消</button><button type="button" className="primary" onClick={() => { setExitDialogOpen(false); returnToBookCatalog(); }}>確定離開</button></div>
+            </section>
+        </div>}
     </main>);
 }

@@ -57,6 +57,7 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, s
     const [canSkip, setCanSkip] = useState(false);
     const [completedIds, setCompletedIds] = useState(() => new Set());
     const [guided, setGuided] = useState({ id: null, step: null });
+    const [exitDialogOpen, setExitDialogOpen] = useState(false);
     const audioRef = useRef(null);
     const phaseFocusRef = useRef(null);
     // 背景存檔用：這一輪的題目、已完成的題目、還在存的請求、最後一次存檔結果、換題計時器。
@@ -92,6 +93,7 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, s
         setChallengeSessionId("");
         setCanSkip(false);
         setCompletedIds(new Set());
+        setExitDialogOpen(false);
     }, [challenge?.id, interactionType]);
 
     const startRound = () => {
@@ -208,6 +210,14 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, s
         if (activeIndex >= round.length - 1) setPhase("result");
         else setActiveIndex(index => index + 1);
     };
+    // 進行中的一輪按「退出本輪」要先確認，避免誤按；老師預覽沒有進度，直接離開。
+    const requestExit = () => { if (staffPreview) onExit?.(); else setExitDialogOpen(true); };
+    const confirmExit = () => {
+        setExitDialogOpen(false);
+        stopAudio();
+        window.clearTimeout(advanceTimerRef.current);
+        onExit?.();
+    };
     const remainingCount = staffPreview ? 0 : sourceQuestions.filter(question => question.progress_status !== "completed" && !completedIds.has(question.id)).length;
 
     if (phase === "instructions") return <main className="speaking-challenge-page speaking-challenge-detail speaking-foundation-page speaking-picture-page speaking-immersive-play">
@@ -231,7 +241,7 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, s
 
     return <main className="speaking-challenge-page speaking-challenge-detail speaking-foundation-page speaking-picture-page speaking-immersive-play">
         <header className="speaking-lesson-header">
-            <button className="speaking-back" type="button" onClick={onExit}><FiChevronLeft />退出本輪</button>
+            <button className="speaking-back" type="button" onClick={requestExit}><FiChevronLeft />退出本輪</button>
             <div className="speaking-lesson-heading"><span>{copy.eyebrow}</span><h1>{challenge.title}</h1><p>{copy.instruction}</p></div>
             <div className="speaking-lesson-progress"><div><span>第 {activeIndex + 1} / {round.length} 題</span><strong>{progress}%</strong></div><div className="speaking-progress-track" role="progressbar" aria-label="本輪進度" aria-valuemin="0" aria-valuemax="100" aria-valuenow={progress}><span style={{ width: `${progress}%` }} /></div></div>
         </header>
@@ -283,5 +293,12 @@ export default function WorkbookOnePictureChallenge({ challenge, firebaseUser, s
             if (activeIndex >= round.length - 1) { setPhase("result"); onFinished?.({ demo_mode: true }); }
             else setActiveIndex(index => index + 1);
         }}>{activeIndex >= round.length - 1 ? "完成大挑戰" : "下一題"}<FiChevronRight /></button></nav>}
+        {exitDialogOpen && <div className="speaking-exit-dialog-backdrop" role="presentation">
+            <section className="speaking-exit-dialog" role="alertdialog" aria-modal="true" aria-labelledby="speaking-picture-exit-title" aria-describedby="speaking-picture-exit-description">
+                <h2 id="speaking-picture-exit-title">確定要離開這一輪嗎？</h2>
+                <p id="speaking-picture-exit-description">已經通過的題目會保留；這一輪還沒念完的題目，下次要再念一次。</p>
+                <div><button type="button" className="secondary" autoFocus onClick={() => setExitDialogOpen(false)}>取消</button><button type="button" className="primary" onClick={confirmExit}>確定離開</button></div>
+            </section>
+        </div>}
     </main>;
 }

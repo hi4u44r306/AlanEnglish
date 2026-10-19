@@ -1,7 +1,7 @@
 import { clearStudentPageCache } from "../../services/studentPageCache";
 beforeEach(() => clearStudentPageCache());
 import "@testing-library/jest-dom";
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { Link, MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import TextbookSpeakingChallenge from "./TextbookSpeakingChallenge";
 import SpeakingVisualAid from "./SpeakingVisualAid";
@@ -383,7 +383,7 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(screen.queryByRole("button", { name: "語音準備中" })).not.toBeInTheDocument();
     });
 
-    it("學生回到關卡時接續第一道未完成題，並可先看下一題", async () => {
+    it("學生回到關卡時接續第一道未完成題，並可跳過這題", async () => {
         getSpeakingChallengeSet.mockResolvedValue({
             challenge: {
                 id: 7, title: "自我介紹", topic: "Names", difficulty: "E1", books: { name: "Workbook 1" },
@@ -400,7 +400,17 @@ describe("TextbookSpeakingChallenge model audio", () => {
         expect(screen.queryByText("What's your name?")).not.toBeInTheDocument();
         expect(screen.getByRole("progressbar", { name: "大挑戰完成進度" })).toHaveAttribute("aria-valuenow", "50");
         expect(screen.getByRole("heading", { name: "How old are you?" })).toHaveFocus();
-        expect(screen.getByRole("button", { name: /先看下一題/ })).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "跳過這題" })).toHaveClass("is-skip");
+        expect(screen.queryByRole("button", { name: /繼續挑戰/ })).not.toBeInTheDocument();
+
+        // 挑戰進行中按「關卡列表」要先確認，取消後留在原題。
+        fireEvent.click(screen.getByRole("button", { name: "關卡列表" }));
+        const dialog = screen.getByRole("alertdialog", { name: "確定要回到關卡列表嗎？" });
+        expect(within(dialog).getByRole("button", { name: "取消" })).toHaveFocus();
+        expect(within(dialog).getByRole("button", { name: "確定離開" })).toBeInTheDocument();
+        fireEvent.click(within(dialog).getByRole("button", { name: "取消" }));
+        expect(screen.queryByRole("alertdialog")).not.toBeInTheDocument();
+        expect(screen.getByText("How old are you?")).toBeInTheDocument();
     });
 
     it("教材第一層顯示精簡的冊別卡、完成進度並可進入指定 Workbook", async () => {

@@ -659,6 +659,9 @@ function AccountManagement() {
                                                                 暱稱紀錄
                                                             </button>
                                                         )}
+                                                        {isAdmin && account.role === "student" && (
+                                                            <button type="button" className="management-edit-button" onClick={() => setBirthdayTarget(account)}>更正生日</button>
+                                                        )}
                                                         {isAdmin && account.email && account.authentication_method !== "academy_username" && account.account_status !== "archived" && (
                                                             <button
                                                                 type="button"
@@ -679,31 +682,39 @@ function AccountManagement() {
                                                                 {reissuingStudentId === account.id ? "發卡中…" : "重新發登入卡"}
                                                             </button>
                                                         )}
-                                                        {isAdmin && account.role === "student" && (
+                                                        {isAdmin && account.role === "student" && account.account_status === "archived" && (
                                                             <button
                                                                 type="button"
-                                                                className={account.account_status === "archived"
-                                                                    ? "management-restore-button"
-                                                                    : "management-archive-button"}
+                                                                className="management-restore-button"
                                                                 onClick={() => changeAccountStatus(account)}
                                                                 disabled={changingStatusId === account.id}
                                                             >
-                                                                {changingStatusId === account.id
-                                                                    ? "處理中…"
-                                                                    : account.account_status === "archived" ? "恢復" : "停用"}
+                                                                {changingStatusId === account.id ? "處理中…" : "恢復"}
                                                             </button>
                                                         )}
-                                                        {isAdmin && account.role === "student" && (
-                                                            <button type="button" className="management-edit-button" onClick={() => setBirthdayTarget(account)}>更正生日</button>
-                                                        )}
-                                                        {isAdmin && account.role === "student" && (account.email || account.login_username) && (
-                                                            <button
-                                                                type="button"
-                                                                className="management-delete-button"
-                                                                onClick={() => openAccountDelete(account)}
-                                                            >
-                                                                永久刪除
-                                                            </button>
+                                                        {/* 停用、永久刪除放在最後並和常用按鈕隔開，避免誤按。 */}
+                                                        {isAdmin && account.role === "student" && (account.account_status !== "archived" || account.email || account.login_username) && (
+                                                            <div className="management-row-danger" role="group" aria-label={`${account.name || "此帳號"}的危險操作`}>
+                                                                {account.account_status !== "archived" && (
+                                                                    <button
+                                                                        type="button"
+                                                                        className="management-archive-button"
+                                                                        onClick={() => changeAccountStatus(account)}
+                                                                        disabled={changingStatusId === account.id}
+                                                                    >
+                                                                        {changingStatusId === account.id ? "處理中…" : "停用"}
+                                                                    </button>
+                                                                )}
+                                                                {(account.email || account.login_username) && (
+                                                                    <button
+                                                                        type="button"
+                                                                        className="management-delete-button"
+                                                                        onClick={() => openAccountDelete(account)}
+                                                                    >
+                                                                        永久刪除
+                                                                    </button>
+                                                                )}
+                                                            </div>
                                                         )}
                                                     </div>
                                                 </td>

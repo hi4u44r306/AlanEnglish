@@ -88,6 +88,43 @@
     content: "🔔";
 }
 
+/* 讀取失敗：固定在作業清單上方，不會自己消失，按鈕可以按。 */
+.assignment-load-alert {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px 14px;
+    margin: 0 0 16px;
+    padding: 12px 16px;
+    border: 1px solid var(--ae-danger, #c0392b);
+    border-radius: 14px;
+    background: var(--ae-surface, #fff);
+    color: var(--ae-text, #17365d);
+    font-weight: 800;
+    line-height: 1.5;
+}
+
+.assignment-load-alert span {
+    flex: 1 1 220px;
+}
+
+.assignment-load-alert button {
+    min-height: 44px;
+    padding: 8px 18px;
+    border: 0;
+    border-radius: 12px;
+    background: var(--ae-solid, #17365d);
+    color: #fff;
+    font-weight: 900;
+    cursor: pointer;
+}
+
+.assignment-load-alert button:focus-visible {
+    outline: 3px solid #f6be2e;
+    outline-offset: 3px;
+}
+
 @keyframes assignmentNoticeLife {
     0% {
         transform: translate(-50%, -14px) scale(0.98);

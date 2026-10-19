@@ -65,6 +65,8 @@ function ManagementDashboard() {
     });
     const [guardianSaving, setGuardianSaving] = useState(false);
     const [noticeDraft, setNoticeDraft] = useState(null);
+    // 先開啟 Email 才能按「我已寄出」，避免沒寄就標成已寄出。
+    const [mailOpened, setMailOpened] = useState(false);
     const [noticeStudent, setNoticeStudent] = useState(null);
     const [noticeLoadingId, setNoticeLoadingId] = useState(null);
     const [noticeMessage, setNoticeMessage] = useState("");
@@ -183,6 +185,7 @@ function ManagementDashboard() {
         try {
             const result = await createGuardianNotificationDraft(firebaseUser, student.id);
             setNoticeDraft(result.draft);
+            setMailOpened(false);
             setNoticeStudent(student);
         } catch (error) {
             console.error("建立家長提醒失敗:", error);
@@ -196,6 +199,7 @@ function ManagementDashboard() {
         if (!noticeDraft) return;
 
         const href = `mailto:${encodeURIComponent(noticeDraft.email)}?subject=${encodeURIComponent(noticeDraft.subject)}&body=${encodeURIComponent(noticeDraft.message)}`;
+        setMailOpened(true);
         window.location.href = href;
     };
 
@@ -419,9 +423,10 @@ function ManagementDashboard() {
                         <p>目前這一步會開啟裝置上的 Email App；網站會保留提醒紀錄，但不會假裝已經由伺服器自動寄出。</p>
                         <div className="guardian-reminder-actions">
                             <button type="button" onClick={() => setNoticeDraft(null)}>取消</button>
-                            <button type="button" onClick={openMailClient}>開啟 Email</button>
-                            <button type="button" className="primary" onClick={markReminderSent}>我已寄出</button>
+                            <button type="button" className="primary" onClick={openMailClient}>開啟 Email</button>
+                            <button type="button" onClick={markReminderSent} disabled={!mailOpened} aria-describedby={mailOpened ? undefined : "guardian-reminder-sent-hint"}>我已寄出</button>
                         </div>
+                        {!mailOpened && <small id="guardian-reminder-sent-hint">先按「開啟 Email」把信寄出，再回來按「我已寄出」。</small>}
                     </div>
                 </div>
             )}

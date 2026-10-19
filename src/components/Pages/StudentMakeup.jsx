@@ -18,6 +18,10 @@ const StudentMakeup = () => {
     const [error, setError] = useState("");
     const [openVideoId, setOpenVideoId] = useState(null);
     const [markingId, setMarkingId] = useState(null);
+    // 這次打開過的影片；看過影片才出現「我看完了」，避免沒看就先按完成。
+    const [openedVideoIds, setOpenedVideoIds] = useState(() => new Set());
+    const [confirmItem, setConfirmItem] = useState(null);
+    const noteVideoOpened = id => setOpenedVideoIds(current => new Set(current).add(id));
 
     const load = useCallback(async () => {
         setLoading(true);
@@ -35,6 +39,7 @@ const StudentMakeup = () => {
     useEffect(() => { load(); }, [load]);
 
     const markDone = async item => {
+        setConfirmItem(null);
         setMarkingId(item.id);
         try {
             await completeMakeupItem(firebaseUser, item.id);
@@ -54,8 +59,8 @@ const StudentMakeup = () => {
             const embedUrl = youtubeEmbedUrl(item.video_url, item.start_seconds, item.end_seconds);
             return <>
                 {embedUrl
-                    ? <button type="button" className="attendance-secondary" aria-expanded={openVideoId === item.id} onClick={() => setOpenVideoId(current => current === item.id ? null : item.id)}><FiVideo aria-hidden="true" />{openVideoId === item.id ? "收起影片" : `看影片 ${formatVideoRange(item.start_seconds, item.end_seconds)}`}</button>
-                    : <a className="attendance-secondary" href={item.video_url} target="_blank" rel="noopener noreferrer"><FiVideo aria-hidden="true" />開啟影片</a>}
+                    ? <button type="button" className={item.done ? "attendance-secondary" : "attendance-primary"} aria-expanded={openVideoId === item.id} onClick={() => { noteVideoOpened(item.id); setOpenVideoId(current => current === item.id ? null : item.id); }}><FiVideo aria-hidden="true" />{openVideoId === item.id ? "收起影片" : `看影片 ${formatVideoRange(item.start_seconds, item.end_seconds)}`}</button>
+                    : <a className={item.done ? "attendance-secondary" : "attendance-primary"} href={item.video_url} target="_blank" rel="noopener noreferrer" onClick={() => noteVideoOpened(item.id)}><FiVideo aria-hidden="true" />開啟影片</a>}
                 {openVideoId === item.id && embedUrl && <div className="makeup-video">
                     <iframe src={embedUrl} title={item.title} allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowFullScreen />
                     <a href={youtubeWatchUrl(item.video_url, item.start_seconds)} target="_blank" rel="noopener noreferrer">影片打不開？改到 YouTube 觀看</a>
@@ -70,6 +75,13 @@ const StudentMakeup = () => {
         return item.task_key
             ? <Link className="attendance-secondary" to={`/student/assignments?task=${encodeURIComponent(item.task_key)}`}><FiCheckSquare aria-hidden="true" />去寫這份作業</Link>
             : <span className="attendance-hint">這份作業已經收回，不用補。</span>;
+    };
+
+    // 有影片的項目要先打開影片；沒有影片的項目一直可以按，但都要再確認一次。
+    const renderDoneButton = item => {
+        const needsVideo = item.item_type === "video" && Boolean(item.video_url);
+        if (needsVideo && !openedVideoIds.has(item.id)) return null;
+        return <button type="button" className="attendance-secondary" disabled={markingId === item.id} onClick={() => setConfirmItem(item)}><FiCheck aria-hidden="true" />{item.item_type === "video" ? "我看完了" : "我完成了"}</button>;
     };
 
     const pending = sessions.reduce((total, session) => total + session.items.filter(item => !item.done).length, 0);
@@ -107,12 +119,22 @@ const StudentMakeup = () => {
                             {item.done
                                 ? <span className="makeup-done"><FiCheck aria-hidden="true" />已完成</span>
                                 : item.self_markable
-                                    ? <button type="button" className="attendance-primary" disabled={markingId === item.id} onClick={() => markDone(item)}><FiCheck aria-hidden="true" />{item.item_type === "video" ? "我看完了" : "我完成了"}</button>
+                                    ? renderDoneButton(item)
                                     : <span className="attendance-hint">{item.item_type === "listening" ? "認真聽完 80% 會自動打勾" : "完成作業會自動打勾"}</span>}
                         </div>
                     </li>)}
                 </ol>
             </section>)}
+
+            {confirmItem && <div className="attendance-confirm-backdrop" role="presentation">
+                <section className="attendance-confirm-dialog" role="alertdialog" aria-modal="true" aria-labelledby="makeup-confirm-title">
+                    <h2 id="makeup-confirm-title">確定已經{confirmItem.item_type === "video" ? "看完" : "完成"}「{confirmItem.title}」了嗎？</h2>
+                    <div>
+                        <button type="button" className="attendance-ghost" autoFocus onClick={() => setConfirmItem(null)}>取消</button>
+                        <button type="button" className="attendance-primary" onClick={() => markDone(confirmItem)}>{confirmItem.item_type === "video" ? "我看完了" : "我完成了"}</button>
+                    </div>
+                </section>
+            </div>}
         </main>
     );
 };

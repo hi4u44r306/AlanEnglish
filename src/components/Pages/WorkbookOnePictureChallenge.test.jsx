@@ -215,6 +215,23 @@ describe("WorkbookOnePictureChallenge", () => {
         expect(screen.getByRole("article", { name: "第 1 題，共 1 題" })).toBeInTheDocument();
     });
 
+    it("挑戰進行中按退出本輪要先確認，取消留在本輪，確定才離開", () => {
+        const onExit = jest.fn();
+        render(<WorkbookOnePictureChallenge correctPauseMs={0} challenge={{ id: 21, title: "P21", generation_metadata: { interaction_type: "picture_qa" },
+            speaking_questions: [{ id: 1, visual_aid: privateVisual, picture_interaction: { type: "picture_qa" } }] }}
+            firebaseUser={{ uid: "student" }} onComplete={jest.fn()} onExit={onExit} />);
+        fireEvent.click(screen.getByRole("button", { name: "開始挑戰" }));
+        fireEvent.click(screen.getByRole("button", { name: "退出本輪" }));
+        const dialog = screen.getByRole("alertdialog", { name: "確定要離開這一輪嗎？" });
+        expect(screen.getByRole("button", { name: "取消" })).toHaveFocus();
+        fireEvent.click(screen.getByRole("button", { name: "取消" }));
+        expect(dialog).not.toBeInTheDocument();
+        expect(onExit).not.toHaveBeenCalled();
+        fireEvent.click(screen.getByRole("button", { name: "退出本輪" }));
+        fireEvent.click(screen.getByRole("button", { name: "確定離開" }));
+        expect(onExit).toHaveBeenCalledTimes(1);
+    });
+
     it("P22 學生看圖補句即使舊回應含網址也不顯示播放入口", () => {
         render(<WorkbookOnePictureChallenge correctPauseMs={0}
             challenge={{

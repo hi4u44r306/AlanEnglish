@@ -664,6 +664,12 @@ function ConversationPractice() {
         setRestoredProgress
     ] = useState(false);
 
+    // 「從頭開始」會清掉雲端進度，先問一次。
+    const [
+        restartConfirmOpen,
+        setRestartConfirmOpen
+    ] = useState(false);
+
     const [
         progressLoading,
         setProgressLoading
@@ -2105,14 +2111,62 @@ function ConversationPractice() {
                 ) && (
                         <button
                             type="button"
-                            onClick={
-                                restartMission
+                            className="conversation-restart-button"
+                            onClick={() =>
+                                setRestartConfirmOpen(
+                                    true
+                                )
                             }
                         >
                             從頭開始
                         </button>
                     )}
             </section>
+
+            {restartConfirmOpen && (
+                <div
+                    className="conversation-confirm-backdrop"
+                    role="presentation"
+                >
+                    <section
+                        className="conversation-confirm-dialog"
+                        role="alertdialog"
+                        aria-modal="true"
+                        aria-labelledby="conversation-restart-title"
+                    >
+                        <h2 id="conversation-restart-title">
+                            確定要從頭開始嗎？目前的進度會清除。
+                        </h2>
+
+                        <div>
+                            <button
+                                type="button"
+                                autoFocus
+                                onClick={() =>
+                                    setRestartConfirmOpen(
+                                        false
+                                    )
+                                }
+                            >
+                                取消
+                            </button>
+
+                            <button
+                                type="button"
+                                className="primary"
+                                onClick={() => {
+                                    setRestartConfirmOpen(
+                                        false
+                                    );
+                                    restartMission();
+                                }}
+                            >
+                                從頭開始
+                            </button>
+                        </div>
+                    </section>
+                </div>
+            )}
 
             <section className="conversation-mode-bar">
                 <div className="conversation-mode-title">

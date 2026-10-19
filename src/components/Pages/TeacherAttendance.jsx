@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { FiCheck, FiHeadphones, FiPlus, FiTrash2, FiVideo, FiCheckSquare } from "react-icons/fi";
 import { useAuth } from "../../auth/AuthContext";
+import useUnsavedChanges from "../../hooks/useUnsavedChanges";
 import {
     ATTENDANCE_STATUS_OPTIONS,
     deleteVideoSegment,
@@ -23,6 +24,12 @@ const ITEM_TYPES = [
 const itemTypeLabel = type => ITEM_TYPES.find(option => option.value === type)?.label || type;
 const statusLabel = status => ATTENDANCE_STATUS_OPTIONS.find(option => option.value === status)?.label || "未點名";
 const emptyVideoForm = { url: "", start: "", end: "", title: "", pageFrom: "", pageTo: "" };
+// 比對用：出席狀態依學生排序、去掉取消的狀態，順序不同不算修改。
+const editSnapshot = (attendance, items, note) => JSON.stringify({
+    attendance: Object.keys(attendance).filter(id => attendance[id]).sort().map(id => [id, attendance[id]]),
+    items: items.map(item => itemKey(item)),
+    note: note || ""
+});
 const itemKey = item => `${item.item_type}:${item.video_segment_id || ""}:${item.video_url || ""}:${item.start_seconds ?? ""}:${item.track_id || ""}:${item.assignment_id || ""}`;
 
 const TeacherAttendance = () => {
@@ -44,12 +51,19 @@ const TeacherAttendance = () => {
     const [trackId, setTrackId] = useState("");
     const [assignmentId, setAssignmentId] = useState("");
     const [videoForm, setVideoForm] = useState(emptyVideoForm);
+    // 讀進來或儲存後的內容；和目前畫面不同就是還沒儲存。
+    const [savedSnapshot, setSavedSnapshot] = useState(null);
+    const [pendingSwitch, setPendingSwitch] = useState(null);
 
     const applyView = useCallback(result => {
+        const nextAttendance = Object.fromEntries((result.attendance || []).map(row => [row.student_id, row.status]));
+        const nextItems = result.items || [];
+        const nextNote = result.session?.note || "";
         setView(current => ({ ...current, ...result }));
-        setAttendance(Object.fromEntries((result.attendance || []).map(row => [row.student_id, row.status])));
-        setItems(result.items || []);
-        setNote(result.session?.note || "");
+        setAttendance(nextAttendance);
+        setItems(nextItems);
+        setNote(nextNote);
+        setSavedSnapshot(editSnapshot(nextAttendance, nextItems, nextNote));
     }, []);
 
     useEffect(() => {
@@ -98,8 +112,16 @@ const TeacherAttendance = () => {
     // Before the class day only leave can be registered; real attendance is taken on the day.
     const isFuture = Boolean(boot?.today) && sessionDate > boot.today;
     const statusOptions = isFuture ? ATTENDANCE_STATUS_OPTIONS.filter(option => option.value === "leave") : ATTENDANCE_STATUS_OPTIONS;
-    const goToDate = date => setSessionDate(date > boot.max_date ? boot.max_date : date);
     const makeupStudents = roster.filter(student => needsMakeup(attendance[student.id]));
+    const dirty = !loading && savedSnapshot !== null && editSnapshot(attendance, items, note) !== savedSnapshot;
+    useUnsavedChanges(dirty, { message: "還有沒儲存的點名，離開後會捨棄這些內容，確定離開嗎？" });
+    // 換班級、換日期前，有沒儲存的點名就先問老師要不要儲存。
+    const switchTo = action => {
+        if (dirty) setPendingSwitch(() => action);
+        else action();
+    };
+    const changeDate = date => switchTo(() => setSessionDate(date));
+    const goToDate = date => changeDate(date > boot.max_date ? boot.max_date : date);
 
     const addItem = item => {
         setItems(current => current.some(existing => itemKey(existing) === itemKey(item)) ? current : [...current, item]);
@@ -154,6 +176,7 @@ const TeacherAttendance = () => {
     };
 
     const save = async () => {
+        let saved = false;
         setSaving(true);
         setMessage(null);
         try {
@@ -165,6 +188,7 @@ const TeacherAttendance = () => {
                 items
             });
             applyView(result);
+            saved = true;
             const [makeup, week] = await Promise.all([
                 getMakeupOverview(firebaseUser, classCode),
                 getClassSchedule(firebaseUser, classCode, mondayOf(sessionDate))
@@ -185,6 +209,15 @@ const TeacherAttendance = () => {
         } finally {
             setSaving(false);
         }
+        return saved;
+    };
+
+    const finishSwitch = async choice => {
+        const action = pendingSwitch;
+        setPendingSwitch(null);
+        if (choice === "cancel" || !action) return;
+        if (choice === "save" && !(await save())) return;
+        action();
     };
 
     if (boot && !boot.classes?.length) {
@@ -201,12 +234,12 @@ const TeacherAttendance = () => {
                 </div>
                 <div className="attendance-controls">
                     <label>班級
-                        <select value={classCode} onChange={event => setClassCode(event.target.value)}>
+                        <select value={classCode} onChange={event => { const next = event.target.value; switchTo(() => setClassCode(next)); }}>
                             {(boot?.classes || []).map(code => <option key={code} value={code}>{code}</option>)}
                         </select>
                     </label>
                     <label>上課日期
-                        <input type="date" value={sessionDate} max={boot?.max_date} onChange={event => event.target.value && setSessionDate(event.target.value)} />
+                        <input type="date" value={sessionDate} max={boot?.max_date} onChange={event => event.target.value && changeDate(event.target.value)} />
                     </label>
                 </div>
             </header>
@@ -225,7 +258,7 @@ const TeacherAttendance = () => {
                     </div>
                     <ol className="attendance-schedule">
                         {schedule.map(day => <li key={day.date} className={`${day.date === sessionDate ? "selected" : ""}${day.date === boot.today ? " today" : ""}`}>
-                            <button type="button" aria-pressed={day.date === sessionDate} disabled={day.date > boot.max_date} onClick={() => setSessionDate(day.date)}>
+                            <button type="button" aria-pressed={day.date === sessionDate} disabled={day.date > boot.max_date} onClick={() => day.date !== sessionDate && changeDate(day.date)}>
                                 <span className="attendance-schedule-day">週{weekdayLabel(day.date)}<small>{Number(day.date.slice(5, 7))}/{Number(day.date.slice(8))}{day.date === boot.today ? "・今天" : ""}</small></span>
                                 <span className="attendance-schedule-body">
                                     {day.items.length === 0 ? <em>尚未登記</em> : day.items.map(item => <span key={item.id} className={`attendance-item-type ${item.item_type}`}>{item.title}</span>)}
@@ -348,7 +381,7 @@ const TeacherAttendance = () => {
                     <div className="attendance-card-heading"><h2 id="attendance-overview-title">補課進度 <small>最近 60 天</small></h2></div>
                     {overview.length === 0 ? <p className="attendance-hint">最近沒有需要補課的學生。</p> : <ul className="attendance-overview">
                         {overview.map(session => <li key={session.id}>
-                            <button type="button" className="attendance-ghost" onClick={() => setSessionDate(session.session_date)}>{session.session_date}</button>
+                            <button type="button" className="attendance-ghost" onClick={() => session.session_date !== sessionDate && changeDate(session.session_date)}>{session.session_date}</button>
                             <ul>{session.students.map(student => <li key={student.student_id} className={session.total && student.done >= session.total ? "done" : ""}>
                                 <span>{student.name}<small>{statusLabel(student.status)}</small></span>
                                 <strong>{session.total ? `${student.done}／${session.total}` : "尚未填進度"}</strong>
@@ -357,6 +390,17 @@ const TeacherAttendance = () => {
                     </ul>}
                 </section>
             </>}
+
+            {pendingSwitch && <div className="attendance-confirm-backdrop" role="presentation">
+                <section className="attendance-confirm-dialog" role="alertdialog" aria-modal="true" aria-labelledby="attendance-switch-title">
+                    <h2 id="attendance-switch-title">還有沒儲存的點名，要先儲存嗎？</h2>
+                    <div>
+                        <button type="button" className="attendance-primary" disabled={saving} onClick={() => finishSwitch("save")}>儲存後切換</button>
+                        <button type="button" className="attendance-ghost" onClick={() => finishSwitch("discard")}>不儲存</button>
+                        <button type="button" className="attendance-ghost" autoFocus onClick={() => finishSwitch("cancel")}>取消</button>
+                    </div>
+                </section>
+            </div>}
         </main>
     );
 };
