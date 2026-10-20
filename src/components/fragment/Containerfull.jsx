@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import '../assets/scss/Containerfull.scss';
 import MainNavbar from './MainNavbar';
 import '../assets/scss/BrowserCompatibility.scss';
@@ -10,6 +10,9 @@ import MobileOffcanvasScrollGuard from './MobileOffcanvasScrollGuard';
 import AssignmentShortcut from './AssignmentShortcut';
 import { useSelector } from 'react-redux';
 import { useLocation } from 'react-router-dom';
+import { useAuth } from '../../auth/AuthContext';
+import useSpeakingFocusLock, { isSpeakingListeningFocus } from '../../hooks/useSpeakingFocusLock';
+import { recordSpeakingAttention } from '../../services/learningActivityService';
 
 const MINI_PLAYER_PATHS = [
     '/student/conversation',
@@ -30,6 +33,17 @@ const Containerfull = ({ children }) => {
     );
 
     const location = useLocation();
+    const { firebaseUser, role, authLoading } = useAuth();
+
+    // 口說關卡的「先聽本關教材」頁：拿掉上方導覽列與下方選單，只留聽力，並鎖住站內跳頁。
+    const speakingListeningFocus = isSpeakingListeningFocus(location);
+    // 想離開聽力頁被帶回來，記一次口說專注度的 left_prep（只記學生，失敗不影響）。
+    const recordLeftPrep = useCallback(lock => {
+        const match = String(lock?.returnPath || '').match(/^\/student\/speaking-challenges\/(\d+)\?mode=(easy|challenge)/);
+        if (!firebaseUser || !match) return;
+        try { recordSpeakingAttention(firebaseUser, { reason: 'left_prep', question_set_id: Number(match[1]), mode: match[2] })?.catch?.(() => {}); } catch (error) { /* 記錄失敗不影響 */ }
+    }, [firebaseUser]);
+    useSpeakingFocusLock({ uid: firebaseUser?.uid || null, role, authLoading, onLeaveBlocked: recordLeftPrep });
 
     const [
         currMusic,
@@ -66,6 +80,14 @@ const Containerfull = ({ children }) => {
     // 顯示與操作，避免孩子在麥克風練習時分心或同時播放教材音檔。
     const hidePlayerForSpeaking = Boolean(
         currMusic && speakingChallengePage
+    );
+
+    // 作業頁展開後，「縮小」按鈕浮在播放器上方，內容要多留它的高度。
+    const expandedToggleVisible = Boolean(
+        currMusic &&
+        !hidePlayerForSpeaking &&
+        miniPlayerPage &&
+        playerExpanded
     );
 
     const playerSpace =
@@ -107,7 +129,7 @@ const Containerfull = ({ children }) => {
 
     return (
         <div
-            className="app-shell"
+            className={`app-shell${speakingListeningFocus ? ' app-shell--focus' : ''}`}
             style={{
                 '--app-player-space':
                     playerSpace
@@ -115,9 +137,11 @@ const Containerfull = ({ children }) => {
         >
             <MobileOffcanvasScrollGuard />
 
-            <header className="app-header">
-                <MainNavbar />
-            </header>
+            {!speakingListeningFocus && (
+                <header className="app-header">
+                    <MainNavbar />
+                </header>
+            )}
 
             <main
                 className={`app-content ${
@@ -128,21 +152,27 @@ const Containerfull = ({ children }) => {
                      showMiniPlayer
                          ? 'has-mini-player'
                          : ''
+                 } ${
+                     expandedToggleVisible
+                         ? 'has-player-toggle'
+                         : ''
                  }`}
                 style={{
                     paddingBottom:
                         currMusic &&
                         !hidePlayerForSpeaking &&
                         !showMiniPlayer
-                            ? curr_margin ||
-                              '110px'
+                            ? expandedToggleVisible
+                                ? `calc(${playerSpace} + 52px)`
+                                : curr_margin ||
+                                  '110px'
                             : undefined
                 }}
             >
                 {children}
             </main>
 
-            <AssignmentShortcut
+            {!speakingListeningFocus && <AssignmentShortcut
                 playerVisible={
                     Boolean(currMusic) &&
                     !hidePlayerForSpeaking
@@ -150,7 +180,7 @@ const Containerfull = ({ children }) => {
                 compactPlayer={
                     showMiniPlayer
                 }
-            />
+            />}
 
             <ConversationUXGuard />
             <ConversationHintCoach />

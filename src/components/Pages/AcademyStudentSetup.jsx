@@ -5,6 +5,7 @@ import {
     previewStudentActivation,
     recoverStudentLogin
 } from "../../services/academyStudentService";
+import BackButton from "../fragment/BackButton";
 import "./css/Platform.scss";
 
 const passwordHelp = "密碼至少 6 個字元，可使用小寫英文、數字或符號。";
@@ -82,6 +83,7 @@ function AcademyStudentSetup({ recoveryOnly = false }) {
     if (!recoveryOnly && !preview) return (
         <main className="platform-public">
             <section className="platform-public-card">
+                <div className="ae-back-row"><BackButton to="/login" ariaLabel="返回登入" /></div>
                 <h1>請重新確認登入卡</h1>
                 <p role="alert">{error || "目前無法確認啟用連結，請重新掃描登入卡。"}</p>
                 <p>如果登入卡已使用或遺失，請向授課老師確認帳號是否已啟用，或申請新的登入卡。</p>
@@ -93,6 +95,7 @@ function AcademyStudentSetup({ recoveryOnly = false }) {
     return (
         <main className="platform-public">
             <section className="platform-public-card">
+                <div className="ae-back-row"><BackButton to="/login" ariaLabel="返回登入" /></div>
                 <span className="platform-eyebrow">ACADEMY STUDENT LOGIN</span>
                 <h1>{recoveryOnly ? "使用復原碼設定新密碼" : "設定學生登入密碼"}</h1>
                 <p>{recoveryOnly

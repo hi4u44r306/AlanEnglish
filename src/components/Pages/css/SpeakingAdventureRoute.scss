@@ -9,9 +9,9 @@
 
 .speaking-map-chapter {
   overflow: hidden;
-  border: 3px solid #f9fbff;
+  border: 3px solid var(--ae-border, #f9fbff);
   border-radius: 28px;
-  background: #bce8f7;
+  background: var(--ae-info-bg, #bce8f7);
   box-shadow: 0 18px 38px rgba(20, 47, 91, 0.16);
 }
 
@@ -24,7 +24,7 @@
   align-items: center;
   margin: 12px;
   padding: 11px 17px;
-  border: 3px solid #ffeab1;
+  border: 3px solid var(--ae-border, #ffeab1);
   border-radius: 16px;
   background: #795038;
   color: #fff;
@@ -36,7 +36,7 @@
 .speaking-map-chapter > header h2 { margin: 0; font-size: clamp(18px, 4vw, 24px); }
 .speaking-map-chapter > header small { font-size: 11px; font-weight: 800; }
 .speaking-map-chapter > header > span { white-space: nowrap; font-size: 12px; font-weight: 900; }
-.speaking-map-chapter.is-topic > header { border-color: #e7dbff; background: #674d86; box-shadow: 0 6px 0 #44345d; }
+.speaking-map-chapter.is-topic > header { border-color: var(--ae-border, #e7dbff); background: #674d86; box-shadow: 0 6px 0 #44345d; }
 
 .speaking-map-canvas {
   position: relative;
@@ -44,7 +44,7 @@
   aspect-ratio: var(--map-aspect-ratio, 792 / 1986);
   overflow: hidden;
   isolation: isolate;
-  background: #96d6b5;
+  background: var(--ae-surface-muted, #96d6b5);
 }
 .speaking-adventure-route .speaking-map-route {
   z-index: 1;
@@ -82,7 +82,7 @@
   min-width: 88px;
   max-width: none;
   padding: 5px;
-  border: 6px solid #fff;
+  border: 6px solid var(--ae-surface, #fff);
   border-radius: 50%;
   background: #3a79cd;
   color: #fff;
@@ -92,17 +92,17 @@
   box-shadow: 0 8px 0 #194d92, 0 13px 25px rgba(16, 42, 79, 0.3);
 }
 .speaking-adventure-route .speaking-challenge-lesson.is-completed .speaking-challenge-lesson__number { background: #248a5a; color: #fff; box-shadow: 0 8px 0 #155d3a; }
-.speaking-adventure-route .speaking-challenge-lesson.is-current .speaking-challenge-lesson__number { background: #ffca3a; color: #15345d; box-shadow: 0 8px 0 #b2760e, 0 0 0 8px rgba(255, 227, 121, 0.55); }
+.speaking-adventure-route .speaking-challenge-lesson.is-current .speaking-challenge-lesson__number { background: #ffca3a; color: var(--ae-text, #15345d); box-shadow: 0 8px 0 #b2760e, 0 0 0 8px rgba(255, 227, 121, 0.55); }
 .speaking-adventure-route .speaking-challenge-lesson.is-locked .speaking-challenge-lesson__number { background: #677a96; color: #fff; box-shadow: 0 8px 0 #43526c; }
-.speaking-adventure-route .speaking-challenge-lesson.is-special .speaking-challenge-lesson__number { border-color: #ffe8ad; }
+.speaking-adventure-route .speaking-challenge-lesson.is-special .speaking-challenge-lesson__number { border-color: var(--ae-border, #ffe8ad); }
 .speaking-adventure-route .speaking-challenge-lesson__copy,
 .speaking-adventure-route .speaking-challenge-lesson__meta {
   display: block;
   width: 100%;
   padding: 4px 7px;
   border-radius: 9px;
-  background: rgba(255, 255, 255, 0.96);
-  color: #17366f;
+  background: var(--ae-surface-glass, rgba(255, 255, 255, 0.96));
+  color: var(--ae-accent, #17366f);
   box-shadow: 0 3px 8px rgba(24, 45, 79, 0.14);
   text-align: center;
 }
@@ -125,8 +125,8 @@
   padding: 10px 20px;
   border: 2px solid #f6ba27;
   border-radius: 16px;
-  background: #ffcc41;
-  color: #17366f;
+  background: var(--ae-warning-bg, #ffcc41);
+  color: var(--ae-accent, #17366f);
   font-weight: 900;
   box-shadow: 0 6px 0 #b27a16;
   cursor: pointer;
@@ -154,8 +154,8 @@
     min-width: 52px;
     min-height: 52px;
     border-radius: 50%;
-    background: #fff;
-    color: #17366f;
+    background: var(--ae-surface, #fff);
+    color: var(--ae-accent, #17366f);
     box-shadow: 0 5px 14px rgba(21, 56, 99, 0.2);
   }
   .speaking-challenge-page.is-book-open .speaking-book-toolbar .speaking-back span { display: none; }

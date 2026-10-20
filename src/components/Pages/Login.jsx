@@ -6,6 +6,7 @@ import { useAuth } from "../../auth/AuthContext";
 import HeadPhone from "../assets/img/Login2.png";
 import Brand from "../fragment/Brand";
 import InstallEntry from "../fragment/InstallEntry";
+import StandaloneBackLink from "../../pwa/StandaloneBackLink";
 import "react-toastify/dist/ReactToastify.css";
 import "./css/Login.scss";
 
@@ -146,6 +147,7 @@ function Login() {
 
     return (
         <section className="Login">
+            <StandaloneBackLink floating />
             <div className="login-bg-circle login-bg-circle-one"></div>
             <div className="login-bg-circle login-bg-circle-two"></div>
 
@@ -275,6 +277,7 @@ function Login() {
                             <nav aria-label="登入協助">
                                 <Link to="/academy/student-setup">掃描登入卡啟用</Link>
                                 <Link to="/academy/recover">使用登入卡復原碼</Link>
+                                <Link to="/academy/activate">英文班開通碼</Link>
                                 <Link to="/support">聯絡客服</Link>
                             </nav>
                         </details>

@@ -11,9 +11,10 @@ import * as flow from "../supabase/functions/_shared/speaking-pronunciation-flow
 import * as policy from "../supabase/functions/_shared/speaking-recording-policy.ts";
 import * as azure from "../supabase/functions/_shared/speaking-azure-alphabet.ts";
 import * as wav from "../supabase/functions/_shared/speaking-pcm-wav.ts";
+import * as sentence from "../supabase/functions/_shared/speaking-azure-sentence.ts";
 const compiled = ts.transpileModule(readFileSync(new URL("../supabase/functions/pronunciation-coach/index.ts", import.meta.url), "utf8"),
     { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
-function harness({ authorized = true, entitled = true, active = true, role = "student", hint = false, alphabet = false, spelling = false, providerFailure = false, denied = null, answerTemplate = "I like apples." } = {}) {
+function harness({ authorized = true, entitled = true, active = true, role = "student", hint = false, alphabet = false, spelling = false, providerFailure = false, denied = null, answerTemplate = "I like apples.", recheckMode = "off", localAttempt = null, azurePayload = null } = {}) {
     let handler; const writes = [], reservations = [];
     const client = {
         rpc: async (name, args) => { reservations.push({ name, args });
@@ -36,6 +37,8 @@ function harness({ authorized = true, entitled = true, active = true, role = "st
                         : { model_answer: alphabet ? "A" : spelling ? "C A T" : answerTemplate, accepted_intents: [] } };
                     if (table === "speaking_foundation_rounds") return {data:{id:"00000000-0000-4000-8000-000000000002",student_id:5,question_set_id:10,question_set_version:1,question_order:[1],next_index:0,status:"open",expires_at:new Date(Date.now()+3600000).toISOString()}};
                     if (table === "speaking_challenge_hint_reveals") return { data: hint ? { question_id: 1 } : null };
+                    if (table === "speaking_azure_cost_policy") return { data: { recheck_mode: recheckMode } };
+                    if (table === "speaking_pronunciation_attempts" && columns.includes("recognized_text")) return { data: localAttempt };
                     return { data: null };
                 }
             }; return q;
@@ -59,6 +62,9 @@ function harness({ authorized = true, entitled = true, active = true, role = "st
             return {assessment_kind:"azure_pronunciation",answer_match:true,recognized_text:"A",scores:{pronunciation:86,accuracy:88,fluency:85,completeness:100,prosody:null},words:[]};
         } },
         "../_shared/speaking-pcm-wav.ts": wav,
+        "../_shared/speaking-azure-sentence.ts": { ...sentence, requestAzureSentenceAssessment: async () => {
+            if (!azurePayload) throw Object.assign(new Error("provider down"), { status: 502, code: "provider_failed" });
+            return azurePayload; } },
         "../_shared/speaking-pronunciation-access.ts": access,
         "../_shared/speaking-pronunciation-flow.ts": flow,
         "../_shared/speaking-recording-policy.ts": policy,
@@ -66,7 +72,7 @@ function harness({ authorized = true, entitled = true, active = true, role = "st
     };
     vm.runInNewContext(compiled, { exports: {}, require: name => { if (!deps[name]) throw new Error(name); return deps[name]; },
         Deno: { env: { get: () => "synthetic-test-value" }, serve: fn => { handler = fn; } },
-        Response, Request, File, console, setTimeout, clearTimeout,
+        Response, Request, File, console, setTimeout, clearTimeout, btoa, AbortController,
         fetch: () => { throw new Error("Network/provider calls are forbidden in local scoring"); } });
     return { handler, writes, reservations };
 }
@@ -149,4 +155,81 @@ test('Azure 僅限 A–Z；一般題 multipart 與 A–Z 本機文字皆拒絕',
 test('A–Z Azure 必須經錄音驗證、claim、十輪 reservation 及原本 round 交易',async()=>{
  const h=harness({alphabet:true});const response=await h.handler(alphabetRequest());assert.equal(response.status,200);const result=await response.json();assert.equal(result.scores.pronunciation,86);assert.equal(result.scores.prosody,null);assert.deepEqual(h.reservations.map(x=>x.name),['claim_speaking_foundation_round_question_v1','reserve_speaking_azure_alphabet_request_v1','record_speaking_foundation_challenge_v4']);assert.equal(h.reservations[1].args.p_audio_seconds,1);assert.equal(h.writes.at(-1).table,'speaking_pronunciation_requests');
  const failed=harness({alphabet:true,providerFailure:true});assert.equal((await failed.handler(alphabetRequest())).status,502);assert.ok(failed.reservations.some(x=>x.name.startsWith('release_')));assert.equal(failed.reservations.some(x=>x.name.startsWith('record_')),false);
+});
+
+const SESSION = "00000000-0000-4000-8000-000000000001";
+const closeLocal = { answerTemplate: "I like cats.", recheckMode: "all" };
+test("本機沒過但只差一點：前端有支援、開關開著才給再確認", async () => {
+    const h = harness(closeLocal);
+    const result = await (await h.handler(request({ recognized_text: "I like caps", recheck_supported: true }))).json();
+    assert.equal(result.answer_match, false);
+    assert.deepEqual(result.recheck, { attempt_id: 4 });
+    for (const [options, patch] of [[{ ...closeLocal, recheckMode: "off" }, {}], [closeLocal, { recheck_supported: false }],
+        [closeLocal, { recognized_text: "I like it" }], [{ ...closeLocal, recheckMode: "staff" }, {}]]) {
+        const other = await (await harness(options).handler(request({ recognized_text: "I like caps", recheck_supported: true, ...patch }))).json();
+        assert.equal(other.recheck, null);
+    }
+});
+const word = (Word, AccuracyScore, ErrorType = "None") => ({ Word, PronunciationAssessment: { AccuracyScore, ErrorType } });
+const azureOk = { NBest: [{ Display: "I like cats.", PronunciationAssessment: { PronScore: 84, AccuracyScore: 84, FluencyScore: 90, CompletenessScore: 100 },
+    Words: [word("I", 95), word("like", 90), word("cats", 72)] }] };
+const localAttempt = { id: 4, student_id: 5, question_id: 1, answer_match: false, recognized_text: "I like caps", client_session_id: SESSION, challenge_mode: "easy", recheck_of_attempt_id: null };
+const recheckRequest = (patch = {}) => alphabetRequest({ assessment_kind: "azure_sentence_recheck_v1", foundation_round_id: "", challenge_mode: "easy", recheck_of_attempt_id: "4", ...patch });
+test("再確認：用剛剛那一筆的文字重判、扣再確認額度、存成新的一筆並指回原本那筆", async () => {
+    const h = harness({ ...closeLocal, localAttempt, azurePayload: azureOk });
+    const response = await h.handler(recheckRequest());
+    assert.equal(response.status, 200);
+    const result = await response.json();
+    assert.equal(result.answer_match, true);
+    assert.equal(result.rechecked, true);
+    assert.equal(result.scores.pronunciation, 84);
+    assert.deepEqual(h.reservations.map(x => x.name), ["reserve_speaking_azure_recheck_request_v1"]);
+    assert.equal(h.reservations[0].args.p_recheck_of_attempt_id, 4);
+    const saved = h.writes.find(row => row.table === "speaking_pronunciation_attempts").value;
+    assert.equal(saved.recheck_of_attempt_id, 4);
+    assert.equal(saved.pronunciation_score, 84);
+});
+test("再確認：別人的、已通過的、不接近的或不同場次的作答都拒絕，不扣額度", async () => {
+    for (const attempt of [{ ...localAttempt, student_id: 6 }, { ...localAttempt, answer_match: true }, { ...localAttempt, recognized_text: "I like it" },
+        { ...localAttempt, client_session_id: "00000000-0000-4000-8000-000000000009" }, null]) {
+        const h = harness({ ...closeLocal, localAttempt: attempt, azurePayload: azureOk });
+        const response = await h.handler(recheckRequest());
+        assert.equal(response.status, 409);
+        assert.equal(h.reservations.length, 0);
+    }
+    const letters = harness({ alphabet: true, recheckMode: "all", localAttempt, azurePayload: azureOk });
+    assert.equal((await letters.handler(recheckRequest())).status, 400);
+});
+test("再確認：額度用完回 429；Azure 失敗回 502 並記錄失敗", async () => {
+    const limited = harness({ ...closeLocal, localAttempt, azurePayload: azureOk, denied: "recheck_limit_reached" });
+    const refused = await limited.handler(recheckRequest());
+    assert.equal(refused.status, 429);
+    assert.equal((await refused.json()).code, "recheck_limit_reached");
+    const failed = harness({ ...closeLocal, localAttempt });
+    const response = await failed.handler(recheckRequest());
+    assert.equal(response.status, 502);
+    assert.equal((await response.json()).code, "recheck_unavailable");
+    assert.equal(failed.writes.some(row => row.table === "speaking_pronunciation_attempts"), false);
+});
+test("再確認：自己說沒過時，回應不含答案字", async () => {
+    const azureFail = { NBest: [{ Display: "I like cats.", PronunciationAssessment: { PronScore: 55, AccuracyScore: 55, FluencyScore: 80, CompletenessScore: 100 },
+        Words: [word("I", 95), word("like", 90), word("cats", 20)] }] };
+    const h = harness({ ...closeLocal, localAttempt: { ...localAttempt, challenge_mode: "challenge" }, azurePayload: azureFail });
+    const result = await (await h.handler(recheckRequest({ challenge_mode: "challenge" }))).json();
+    assert.equal(result.answer_match, false);
+    assert.equal(result.recognized_text, "I like caps");
+    assert.deepEqual(result.words, []);
+    assert.doesNotMatch(result.feedback + result.recognized_text + JSON.stringify(result.words), /cats/);
+});
+test("計時：只存數字與固定選項，亂塞的欄位丟掉", async () => {
+    const h = harness();
+    await h.handler(request({ client_timing: { transcribe_ms: 3200.4, model: "base", platform: "ios", network: "4g", cores: 6,
+        memory_gb: 4, previous_submit_ms: 900, student_name: "Amy", recognized_text: "secret", transcribe_extra: "x" } }));
+    const update = h.writes.find(row => row.table === "speaking_local_reading_requests" && row.value.client_timing);
+    assert.ok(update, "完成時一起存");
+    assert.deepEqual(JSON.parse(JSON.stringify(update.value.client_timing)), { v: 1, transcribe_ms: 3200, inference_ms: null, model: "base", audio_ms: null,
+        platform: "ios", cores: 6, memory_gb: 4, network: "4g", previous_submit_ms: 900, previous_recheck_ms: null });
+    const junk = harness();
+    await junk.handler(request({ client_timing: "not an object" }));
+    assert.equal(junk.writes.find(row => row.table === "speaking_local_reading_requests")?.value.client_timing, null);
 });

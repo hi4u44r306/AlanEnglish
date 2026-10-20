@@ -38,6 +38,7 @@ body.speaking-challenge-active {
     // Readable from about 50 cm on a phone: roughly 9 mm tall capitals at 34px.
     .speaking-question-heading h2,
     .speaking-easy-answer > strong,
+    .speaking-answer-only > strong,
     .speaking-help-panel > div > strong {
         display: block;
         font-size: clamp(32px, 8.6vw, 46px) !important;
@@ -76,19 +77,19 @@ body.speaking-challenge-active {
         .sentence-word, .punctuation, .answer-blank { font-size: inherit !important; line-height: inherit !important; }
         .answer-blank.has-cue { display: inline-block; min-width: 2.4em; margin: 0 .12em; padding: 0 .3em; border-bottom: .09em solid currentColor; border-radius: .2em .2em 0 0; background: rgba(255, 223, 120, .6); font-size: .82em !important; text-align: center; white-space: nowrap; }
     }
-    .speaking-gap-cue { margin: 10px 0 0; font-size: clamp(22px, 5.6vw, 30px); font-weight: 800; line-height: 1.4; color: #79591d; }
+    .speaking-gap-cue { margin: 10px 0 0; font-size: clamp(22px, 5.6vw, 30px); font-weight: 800; line-height: 1.4; color: var(--ae-warning, #79591d); }
 }
 
 // Book list: one line — the title, and today's remaining rounds as a counter that opens the notes.
-.speaking-challenge-catalog:not(.is-book-open) .speaking-challenge-hero:has(.speaking-catalog-help) { position: relative; display: block; min-height: 0 !important; padding: 16px 20px !important; border: 1px solid #d5e3f0; border-radius: 20px !important; box-shadow: none !important; }
+.speaking-challenge-catalog:not(.is-book-open) .speaking-challenge-hero:has(.speaking-catalog-help) { position: relative; display: block; min-height: 0 !important; padding: 16px 20px !important; border: 1px solid var(--ae-border, #d5e3f0); border-radius: 20px !important; box-shadow: none !important; }
 .speaking-challenge-hero:has(.speaking-catalog-help) .speaking-challenge-hero__copy > span,
 .speaking-challenge-hero:has(.speaking-catalog-help) .speaking-challenge-hero__copy > p { display: none !important; }
 .speaking-challenge-hero:has(.speaking-catalog-help) .speaking-challenge-hero__copy { display: block; min-height: 44px; padding-right: 0; pointer-events: none; }
 .speaking-challenge-hero:has(.speaking-catalog-help) .speaking-challenge-hero__copy h1 { margin: 0 !important; font-size: clamp(22px, 6.4vw, 28px) !important; line-height: 44px !important; }
 .speaking-challenge-hero .speaking-catalog-help { margin: 0 !important; padding: 0 !important; border: 0 !important; border-radius: 0 !important; background: none !important; }
-.speaking-challenge-hero .speaking-catalog-help > summary { position: absolute; z-index: 3; top: 16px; right: 16px; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 12px !important; border: 1px solid #c5d6e8; border-radius: 22px !important; background: #edf5ff !important; box-shadow: none !important; color: #17365d !important; list-style: none; cursor: pointer; > svg { width: 20px; height: 20px; color: #245fc5; } > b { font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; } }
+.speaking-challenge-hero .speaking-catalog-help > summary { position: absolute; z-index: 3; top: 16px; right: 16px; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 12px !important; border: 1px solid var(--ae-border, #c5d6e8); border-radius: 22px !important; background: var(--ae-surface-muted, #edf5ff) !important; box-shadow: none !important; color: var(--ae-text, #17365d) !important; list-style: none; cursor: pointer; > svg { width: 20px; height: 20px; color: var(--ae-icon, #245fc5); } > b { font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; } }
 .speaking-challenge-hero .speaking-catalog-help > summary::-webkit-details-marker { display: none; }
-.speaking-challenge-hero .speaking-catalog-help[open] > summary { border-color: #17365d; background: #17365d !important; color: #fff !important; > svg { color: #ffd84d; } }
+.speaking-challenge-hero .speaking-catalog-help[open] > summary { border-color: #17365d; background: var(--ae-solid, #17365d) !important; color: #fff !important; > svg { color: #ffd84d; } }
 .speaking-challenge-hero .speaking-catalog-help[open] { padding-top: 12px !important; }
 // Opened, the notes skip the how-to-play strip: the counter and the parent notes are enough.
 .speaking-challenge-hero .speaking-catalog-help .speaking-challenge-rules { margin: 0 !important; padding: 0 !important; border: 0 !important; background: none !important; box-shadow: none !important; }
@@ -116,66 +117,69 @@ body.speaking-challenge-active {
 .speaking-challenge-page:not(.is-book-open) .speaking-book-card__action { display: none !important; }
 .speaking-challenge-page:not(.is-book-open) .speaking-book-card__scene { width: 64px !important; height: 64px !important; grid-row: auto !important; }
 .speaking-challenge-page:not(.is-book-open) .speaking-book-card__content { display: grid !important; gap: 8px; min-width: 0; }
-.speaking-challenge-page:not(.is-book-open) .speaking-book-card__content > strong { font-size: 24px !important; font-weight: 800 !important; line-height: 1.2 !important; color: #17365d !important; overflow-wrap: anywhere; }
-.speaking-challenge-page:not(.is-book-open) .speaking-book-card__tally { font-size: 20px; font-weight: 800; color: #17365d; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.speaking-challenge-page:not(.is-book-open) .speaking-book-card__content > strong { font-size: 24px !important; font-weight: 800 !important; line-height: 1.2 !important; color: var(--ae-text, #17365d) !important; overflow-wrap: anywhere; }
+.speaking-challenge-page:not(.is-book-open) .speaking-book-card__tally { font-size: 20px; font-weight: 800; color: var(--ae-text, #17365d); font-variant-numeric: tabular-nums; white-space: nowrap; }
 
 // ---- Inside a level: the same calm, light look as the rest of the site. A pale page, white
 // cards with a thin line, navy type and one yellow microphone. The storybook frames (teal sky,
 // brown borders, cream panels, drop shadows) are replaced here; layout and behaviour are not.
 body.speaking-challenge-active,
 body.speaking-challenge-active .app-shell,
-body.speaking-game-world-active .app-shell { background: #f7f9fc !important; }
-body.speaking-challenge-active .speaking-adventure-session { background: #f7f9fc !important; background-image: none !important; color: #17365d !important; }
+body.speaking-game-world-active .app-shell { background: var(--ae-surface-muted, #f7f9fc) !important; }
+body.speaking-challenge-active .speaking-adventure-session { background: var(--ae-surface-muted, #f7f9fc) !important; background-image: none !important; color: var(--ae-text, #17365d) !important; }
 body.speaking-challenge-active .speaking-adventure-session::before,
 body.speaking-challenge-active .speaking-adventure-session::after { display: none !important; }
 
 // "Listen to this level's audio first": a quiet white pill.
 body.speaking-challenge-active .speaking-lesson-preparation > a,
-body.speaking-challenge-active .speaking-lesson-preparation > button { min-height: 44px; border: 1px solid #c5d6e8 !important; border-radius: 22px !important; background: #fff !important; box-shadow: none !important; color: #17365d !important; font-weight: 700 !important; }
+body.speaking-challenge-active .speaking-lesson-preparation > button { min-height: 44px; border: 1px solid var(--ae-border, #c5d6e8) !important; border-radius: 22px !important; background: var(--ae-surface, #fff) !important; box-shadow: none !important; color: var(--ae-text, #17365d) !important; font-weight: 700 !important; }
 
 // Top bar: back, page, progress.
-body.speaking-challenge-active .speaking-lesson-header { border: 1px solid #d5e3f0 !important; border-radius: 20px !important; background: #fff !important; box-shadow: none !important; color: #17365d !important; }
-body.speaking-challenge-active .speaking-lesson-header .speaking-back { border: 0 !important; background: #e6edf5 !important; box-shadow: none !important; color: #17365d !important; }
-body.speaking-challenge-active .speaking-lesson-page { color: #17365d !important; font-size: 20px !important; font-weight: 800 !important; }
-body.speaking-challenge-active .speaking-lesson-progress { border: 0 !important; background: none !important; box-shadow: none !important; color: #526780 !important; }
-body.speaking-challenge-active .speaking-lesson-progress span { color: #526780 !important; font-size: 14px !important; font-weight: 700 !important; }
-body.speaking-challenge-active .speaking-progress-track { height: 8px !important; border-radius: 8px !important; background: #e6edf5 !important; overflow: hidden; }
+body.speaking-challenge-active .speaking-lesson-header { border: 1px solid var(--ae-border, #d5e3f0) !important; border-radius: 20px !important; background: var(--ae-surface, #fff) !important; box-shadow: none !important; color: var(--ae-text, #17365d) !important; }
+body.speaking-challenge-active .speaking-lesson-header .speaking-back { border: 0 !important; background: var(--ae-surface-muted, #e6edf5) !important; box-shadow: none !important; color: var(--ae-text, #17365d) !important; }
+body.speaking-challenge-active .speaking-lesson-page { color: var(--ae-text, #17365d) !important; font-size: 20px !important; font-weight: 800 !important; }
+body.speaking-challenge-active .speaking-lesson-progress { border: 0 !important; background: none !important; box-shadow: none !important; color: var(--ae-text-muted, #526780) !important; }
+body.speaking-challenge-active .speaking-lesson-progress span { color: var(--ae-text-muted, #526780) !important; font-size: 14px !important; font-weight: 700 !important; }
+body.speaking-challenge-active .speaking-progress-track { height: 8px !important; border-radius: 8px !important; background: var(--ae-surface-muted, #e6edf5) !important; overflow: hidden; }
 body.speaking-challenge-active .speaking-progress-track > span { border-radius: 8px !important; background: #247a56 !important; }
 
 // One card, no frame inside a frame.
-body.speaking-challenge-active .speaking-focus-card { border: 1px solid #d5e3f0 !important; border-radius: 24px !important; background: #fff !important; box-shadow: none !important; color: #17365d !important; }
+body.speaking-challenge-active .speaking-focus-card { border: 1px solid var(--ae-border, #d5e3f0) !important; border-radius: 24px !important; background: var(--ae-surface, #fff) !important; box-shadow: none !important; color: var(--ae-text, #17365d) !important; }
 body.speaking-challenge-active .speaking-game-question-card,
 body.speaking-challenge-active .speaking-practice-flow { border: 0 !important; border-radius: 0 !important; background: none !important; box-shadow: none !important; }
-body.speaking-challenge-active .speaking-gap-sentence { border: 0 !important; background: none !important; color: #17365d !important; }
+body.speaking-challenge-active .speaking-gap-sentence { border: 0 !important; background: none !important; color: var(--ae-text, #17365d) !important; }
 body.speaking-challenge-active .answer-blank,
-body.speaking-challenge-active .speaking-answer-slot { border-bottom: 4px solid #ffd84d !important; border-radius: 6px 6px 0 0 !important; background: #fff6d6 !important; color: #5c4a12 !important; }
+body.speaking-challenge-active .speaking-answer-slot { border-bottom: 4px solid #ffd84d !important; border-radius: 6px 6px 0 0 !important; background: var(--ae-warning-bg, #fff6d6) !important; color: var(--ae-warning, #5c4a12) !important; }
 body.speaking-challenge-active .speaking-gap-sentence-audio,
-body.speaking-challenge-active .speaking-help-toggle { min-height: 44px; border: 1px solid #c5d6e8 !important; border-radius: 22px !important; background: #fff !important; box-shadow: none !important; color: #245fc5 !important; font-weight: 700 !important; }
+body.speaking-challenge-active .speaking-help-toggle { min-height: 44px; border: 1px solid var(--ae-border, #c5d6e8) !important; border-radius: 22px !important; background: var(--ae-surface, #fff) !important; box-shadow: none !important; color: var(--ae-accent, #245fc5) !important; font-weight: 700 !important; }
 
 // The microphone is the one bright thing on the screen.
 body.speaking-challenge-active .speaking-pronunciation { border: 0 !important; background: none !important; }
-body.speaking-challenge-active .speaking-pronunciation-mic { border: 0 !important; background: #ffd84d !important; box-shadow: none !important; color: #17365d !important; }
-body.speaking-challenge-active .speaking-pronunciation-mic:disabled { background: #e6edf5 !important; color: #8a97a8 !important; }
-body.speaking-challenge-active .speaking-recording-status { background: none !important; color: #526780 !important; }
+body.speaking-challenge-active .speaking-pronunciation-mic { border: 0 !important; background: var(--ae-warning-bg, #ffd84d) !important; box-shadow: none !important; color: var(--ae-text, #17365d) !important; }
+body.speaking-challenge-active .speaking-pronunciation-mic:disabled { background: var(--ae-surface-muted, #e6edf5) !important; color: var(--ae-text-muted, #8a97a8) !important; }
+body.speaking-challenge-active .speaking-recording-status { background: none !important; color: var(--ae-text-muted, #526780) !important; }
 
 // Previous / next.
-body.speaking-challenge-active .speaking-question-navigation { border: 0 !important; background: none !important; box-shadow: none !important; color: #526780 !important; }
-body.speaking-challenge-active .speaking-question-navigation > button { min-height: 52px; border: 1px solid #c5d6e8 !important; border-radius: 16px !important; background: #fff !important; box-shadow: none !important; color: #17365d !important; font-weight: 800 !important; }
+body.speaking-challenge-active .speaking-question-navigation { border: 0 !important; background: none !important; box-shadow: none !important; color: var(--ae-text-muted, #526780) !important; }
+body.speaking-challenge-active .speaking-question-navigation > button { min-height: 52px; border: 1px solid var(--ae-border, #c5d6e8) !important; border-radius: 16px !important; background: var(--ae-surface, #fff) !important; box-shadow: none !important; color: var(--ae-text, #17365d) !important; font-weight: 800 !important; }
 body.speaking-challenge-active .speaking-question-navigation > button.primary,
 body.speaking-challenge-active .speaking-foundation-intro .primary,
-body.speaking-challenge-active .speaking-focus-card button.primary { border: 0 !important; border-radius: 16px !important; background: #ffd84d !important; background-image: none !important; box-shadow: none !important; color: #17365d !important; font-weight: 800 !important; text-shadow: none !important; }
+body.speaking-challenge-active .speaking-focus-card button.primary { border: 0 !important; border-radius: 16px !important; background: var(--ae-warning-bg, #ffd84d) !important; background-image: none !important; box-shadow: none !important; color: var(--ae-text, #17365d) !important; font-weight: 800 !important; text-shadow: none !important; }
 body.speaking-challenge-active .speaking-question-navigation > button:disabled { opacity: .45; }
+// 題目做完才出現主要的黃色「繼續挑戰」；還沒做完只有低調的「跳過這題」文字按鈕。
+body.speaking-challenge-active .speaking-continue-button.is-ready { border: 0 !important; border-radius: 18px !important; background: var(--ae-warning-bg, #ffd84d) !important; background-image: none !important; box-shadow: none !important; color: var(--ae-text, #17365d) !important; font-size: 18px; font-weight: 800 !important; }
+body.speaking-challenge-active .speaking-continue-button.is-skip { width: auto !important; min-height: 44px !important; padding: 8px 16px; border: 0 !important; background: none !important; box-shadow: none !important; color: var(--ae-text-muted, #526780) !important; font-weight: 700 !important; text-decoration: underline; text-underline-offset: 3px; }
 
 // The opening card of a level, and the page behind it, in the same flat style.
-body.speaking-challenge-active .speaking-challenge-page { background: #f7f9fc !important; background-image: none !important; }
-body.speaking-challenge-active .speaking-foundation-intro { border: 1px solid #d5e3f0 !important; border-radius: 24px !important; background: #fff !important; background-image: none !important; box-shadow: none !important; color: #17365d !important; }
+body.speaking-challenge-active .speaking-challenge-page { background: var(--ae-surface-muted, #f7f9fc) !important; background-image: none !important; }
+body.speaking-challenge-active .speaking-foundation-intro { border: 1px solid var(--ae-border, #d5e3f0) !important; border-radius: 24px !important; background: var(--ae-surface, #fff) !important; background-image: none !important; box-shadow: none !important; color: var(--ae-text, #17365d) !important; }
 body.speaking-challenge-active .speaking-foundation-intro > svg,
 body.speaking-challenge-active .speaking-foundation-intro > span:first-child,
-body.speaking-challenge-active .speaking-foundation-intro [class*="icon"] { background: #dbe8ff !important; background-image: none !important; box-shadow: none !important; color: #1d4fa8 !important; }
+body.speaking-challenge-active .speaking-foundation-intro [class*="icon"] { background: var(--ae-info-bg, #dbe8ff) !important; background-image: none !important; box-shadow: none !important; color: var(--ae-icon, #1d4fa8) !important; }
 
 // ---- A friendlier finish on top of the flat base: a soft sky behind the card, the sentence as
 // the hero, a blank that looks like a slot to fill, and a microphone with a gentle halo.
-body.speaking-challenge-active .speaking-adventure-session { background: linear-gradient(180deg, #e3efff 0%, #f1f6fd 34%, #f7f9fc 70%) !important; position: relative; }
+body.speaking-challenge-active .speaking-adventure-session { background: linear-gradient(180deg, #e3efff 0%, #f1f6fd 34%, var(--ae-surface-muted, #f7f9fc) 70%) !important; position: relative; }
 body.speaking-challenge-active .speaking-adventure-session::before,
 body.speaking-challenge-active .speaking-adventure-session::after { content: "" !important; display: block !important; position: absolute; z-index: 0; border-radius: 50%; pointer-events: none; }
 body.speaking-challenge-active .speaking-adventure-session::before { top: -70px; right: -60px; width: 220px; height: 220px; background: rgba(255, 216, 77, .28); }
@@ -185,21 +189,21 @@ body.speaking-challenge-active .speaking-challenge-page { background: transparen
 
 // Top bar floats without a box; progress is a fat, friendly bar.
 body.speaking-challenge-active .speaking-lesson-header { border: 0 !important; background: transparent !important; padding-inline: 4px !important; }
-// The round back button shows only its arrow at every width; its label stays for screen readers.
-body.speaking-challenge-active .speaking-lesson-header .speaking-back { flex: 0 0 48px; justify-content: center; width: 48px; min-width: 48px; height: 48px; min-height: 48px; padding: 0 !important; border-radius: 50% !important; background: #fff !important; border: 1px solid #d5e3f0 !important; font-size: 0 !important; }
+// The round back button shows only its arrow on wide screens (phones add a small "離開"); its label stays for screen readers.
+body.speaking-challenge-active .speaking-lesson-header .speaking-back { flex: 0 0 48px; justify-content: center; width: 48px; min-width: 48px; height: 48px; min-height: 48px; padding: 0 !important; border-radius: 50% !important; background: var(--ae-surface, #fff) !important; border: 1px solid var(--ae-border, #d5e3f0) !important; font-size: 0 !important; }
 body.speaking-challenge-active .speaking-lesson-header .speaking-back svg { width: 26px; height: 26px; flex: none; }
-body.speaking-challenge-active .speaking-lesson-page { padding: 6px 16px; border-radius: 16px; background: #17365d; color: #fff !important; font-size: 18px !important; letter-spacing: .02em; }
-body.speaking-challenge-active .speaking-lesson-progress span { color: #17365d !important; font-weight: 800 !important; }
-body.speaking-challenge-active .speaking-progress-track { height: 12px !important; border-radius: 12px !important; background: #fff !important; border: 1px solid #d5e3f0; }
+body.speaking-challenge-active .speaking-lesson-page { padding: 6px 16px; border-radius: 16px; background: var(--ae-solid, #17365d); color: #fff !important; font-size: 18px !important; letter-spacing: .02em; }
+body.speaking-challenge-active .speaking-lesson-progress span { color: var(--ae-text, #17365d) !important; font-weight: 800 !important; }
+body.speaking-challenge-active .speaking-progress-track { height: 12px !important; border-radius: 12px !important; background: var(--ae-surface, #fff) !important; border: 1px solid var(--ae-border, #d5e3f0); }
 body.speaking-challenge-active .speaking-progress-track > span { border-radius: 12px !important; background: linear-gradient(90deg, #36a877, #247a56) !important; }
 
 // The card: roomy, rounded, with a thin yellow lip at the top.
-body.speaking-challenge-active .speaking-focus-card { border: 1px solid #d5e3f0 !important; border-top: 6px solid #ffd84d !important; border-radius: 28px !important; }
+body.speaking-challenge-active .speaking-focus-card { border: 1px solid var(--ae-border, #d5e3f0) !important; border-top: 6px solid #ffd84d !important; border-radius: 28px !important; }
 body.speaking-challenge-active .speaking-gap-sentence { font-weight: 900 !important; letter-spacing: -.01em; }
 body.speaking-challenge-active .answer-blank,
-body.speaking-challenge-active .speaking-answer-slot { display: inline-block; margin-inline: 4px; padding: 0 12px !important; border: 2px dashed #e0ac1c !important; border-radius: 14px !important; background: #fff6d6 !important; color: #7a5600 !important; line-height: 1.5; }
-body.speaking-challenge-active .speaking-gap-sentence-audio { border-color: transparent !important; background: #e8f1ff !important; color: #1d4fa8 !important; }
-body.speaking-challenge-active .speaking-help-toggle { border-color: transparent !important; background: #f1f5fa !important; color: #39526e !important; font-size: 16px !important; }
+body.speaking-challenge-active .speaking-answer-slot { display: inline-block; margin-inline: 4px; padding: 0 12px !important; border: 2px dashed #e0ac1c !important; border-radius: 14px !important; background: var(--ae-warning-bg, #fff6d6) !important; color: var(--ae-warning, #7a5600) !important; line-height: 1.5; }
+body.speaking-challenge-active .speaking-gap-sentence-audio { border-color: transparent !important; background: var(--ae-surface-muted, #e8f1ff) !important; color: var(--ae-accent, #1d4fa8) !important; }
+body.speaking-challenge-active .speaking-help-toggle { border-color: transparent !important; background: var(--ae-surface-muted, #f1f5fa) !important; color: var(--ae-accent, #39526e) !important; font-size: 16px !important; }
 
 // Microphone: big, yellow, with a soft ring that breathes while it waits.
 body.speaking-challenge-active .speaking-pronunciation-mic { box-shadow: 0 0 0 10px rgba(255, 216, 77, .3) !important; animation: speaking-mic-breathe 2.4s ease-in-out infinite; }
@@ -211,7 +215,7 @@ body.speaking-challenge-active .speaking-pronunciation-mic:disabled { box-shadow
 body.speaking-challenge-active .speaking-foundation-intro { border-top: 6px solid #ffd84d !important; border-radius: 28px !important; }
 body.speaking-challenge-active .speaking-foundation-intro > svg,
 body.speaking-challenge-active .speaking-foundation-intro > span:first-child,
-body.speaking-challenge-active .speaking-foundation-intro [class*="icon"] { border-radius: 50% !important; background: #ffe9a8 !important; color: #8a5a00 !important; }
+body.speaking-challenge-active .speaking-foundation-intro [class*="icon"] { border-radius: 50% !important; background: var(--ae-warning-bg, #ffe9a8) !important; color: var(--ae-warning, #8a5a00) !important; }
 body.speaking-challenge-active .speaking-question-navigation > button.primary,
 body.speaking-challenge-active .speaking-foundation-intro .primary,
 body.speaking-challenge-active .speaking-focus-card button.primary { border-radius: 18px !important; font-size: 18px !important; }
@@ -222,32 +226,32 @@ body.speaking-challenge-active .speaking-lesson-page { flex: 0 0 auto !important
 // Room for the halo, so it never touches the hint above it.
 body.speaking-challenge-active .speaking-pronunciation { padding-block: 24px 20px !important; }
 
-// ---- The record button. A large sunny disc with the microphone in the middle, a white rim and
-// two soft rings that breathe; its label sits underneath so the disc stays clean. While
-// recording it turns coral and the rings quicken, so the state is obvious without reading.
+// ---- The record button. A large sunny disc with the microphone in the middle and a white rim; no glow
+// around it. It beats gently like a heart so children know to press it. While recording it turns green
+// with a tick (說完了) and keeps beating, so the state is obvious without reading.
 body.speaking-challenge-active .speaking-pronunciation { display: grid; justify-items: center; padding-block: 28px 20px !important; }
 body.speaking-challenge-active .speaking-pronunciation-mic.speaking-pronunciation-mic {
   position: relative; display: grid !important; place-items: center; width: 112px !important; height: 112px !important; min-width: 0 !important; min-height: 0 !important; margin: 0 auto 44px !important; padding: 0 !important;
-  border: 5px solid #fff !important; border-radius: 50% !important;
+  border: 5px solid var(--ae-surface, #fff) !important; border-radius: 50% !important;
   background: linear-gradient(160deg, #ffe98a 0%, #ffd03f 55%, #f9b91b 100%) !important;
-  color: #17365d !important; overflow: visible !important;
-  box-shadow: 0 0 0 2px #f2b61c, 0 0 0 14px rgba(255, 208, 63, .28), 0 0 0 28px rgba(255, 208, 63, .12) !important;
-  animation: speaking-mic-rings 2.6s ease-in-out infinite; transition: transform .12s ease;
+  color: var(--ae-text, #17365d) !important; overflow: visible !important;
+  box-shadow: 0 0 0 2px #f2b61c, 0 6px 14px rgba(23, 54, 93, .16) !important;
+  animation: speaking-mic-heartbeat 1.6s ease-in-out infinite; transition: transform .12s ease;
 }
 body.speaking-challenge-active .speaking-pronunciation-mic.speaking-pronunciation-mic > svg { width: 46px !important; height: 46px !important; stroke-width: 2.2; }
-body.speaking-challenge-active .speaking-pronunciation-mic.speaking-pronunciation-mic > span { position: absolute; top: calc(100% + 18px); left: 50%; transform: translateX(-50%); color: #17365d !important; font-size: 17px !important; font-weight: 800 !important; line-height: 1.3; white-space: nowrap; }
+body.speaking-challenge-active .speaking-pronunciation-mic.speaking-pronunciation-mic > span { position: absolute; top: calc(100% + 18px); left: 50%; transform: translateX(-50%); color: var(--ae-text, #17365d) !important; font-size: 17px !important; font-weight: 800 !important; line-height: 1.3; white-space: nowrap; }
 body.speaking-challenge-active .speaking-pronunciation-mic.speaking-pronunciation-mic:active { transform: scale(.95); }
 body.speaking-challenge-active .speaking-pronunciation-mic.speaking-pronunciation-mic:focus-visible { outline: 3px solid #17365d !important; outline-offset: 6px; }
 body.speaking-challenge-active .speaking-pronunciation-mic.speaking-pronunciation-mic.is-recording {
-  background: linear-gradient(160deg, #ff9a7b 0%, #f4563f 60%, #e23a2e 100%) !important; color: #fff !important;
-  box-shadow: 0 0 0 2px #e23a2e, 0 0 0 14px rgba(244, 86, 63, .26), 0 0 0 28px rgba(244, 86, 63, .1) !important;
-  animation: speaking-mic-rings-live 1.1s ease-in-out infinite;
+  background: linear-gradient(160deg, #6fd39b 0%, #2fa76a 60%, #1f8a55 100%) !important; color: #fff !important;
+  box-shadow: 0 0 0 2px #1f8a55, 0 6px 14px rgba(23, 54, 93, .16) !important;
+  animation: speaking-mic-heartbeat 1.2s ease-in-out infinite;
 }
-body.speaking-challenge-active .speaking-pronunciation-mic.speaking-pronunciation-mic.is-recording > span { color: #b3261e !important; }
-body.speaking-challenge-active .speaking-pronunciation-mic.speaking-pronunciation-mic:disabled { background: #e6edf5 !important; color: #8a97a8 !important; box-shadow: 0 0 0 2px #c5d6e8 !important; animation: none; }
-body.speaking-challenge-active .speaking-pronunciation-mic.speaking-pronunciation-mic:disabled > span { color: #8a97a8 !important; }
-@keyframes speaking-mic-rings { 50% { box-shadow: 0 0 0 2px #f2b61c, 0 0 0 20px rgba(255, 208, 63, .16), 0 0 0 38px rgba(255, 208, 63, .04); } }
-@keyframes speaking-mic-rings-live { 50% { box-shadow: 0 0 0 2px #e23a2e, 0 0 0 22px rgba(244, 86, 63, .14), 0 0 0 40px rgba(244, 86, 63, .03); } }
+body.speaking-challenge-active .speaking-pronunciation-mic.speaking-pronunciation-mic.is-recording > span { color: var(--ae-success, #1b6344) !important; }
+body.speaking-challenge-active .speaking-pronunciation-mic.speaking-pronunciation-mic:disabled { background: var(--ae-surface-muted, #e6edf5) !important; color: var(--ae-text-muted, #8a97a8) !important; box-shadow: 0 0 0 2px #c5d6e8 !important; animation: none; }
+body.speaking-challenge-active .speaking-pronunciation-mic.speaking-pronunciation-mic:disabled > span { color: var(--ae-text-muted, #8a97a8) !important; }
+// 心跳：兩下輕跳後停一下。
+@keyframes speaking-mic-heartbeat { 0%, 40%, 100% { transform: scale(1); } 12% { transform: scale(1.06); } 24% { transform: scale(1); } 32% { transform: scale(1.05); } }
 @media (prefers-reduced-motion: reduce) { body.speaking-challenge-active .speaking-pronunciation-mic.speaking-pronunciation-mic { animation: none !important; transition: none; } }
 
 // One centred column at every width: on wide screens the two-column grid left the question squeezed
@@ -262,10 +266,10 @@ body.speaking-challenge-active .speaking-practice-flow .speaking-help-toggle { j
 // letters drawn to sit on them (see HandwritingLetters.jsx). The lines are at 2, 12, 22 and 32 of the
 // drawing's 34-unit height, which is where the letters' top, middle, base and tail lines are.
 // The strip is 46 units wide for its 34 of height, enough for the widest pair (Mm, Ww) with a margin.
-body.speaking-challenge-active .speaking-alphabet-list span { overflow: hidden; align-items: center !important; min-height: 0 !important; padding: 7px 0 !important; color: #17365d; }
-body.speaking-challenge-active .speaking-alphabet-list span.heard { color: #146c43; }
+body.speaking-challenge-active .speaking-alphabet-list span { overflow: hidden; align-items: center !important; min-height: 0 !important; padding: 7px 0 !important; color: var(--ae-text, #17365d); }
+body.speaking-challenge-active .speaking-alphabet-list span.heard { color: var(--ae-success, #146c43); }
 body.speaking-challenge-active .speaking-alphabet-list .handwriting-paper {
-  --paper-line: #e3e9f0; --paper-base: #b5e2d6;
+  --paper-line: var(--ae-border, #e3e9f0); --paper-base: #b5e2d6;
   display: flex; align-items: stretch; justify-content: center; gap: 5%; box-sizing: border-box; width: 100%; aspect-ratio: 46 / 34; max-height: 78px;
   background:
     linear-gradient(var(--paper-line), var(--paper-line)) 0 calc(100% * 2 / 34) / 100% 1.5px no-repeat,
@@ -275,3 +279,199 @@ body.speaking-challenge-active .speaking-alphabet-list .handwriting-paper {
 }
 body.speaking-challenge-active .speaking-alphabet-list .handwriting-letter { flex: none; height: 100%; width: auto; overflow: visible; }
 body.speaking-challenge-active .speaking-alphabet-list .handwriting-letter path { stroke-width: 2.3; }
+
+// 「跟著念」要念的那一句：上方標「念這句」，外框加粗，學生一眼看出要念答案而不是題目。
+.speaking-easy-answer__cue {
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+    align-self: flex-start;
+    width: fit-content;
+    padding: 4px 12px;
+    border-radius: 999px;
+    background: #ffd34d;
+    color: #3a2a15;
+    font-size: 18px;
+    font-weight: 900;
+    line-height: 1.3;
+}
+
+.speaking-challenge-page .speaking-help-panel.speaking-easy-answer,
+.speaking-adventure-session .speaking-challenge-detail.speaking-immersive-play .speaking-help-panel.speaking-easy-answer {
+    border: 3px solid #f2b51e;
+    background: var(--ae-warning-bg, #fffbea);
+}
+
+// 桌機版的提示框是兩欄格線；「念這句」與要念的句子都佔滿整列，句子靠左。
+.speaking-challenge-page .speaking-help-panel.speaking-easy-answer > .speaking-easy-answer__cue,
+.speaking-challenge-page .speaking-help-panel.speaking-easy-answer > strong {
+    grid-column: 1 / -1;
+    justify-self: start;
+    text-align: left;
+}
+
+// 「聽這題」：每題片段按鈕置中，錯誤訊息在按鈕下方。
+.speaking-question-clip { display: grid; justify-items: center; gap: 6px; }
+.speaking-question-clip__button { min-height: 44px; }
+.speaking-question-clip__error { color: var(--ae-danger, #b3261e); font-size: 14px; text-align: center; }
+
+// 跟著念三步：聽 → 拼 → 念
+.speaking-guided-stepper { display: flex; justify-content: center; gap: 8px; margin: 0 0 12px; padding: 0; list-style: none; }
+.speaking-guided-stepper li { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; background: var(--ae-surface-muted, #eef3f9); color: var(--ae-text-muted, #526780); font-size: 16px; font-weight: 700; }
+.speaking-guided-stepper li > span { display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: var(--ae-surface, #fff); font-size: 14px; }
+.speaking-guided-stepper li.is-current { background: var(--ae-solid, #17365d); color: #fff; }
+.speaking-guided-stepper li.is-current > span { color: var(--ae-text, #17365d); }
+.speaking-guided-stepper li.is-done { background: var(--ae-success-bg, #e5f5e9); color: var(--ae-success, #1b6344); }
+.speaking-guided-step { display: grid; justify-items: center; gap: 14px; text-align: center; }
+.speaking-guided-step__title { margin: 0; color: var(--ae-text, #17365d); font-size: 20px; font-weight: 800; }
+body.speaking-challenge-active .speaking-question-clip--hero .speaking-question-clip__button,
+.speaking-question-clip--hero .speaking-question-clip__button { display: inline-flex; align-items: center; justify-content: center; gap: 10px; width: min(320px, 100%); min-height: 64px; border: 0 !important; border-radius: 20px !important; background: var(--ae-warning-bg, #ffd84d) !important; box-shadow: 0 5px 0 #e0a800 !important; color: var(--ae-text, #17365d) !important; font-size: 22px !important; font-weight: 800 !important; }
+.speaking-question-clip--hero .speaking-question-clip__button svg { font-size: 26px; }
+.speaking-question-clip--hero .speaking-question-clip__button[aria-pressed="true"] { box-shadow: 0 2px 0 #e0a800 !important; transform: translateY(3px); }
+.speaking-guided-next { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 52px; padding: 0 22px; border: 1px solid var(--ae-border, #c5d6e8); border-radius: 16px; background: var(--ae-surface, #fff); color: var(--ae-accent, #245fc5); font-size: 18px; font-weight: 800; }
+.speaking-guided-next.is-ready { border-color: transparent; background: var(--ae-solid, #17365d); color: #fff; }
+.speaking-spell-slots { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; max-width: 100%; }
+.speaking-spell-slot { width: 44px; height: 52px; padding: 0; border: 0; border-bottom: 4px solid var(--ae-border, #9cb7d3); border-radius: 10px 10px 4px 4px; background: var(--ae-surface-muted, #f1f5fa); color: var(--ae-text, #17365d); font-size: 28px; font-weight: 800; text-transform: none !important; }
+.speaking-spell-slot.is-filled { background: var(--ae-surface, #fff); border-bottom-color: var(--ae-accent, #245fc5); }
+.speaking-spell-slot.is-wrong { border-bottom-color: var(--ae-danger, #c62828); color: var(--ae-danger, #c62828); background: var(--ae-danger-bg, #fdecec); }
+.speaking-spell-slots.is-right .speaking-spell-slot { border-bottom-color: var(--ae-success, #1b6344); color: var(--ae-success, #1b6344); }
+.speaking-spell-slot:disabled { opacity: 1; cursor: default; }
+.speaking-spell-gap { width: 14px; }
+.speaking-spell-tiles { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; max-width: 540px; }
+.speaking-spell-tile { width: 52px; height: 52px; border: 1px solid var(--ae-border, #c5d6e8); border-radius: 14px; background: var(--ae-surface, #fff); box-shadow: 0 3px 0 var(--ae-border, #c5d6e8); color: var(--ae-text, #17365d); font-size: 26px; font-weight: 800; text-transform: none !important; }
+.speaking-spell-tile:disabled { opacity: .3; box-shadow: none; }
+.speaking-spell-tile--back { color: var(--ae-text-muted, #526780); font-size: 22px; }
+.speaking-spell-feedback { margin: 0; color: var(--ae-danger, #c62828); font-size: 16px; font-weight: 700; }
+.speaking-spell-feedback.is-right { display: inline-flex; align-items: center; gap: 6px; color: var(--ae-success, #1b6344); font-size: 20px; }
+@media (max-width: 380px) { .speaking-spell-slot { width: 36px; height: 46px; font-size: 24px; } .speaking-spell-tile { width: 46px; height: 46px; font-size: 22px; } }
+
+// ---- One top row: back arrow, question count with its bar, and "listen to this level first".
+// The page label is gone; the listening pill sits in the header next to the progress.
+body.speaking-challenge-active .speaking-immersive-play .speaking-lesson-header {
+  display: flex !important; align-items: center; gap: 12px; min-height: 0 !important;
+}
+body.speaking-challenge-active .speaking-immersive-play .speaking-lesson-progress { flex: 1 1 auto; width: auto !important; min-width: 0; margin: 0 !important; padding: 0 !important; }
+body.speaking-challenge-active .speaking-lesson-tools { flex: 0 0 auto; display: flex; }
+body.speaking-challenge-active .speaking-lesson-tools:empty { display: none; }
+body.speaking-challenge-active .speaking-lesson-tools .speaking-lesson-preparation { width: auto; margin: 0; }
+body.speaking-challenge-active .speaking-lesson-tools .speaking-lesson-preparation > a { min-height: 44px; padding: 8px 14px; white-space: nowrap; }
+body.speaking-challenge-active .speaking-lesson-tools .speaking-listening-busy { max-width: 180px; color: var(--ae-text-muted, #526780); font-size: 13px; font-weight: 700; line-height: 1.35; }
+// Narrow phones: the pill keeps its icon and a shorter label so the count still has room.
+@media (max-width: 380px) {
+  body.speaking-challenge-active .speaking-lesson-tools .speaking-lesson-preparation > a { padding-inline: 10px; font-size: 14px !important; }
+}
+
+// ---- Keep a whole question on one screen. Long sentences get smaller type (and a smaller picture),
+// many letters get smaller tiles, and short screens tighten the gaps.
+body.speaking-challenge-active .speaking-gap-sentence.is-long { font-size: clamp(22px, 5.8vw, 30px) !important; line-height: 1.4 !important; }
+body.speaking-challenge-active .speaking-gap-sentence.is-very-long { font-size: clamp(17px, 4.5vw, 22px) !important; line-height: 1.45 !important; }
+body.speaking-challenge-active .speaking-game-question-card:has(.speaking-gap-sentence.is-very-long) .speaking-visual-aid { width: 84px !important; }
+body.speaking-challenge-active .speaking-gap-sentence .punctuation { white-space: nowrap; }
+.speaking-spell-slots.is-many { gap: 4px; }
+.speaking-spell-slots.is-many .speaking-spell-slot { width: 30px; height: 40px; font-size: 22px; border-bottom-width: 3px; }
+.speaking-spell-tiles.is-many { gap: 8px; }
+.speaking-spell-tiles.is-many .speaking-spell-tile { width: 44px; height: 44px; border-radius: 12px; font-size: 22px; }
+@media (max-width: 767px) {
+  body.speaking-challenge-active .speaking-immersive-play .speaking-lesson-header { margin-bottom: 8px !important; }
+  // 手機上箭頭旁邊顯示小小的「離開」，按鈕仍至少 44px，320px 寬也維持同一列。
+  body.speaking-challenge-active .speaking-lesson-header .speaking-back { flex: 0 0 auto; gap: 2px; width: auto; min-width: 44px; height: 44px; min-height: 44px; padding: 0 10px 0 4px !important; border-radius: 22px !important; }
+  body.speaking-challenge-active .speaking-lesson-header .speaking-back svg { width: 22px; height: 22px; }
+  body.speaking-challenge-active .speaking-lesson-header .speaking-back::after { content: "離開"; font-size: 12px; font-weight: 800; line-height: 1; white-space: nowrap; }
+  body.speaking-challenge-active .speaking-immersive-play .speaking-lesson-header { gap: 8px; }
+  body.speaking-challenge-active .speaking-guided-stepper { margin-bottom: 6px; }
+  body.speaking-challenge-active .speaking-guided-step { gap: 10px; }
+  body.speaking-challenge-active .speaking-guided-step__title { font-size: 18px; }
+}
+// Short phones (iPhone SE and similar): a smaller picture and tiles so the keyboard stays in view.
+@media (max-height: 740px) {
+  body.speaking-challenge-active .speaking-game-question-card .speaking-visual-aid { width: 96px !important; }
+  body.speaking-challenge-active .speaking-gap-sentence:not(.is-long):not(.is-very-long) { font-size: clamp(24px, 6.6vw, 32px) !important; line-height: 1.4 !important; }
+  .speaking-spell-slot { width: 36px; height: 44px; font-size: 24px; }
+  .speaking-spell-tile { width: 46px; height: 46px; font-size: 22px; }
+}
+// Words stay whole when the slots wrap; given words (long answers spell only the main word) read as plain text.
+.speaking-spell-slots { column-gap: 14px; row-gap: 8px; }
+.speaking-spell-word { display: inline-flex; align-items: flex-end; }
+.speaking-spell-word > .speaking-spell-slot { margin-inline: 3px; }
+.speaking-spell-slots.is-many .speaking-spell-word > .speaking-spell-slot { margin-inline: 2px; }
+.speaking-spell-given, .speaking-spell-mark { align-self: center; color: var(--ae-text, #17365d); font-size: 26px; font-weight: 800; line-height: 1; }
+// Short phones, second pass: tiles stay 44px (rows wrap when needed) and less air between the parts.
+@media (max-height: 740px) {
+  body.speaking-challenge-active .speaking-practice-flow { padding-top: 2px !important; }
+  body.speaking-challenge-active .speaking-focus-card { gap: 6px !important; }
+  body.speaking-challenge-active .speaking-game-question-card:has(.speaking-gap-sentence.is-long) .speaking-visual-aid { width: 76px !important; }
+  body.speaking-challenge-active .speaking-game-question-card:has(.speaking-gap-sentence.is-very-long) .speaking-visual-aid { width: 64px !important; }
+  body.speaking-challenge-active .speaking-practice-flow { padding-inline: 4px !important; }
+  .speaking-spell-tiles, .speaking-spell-tiles.is-many { gap: 8px; }
+  .speaking-spell-tile, .speaking-spell-tiles.is-many .speaking-spell-tile { width: 44px; height: 44px; border-radius: 11px; font-size: 21px; }
+  .speaking-spell-slot { width: 32px; height: 40px; font-size: 22px; }
+}
+@media (max-height: 740px) {
+  body.speaking-challenge-active .speaking-question-stage { margin-top: 4px !important; }
+  body.speaking-challenge-active .speaking-pronunciation { padding-block: 14px 6px !important; }
+  body.speaking-challenge-active .speaking-pronunciation-mic.speaking-pronunciation-mic { width: 92px !important; height: 92px !important; margin-bottom: 38px !important; }
+  body.speaking-challenge-active .speaking-pronunciation-mic.speaking-pronunciation-mic > svg { width: 38px !important; height: 38px !important; }
+  body.speaking-challenge-active .speaking-pronunciation-mic.speaking-pronunciation-mic > span { top: calc(100% + 10px); }
+}
+// A word never wraps, so its boxes shrink until the longest word fits the card at any width.
+.speaking-spell-slots { width: 100%; container-type: inline-size; }
+.speaking-spell-slots .speaking-spell-word > .speaking-spell-slot { width: min(44px, calc(100cqw / var(--spell-word, 6) - 6px)); }
+.speaking-spell-slots.is-many .speaking-spell-word > .speaking-spell-slot { width: min(32px, calc(100cqw / var(--spell-word, 6) - 4px)); }
+@media (max-height: 740px) { .speaking-spell-slots .speaking-spell-word > .speaking-spell-slot { width: min(32px, calc(100cqw / var(--spell-word, 6) - 6px)); } }
+
+// A passed answer whose th was heard as s/f/t/d/z: a gentle yellow note, not an error.
+.speaking-pronunciation-tip { display: grid; gap: 4px; margin: 4px 0 0; padding: 10px 14px; border-radius: 14px; background: var(--ae-warning-bg, #fff6d6); color: var(--ae-warning, #5c4a12); font-size: 15px; line-height: 1.5; text-align: left; }
+.speaking-pronunciation-tip strong { font-size: 16px; }
+
+// Spelling tries: a small counter by the title; a wrong word turns the whole row red (never one letter).
+.speaking-spell-tries { display: inline-block; margin-left: 10px; padding: 3px 10px; border-radius: 999px; background: var(--ae-surface-muted, #eef3f9); color: var(--ae-text-muted, #526780); font-size: 14px; font-weight: 700; vertical-align: middle; }
+.speaking-spell-tries.is-used { background: var(--ae-warning-bg, #fff4d6); color: var(--ae-warning, #7a5300); }
+.speaking-spell-slots.is-wrong .speaking-spell-slot { border-bottom-color: var(--ae-danger, #c62828); background: var(--ae-danger-bg, #fdecec); color: var(--ae-danger, #c62828); animation: speaking-spell-shake .35s ease-in-out; }
+@keyframes speaking-spell-shake { 25% { transform: translateX(-3px); } 75% { transform: translateX(3px); } }
+@media (prefers-reduced-motion: reduce) { .speaking-spell-slots.is-wrong .speaking-spell-slot { animation: none; } }
+
+// A correct answer whose progress could not be saved after retries: a short note above the level.
+.speaking-save-notice { flex: 1 1 100%; margin: 0; padding: 10px 14px; border: 1px solid #f2b51e; border-radius: 14px; background: var(--ae-warning-bg, #fffbea); color: var(--ae-warning, #5c4a12); font-size: 16px; font-weight: 700; line-height: 1.5; }
+
+// Spelling a gap sentence: the blank being spelled gets a yellow frame; blanks that are not spelled show their answer.
+body.speaking-challenge-active .speaking-gap-sentence .answer-blank.is-spell-target { padding: 0 .12em; border-radius: .2em; outline: .09em solid #f2b61c; outline-offset: .04em; background: #fff1bf !important; }
+body.speaking-challenge-active .speaking-gap-sentence .answer-given { color: var(--ae-text, #17365d); text-decoration: underline dotted #9cb7d3; text-underline-offset: .15em; }
+
+// A missed answer: what the recognizer heard, and (for read-aloud in 跟著念) the sentence, with differing words marked.
+.speaking-heard { display: grid; gap: 6px; margin: 4px 0 0; padding: 10px 14px; border-radius: 14px; background: var(--ae-surface-muted, #f1f5fa); text-align: left; }
+.speaking-heard p { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; margin: 0; }
+.speaking-heard p > span { flex: none; color: var(--ae-text-muted, #526780); font-size: 14px; font-weight: 700; }
+.speaking-heard strong { color: var(--ae-text, #17365d); font-size: 18px; font-weight: 800; line-height: 1.45; overflow-wrap: anywhere; }
+.speaking-heard .is-off { padding: 0 .15em; border-radius: .25em; background: var(--ae-danger-bg, #fdecec); color: var(--ae-danger, #c62828); }
+.speaking-heard small { color: var(--ae-text-muted, #526780); font-size: 14px; line-height: 1.5; }
+
+// Waiting for the Azure re-check of a near miss.
+.speaking-recheck-status { margin: 8px 0 0; padding: 10px 14px; border-radius: 14px; background: var(--ae-info-bg, #e8f1ff); color: var(--ae-accent, #1d4fa8); font-size: 16px; font-weight: 800; text-align: center; }
+
+// ---- "Listen once" sits on the step row, right of 1 拼 2 念 (owner request 2026-10-18): the two
+// things a child needs before answering stay just under the question, not up in the header.
+.speaking-step-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; margin: 0 0 12px; }
+.speaking-step-row:not(:has(.speaking-guided-stepper)):not(:has(.speaking-lesson-preparation)) { display: none; }
+.speaking-step-row .speaking-guided-stepper { margin: 0; }
+body.speaking-challenge-active .speaking-step-row .speaking-lesson-tools .speaking-lesson-preparation > a { min-height: 44px; padding: 6px 14px; font-size: 16px !important; }
+body.speaking-challenge-active .speaking-step-row .speaking-listening-busy { max-width: 150px; text-align: left; }
+@media (max-width: 767px) {
+  body.speaking-challenge-active .speaking-step-row { margin-bottom: 6px; }
+}
+@media (max-width: 380px) {
+  .speaking-step-row { gap: 6px; }
+  .speaking-step-row .speaking-guided-stepper { gap: 6px; }
+  .speaking-step-row .speaking-guided-stepper li { padding: 6px 10px; }
+  body.speaking-challenge-active .speaking-step-row .speaking-lesson-tools .speaking-lesson-preparation > a { padding-inline: 10px; font-size: 15px !important; }
+}
+// While recording or scoring the pill stays in place, greyed, with a short "評分後再聽".
+body.speaking-challenge-active .speaking-step-row .speaking-listening-busy { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; max-width: none; padding: 6px 14px; border: 1px dashed var(--ae-border, #c5d6e8); border-radius: 22px; color: var(--ae-text-muted, #526780); font-size: 15px; white-space: nowrap; }
+
+// The delete key is not a letter: a muted outline with a visible 「刪除」 label, always last in the row.
+.speaking-spell-tiles .speaking-spell-tile.speaking-spell-tile--back,
+.speaking-spell-tiles.is-many .speaking-spell-tile.speaking-spell-tile--back { display: inline-flex; align-items: center; justify-content: center; gap: 4px; order: 99; width: auto; min-width: 44px; height: 52px; padding: 0 12px; border: 1px dashed var(--ae-danger, #c62828); background: transparent; box-shadow: none; color: var(--ae-danger, #c62828); font-size: 15px; font-weight: 800; }
+.speaking-spell-tile--back > svg { width: 20px; height: 20px; flex: none; }
+.speaking-spell-tile--back:disabled { border-color: var(--ae-border, #c5d6e8); color: var(--ae-text-muted, #526780); }
+.speaking-spell-tiles.is-many .speaking-spell-tile.speaking-spell-tile--back { height: 44px; }
+@media (max-width: 380px) { .speaking-spell-tiles .speaking-spell-tile.speaking-spell-tile--back { height: 46px; } }
+@media (max-height: 740px) { .speaking-spell-tiles .speaking-spell-tile.speaking-spell-tile--back, .speaking-spell-tiles.is-many .speaking-spell-tile.speaking-spell-tile--back { height: 44px; padding: 0 10px; } }

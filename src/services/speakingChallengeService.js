@@ -9,7 +9,29 @@ const callChallenge = async (firebaseUser, action, payload = {}) => {
 
 export const getSpeakingChallengeCatalog = firebaseUser => callChallenge(firebaseUser, "catalog");
 export const getSpeakingAlphabetCostUsage = firebaseUser => callChallenge(firebaseUser, "alphabet_cost_usage");
-export const getSpeakingChallengeSet = (firebaseUser, questionSetId, mode = "easy") => callChallenge(firebaseUser, "question_set", { question_set_id: questionSetId, mode });
+// 關卡摘要打開時先在背景讀題目，學生按下等級時通常已經讀好，可以立刻進入關卡。
+// 只讀不寫；60 秒內、同一位學生、同一關同一等級才使用，用過一次就丟掉。
+const PREFETCH_TTL_MS = 60 * 1000;
+const prefetchedSets = new Map();
+const prefetchKey = (firebaseUser, questionSetId, mode) => `${firebaseUser?.uid || ""}:${Number(questionSetId)}:${mode === "challenge" ? "challenge" : "easy"}`;
+const fetchChallengeSet = (firebaseUser, questionSetId, mode) => callChallenge(firebaseUser, "question_set", { question_set_id: questionSetId, mode });
+
+export const prefetchSpeakingChallengeSet = (firebaseUser, questionSetId, mode = "easy") => {
+    if (!firebaseUser?.uid || !questionSetId) return;
+    const key = prefetchKey(firebaseUser, questionSetId, mode);
+    const cached = prefetchedSets.get(key);
+    if (cached && Date.now() - cached.at < PREFETCH_TTL_MS) return;
+    const promise = fetchChallengeSet(firebaseUser, questionSetId, mode);
+    promise.catch(() => prefetchedSets.delete(key));
+    prefetchedSets.set(key, { at: Date.now(), promise });
+};
+
+export const getSpeakingChallengeSet = (firebaseUser, questionSetId, mode = "easy") => {
+    const key = prefetchKey(firebaseUser, questionSetId, mode);
+    const cached = prefetchedSets.get(key);
+    prefetchedSets.delete(key);
+    return cached && Date.now() - cached.at < PREFETCH_TTL_MS ? cached.promise : fetchChallengeSet(firebaseUser, questionSetId, mode);
+};
 export const revealSpeakingChallengeHint = (firebaseUser, questionSetId, questionId, challengeSessionId, mode = "challenge") => callChallenge(firebaseUser, "reveal_hint", {
     question_set_id: questionSetId, question_id: questionId, challenge_session_id: challengeSessionId, mode
 });

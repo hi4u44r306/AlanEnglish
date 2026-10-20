@@ -29,7 +29,8 @@ function ShowcaseNavbar({ nav1, nav2, nav4 }) {
     const navItems = [
         { label: "功能特色", hint: "孩子每天會使用的核心功能", href: nav1 },
         { label: "學習方式", hint: "英文班與課後自主練習", href: nav2 },
-        { label: "常見問題", hint: "年齡與裝置使用說明", href: nav4 }
+        { label: "常見問題", hint: "年齡與裝置使用說明", href: nav4 },
+        { label: "給家長", hint: "家長怎麼陪孩子一起使用", to: "/parents" }
     ];
 
     const closeMobileMenu = () => setMobileOpen(false);
@@ -106,8 +107,7 @@ function ShowcaseNavbar({ nav1, nav2, nav4 }) {
                                 <Nav.Link
                                     key={item.label}
                                     className="showcase-navbar-link"
-                                    href={item.href}
-                                    onClick={closeMobileMenu}
+                                    {...(item.to ? { as: Link, to: item.to } : { href: item.href, onClick: closeMobileMenu })}
                                 >
                                     <span className="showcase-navbar-link-index">{String(index + 1).padStart(2, "0")}</span>
                                     <span className="showcase-navbar-link-copy">
@@ -120,6 +120,10 @@ function ShowcaseNavbar({ nav1, nav2, nav4 }) {
                         </Nav>
 
                         <div className="showcase-navbar-actions">
+                            <Link className="showcase-navbar-trial" to="/try" onClick={closeMobileMenu}>
+                                免費試一課
+                                <BiChevronRight aria-hidden="true" />
+                            </Link>
                             <Link className="showcase-navbar-login" to="/login" onClick={closeMobileMenu}>
                                 <BiLogIn />
                                 登入

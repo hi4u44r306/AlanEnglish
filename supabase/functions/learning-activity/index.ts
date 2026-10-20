@@ -17,6 +17,17 @@ const FIREBASE_ISSUER = `https://securetoken.google.com/${FIREBASE_PROJECT_ID}`;
 const FIREBASE_JWKS = createRemoteJWKSet(
   new URL("https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com")
 );
+const DAY_MS = 24 * 60 * 60 * 1000;
+const TAIPEI_OFFSET_MS = 8 * 60 * 60 * 1000;
+
+const taipeiDayBounds = () => {
+  const dateKey = new Date(Date.now() + TAIPEI_OFFSET_MS).toISOString().slice(0, 10);
+  const startAt = new Date(`${dateKey}T00:00:00+08:00`);
+  return {
+    startAt: startAt.toISOString(),
+    endAt: new Date(startAt.getTime() + DAY_MS).toISOString()
+  };
+};
 
 async function verifyFirebaseIdToken(token: string) {
   const { payload } = await jwtVerify(token, FIREBASE_JWKS, {
@@ -108,6 +119,133 @@ Deno.serve(async (req: Request) => {
         .eq("id", account.id);
       if (error) return json(500, { error: "更新活躍狀態失敗" });
       return json(200, { success: true, at: now });
+    }
+
+    // 播放器記錄「放著不動沒回應」「切換頁面暫停」，每週報告用來算專注度。只記學生本人；不影響任何次數、連續天數或獎勵。
+    if (action === "listening_pause") {
+      if (account.role !== "student") return json(200, { success: true, ignored: true });
+      const reason = String(body?.reason || "");
+      if (reason !== "idle" && reason !== "hidden") return json(400, { error: "暫停原因不正確" });
+      const since = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+      const { count } = await admin
+        .from("student_activity_events")
+        .select("id", { count: "exact", head: true })
+        .eq("student_id", account.id)
+        .eq("activity_type", "listening")
+        .like("activity_key", "pause-%")
+        .gte("occurred_at", since);
+      if ((count || 0) >= 120) return json(200, { success: true, ignored: true });
+      const trackId = Number(body?.track_id);
+      const { error: eventError } = await admin.from("student_activity_events").insert({
+        student_id: account.id,
+        activity_type: "listening",
+        activity_key: `pause-${reason}`,
+        metadata: Number.isInteger(trackId) && trackId > 0 ? { track_id: trackId } : {},
+        occurred_at: now
+      });
+      if (eventError) return json(500, { error: "記錄失敗" });
+      return json(200, { success: true });
+    }
+
+    // 口說大挑戰的專注度：關卡進行中切換頁面（hidden）、90 秒沒有任何操作（idle）、
+    // 想離開「先聽本關教材」被帶回（left_prep）。只記學生本人，不影響通關、次數或獎勵。
+    // activity_type 用既有的 other（資料表 CHECK 只允許 login/listening/conversation/ai/other），以 key 前綴區分。
+    if (action === "speaking_attention") {
+      if (account.role !== "student") return json(200, { success: true, ignored: true });
+      const reason = String(body?.reason || "");
+      if (!["idle", "hidden", "left_prep"].includes(reason)) return json(400, { error: "中斷原因不正確" });
+      const since = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+      const { count } = await admin
+        .from("student_activity_events")
+        .select("id", { count: "exact", head: true })
+        .eq("student_id", account.id)
+        .eq("activity_type", "other")
+        .like("activity_key", "speaking-pause-%")
+        .gte("occurred_at", since);
+      if ((count || 0) >= 60) return json(200, { success: true, ignored: true });
+      const questionSetId = Number(body?.question_set_id);
+      const mode = body?.mode === "challenge" ? "challenge" : body?.mode === "easy" ? "easy" : null;
+      const metadata: Record<string, unknown> = {};
+      if (Number.isInteger(questionSetId) && questionSetId > 0) metadata.question_set_id = questionSetId;
+      if (mode) metadata.mode = mode;
+      const { error: eventError } = await admin.from("student_activity_events").insert({
+        student_id: account.id,
+        activity_type: "other",
+        activity_key: `speaking-pause-${reason}`,
+        metadata,
+        occurred_at: now
+      });
+      if (eventError) return json(500, { error: "記錄失敗" });
+      return json(200, { success: true });
+    }
+
+    // 平台內播放的教學影片（YouTube 片段）：start 開始、complete 看完、pause_hidden 播放中切走。
+    // 看完要後端再確認：同一個播放工作階段先有 start，且經過的時間至少是片段長度的 80%。
+    // 只記學生本人；不給點數、不算通關（遵守 YouTube 不得以獎勵換觀看的規定）。
+    if (action === "video_watch") {
+      if (account.role !== "student") return json(200, { success: true, ignored: true });
+      const phase = String(body?.phase || "");
+      if (!["start", "complete", "pause_hidden"].includes(phase)) return json(400, { error: "影片紀錄類型不正確" });
+      const videoId = String(body?.video_id || "");
+      const startSeconds = Number(body?.start_seconds);
+      const endSeconds = Number(body?.end_seconds);
+      const sessionId = String(body?.session_id || "");
+      if (!/^[A-Za-z0-9_-]{11}$/.test(videoId)
+        || !Number.isInteger(startSeconds) || !Number.isInteger(endSeconds)
+        || startSeconds < 0 || endSeconds <= startSeconds || endSeconds - startSeconds > 3 * 60 * 60
+        || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(sessionId)) {
+        return json(400, { error: "影片資料不正確" });
+      }
+      const since = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+      const { count } = await admin
+        .from("student_activity_events")
+        .select("id", { count: "exact", head: true })
+        .eq("student_id", account.id)
+        .eq("activity_type", "other")
+        .like("activity_key", "video-%")
+        .gte("occurred_at", since);
+      if ((count || 0) >= 120) return json(200, { success: true, ignored: true });
+      const trackId = Number(body?.track_id);
+      const context = body?.context === "speaking_prep" ? "speaking_prep" : "playlist";
+      const metadata: Record<string, unknown> = {
+        video_id: videoId, start_seconds: startSeconds, end_seconds: endSeconds, session_id: sessionId, context
+      };
+      if (Number.isInteger(trackId) && trackId > 0) metadata.track_id = trackId;
+
+      if (phase === "complete") {
+        const { data: started } = await admin
+          .from("student_activity_events")
+          .select("occurred_at")
+          .eq("student_id", account.id)
+          .eq("activity_key", "video-start")
+          .eq("metadata->>session_id", sessionId)
+          .gte("occurred_at", new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString())
+          .order("occurred_at", { ascending: true })
+          .limit(1)
+          .maybeSingle();
+        if (!started) return json(409, { error: "找不到這段影片的開始紀錄", code: "video_not_started" });
+        const elapsed = (Date.now() - new Date(started.occurred_at).getTime()) / 1000;
+        if (elapsed + 5 < (endSeconds - startSeconds) * 0.8) {
+          return json(409, { error: "影片還沒看到八成", code: "video_too_short" });
+        }
+        const { count: done } = await admin
+          .from("student_activity_events")
+          .select("id", { count: "exact", head: true })
+          .eq("student_id", account.id)
+          .eq("activity_key", "video-watched")
+          .eq("metadata->>session_id", sessionId);
+        if ((done || 0) > 0) return json(200, { success: true, duplicate: true });
+      }
+
+      const { error: eventError } = await admin.from("student_activity_events").insert({
+        student_id: account.id,
+        activity_type: "other",
+        activity_key: phase === "start" ? "video-start" : phase === "complete" ? "video-watched" : "video-pause-hidden",
+        metadata,
+        occurred_at: now
+      });
+      if (eventError) return json(500, { error: "記錄失敗" });
+      return json(200, { success: true });
     }
 
     if (action === "login") {
@@ -352,6 +490,18 @@ Deno.serve(async (req: Request) => {
       const subject = `Alan English 學習提醒｜${student.name}`;
       const message = `${guardian.guardian_name ? `${guardian.guardian_name} 您好：\n\n` : "您好：\n\n"}${student.name} 最近已經 ${daysText} 沒有完成 Alan English 英文練習。建議今天花 5～10 分鐘完成一次聽力或英文口說練習，保持英文學習習慣。\n\n— Alan English`;
 
+      const dayBounds = taipeiDayBounds();
+      const { data: sentToday, error: sentTodayError } = await admin
+        .from("notification_logs")
+        .select("id")
+        .eq("student_id", studentId)
+        .eq("reason", "inactive-learning")
+        .eq("status", "sent")
+        .gte("sent_at", dayBounds.startAt)
+        .lt("sent_at", dayBounds.endAt)
+        .limit(1);
+      if (sentTodayError) return json(500, { error: "讀取今日寄送紀錄失敗" });
+
       const { data: log, error } = await admin
         .from("notification_logs")
         .insert({
@@ -377,6 +527,7 @@ Deno.serve(async (req: Request) => {
           subject,
           message,
           status: log.status,
+          already_sent_today: (sentToday || []).length > 0,
           created_at: log.created_at
         }
       });

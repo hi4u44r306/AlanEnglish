@@ -1,4 +1,5 @@
 import { supabaseKey, supabaseUrl } from "../components/Pages/supabase-config";
+import { buildSpeakingClientTiming, recordSpeakingRoundTrip } from "../utils/speakingClientTiming";
 
 export const submitAlphabetPronunciationAttempt = async ({ firebaseUser, questionId, audio, foundationRoundId = "", challengeSessionId = "", challengeMode = "challenge" }) => {
     if (!firebaseUser || !(audio instanceof Blob) || !Number.isInteger(Number(questionId)) || Number(questionId) <= 0) throw new Error("字母錄音資料不完整");
@@ -40,23 +41,47 @@ export const submitPronunciationAttempt = async ({ firebaseUser, lessonId, audio
     return result;
 };
 
+// 本機判沒過但只差一點時，伺服器會回 recheck；用同一段錄音請 Azure 再確認一次。答案只在伺服器。
+export const RECHECK_TIMEOUT_MS = 20000;
+export const submitSpeakingRecheck = async ({ firebaseUser, questionId, audio, attemptId = null, recognizedText = "", challengeSessionId = "", challengeMode = "easy", timeoutMs = RECHECK_TIMEOUT_MS }) => {
+    if (!firebaseUser || !(audio instanceof Blob) || !Number.isInteger(Number(questionId)) || Number(questionId) <= 0) throw new Error("再確認資料不完整");
+    const form = new FormData();
+    form.append("assessment_kind", "azure_sentence_recheck_v1"); form.append("question_id", String(questionId));
+    form.append("recheck_of_attempt_id", attemptId ? String(attemptId) : ""); form.append("recognized_text", recognizedText);
+    form.append("challenge_session_id", challengeSessionId); form.append("challenge_mode", challengeMode);
+    form.append("audio", audio, "sentence.wav");
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    const started = Date.now();
+    try {
+        const response = await fetch(`${supabaseUrl}/functions/v1/pronunciation-coach`, { method: "POST", signal: controller.signal,
+            headers: { Authorization: `Bearer ${await firebaseUser.getIdToken()}`, apikey: supabaseKey }, body: form });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok) throw Object.assign(new Error(result.error || "再確認暫時無法完成"), { code: result.code, status: response.status });
+        return result;
+    } finally { clearTimeout(timer); recordSpeakingRoundTrip("recheck", Date.now() - started); }
+};
+
 // Local ASR supplies text, never a score/reference answer. The server recalculates
 // completeness and checks approved answers; text remains client-reported evidence.
-export const submitSpeakingPronunciationAttempt = async ({ firebaseUser, questionId, recognizedText, audioSeconds, foundationRoundId = "", challengeSessionId = "", challengeMode = "easy" }) => {
+export const submitSpeakingPronunciationAttempt = async ({ firebaseUser, questionId, recognizedText, audioSeconds, inferenceMs, transcribeMs, model, foundationRoundId = "", challengeSessionId = "", challengeMode = "easy" }) => {
     if (!firebaseUser) throw new Error("請先登入 Alan English");
     if (!Number.isInteger(Number(questionId)) || Number(questionId) <= 0 || !recognizedText?.trim() || !Number.isFinite(audioSeconds)) {
         throw new Error("錄音資料不完整，請重新錄音");
     }
 
     const firebaseToken = await firebaseUser.getIdToken();
+    const started = Date.now();
     const response = await fetch(`${supabaseUrl}/functions/v1/pronunciation-coach`, {
         method: "POST",
         headers: { Authorization: `Bearer ${firebaseToken}`, apikey: supabaseKey, "Content-Type": "application/json" },
         body: JSON.stringify({ question_id: Number(questionId), recognized_text: recognizedText,
-            audio_seconds: audioSeconds, assessment_kind: "local_completeness_v1",
-            foundation_round_id: foundationRoundId, challenge_session_id: challengeSessionId, challenge_mode: challengeMode })
+            audio_seconds: audioSeconds, assessment_kind: "local_completeness_v1", recheck_supported: true,
+            foundation_round_id: foundationRoundId, challenge_session_id: challengeSessionId, challenge_mode: challengeMode,
+            client_timing: buildSpeakingClientTiming({ transcribeMs, inferenceMs, model, audioSeconds }) })
     });
     const result = await response.json().catch(() => ({}));
+    recordSpeakingRoundTrip("submit", Date.now() - started);
     if (!response.ok) {
         const error = new Error(result?.error || "發音評分服務暫時無法使用");
         error.status = response.status;

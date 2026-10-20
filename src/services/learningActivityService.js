@@ -30,7 +30,29 @@ export const recordHeartbeat = firebaseUser => callLearningActivity(firebaseUser
     action: "heartbeat"
 });
 
-export const getConversationProgress = (firebaseUser, scenarioKey = "meet-a-foreigner") => callLearningActivity(firebaseUser, {
+// 播放器記錄「放著不動沒回應」(idle)、「切換頁面暫停」(hidden)，每週報告用來算專注度。只記學生本人，失敗不影響播放。
+export const recordListeningPause = (firebaseUser, { reason, track_id: trackId } = {}) => callLearningActivity(firebaseUser, {
+    action: "listening_pause",
+    reason,
+    track_id: trackId
+});
+
+// 口說大挑戰的專注度：hidden（關卡進行中切換頁面）、idle（90 秒沒有操作）、left_prep（想離開先聽本關教材被帶回）。
+// 只記學生本人，失敗不影響練習。
+export const recordSpeakingAttention = (firebaseUser, { reason, question_set_id: questionSetId, mode } = {}) => callLearningActivity(firebaseUser, {
+    action: "speaking_attention",
+    reason,
+    question_set_id: questionSetId,
+    mode
+});
+
+// 平台內教學影片：phase = start／complete／pause_hidden。看完由後端再核對時間，只記學生本人。
+export const recordVideoWatch = (firebaseUser, payload = {}) => callLearningActivity(firebaseUser, {
+    action: "video_watch",
+    ...payload
+});
+
+export const getConversationProgress =(firebaseUser, scenarioKey = "meet-a-foreigner") => callLearningActivity(firebaseUser, {
     action: "conversation_get",
     scenario_key: scenarioKey
 });

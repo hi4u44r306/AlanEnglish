@@ -3,14 +3,14 @@
   display: grid;
   place-items: center;
   padding: 32px 16px;
-  color: #17365d;
-  background: #f6f8fc;
-  .notfound-card { width: min(560px, 100%); padding: clamp(24px, 5vw, 48px); background: white; border: 1px solid #dce4ee; border-radius: 20px; text-align: center; }
-  .notfound-code { display: block; color: #2f6fed; font-size: clamp(64px, 12vw, 96px); font-weight: 900; line-height: 1.2; }
+  color: var(--ae-text, #17365d);
+  background: var(--ae-surface-muted, #f6f8fc);
+  .notfound-card { width: min(560px, 100%); padding: clamp(24px, 5vw, 48px); background: var(--ae-surface, white); border: 1px solid var(--ae-border, #dce4ee); border-radius: 20px; text-align: center; }
+  .notfound-code { display: block; color: var(--ae-accent, #2f6fed); font-size: clamp(64px, 12vw, 96px); font-weight: 900; line-height: 1.2; }
   h1 { margin: 16px 0; font-size: clamp(24px, 5vw, 32px); }
-  p { color: #53647d; line-height: 1.8; }
+  p { color: var(--ae-accent, #53647d); line-height: 1.8; }
   .notfound-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 24px; }
-  a, button { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 10px 16px; border: 1px solid #c8d6e9; border-radius: 10px; color: #17365d; background: white; font: inherit; font-weight: 700; text-decoration: none; }
+  a, button { display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: 10px 16px; border: 1px solid var(--ae-border, #c8d6e9); border-radius: 10px; color: var(--ae-text, #17365d); background: var(--ae-surface, white); font: inherit; font-weight: 700; text-decoration: none; }
   .notfound-primary { background: #2f6fed; border-color: #2f6fed; color: white; }
   a:focus-visible, button:focus-visible { outline: 3px solid #17365d; outline-offset: 3px; }
 }

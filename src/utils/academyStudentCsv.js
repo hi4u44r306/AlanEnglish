@@ -1,13 +1,24 @@
 export const ACADEMY_STUDENT_CSV_MAX_ROWS = 25;
 
+// 範本欄位：必填在前、選填在後（標示「(選填)」）。讀取時依欄位名稱對應，欄位順序不影響。
 export const ACADEMY_STUDENT_CSV_HEADERS = [
     "中文姓名",
     "英文姓名",
-    "登入帳號(選填)",
     "班級",
     "入班日期",
-    "權限截止日",
-    "備註"
+    "登入帳號(選填)",
+    "家長Email(選填)",
+    "權限截止日(選填)",
+    "備註(選填)"
+];
+
+// 填寫範例檔用的備註；上傳時若還有這一列會被擋下，避免建立假學生。
+export const ACADEMY_STUDENT_CSV_EXAMPLE_NOTE = "範例資料，上傳前請刪除這一列";
+
+const EXAMPLE_ROWS = [
+    ["王小明", "Ming Wang", "E1", "2026-09-01", "", "parent@example.com", "", ACADEMY_STUDENT_CSV_EXAMPLE_NOTE],
+    ["陳小華", "Hua Chen", "E3", "2026-09-01", "huachen", "", "", ACADEMY_STUDENT_CSV_EXAMPLE_NOTE],
+    ["林小美", "Mei Lin", "E5", "2026-09-01", "", "", "2027-06-30", ACADEMY_STUDENT_CSV_EXAMPLE_NOTE]
 ];
 
 const HEADER_FIELDS = new Map([
@@ -19,10 +30,14 @@ const HEADER_FIELDS = new Map([
     ["班級", "class_code"],
     ["入班日期", "enrolled_at"],
     ["權限截止日", "access_ends_at"],
+    ["權限截止日(選填)", "access_ends_at"],
+    ["權限截止日（選填）", "access_ends_at"],
     ["家長email(選填)", "guardian_email"],
     ["家長email（選填）", "guardian_email"],
     ["家長email", "guardian_email"],
-    ["備註", "notes"]
+    ["備註", "notes"],
+    ["備註(選填)", "notes"],
+    ["備註（選填）", "notes"]
 ]);
 
 const REQUIRED_FIELDS = new Map([
@@ -33,7 +48,7 @@ const REQUIRED_FIELDS = new Map([
 ]);
 
 const normalizeHeader = value => String(value || "")
-    .replace(/^\uFEFF/, "")
+    .replace(/^\uFEFF+/, "")
     .trim()
     .toLowerCase();
 
@@ -85,8 +100,23 @@ const parseCsvCells = text => {
 
 const isBlankRow = row => row.every(cell => !String(cell || "").trim());
 
+// 日期一律轉成後端要求的 YYYY-MM-DD。接受 2026-9-1、2026/9/1、2026.9.1、20260901；
+// 不是有效日期就原樣保留，交給預覽顯示錯誤，不自行猜測。
+export const normalizeAcademyCsvDate = value => {
+    const text = String(value || "").trim();
+    if (!text) return "";
+    const match = text.match(/^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})$/) || text.match(/^(\d{4})(\d{2})(\d{2})$/);
+    if (!match) return text;
+    const iso = `${match[1]}-${match[2].padStart(2, "0")}-${match[3].padStart(2, "0")}`;
+    const date = new Date(`${iso}T00:00:00Z`);
+    return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === iso ? iso : text;
+};
+
+// 班級：全形轉半形、去空白、轉大寫（ｅ１ → E1）。是否為 E1／E3／E5／E7 由預覽檢查。
+const normalizeClassCode = value => String(value || "").normalize("NFKC").replace(/\s+/g, "").toUpperCase();
+
 export const parseAcademyStudentCsv = text => {
-    const source = String(text || "").replace(/^\uFEFF/, "");
+    const source = String(text || "").replace(/^\uFEFF+/, "");
     if (!source.trim()) throw new Error("CSV 檔案沒有內容");
 
     const parsedRows = parseCsvCells(source);
@@ -118,6 +148,11 @@ export const parseAcademyStudentCsv = text => {
         throw new Error(`一次最多匯入 ${ACADEMY_STUDENT_CSV_MAX_ROWS} 位學生`);
     }
 
+    const exampleRows = dataRows.filter(({ cells }) => cells.some(cell => String(cell || "").trim() === ACADEMY_STUDENT_CSV_EXAMPLE_NOTE));
+    if (exampleRows.length > 0) {
+        throw new Error(`第 ${exampleRows.map(item => item.sourceRow).join("、")} 列是範例資料，請刪除後再上傳`);
+    }
+
     return dataRows.map(({ cells, sourceRow }) => {
         const student = {
             source_row: sourceRow
@@ -127,6 +162,9 @@ export const parseAcademyStudentCsv = text => {
             if (!field) return;
             student[field] = String(cells[columnIndex] || "").trim();
         });
+        if ("class_code" in student) student.class_code = normalizeClassCode(student.class_code);
+        if ("enrolled_at" in student) student.enrolled_at = normalizeAcademyCsvDate(student.enrolled_at);
+        if ("access_ends_at" in student) student.access_ends_at = normalizeAcademyCsvDate(student.access_ends_at);
 
         return student;
     });
@@ -141,6 +179,10 @@ const escapeCsvCell = value => {
 
 export const buildAcademyStudentCsvTemplate = () => (
     `\uFEFF${ACADEMY_STUDENT_CSV_HEADERS.map(escapeCsvCell).join(",")}\r\n`
+);
+
+export const buildAcademyStudentCsvExample = () => (
+    `\uFEFF${[ACADEMY_STUDENT_CSV_HEADERS, ...EXAMPLE_ROWS].map(row => row.map(escapeCsvCell).join(",")).join("\r\n")}\r\n`
 );
 
 export const buildAcademyStudentResultCsv = results => {

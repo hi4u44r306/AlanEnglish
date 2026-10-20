@@ -1,0 +1,101 @@
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+
+export const THEME_STORAGE_KEY = "ae-theme";
+export const THEME_CHOICES = ["light", "dark", "system"];
+// 只有管理員可以換外觀；學生、老師與未登入一律淺色。記在 localStorage 讓 index.html 開機時就不會閃深色。
+export const THEME_ADMIN_KEY = "ae-theme-admin";
+const THEME_COLORS = { light: "#073763", dark: "#121212" };
+
+const readStoredChoice = () => {
+    try {
+        const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
+        return THEME_CHOICES.includes(stored) ? stored : "system";
+    } catch (error) {
+        return "system";
+    }
+};
+
+const readAdminFlag = () => {
+    try {
+        return window.localStorage.getItem(THEME_ADMIN_KEY) === "1";
+    } catch (error) {
+        return false;
+    }
+};
+
+const systemPrefersDark = () => {
+    try {
+        return window.matchMedia("(prefers-color-scheme: dark)").matches;
+    } catch (error) {
+        return false;
+    }
+};
+
+export const resolveTheme = (choice, prefersDark) => (choice === "system" ? (prefersDark ? "dark" : "light") : choice);
+
+// 把解析後的主題寫到 <html>，同時讓 Bootstrap 元件與手機網址列顏色一起換。
+export const applyTheme = resolved => {
+    const root = document.documentElement;
+    root.setAttribute("data-theme", resolved);
+    root.setAttribute("data-bs-theme", resolved);
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", THEME_COLORS[resolved]);
+};
+
+const ThemeContext = createContext({ choice: "system", resolved: "light", canChoose: false, setChoice: () => {}, setForcedLight: () => {}, setCanChoose: () => {} });
+
+export function ThemeProvider({ children }) {
+    const [choice, setChoiceState] = useState(readStoredChoice);
+    const [prefersDark, setPrefersDark] = useState(systemPrefersDark);
+    // 公開首頁等頁面固定淺色（看起來較專業），不跟著使用者的外觀選擇。
+    const [forcedLight, setForcedLight] = useState(false);
+    const [canChoose, setCanChooseState] = useState(readAdminFlag);
+    const resolved = forcedLight || !canChoose ? "light" : resolveTheme(choice, prefersDark);
+
+    useEffect(() => {
+        let media;
+        try { media = window.matchMedia("(prefers-color-scheme: dark)"); } catch (error) { return undefined; }
+        const onChange = event => setPrefersDark(event.matches);
+        media.addEventListener?.("change", onChange);
+        return () => media.removeEventListener?.("change", onChange);
+    }, []);
+
+    useEffect(() => { applyTheme(resolved); }, [resolved]);
+
+    const setChoice = useCallback(next => {
+        if (!THEME_CHOICES.includes(next)) return;
+        setChoiceState(next);
+        try { window.localStorage.setItem(THEME_STORAGE_KEY, next); } catch (error) { /* 無痕模式存不了時，本次仍然有效 */ }
+    }, []);
+
+    const setCanChoose = useCallback(allowed => {
+        setCanChooseState(Boolean(allowed));
+        try {
+            if (allowed) window.localStorage.setItem(THEME_ADMIN_KEY, "1");
+            else window.localStorage.removeItem(THEME_ADMIN_KEY);
+        } catch (error) { /* 存不了時本次仍然有效 */ }
+    }, []);
+
+    const value = useMemo(() => ({ choice, resolved, canChoose, setChoice, setForcedLight, setCanChoose }), [choice, resolved, canChoose, setChoice, setCanChoose]);
+    return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
+}
+
+export const useTheme = () => useContext(ThemeContext);
+
+// 在這個元件顯示期間固定淺色，離開後恢復使用者的選擇。
+export const useForcedLightTheme = () => {
+    const { setForcedLight } = useTheme();
+    useEffect(() => {
+        setForcedLight(true);
+        return () => setForcedLight(false);
+    }, [setForcedLight]);
+};
+
+// 登入狀態確定後，依角色決定能不能換外觀（放在 AuthProvider 裡）。
+export function ThemeRoleSync({ role, authLoading }) {
+    const { setCanChoose } = useTheme();
+    useEffect(() => {
+        if (authLoading) return;
+        setCanChoose(role === "admin");
+    }, [role, authLoading, setCanChoose]);
+    return null;
+}

@@ -1,6 +1,11 @@
 import {
+    ACADEMY_STUDENT_CSV_EXAMPLE_NOTE,
+    ACADEMY_STUDENT_CSV_HEADERS,
     ACADEMY_STUDENT_CSV_MAX_ROWS,
+    buildAcademyStudentCsvExample,
+    buildAcademyStudentCsvTemplate,
     buildAcademyStudentResultCsv,
+    normalizeAcademyCsvDate,
     parseAcademyStudentCsv
 } from "./academyStudentCsv";
 
@@ -56,6 +61,44 @@ describe("academyStudentCsv", () => {
             "中文姓名,英文姓名,班級,入班日期",
             ...rows
         ].join("\n"))).toThrow(`一次最多匯入 ${ACADEMY_STUDENT_CSV_MAX_ROWS} 位學生`);
+    });
+
+    test("日期轉成後端要求的 YYYY-MM-DD，無效日期原樣保留交給預覽報錯", () => {
+        expect(normalizeAcademyCsvDate("2026/9/1")).toBe("2026-09-01");
+        expect(normalizeAcademyCsvDate("2026-9-1")).toBe("2026-09-01");
+        expect(normalizeAcademyCsvDate("2026.12.5")).toBe("2026-12-05");
+        expect(normalizeAcademyCsvDate("20260901")).toBe("2026-09-01");
+        expect(normalizeAcademyCsvDate(" 2026-09-01 ")).toBe("2026-09-01");
+        expect(normalizeAcademyCsvDate("")).toBe("");
+        expect(normalizeAcademyCsvDate("2026/2/30")).toBe("2026/2/30");
+        expect(normalizeAcademyCsvDate("九月一日")).toBe("九月一日");
+    });
+
+    test("讀取時自動修正班級與日期，並接受兩層 BOM 與新版選填欄位名稱", () => {
+        const rows = parseAcademyStudentCsv([
+            "﻿﻿中文姓名,英文姓名,班級,入班日期,權限截止日(選填),備註(選填)",
+            "王小明,Alan,ｅ１,2026/9/1,20270630,"
+        ].join("\r\n"));
+
+        expect(rows[0]).toMatchObject({ class_code: "E1", enrolled_at: "2026-09-01", access_ends_at: "2027-06-30", notes: "" });
+    });
+
+    test("範本欄位必填在前，空白範本與填寫範例都能被讀取規則辨識", () => {
+        expect(ACADEMY_STUDENT_CSV_HEADERS.slice(0, 4)).toEqual(["中文姓名", "英文姓名", "班級", "入班日期"]);
+        expect(buildAcademyStudentCsvTemplate().startsWith("﻿中文姓名,英文姓名,班級,入班日期")).toBe(true);
+        expect(() => parseAcademyStudentCsv(buildAcademyStudentCsvTemplate())).toThrow("CSV 沒有學生資料");
+
+        const example = buildAcademyStudentCsvExample();
+        expect(example.split("\r\n").filter(Boolean)).toHaveLength(4);
+        expect(() => parseAcademyStudentCsv(example)).toThrow("第 2、3、4 列是範例資料，請刪除後再上傳");
+    });
+
+    test("把範例列刪掉、填上真的學生後可以正常讀取", () => {
+        const lines = buildAcademyStudentCsvExample().replace(/^﻿/, "").split("\r\n").filter(Boolean);
+        const filled = [lines[0], lines[1].replace(ACADEMY_STUDENT_CSV_EXAMPLE_NOTE, "")].join("\r\n");
+        expect(parseAcademyStudentCsv(filled)).toEqual([expect.objectContaining({
+            chinese_name: "王小明", english_name: "Ming Wang", class_code: "E1", enrolled_at: "2026-09-01", guardian_email: "parent@example.com"
+        })]);
     });
 
     test("結果 CSV 只在成功列包含一次性啟用與復原資料並正確跳脫錯誤", () => {

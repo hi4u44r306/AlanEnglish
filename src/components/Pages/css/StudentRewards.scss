@@ -1,41 +1,41 @@
 .student-rewards {
-    color: #17365d;
+    color: var(--ae-text, #17365d);
     padding-bottom: calc(100px + env(safe-area-inset-bottom));
 
-    .gamification-hero { padding: 24px; background: #eef5fc; box-shadow: none; border-color: #c9d9ed; }
+    .gamification-hero { padding: 24px; background: var(--ae-surface-muted, #eef5fc); box-shadow: none; border-color: var(--ae-border, #c9d9ed); }
     .gamification-hero h1 { margin: 0 0 8px; font-size: clamp(26px, 3vw, 34px); }
-    .gamification-hero p { color: #526580; }
+    .gamification-hero p { color: var(--ae-text-muted, #526580); }
     .gamification-refresh { min-height: 44px; }
-    &__goal { display: grid; grid-template-columns: 112px minmax(0, 1fr) auto; align-items: center; gap: 22px; padding: 24px; margin-bottom: 28px; border: 2px solid #edd17a; border-radius: 22px; background: #fff6d7; }
-    &__goal-image { position: relative; display: grid; place-items: center; width: 100%; min-width: 0; min-height: 0; aspect-ratio: 1; border-radius: 18px; background: #fff; color: #927023; font-size: 46px; overflow: hidden; }
+    &__goal { display: grid; grid-template-columns: 112px minmax(0, 1fr) auto; align-items: center; gap: 22px; padding: 24px; margin-bottom: 28px; border: 2px solid #edd17a; border-radius: 22px; background: var(--ae-warning-bg, #fff6d7); }
+    &__goal-image { position: relative; display: grid; place-items: center; width: 100%; min-width: 0; min-height: 0; aspect-ratio: 1; border-radius: 18px; background: var(--ae-surface, #fff); color: var(--ae-warning, #927023); font-size: 46px; overflow: hidden; }
     &__goal-image img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; object-fit: contain; }
     &__goal-copy { min-width: 0; }
-    &__goal h2 { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; font-size: 15px; color: #655528; }
+    &__goal h2 { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; font-size: 15px; color: var(--ae-warning, #655528); }
     &__goal h3 { margin: 0 0 8px; font-size: 23px; overflow-wrap: anywhere; }
     &__goal p { margin: 0 0 12px; font-size: 15px; line-height: 1.6; }
-    &__goal progress { display: block; width: 100%; height: 10px; border: 0; border-radius: 12px; overflow: hidden; background: #e8d9ac; accent-color: #247a56; }
-    &__goal progress::-webkit-progress-bar { background: #e8d9ac; }
+    &__goal progress { display: block; width: 100%; height: 10px; border: 0; border-radius: 12px; overflow: hidden; background: var(--ae-warning-bg, #e8d9ac); accent-color: #247a56; }
+    &__goal progress::-webkit-progress-bar { background: var(--ae-warning-bg, #e8d9ac); }
     &__goal progress::-webkit-progress-value { border-radius: 12px; background: #247a56; }
     &__goal progress::-moz-progress-bar { background: #247a56; }
     &__goal-count { display: flex; justify-content: space-between; gap: 10px; margin-top: 8px; font-size: 13px; font-weight: 800; }
-    &__goal small { display: block; margin-top: 12px; color: #655528; line-height: 1.6; font-size: 12px; }
-    &__learn { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 18px; border-radius: 12px; color: #fff; background: #245fc5; font-weight: 800; text-decoration: none; }
-    &__choose-goal { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 44px; margin-bottom: 12px; padding: 8px 12px; border: 1px solid #c9d9ed; border-radius: 12px; color: #245fc5; background: #eef5fc; font-weight: 800; cursor: pointer; }
-    &__choose-goal[aria-pressed="true"] { border-color: #c79e31; color: #655528; background: #fff6d7; }
-    &__choose-goal:disabled { background: #f3f5f8; color: #667587; cursor: not-allowed; }
-    &__error { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 18px; padding: 14px; border-radius: 12px; background: #fff6d7; font-size: 14px; line-height: 1.6; }
-    &__error button { min-height: 44px; padding: 0 14px; border: 1px solid #c9d9ed; border-radius: 10px; background: #fff; color: #17365d; font-weight: 800; cursor: pointer; }
-    .gamification-reward-card { display: flex; flex-direction: column; border: 2px solid #d8e4f3; }
+    &__goal small { display: block; margin-top: 12px; color: var(--ae-warning, #655528); line-height: 1.6; font-size: 12px; }
+    &__learn { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 18px; border-radius: 12px; color: #fff; background: var(--ae-solid, #245fc5); font-weight: 800; text-decoration: none; }
+    &__choose-goal { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 44px; margin-bottom: 12px; padding: 8px 12px; border: 1px solid var(--ae-border, #c9d9ed); border-radius: 12px; color: var(--ae-accent, #245fc5); background: var(--ae-surface-muted, #eef5fc); font-weight: 800; cursor: pointer; }
+    &__choose-goal[aria-pressed="true"] { border-color: #c79e31; color: var(--ae-warning, #655528); background: var(--ae-warning-bg, #fff6d7); }
+    &__choose-goal:disabled { background: var(--ae-surface-muted, #f3f5f8); color: var(--ae-text-muted, #667587); cursor: not-allowed; }
+    &__error { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin: 18px; padding: 14px; border-radius: 12px; background: var(--ae-warning-bg, #fff6d7); font-size: 14px; line-height: 1.6; }
+    &__error button { min-height: 44px; padding: 0 14px; border: 1px solid var(--ae-border, #c9d9ed); border-radius: 10px; background: var(--ae-surface, #fff); color: var(--ae-text, #17365d); font-weight: 800; cursor: pointer; }
+    .gamification-reward-card { display: flex; flex-direction: column; border: 2px solid var(--ae-border, #d8e4f3); }
     .gamification-reward-card.is-goal { border-color: #c79e31; }
-    .gamification-reward-image { height: 160px; flex: 0 0 160px; overflow: hidden; background: #eef5fc; }
+    .gamification-reward-image { height: 160px; flex: 0 0 160px; overflow: hidden; background: var(--ae-surface-muted, #eef5fc); }
     .gamification-reward-image img { position: absolute; inset: 0; display: block; width: 100%; height: 100%; box-sizing: border-box; object-fit: contain; padding: 12px; }
     .gamification-reward-copy { display: flex; flex: 1; flex-direction: column; }
     .gamification-reward-copy h3 { font-size: 20px; overflow-wrap: anywhere; }
-    .gamification-reward-copy p { flex: 1; color: #526580; font-size: 14px; }
-    .gamification-reward-stock { color: #655528; line-height: 1.6; font-size: 12px; }
+    .gamification-reward-copy p { flex: 1; color: var(--ae-text-muted, #526580); font-size: 14px; }
+    .gamification-reward-stock { color: var(--ae-warning, #655528); line-height: 1.6; font-size: 12px; }
     .gamification-reward-bottom { flex-wrap: wrap; }
-    .gamification-reward-bottom button { min-height: 44px; color: #17365d; background: #ffd45a; font-size: 14px; }
-    .gamification-reward-bottom button:disabled { color: #59687a; background: #e8eef6; }
+    .gamification-reward-bottom button { min-height: 44px; color: var(--ae-text, #17365d); background: var(--ae-warning-bg, #ffd45a); font-size: 14px; }
+    .gamification-reward-bottom button:disabled { color: var(--ae-text-muted, #59687a); background: var(--ae-surface-muted, #e8eef6); }
     #my-redemptions { scroll-margin-top: 100px; }
     a:focus-visible, button:focus-visible { outline: 3px solid #245fc5; outline-offset: 4px; }
 }

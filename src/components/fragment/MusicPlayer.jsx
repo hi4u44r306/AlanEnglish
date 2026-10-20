@@ -35,6 +35,7 @@ import {
     startListeningSession
 } from "../../services/listeningService";
 import { getAccessibleBook } from "../../services/contentAccessService";
+import { recordListeningPause } from "../../services/learningActivityService";
 import {
     clamp,
     getCoveredSeconds,
@@ -148,6 +149,7 @@ function MusicPlayer({
     const sessionStartRequestRef = useRef(0);
     const hasPlaybackStartedRef = useRef(false);
     const pausedForVisibilityRef = useRef(false);
+    const reportPauseRef = useRef(null);
     const attentionCheckRef = useRef(false);
     const continuousListeningStartedAtRef = useRef(null);
     const desktopOptionsRef = useRef(null);
@@ -234,6 +236,12 @@ function MusicPlayer({
         setSessionIneligible(false);
     }, []);
 
+    // 只是把事件記下來給每週報告用，不改變任何計次、防掛機或獎勵判斷。
+    reportPauseRef.current = reason => {
+        if (role !== "student" || !firebaseUser) return;
+        recordListeningPause(firebaseUser, { reason, track_id: trackId }).catch(() => {});
+    };
+
     useEffect(() => {
         const handleVisibilityChange = () => {
             const isVisible = document.visibilityState !== "hidden";
@@ -250,6 +258,7 @@ function MusicPlayer({
                 pausedForVisibilityRef.current = true;
                 setVisibilityPauseOpen(true);
                 audio.pause();
+                reportPauseRef.current?.("hidden");
             }
         };
 
@@ -670,6 +679,11 @@ function MusicPlayer({
         }, 1000);
         return () => window.clearInterval(timer);
     }, [attentionCheckOpen, attentionExpired]);
+
+    // 「還在學習嗎？」倒數結束仍沒回應＝放著不動。
+    useEffect(() => {
+        if (attentionExpired) reportPauseRef.current?.("idle");
+    }, [attentionExpired]);
 
     const continueAfterAttentionCheck = () => {
         attentionCheckRef.current = false;

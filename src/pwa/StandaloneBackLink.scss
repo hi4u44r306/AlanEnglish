@@ -1,0 +1,16 @@
+// 只負責位置；外觀統一用 BackButton。sticky 放在頁面最上方不遮住內容，往下捲時仍然看得到。
+.standalone-back-link.standalone-back-link {
+  position: sticky;
+  top: calc(env(safe-area-inset-top, 0px) + 8px);
+  z-index: 40;
+  width: max-content;
+  max-width: calc(100% - 24px);
+  margin: calc(env(safe-area-inset-top, 0px) + 8px) 0 4px max(12px, env(safe-area-inset-left, 0px));
+}
+
+.standalone-back-link.standalone-back-link--floating {
+  position: fixed;
+  top: calc(env(safe-area-inset-top, 0px) + 8px);
+  left: max(12px, env(safe-area-inset-left, 0px));
+  margin: 0;
+}

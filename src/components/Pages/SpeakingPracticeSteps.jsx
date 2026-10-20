@@ -2,6 +2,10 @@ import React, { useEffect, useId, useRef, useState } from "react";
 import { FiCheck, FiHelpCircle, FiMic, FiVolume2 } from "react-icons/fi";
 import SpeakingPronunciationRecorder from "./SpeakingPronunciationRecorder";
 import SpeakingLearningJourney from "./SpeakingLearningJourney";
+import SpeakingQuestionClip from "./SpeakingQuestionClip";
+import SpeakingHeaderTools from "./SpeakingHeaderTools";
+import { GuidedListenStep, GuidedSpellStep, GuidedStepper } from "./SpeakingGuidedSteps";
+import { initialGuidedStep, nextGuidedStep, spellingTargetFor } from "../../utils/speakingGuidedSteps";
 
 const ANSWER_SLOT_PATTERN = /[\u005B［]([^\u005D］]{1,80})[\u005D］]/g;
 
@@ -69,7 +73,9 @@ export default function SpeakingPracticeSteps({
     allowModelAudio = true,
     readAloud = false,
     promptTitle = "直接開口回答",
-    promptDetail = "不用打字，按下麥克風後用完整英文句子回答。"
+    promptDetail = "不用打字，按下麥克風後用完整英文句子回答。",
+    onGuidedStepChange,
+    onSpellFailed
 }) {
     const [showHelp, setShowHelp] = useState(false);
     const [revealedAnswer, setRevealedAnswer] = useState(null);
@@ -78,6 +84,11 @@ export default function SpeakingPracticeSteps({
     const [lastResult, setLastResult] = useState(null);
     const [saving, setSaving] = useState(false);
     const [recorderPhase, setRecorderPhase] = useState("ready");
+    // 跟著念的三步（聽→拼→念）；自己說永遠直接念。
+    const [guidedStep, setGuidedStep] = useState(() => initialGuidedStep(question, challengeMode));
+    // 只在換題／新回合時重設步驟；同一題的進度更新（新物件）不能把孩子拉回第 1 步。
+    const questionRef = useRef(question);
+    questionRef.current = question;
     const helpId = useId();
     const busy = ["recording", "preparing", "assessing"].includes(recorderPhase) || saving;
     const canListen = allowModelAudio && Boolean(question.model_audio_url);
@@ -98,6 +109,7 @@ export default function SpeakingPracticeSteps({
         setLastResult(null);
         setSaving(false);
         setRecorderPhase("ready");
+        setGuidedStep(initialGuidedStep(questionRef.current, challengeMode));
         return () => { hintRequestRef.current += 1; };
     }, [question.id, challengeSessionId, challengeMode]);
 
@@ -150,7 +162,25 @@ export default function SpeakingPracticeSteps({
         setShowHelp(true);
     };
 
+    const spellingAnswers = challengeMode === "easy" ? spellingTargetFor(question) : null;
+    const guidedSteps = challengeMode === "easy"
+        ? [question.clip?.type === "audio" && "listen", spellingAnswers && "spell", "speak"].filter(Boolean)
+        : [];
+    const goToStep = step => { setGuidedStep(step); onGuidedStepChange?.(step); };
+    // 步驟（1 拼 2 念）和「先聽一次」排成同一列：孩子做題前最常需要的兩樣東西放在題目正下方。
+    const stepper = <div className="speaking-step-row">{guidedSteps.length > 1 && <GuidedStepper steps={guidedSteps} current={guidedStep} />}<SpeakingHeaderTools /></div>;
+
+    if (guidedStep === "listen" && question.clip) return <section className="speaking-practice-flow">
+        {stepper}
+        <GuidedListenStep clip={question.clip} nextLabel={spellingAnswers ? "下一步：拼單字" : "下一步：看著句子念"} onNext={() => goToStep(nextGuidedStep("listen", question))} />
+    </section>;
+    if (guidedStep === "spell" && spellingAnswers) return <section className="speaking-practice-flow">
+        {stepper}
+        <GuidedSpellStep key={question.id} answers={spellingAnswers} clip={question.clip} onDone={() => goToStep("speak")} onFail={onSpellFailed} />
+    </section>;
+
     return <section className="speaking-practice-flow">
+        {stepper}
         <SpeakingLearningJourney phase={saving ? "assessing" : lastResult ? "feedback" : recorderPhase} canListen={canListen} />
         <details className="speaking-practice-instructions">
             <summary>這題怎麼練？</summary>
@@ -160,8 +190,11 @@ export default function SpeakingPracticeSteps({
             </div>
         </details>
 
-        {showAnswerByDefault && answerPattern && !(question.hint_voids_pass && revealedAnswer) && <div className="speaking-help-panel speaking-easy-answer" aria-label="簡單模式參考答案">
-            <small>看著題目與答案，勇敢說出完整句子</small><strong>{answerPatternWithSlots(answerQuestion.model_answer)}</strong>
+        {/* 「聽這題」：後端只在跟著念／示範時給片段，自己說不會有。 */}
+        {question.clip && <SpeakingQuestionClip clip={question.clip} label={guidedSteps.length > 1 ? "再聽一次" : "聽這題"} disabled={busy || audioWorking} />}
+
+        {showAnswerByDefault && answerPattern && !(question.hint_voids_pass && revealedAnswer) && <div className="speaking-help-panel speaking-easy-answer" aria-label="跟著念參考答案">
+            <small>看著題目與答案，勇敢說出完整句子</small><span className="speaking-easy-answer__cue"><FiMic aria-hidden="true" />念這句</span><strong>{answerPatternWithSlots(answerQuestion.model_answer)}</strong>
             {canListen && <button type="button" disabled={audioWorking || busy} onClick={onPlayAudio}>
                 <FiVolume2 aria-hidden="true" />{question.model_audio_url ? (audioWorking ? "播放中…" : "聽回答範例") : "語音準備中"}
             </button>}
@@ -172,16 +205,20 @@ export default function SpeakingPracticeSteps({
         </button>}
 
         {!hideHelp && (!showAnswerByDefault || question.hint_voids_pass) && (!deferAnswerHelp || lastResult || hintVoidsPass) && <button type="button" className="speaking-help-toggle" aria-expanded={showHelp} aria-controls={helpId} onClick={toggleHelp} disabled={helpLoading || busy}>
-            <FiHelpCircle aria-hidden="true" />{helpLoading ? "正在開啟提示…" : showHelp ? "收起回答提示" : challengeMode === "challenge" ? "看提示（本輪此題不計通關）" : hintVoidsPass ? "看提示（這題不算過）" : "不知道怎麼說？"}
+            <FiHelpCircle aria-hidden="true" />{hintVoidsPass ? (helpLoading ? "正在打開答案…" : showHelp ? "收起答案" : "看答案（看了這題就不算通過）") : helpLoading ? "正在開啟提示…" : showHelp ? "收起回答提示" : "不知道怎麼說？"}
         </button>}
 
         {helpError && <p className="speaking-practice-retry" role="alert">{helpError}</p>}
         {hintVoidsPass && revealedAnswer && <p className="speaking-hint-practice-notice" role="status">
-            <strong>這題先練習，稍後不用提示再試一次。</strong>
-            <span>本輪這題不計通關；已通過的題目會保留。</span>
+            <strong>這題先練習，稍後不看答案再試一次。</strong>
         </p>}
 
-        {!hideHelp && showHelp && <div className="speaking-help-panel" id={helpId}>
+        {/* 「自己說」看答案：只顯示這題的答案，不放提示、示範或發音說明。 */}
+        {!hideHelp && showHelp && hintVoidsPass && <div className="speaking-help-panel speaking-answer-only" id={helpId} aria-label="這題的答案">
+            <strong>{answerPatternWithSlots(answerQuestion.model_answer)}</strong>
+        </div>}
+
+        {!hideHelp && showHelp && !hintVoidsPass && <div className="speaking-help-panel" id={helpId}>
             {answerQuestion.hint_zh && <p>{answerQuestion.hint_zh}</p>}
             <div><small>可以這樣說</small><strong>{answerPatternWithSlots(answerQuestion.model_answer)}</strong></div>
             {canListen && <button type="button" disabled={audioWorking || busy} onClick={onPlayAudio}>
@@ -213,8 +250,10 @@ export default function SpeakingPracticeSteps({
         {saving && <p className="speaking-practice-saving" role="status">正在儲存本題進度，請稍候…</p>}
         {!saving && lastResult?.answer_match !== false && lastResult && !lastResult.hint_used && !lastResult.save_failed && <p className="speaking-practice-finished" role="status"><FiCheck aria-hidden="true" /> 本題已完成！你可以繼續挑戰或再練一次。</p>}
         {lastResult?.save_failed && <div className="speaking-save-retry" role="alert"><strong>回答已評分，通關紀錄尚未儲存。</strong><p>保留這次回答，重試儲存即可。</p><button type="button" onClick={() => handleScored(lastResult)} disabled={saving}>{saving ? "儲存中…" : "重試儲存"}</button></div>}
-        {lastResult?.hint_used && !revealedAnswer && <p className="speaking-practice-retry" role="status">這題先練習，稍後不用提示再試一次。本輪這題不計通關。</p>}
-        {lastResult?.answer_match === false && (
+        {lastResult?.hint_used && !revealedAnswer && <p className="speaking-practice-retry" role="status">這題先練習，稍後不看答案再試一次。</p>}
+        {/* 句子題沒過時，錄音結果的「系統聽到」已經說明怎麼做，這裡不重複；只留給字母題與沒聽清楚的情況。 */}
+        {lastResult?.answer_match === false && !lastResult.rechecked
+          && (["letter_spelling", "alphabet_round"].includes(interactionType) || lastResult.assessment_status === "uncertain") && (
           <p className="speaking-practice-retry">
             <FiHelpCircle aria-hidden="true" />{" "}
             {lastResult.feedback || (

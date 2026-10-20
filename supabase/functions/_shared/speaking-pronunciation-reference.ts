@@ -1,4 +1,4 @@
-const ANSWER_SLOT_PATTERN = /[\u005B［]([^\u005D］]{1,80})[\u005D］]/g;
+const ANSWER_SLOT_PATTERN = /[\[［]([^\]］]{1,80})[\]］]/g;
 const ENGLISH_SLOT_VALUE = /^[A-Za-z0-9][A-Za-z0-9 .,'!?&-]{0,59}$/;
 
 const clientError = (message: string, status: number, code: string) => Object.assign(new Error(message), { status, code });

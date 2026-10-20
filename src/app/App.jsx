@@ -4,6 +4,8 @@ import { Navigate, Outlet, Route, Routes, useLocation, useParams } from "react-r
 import Router from "./GuardedBrowserRouter";
 import { Helmet } from "react-helmet";
 import { ToastContainer } from "react-toastify";
+import { useTheme } from "../theme/ThemeContext";
+import RouteErrorBoundary from "../systemReport/RouteErrorBoundary";
 import "react-toastify/dist/ReactToastify.css";
 import "./App.scss";
 import "./MobileNavFix.scss";
@@ -52,6 +54,7 @@ import SpeakingContentAdmin from "../components/Pages/SpeakingContentAdmin";
 import Support from "../components/Pages/Support";
 import AdminSupport from "../components/Pages/AdminSupport";
 import { AuthProvider } from "../auth/AuthContext";
+import ThemeRoleBridge from "../theme/ThemeRoleBridge";
 import ProtectedRoute from "../auth/ProtectedRoute";
 import RoleHomeRedirect from "../auth/RoleHomeRedirect";
 import { StoreProvider } from "../store/StoreContext";
@@ -117,11 +120,13 @@ const AuthenticatedAppLayout = () => (
 );
 
 const App = () => {
+    const { resolved: resolvedTheme } = useTheme();
     return (
         <Router future={APP_ROUTER_FUTURE}>
             <RouteScrollToTop />
             <SpeakingRecognizerWarmup />
             <AuthProvider>
+                <ThemeRoleBridge />
                 <StoreProvider>
                 <ToastContainer
                     position="top-center"
@@ -134,6 +139,7 @@ const App = () => {
                     pauseOnFocusLoss={false}
                     draggable
                     pauseOnHover={false}
+                    theme={resolvedTheme}
                 />
 
                 <Helmet>
@@ -146,6 +152,7 @@ const App = () => {
 
                 <RouteSeoPolicy />
 
+                <RouteErrorBoundary>
                 <Routes>
                     <Route path="/" element={<Showcase />} />
                     <Route path="/install" element={<InstallGuide />} />
@@ -252,6 +259,7 @@ const App = () => {
 
                     <Route path="*" element={<NotFound />} />
                 </Routes>
+                </RouteErrorBoundary>
                 </StoreProvider>
             </AuthProvider>
         </Router>

@@ -10,6 +10,7 @@ import {
     resolveQuestionInteractionType
 } from "../_shared/speaking-foundation-answer.ts";
 import { authorizeSpeakingChallenge, buildPublicSpeakingQuestion } from "../_shared/speaking-challenge-view.ts";
+import { clipsAllowedForMode, loadApprovedClips } from "../_shared/speaking-question-clips.ts";
 import { pageQuestionMode } from "../_shared/speaking-page-question-mode.ts";
 import {
     ALPHABET_SEQUENCE_ASSEMBLER_VERSION,
@@ -30,7 +31,9 @@ import {
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-    "Access-Control-Allow-Methods": "POST, OPTIONS"
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    // 瀏覽器記住預檢結果（Chrome 最多 2 小時、Safari 10 分鐘），每次評分少一趟來回。
+    "Access-Control-Max-Age": "7200"
 };
 const json = (status: number, payload: Record<string, unknown>) => new Response(JSON.stringify(payload), {
     status, headers: { ...corsHeaders, "Content-Type": "application/json; charset=utf-8" }
@@ -343,9 +346,17 @@ Deno.serve(async (req: Request) => {
                     }))
                 };
             }
-            // In easy mode a picture gap sentence is read from the blanked sentence; the full
-            // answer is only available through reveal_hint, which voids that question for the run.
-            const easyGapMode = challengeMode === "easy" && !demoMode && !practiceOnly;
+            // 每題片段（聽這題）：只在跟著念／示範／純練習給；讀取失敗不影響關卡。
+            let clipByQuestion = new Map<number, any>();
+            if (clipsAllowedForMode({ challengeMode, demoMode, practiceOnly })) {
+                try {
+                    clipByQuestion = await loadApprovedClips(admin, ids, Number(questionSet.book_id),
+                        (key: string) => createR2PresignedUrl(key, "GET", 15 * 60));
+                } catch (error) {
+                    console.error("speaking question clips unavailable", error);
+                }
+            }
+            // 第一級（easy）的看圖挖空句直接給完整句子跟著念；只有第二級（challenge）隱藏答案。
             const questions = [];
             for (const question of (questionSet.speaking_questions || []).sort((a: any, b: any) => a.sort_order - b.sort_order)) {
                 const modelAsset: any = assetByQuestionPurpose.get(`${Number(question.id)}:model_answer`);
@@ -374,23 +385,16 @@ Deno.serve(async (req: Request) => {
                         createR2PresignedUrl(privateObjectKey, "GET", 15 * 60)
                     )
                 });
-                const easyGapQuestion = easyGapMode && publicQuestion.interaction_type === "picture_gap_sentence";
-                questions.push(easyGapQuestion ? {
-                    ...publicQuestion,
-                    hint_zh: "",
-                    keywords: [],
-                    simple_answer: "",
-                    model_answer: "",
-                    pronunciation_notes_zh: "",
-                    hint_voids_pass: true
-                } : challengeMode === "challenge" && !demoMode && !practiceOnly ? {
+                questions.push(challengeMode === "challenge" && !demoMode && !practiceOnly ? {
                     ...publicQuestion,
                     hint_zh: "",
                     keywords: [],
                     simple_answer: "",
                     model_answer: "",
                     pronunciation_notes_zh: ""
-                } : publicQuestion);
+                } : clipByQuestion.has(Number(question.id))
+                    ? { ...publicQuestion, clip: clipByQuestion.get(Number(question.id)) }
+                    : publicQuestion);
             }
             const challengePolicy = await speakingChallengePolicy(admin, Number(user.id), demoMode);
             return json(200, {

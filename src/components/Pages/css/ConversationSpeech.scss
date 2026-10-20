@@ -10,9 +10,9 @@
     width: min(640px, 100%);
     margin-top: 18px;
     padding: 16px;
-    border: 1px solid #dfe4ff;
+    border: 1px solid var(--ae-border, #dfe4ff);
     border-radius: 20px;
-    background: linear-gradient(180deg, #f8f9ff 0%, #f2f4ff 100%);
+    background: var(--ae-surface-muted, linear-gradient(180deg, #f8f9ff 0%, #f2f4ff 100%));
     text-align: left;
 }
 
@@ -24,7 +24,7 @@
 }
 
 .speech-meter-row strong {
-    color: #59647a;
+    color: var(--ae-text-muted, #59647a);
     font-size: 11px;
 }
 
@@ -33,7 +33,7 @@
     width: 9px;
     height: 9px;
     border-radius: 50%;
-    background: #c5ccd9;
+    background: var(--ae-surface-muted, #c5ccd9);
     box-shadow: 0 0 0 5px rgba(197, 204, 217, .18);
 }
 
@@ -63,14 +63,14 @@
 .live-transcript {
     padding: 14px 15px;
     border-radius: 15px;
-    background: #fff;
+    background: var(--ae-surface, #fff);
     box-shadow: 0 8px 22px rgba(61, 77, 143, .07);
 }
 
 .live-transcript > span {
     display: block;
     margin-bottom: 6px;
-    color: #7d88a1;
+    color: var(--ae-text-muted, #7d88a1);
     font-size: 9px;
     font-weight: 900;
     letter-spacing: .14em;
@@ -79,13 +79,13 @@
 .live-transcript p {
     min-height: 27px;
     margin: 0;
-    color: #22304e;
+    color: var(--ae-text, #22304e);
     font-size: 17px;
     line-height: 1.55;
 }
 
 .live-transcript strong {
-    color: #22304e;
+    color: var(--ae-text, #22304e);
     font-weight: 800;
 }
 
@@ -104,7 +104,7 @@
     margin-top: 12px;
     border: 0;
     border-radius: 14px;
-    background: #14213d;
+    background: var(--ae-solid, #14213d);
     color: #fff;
     font-size: 13px;
     font-weight: 800;
@@ -128,7 +128,7 @@
         padding: 14px 16px;
         border: 1px solid rgba(20, 33, 61, .07);
         border-radius: 18px;
-        background: rgba(255, 255, 255, .94);
+        background: var(--ae-surface-glass, rgba(255, 255, 255, .94));
         box-shadow: 0 12px 32px rgba(25, 43, 84, .06);
     }
 
@@ -146,7 +146,7 @@
 
     .conversation-mobile-progress-heading > div span {
         margin-bottom: 3px;
-        color: #5267e8;
+        color: var(--ae-accent, #5267e8);
         font-size: 9px;
         font-weight: 900;
         letter-spacing: .14em;
@@ -157,7 +157,7 @@
     }
 
     .conversation-mobile-progress-heading > span {
-        color: #7c879d;
+        color: var(--ae-text-muted, #7c879d);
         font-size: 12px;
         font-weight: 800;
     }
@@ -167,7 +167,7 @@
         margin-top: 10px;
         overflow: hidden;
         border-radius: 999px;
-        background: #edf0f5;
+        background: var(--ae-surface-muted, #edf0f5);
     }
 
     .conversation-mobile-progress-track > span {
@@ -188,7 +188,7 @@
     .conversation-step-dots > span {
         height: 4px;
         border-radius: 999px;
-        background: #e5e9f1;
+        background: var(--ae-surface-muted, #e5e9f1);
     }
 
     .conversation-step-dots > span.done {

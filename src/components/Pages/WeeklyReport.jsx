@@ -31,6 +31,7 @@ import {
 import "./css/WeeklyReport.scss";
 import "./css/WeeklyReportOverview.scss";
 import WeeklyReportStudent from "./WeeklyReportStudent";
+import WeeklyReportParent from "./WeeklyReportParent";
 import "./css/StudentPagesMinimal.scss";
 
 const formatDate = value => {
@@ -190,7 +191,7 @@ const WeeklyReport = () => {
                     <h1>週報載入失敗</h1>
                     <p>{error || "目前沒有可顯示的報告"}</p>
                     <button type="button" onClick={loadReport}><FiRefreshCw /> 重新整理</button>
-                    <Link to={backPath}>返回首頁</Link>
+                    <Link to={backPath}>{isManager ? "回管理首頁" : "回我的進度"}</Link>
                 </div>
             </main>
         );
@@ -199,11 +200,63 @@ const WeeklyReport = () => {
     const weekLabel = `${formatDate(report.week.start_date)}－${formatDate(report.week.end_date)}`;
     const speakingChallenge = report.speaking_challenge;
 
+    const detailBlocks = (
+        <>
+                <WeeklyReportOverview report={report} />
+
+                <div className="weekly-report-trends" id="weekly-report-trends">
+                    <WeeklyLineChart days={chartDays} valueKey="listening" title="每日有效聆聽" unit="次"
+                        description="每天實際完成的有效聆聽次數；點選日期可查看數字。" />
+                    <WeeklyLineChart days={chartDays} valueKey="speakingCumulative" title="口說大挑戰累計進度" unit="題" tone="green"
+                        description="從週一開始累計本週新完成題數，重練同題不重複增加。" />
+                </div>
+                <p className="weekly-report-counting-note">聽力依系統保存的有效聆聽紀錄統計；口說曲線表示本週新增的完成題數，不代表整本教材完成率。當週尚未到來的日期顯示待更新。</p>
+
+                <section className="weekly-report-learning-grid" aria-label="各項學習成果">
+                    <article className="weekly-report-learning-card weekly-report-learning-card--listening">
+                        <div><FiHeadphones /><span>LISTENING</span></div>
+                        <h3>聽力累積</h3>
+                        <strong>{report.listening.plays}<small> 次有效聆聽</small></strong>
+                        <p>{report.listening.goal_days} 天達成每日 3 次目標</p>
+                    </article>
+                    <article className="weekly-report-learning-card weekly-report-learning-card--challenge">
+                        <div><FiMic /><span>SPEAKING CHALLENGE</span></div>
+                        <h3>口說大挑戰</h3>
+                        {speakingChallenge ? <>
+                        <strong>{speakingChallenge.completed_questions}<small> 題新完成</small></strong>
+                        <p>
+                            {speakingChallenge.completed_challenges
+                                ? `本週通過 ${speakingChallenge.completed_challenges} 關，獲得 ${speakingChallenge.xp_awarded} XP${REWARD_SHOP_ENABLED && speakingChallenge.ae_points_awarded ? `、${speakingChallenge.ae_points_awarded} AE Points` : ""}`
+                                : "完成整個小關卡即可獲得通關獎勵"}
+                        </p>
+                        {speakingChallenge.current_challenge && (
+                            <div className="weekly-report-challenge-progress">
+                                <small>截至本週的最近關卡</small>
+                                <span>
+                                    <b>{speakingChallenge.current_challenge.book_name}</b>
+                                    {speakingChallenge.current_challenge.completed_questions}/{speakingChallenge.current_challenge.total_questions}
+                                </span>
+                                <div role="progressbar" aria-label="目前口說關卡完成率" aria-valuemin={0} aria-valuemax={100} aria-valuenow={speakingChallenge.current_challenge.progress_percent}>
+                                    <i style={{ width: `${speakingChallenge.current_challenge.progress_percent}%` }} />
+                                </div>
+                                <small>{speakingChallenge.current_challenge.title}</small>
+                            </div>
+                        )}
+                        </> : <p>本週口說紀錄尚無資料，無法判讀完成題數與通關。</p>}
+                        {isManager || (studentProfile?.membership?.is_active && studentProfile?.membership?.effective_access?.features?.pronunciation === true)
+                            ? <Link className="weekly-report-challenge-link" to="/student/speaking-challenges"><FiMic />查看口說冒險</Link>
+                            : <Link className="weekly-report-challenge-link" to="/student/membership"><FiMic />查看口說功能權限</Link>}
+                    </article>
+                </section>
+
+        </>
+    );
+
     return (
         <main className={`weekly-report-page ${isManager ? "weekly-report-page--manager" : "weekly-report-page--student"}`}>
             <div className="weekly-report-shell">
                 <nav className="weekly-report-toolbar" aria-label="週報工具列">
-                    <Link to={backPath}><FiArrowLeft /> 返回{isManager ? "管理首頁" : "我的進度"}</Link>
+                    <Link to={backPath}><FiArrowLeft aria-hidden="true" /> {isManager ? "回管理首頁" : "回我的進度"}</Link>
                     <div className="weekly-report-toolbar__actions">
                         <button type="button" onClick={handleCopy} disabled={!report.family_message}><FiCopy /> 複製文字摘要</button>
                         <button type="button" onClick={() => window.print()}><FiPrinter /> 列印／存 PDF</button>
@@ -269,52 +322,11 @@ const WeeklyReport = () => {
                 </header>
 
                 {!isManager && <WeeklyReportStudent report={report} />}
-                <WeeklyReportOverview report={report} />
-
-                <div className="weekly-report-trends" id="weekly-report-trends">
-                    <WeeklyLineChart days={chartDays} valueKey="listening" title="每日有效聆聽" unit="次"
-                        description="每天實際完成的有效聆聽次數；點選日期可查看數字。" />
-                    <WeeklyLineChart days={chartDays} valueKey="speakingCumulative" title="口說大挑戰累計進度" unit="題" tone="green"
-                        description="從週一開始累計本週新完成題數，重練同題不重複增加。" />
-                </div>
-                <p className="weekly-report-counting-note">聽力依系統保存的有效聆聽紀錄統計；口說曲線表示本週新增的完成題數，不代表整本教材完成率。當週尚未到來的日期顯示待更新。</p>
-
-                <section className="weekly-report-learning-grid" aria-label="各項學習成果">
-                    <article className="weekly-report-learning-card weekly-report-learning-card--listening">
-                        <div><FiHeadphones /><span>LISTENING</span></div>
-                        <h3>聽力累積</h3>
-                        <strong>{report.listening.plays}<small> 次有效聆聽</small></strong>
-                        <p>{report.listening.goal_days} 天達成每日 3 次目標</p>
-                    </article>
-                    <article className="weekly-report-learning-card weekly-report-learning-card--challenge">
-                        <div><FiMic /><span>SPEAKING CHALLENGE</span></div>
-                        <h3>口說大挑戰</h3>
-                        {speakingChallenge ? <>
-                        <strong>{speakingChallenge.completed_questions}<small> 題新完成</small></strong>
-                        <p>
-                            {speakingChallenge.completed_challenges
-                                ? `本週通過 ${speakingChallenge.completed_challenges} 關，獲得 ${speakingChallenge.xp_awarded} XP${REWARD_SHOP_ENABLED && speakingChallenge.ae_points_awarded ? `、${speakingChallenge.ae_points_awarded} AE Points` : ""}`
-                                : "完成整個小關卡即可獲得通關獎勵"}
-                        </p>
-                        {speakingChallenge.current_challenge && (
-                            <div className="weekly-report-challenge-progress">
-                                <small>截至本週的最近關卡</small>
-                                <span>
-                                    <b>{speakingChallenge.current_challenge.book_name}</b>
-                                    {speakingChallenge.current_challenge.completed_questions}/{speakingChallenge.current_challenge.total_questions}
-                                </span>
-                                <div role="progressbar" aria-label="目前口說關卡完成率" aria-valuemin={0} aria-valuemax={100} aria-valuenow={speakingChallenge.current_challenge.progress_percent}>
-                                    <i style={{ width: `${speakingChallenge.current_challenge.progress_percent}%` }} />
-                                </div>
-                                <small>{speakingChallenge.current_challenge.title}</small>
-                            </div>
-                        )}
-                        </> : <p>本週口說紀錄尚無資料，無法判讀完成題數與通關。</p>}
-                        {isManager || (studentProfile?.membership?.is_active && studentProfile?.membership?.effective_access?.features?.pronunciation === true)
-                            ? <Link className="weekly-report-challenge-link" to="/student/speaking-challenges"><FiMic />查看口說冒險</Link>
-                            : <Link className="weekly-report-challenge-link" to="/student/membership"><FiMic />查看口說功能權限</Link>}
-                    </article>
-                </section>
+                {isManager && <WeeklyReportParent report={report} />}
+                {isManager ? <details className="weekly-report-extra weekly-report-extra--charts">
+                    <summary>圖表與更多學習細節</summary>
+                    {detailBlocks}
+                </details> : detailBlocks}
 
                 {report.makeup?.length > 0 && <section className="weekly-report-panel weekly-report-makeup" aria-label="本週請假與補課">
                     <h2>本週請假與補課</h2>

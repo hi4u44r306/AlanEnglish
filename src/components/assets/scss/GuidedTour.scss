@@ -29,9 +29,9 @@
   padding: 20px;
   border: 1px solid rgba(226, 232, 240, 0.9);
   border-radius: 22px;
-  background: #ffffff;
+  background: var(--ae-surface, #ffffff);
   box-shadow: 0 24px 70px rgba(15, 23, 42, 0.28);
-  color: #17213d;
+  color: var(--ae-text, #17213d);
   pointer-events: auto;
 }
 
@@ -44,7 +44,7 @@
 }
 
 .ae-tour-card-topline > span {
-  color: #65708a;
+  color: var(--ae-text-muted, #65708a);
   font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.08em;
@@ -54,7 +54,7 @@
 .ae-tour-card-topline button {
   border: 0;
   background: transparent;
-  color: #7d879c;
+  color: var(--ae-text-muted, #7d879c);
   font-size: 13px;
   font-weight: 800;
 }
@@ -68,7 +68,7 @@
 
 .ae-tour-card > p {
   margin: 0;
-  color: #5f6b82;
+  color: var(--ae-text-muted, #5f6b82);
   font-size: 15px;
   line-height: 1.65;
 }
@@ -82,7 +82,7 @@
 }
 
 .ae-tour-progress-row > span {
-  color: #8a94a8;
+  color: var(--ae-text-muted, #8a94a8);
   font-size: 12px;
   font-weight: 800;
 }
@@ -96,12 +96,12 @@
   width: 8px;
   height: 8px;
   border-radius: 999px;
-  background: #e4e8ef;
+  background: var(--ae-surface-muted, #e4e8ef);
 }
 
 .ae-tour-dots span.done,
 .ae-tour-dots span.active {
-  background: #5f6df2;
+  background: var(--ae-info-bg, #5f6df2);
 }
 
 .ae-tour-dots span.active {
@@ -129,14 +129,14 @@
 }
 
 .ae-tour-actions .secondary {
-  border: 1px solid #dfe4ec;
-  background: #ffffff;
-  color: #4b5872;
+  border: 1px solid var(--ae-border, #dfe4ec);
+  background: var(--ae-surface, #ffffff);
+  color: var(--ae-accent, #4b5872);
 }
 
 .ae-tour-actions .primary {
   border: 0;
-  background: #17213d;
+  background: var(--ae-solid, #17213d);
   color: #ffffff;
   box-shadow: 0 10px 24px rgba(23, 33, 61, 0.18);
 }

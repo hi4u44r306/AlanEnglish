@@ -29,7 +29,9 @@ jest.mock("./GuidedTour", () => () => null);
 jest.mock("./ConversationUXGuard", () => () => null);
 jest.mock("./ConversationHintCoach", () => () => null);
 jest.mock("./MobileOffcanvasScrollGuard", () => () => null);
-jest.mock("./AssignmentShortcut", () => () => null);
+jest.mock("./AssignmentShortcut", () => () => <div data-testid="assignment-shortcut" />);
+let mockAuth = { firebaseUser: null, role: null, authLoading: false };
+jest.mock("../../auth/AuthContext", () => ({ useAuth: () => mockAuth }));
 
 const renderAt = pathname => render(
     <MemoryRouter
@@ -65,4 +67,18 @@ test("離開口說大挑戰後恢復教材播放器", async () => {
     const main = container.querySelector("main.app-content");
     expect(footer).not.toHaveAttribute("hidden");
     expect(main).toHaveClass("has-player");
+});
+
+test("先聽本關教材頁拿掉上方導覽列與作業捷徑，一般教材頁維持原樣", () => {
+    mockAuth = { firebaseUser: { uid: "s1" }, role: "student", authLoading: false };
+    const { container, unmount } = renderAt("/student/books/WB3?speaking=11&mode=easy&tracks=5");
+    expect(screen.queryByTestId("navbar")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("assignment-shortcut")).not.toBeInTheDocument();
+    expect(container.querySelector(".app-shell")).toHaveClass("app-shell--focus");
+    unmount();
+    sessionStorage.clear();
+    renderAt("/student/books/WB3");
+    expect(screen.getByTestId("navbar")).toBeInTheDocument();
+    expect(screen.getByTestId("assignment-shortcut")).toBeInTheDocument();
+    mockAuth = { firebaseUser: null, role: null, authLoading: false };
 });

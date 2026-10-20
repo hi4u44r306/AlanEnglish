@@ -584,7 +584,19 @@ const pickNaturalEnglishVoice = voices => {
     );
 };
 
+// 手機（767px 以下）任務清單預設收合，讓作答區早一點出現；桌機一律展開。
+const MOBILE_QUERY = "(max-width: 767px)";
+const isMobileWidth = () => typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia(MOBILE_QUERY).matches;
+
 function ConversationPractice() {
+    const [missionListOpen, setMissionListOpen] = useState(() => !isMobileWidth());
+    useEffect(() => {
+        if (typeof window === "undefined" || typeof window.matchMedia !== "function") return undefined;
+        const query = window.matchMedia(MOBILE_QUERY);
+        const sync = () => setMissionListOpen(!query.matches);
+        query.addEventListener?.("change", sync);
+        return () => query.removeEventListener?.("change", sync);
+    }, []);
     const {
         firebaseUser,
         role
@@ -662,6 +674,12 @@ function ConversationPractice() {
     const [
         restoredProgress,
         setRestoredProgress
+    ] = useState(false);
+
+    // 「從頭開始」會清掉雲端進度，先問一次。
+    const [
+        restartConfirmOpen,
+        setRestartConfirmOpen
     ] = useState(false);
 
     const [
@@ -2105,14 +2123,62 @@ function ConversationPractice() {
                 ) && (
                         <button
                             type="button"
-                            onClick={
-                                restartMission
+                            className="conversation-restart-button"
+                            onClick={() =>
+                                setRestartConfirmOpen(
+                                    true
+                                )
                             }
                         >
                             從頭開始
                         </button>
                     )}
             </section>
+
+            {restartConfirmOpen && (
+                <div
+                    className="conversation-confirm-backdrop"
+                    role="presentation"
+                >
+                    <section
+                        className="conversation-confirm-dialog"
+                        role="alertdialog"
+                        aria-modal="true"
+                        aria-labelledby="conversation-restart-title"
+                    >
+                        <h2 id="conversation-restart-title">
+                            確定要從頭開始嗎？目前的進度會清除。
+                        </h2>
+
+                        <div>
+                            <button
+                                type="button"
+                                autoFocus
+                                onClick={() =>
+                                    setRestartConfirmOpen(
+                                        false
+                                    )
+                                }
+                            >
+                                取消
+                            </button>
+
+                            <button
+                                type="button"
+                                className="primary"
+                                onClick={() => {
+                                    setRestartConfirmOpen(
+                                        false
+                                    );
+                                    restartMission();
+                                }}
+                            >
+                                從頭開始
+                            </button>
+                        </div>
+                    </section>
+                </div>
+            )}
 
             <section className="conversation-mode-bar">
                 <div className="conversation-mode-title">
@@ -2284,6 +2350,14 @@ function ConversationPractice() {
                         </div>
                     </div>
 
+                    <details
+                        className="mission-list-toggle"
+                        open={missionListOpen}
+                        onToggle={event => setMissionListOpen(event.currentTarget.open)}
+                    >
+                        <summary>
+                            任務清單（{progressValue} / {SCENARIO_STEPS.length}）
+                        </summary>
                     <div className="mission-list">
                         {SCENARIO_STEPS.map(
                             (
@@ -2336,6 +2410,7 @@ function ConversationPractice() {
                             }
                         )}
                     </div>
+                    </details>
 
                     <div className="conversation-privacy-note">
                         <strong>

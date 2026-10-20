@@ -526,6 +526,7 @@ function StudentSettings({ view = "progress" }) {
                 <h1>{profileView ? "個人資料" : notificationsView ? "通知設定" : "我的進度"}</h1>
             </section>
 
+
             {!profileView && !notificationsView && <StudentProgressOverview />}
 
             {(profileView || notificationsView) && (commerceQuery.error || nicknameQuery.error) && <p role="status">部分設定暫時無法更新，已有資料會保留。<button type="button" onClick={load}>重新讀取設定</button></p>}

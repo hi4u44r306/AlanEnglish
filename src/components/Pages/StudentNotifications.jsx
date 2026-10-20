@@ -99,19 +99,24 @@ function StudentNotifications() {
                     <article
                         className={`student-notification-card ${notification.read_at ? "is-read" : "is-unread"} ${destination ? "is-actionable" : ""}`}
                         key={notification.id}
-                        role={destination ? "link" : undefined}
-                        tabIndex={destination ? 0 : undefined}
-                        onClick={destination ? () => openNotification(notification) : undefined}
-                        onKeyDown={destination ? event => handleNotificationKeyDown(event, notification) : undefined}
                     >
-                        <span className="student-notification-icon">{notification.read_at ? <FiCheck /> : <FiBell />}</span>
-                        <div>
-                            <header><strong>{notification.title}</strong>{!notification.read_at && <span>未讀</span>}</header>
-                            <p>{notification.body}</p>
-                            <time><FiClock />{formatDateTime(notification.created_at)}</time>
-                            {destination && <span className="student-notification-destination">查看相關頁面 <FiArrowRight /></span>}
+                        {/* 只有內容區可以點開；「標示已讀」是旁邊獨立的按鈕，點偏了也不會跳頁。 */}
+                        <div
+                            className="student-notification-main"
+                            role={destination ? "link" : undefined}
+                            tabIndex={destination ? 0 : undefined}
+                            onClick={destination ? () => openNotification(notification) : undefined}
+                            onKeyDown={destination ? event => handleNotificationKeyDown(event, notification) : undefined}
+                        >
+                            <span className="student-notification-icon">{notification.read_at ? <FiCheck /> : <FiBell />}</span>
+                            <div>
+                                <header><strong>{notification.title}</strong>{!notification.read_at && <span>未讀</span>}</header>
+                                <p>{notification.body}</p>
+                                <time><FiClock />{formatDateTime(notification.created_at)}</time>
+                                {destination && <span className="student-notification-destination">查看相關頁面 <FiArrowRight /></span>}
+                            </div>
                         </div>
-                        {!notification.read_at && <button type="button" onClick={event => { event.stopPropagation(); void markRead(notification); }}>標示已讀</button>}
+                        {!notification.read_at && <button type="button" className="student-notification-read" onClick={() => { void markRead(notification); }}>標示已讀</button>}
                     </article>
                     );
                 })}

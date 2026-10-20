@@ -17,7 +17,7 @@
   font-weight: 700;
   border: none;
   color: #ffffff;
-  background-color: #f2784b;
+  background-color: var(--ae-danger-bg, #f2784b);
   padding: 10px;
   border-radius: 10px;
 }

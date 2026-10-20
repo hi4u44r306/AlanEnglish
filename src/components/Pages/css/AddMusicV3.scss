@@ -27,15 +27,15 @@
 }
 
 .track-edit-button {
-  color: #315f9f;
-  background: #f2f7ff;
-  border: 1px solid #d7e5fb;
+  color: var(--ae-accent, #315f9f);
+  background: var(--ae-surface-muted, #f2f7ff);
+  border: 1px solid var(--ae-border, #d7e5fb);
 }
 
 .track-delete-button {
-  color: #a63f3f;
-  background: #fff5f5;
-  border: 1px solid #f0d3d3;
+  color: var(--ae-danger, #a63f3f);
+  background: var(--ae-surface-muted, #fff5f5);
+  border: 1px solid var(--ae-border, #f0d3d3);
 }
 
 .music-edit-overlay {
@@ -53,21 +53,21 @@
 .music-edit-dialog {
   width: min(460px, 100%);
   padding: 24px;
-  background: #fff;
-  border: 1px solid #e4eaf2;
+  background: var(--ae-surface, #fff);
+  border: 1px solid var(--ae-border, #e4eaf2);
   border-radius: 18px;
   box-shadow: 0 25px 70px rgba(16, 29, 50, 0.2);
 
   h3 {
     margin: 5px 0 7px;
-    color: #1d2736;
+    color: var(--ae-text, #1d2736);
     font-size: 1.25rem;
     font-weight: 850;
   }
 
   p {
     margin: 0 0 18px;
-    color: #7d8796;
+    color: var(--ae-text-muted, #7d8796);
     font-size: 0.82rem;
     line-height: 1.6;
   }
@@ -76,9 +76,9 @@
     width: 100%;
     height: 44px;
     padding: 0 12px;
-    color: #202938;
-    background: #fbfcfe;
-    border: 1px solid #dce3ed;
+    color: var(--ae-text, #202938);
+    background: var(--ae-surface-muted, #fbfcfe);
+    border: 1px solid var(--ae-border, #dce3ed);
     border-radius: 10px;
     outline: none;
   }
@@ -102,9 +102,9 @@
 }
 
 .music-edit-cancel {
-  color: #657080;
-  background: #f5f7fa;
-  border: 1px solid #e1e6ec;
+  color: var(--ae-text-muted, #657080);
+  background: var(--ae-surface-muted, #f5f7fa);
+  border: 1px solid var(--ae-border, #e1e6ec);
 }
 
 .music-edit-save {
@@ -130,30 +130,30 @@
 
     > div {
         padding: 14px;
-        border: 1px solid #e2e8f0;
+        border: 1px solid var(--ae-border, #e2e8f0);
         border-radius: 14px;
-        background: #f8fafc;
+        background: var(--ae-surface-muted, #f8fafc);
         display: flex;
         flex-direction: column;
         gap: 5px;
     }
 
-    span { color: #64748b; font-size: 0.82rem; }
-    strong { color: #0f172a; font-size: 1.2rem; }
-    .r2-ok { color: #15803d; }
-    .r2-error { color: #b45309; }
+    span { color: var(--ae-text-muted, #64748b); font-size: 0.82rem; }
+    strong { color: var(--ae-text, #0f172a); font-size: 1.2rem; }
+    .r2-ok { color: var(--ae-success, #15803d); }
+    .r2-error { color: var(--ae-warning, #b45309); }
 }
 
 .r2-message {
     margin: 12px 0;
     padding: 12px 14px;
     border-radius: 12px;
-    background: #eff6ff;
-    color: #1e40af;
+    background: var(--ae-surface-muted, #eff6ff);
+    color: var(--ae-accent, #1e40af);
     line-height: 1.5;
 }
 
-.r2-message-error { background: #fff7ed; color: #9a3412; }
+.r2-message-error { background: var(--ae-surface-muted, #fff7ed); color: var(--ae-danger, #9a3412); }
 
 .r2-actions {
     display: flex;
@@ -172,22 +172,22 @@
     }
 
     button:disabled { opacity: 0.45; cursor: not-allowed; }
-    .r2-migrate-all { background: #1d4ed8; }
+    .r2-migrate-all { background: var(--ae-solid, #1d4ed8); }
 }
 
 .r2-cors-guide {
     margin-top: 16px;
     padding: 13px 15px;
-    border: 1px solid #cbd5e1;
+    border: 1px solid var(--ae-border, #cbd5e1);
     border-radius: 12px;
 
-    summary { cursor: pointer; font-weight: 750; color: #334155; }
+    summary { cursor: pointer; font-weight: 750; color: var(--ae-text, #334155); }
     ol { margin: 12px 0; padding-left: 22px; line-height: 1.7; }
     pre {
         margin: 0;
         padding: 12px;
         border-radius: 9px;
-        background: #0f172a;
+        background: var(--ae-solid, #0f172a);
         color: #e2e8f0;
         font-size: 0.75rem;
         overflow-x: auto;
@@ -197,11 +197,15 @@
 
 .track-badges { display: flex; align-items: center; gap: 7px; }
 .storage-badge { padding: 4px 8px; border-radius: 999px; font-size: 0.72rem; font-weight: 800; }
-.storage-r2 { background: #f3e8ff; color: #7e22ce; }
-.storage-supabase { background: #dcfce7; color: #15803d; }
+.storage-r2 { background: var(--ae-surface-muted, #f3e8ff); color: var(--ae-accent, #7e22ce); }
+.storage-supabase { background: var(--ae-success-bg, #dcfce7); color: var(--ae-success, #15803d); }
 
 @media (max-width: 700px) {
     .r2-status-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .r2-actions { flex-direction: column; }
     .r2-actions button { width: 100%; }
 }
+
+// 進階：R2 搬移工具（一次性）— 預設收合在頁面最下方。
+.r2-panel-toggle > summary { display: flex; align-items: center; min-height: 44px; font-weight: 800; cursor: pointer; }
+.r2-panel-toggle[open] > summary { margin-bottom: 14px; }

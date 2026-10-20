@@ -1,0 +1,88 @@
+.weekly-parent {
+  display: grid;
+  gap: 14px;
+  margin: 0 0 16px;
+
+  &__mastered {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    padding: 12px 16px;
+    border: 1px solid var(--ae-border, #d9e2ef);
+    border-radius: 16px;
+    background: var(--ae-surface, #fff);
+    color: var(--ae-text, #17365d);
+    font-weight: 700;
+
+    svg { color: var(--ae-icon, #d97706); flex-shrink: 0; }
+    strong { font-size: 1.25rem; }
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 14px;
+  }
+
+  &__card {
+    display: grid;
+    align-content: start;
+    gap: 10px;
+    padding: 16px 18px;
+    border: 1px solid var(--ae-border, #d9e2ef);
+    border-radius: 18px;
+    background: var(--ae-surface, #fff);
+    color: var(--ae-text, #17365d);
+
+    h2 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 1.05rem; font-weight: 800; }
+    p { margin: 0; color: var(--ae-text-muted, #526780); line-height: 1.6; }
+    ul { display: grid; gap: 8px; margin: 0; padding-left: 20px; line-height: 1.55; }
+  }
+}
+
+.weekly-attention {
+  &__main {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+
+    strong { font-size: 1.6rem; }
+    span { font-size: 1.1rem; font-weight: 800; color: var(--ae-text-muted, #526780); }
+  }
+
+  &__bar {
+    height: 10px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: var(--ae-info-bg, #e8eef7);
+
+    i { display: block; height: 100%; border-radius: inherit; background: var(--ae-success, #247a56); }
+  }
+
+  &__facts {
+    list-style: none;
+    padding-left: 0 !important;
+
+    li { color: var(--ae-text-muted, #526780); font-size: 0.92rem; }
+    b { color: var(--ae-text, #17365d); }
+  }
+
+  &.is-focused strong { color: var(--ae-success, #247a56); }
+  &.is-ok strong { color: var(--ae-warning, #8a5a00); }
+  &.is-ok .weekly-attention__bar i { background: var(--ae-warning, #d99a00); }
+  &.is-needs strong { color: var(--ae-danger, #b42318); }
+  &.is-needs .weekly-attention__bar i { background: var(--ae-danger, #d92d20); }
+  &.is-empty p { color: var(--ae-text-muted, #526780); }
+}
+
+/* 管理員／老師版：頁首只留標題與週別，細節與圖表收進「更多細節」。 */
+.weekly-report-page--manager {
+  .weekly-report-status-copy,
+  .weekly-report-reading-links,
+  .weekly-report-parent-note { display: none; }
+}
+
+.weekly-report-page--manager .weekly-report-hero { margin-bottom: 14px; }
+.weekly-report-page--manager .weekly-report-hero__copy { padding-block: 4px; }

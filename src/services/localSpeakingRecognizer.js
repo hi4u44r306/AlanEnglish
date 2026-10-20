@@ -4,8 +4,8 @@ const failure = (code, message) => Object.assign(new Error(message), { code });
 // The larger model hears more accurately but costs a bigger first download and more work per
 // recording. A device falls back to the small one when it asks to save data, is short of memory,
 // keeps failing to start the large one (a phone may kill the page instead of reporting an error),
-// or has shown that one recording takes too long to score.
-const MODEL_KEY = "ae-speaking-local-model", LARGE_MODEL_MAX_STARTS = 3, LARGE_MODEL_SLOW_MS = 8000;
+// or has shown that one recording takes too long to score (the owner's limit is about 3 seconds).
+const MODEL_KEY = "ae-speaking-local-model", LARGE_MODEL_MAX_STARTS = 3, LARGE_MODEL_SLOW_MS = 3000;
 const readModelState = () => { try { return JSON.parse(localStorage.getItem(MODEL_KEY)) || {}; } catch { return {}; } };
 const writeModelState = state => { try { localStorage.setItem(MODEL_KEY, JSON.stringify(state)); } catch { /* Storage may be unavailable. */ } };
 export function prefersLargeSpeakingModel() {
@@ -57,7 +57,7 @@ export class LocalSpeakingRecognizer {
         for (const [model, preferSimd] of attempts) {
             this.dispose();
             try {
-                this.worker = new Worker(`${process.env.PUBLIC_URL || ""}/speaking-local/worker.mjs?v=2`, { type: "module" });
+                this.worker = new Worker(`${process.env.PUBLIC_URL || ""}/speaking-local/worker.mjs?v=3`, { type: "module" });
                 this.worker.onmessage = ({ data }) => {
                     const pending = this.pending;
                     if (!pending || pending.id !== data.id) return;
@@ -76,7 +76,15 @@ export class LocalSpeakingRecognizer {
                 };
                 this.worker.onerror = event => { event.preventDefault(); this.dispose(); };
                 if (model === "base") writeModelState({ starts: (readModelState().starts || 0) + 1 });
-                await this.request("load", { forceCompatibility: true, preferSimd, model }, onProgress, 300000);
+                const ready = await this.request("load", { forceCompatibility: true, preferSimd, model }, onProgress, 300000);
+                // The worker times one warm-up run before reporting ready. Whisper always works on a
+                // padded 30-second window, so that run takes about as long as a real recording: a slow
+                // device moves to the small model before the student's first question, not after it.
+                if (this.model === "base" && ready?.warmupMs > LARGE_MODEL_SLOW_MS) {
+                    writeModelState({ small: true });
+                    onProgress("這台裝置改用較快的辨識模型…");
+                    continue;
+                }
                 onProgress(this.mode); return;
             } catch (error) {
                 this.dispose();
@@ -88,6 +96,7 @@ export class LocalSpeakingRecognizer {
     }
     async transcribe(wav, maxSeconds) {
         if (!this.ready) throw failure("local_not_ready", "請先準備語音辨識。" );
+        const started = typeof performance !== "undefined" ? performance.now() : Date.now();
         // Input is our own bounded mono 16 kHz PCM WAV; no second audio decode.
         const buffer = await wav.arrayBuffer();
         const view = new DataView(buffer);
@@ -107,7 +116,8 @@ export class LocalSpeakingRecognizer {
             writeModelState({ small: true }); this.dispose(); this.prepare().catch(() => {});
         }
         if (!/[a-z]/i.test(result.text || "")) throw failure("speech_no_match", "沒有辨識到英文，請重新錄音。" );
-        return { recognizedText: result.text, audioSeconds: length / 16000 };
+        const transcribeMs = (typeof performance !== "undefined" ? performance.now() : Date.now()) - started;
+        return { recognizedText: result.text, audioSeconds: length / 16000, inferenceMs: result.inferenceMs, transcribeMs, model: this.model };
     }
 }
 export function retainLocalSpeakingRecognizer() {

@@ -57,7 +57,7 @@ it.each([
     useAuth.mockReturnValue({ firebaseUser: { uid: "demo" }, studentProfile: { membership: { is_active: active, effective_access: { features } } } });
     render(<MemoryRouter><ReviewCenter /></MemoryRouter>);
     await screen.findByRole("heading", { name: "目前還沒有錯題" });
-    const action = screen.getAllByRole("link", { name: destination.includes("assignments") ? "查看老師作業" : destination.includes("ai-generator") ? "開始 AI 練習" : "回到學習首頁" })[0];
+    const action = screen.getAllByRole("link", { name: destination.includes("assignments") ? "查看老師作業" : destination.includes("ai-generator") ? "開始 AI 練習" : "回我的進度" })[0];
     expect(action).toHaveAttribute("href", destination);
     if (!destination.includes("ai-generator")) expect(screen.queryByRole("link", { name: "開始 AI 練習" })).not.toBeInTheDocument();
 });

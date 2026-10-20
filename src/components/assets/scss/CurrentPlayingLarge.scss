@@ -23,7 +23,7 @@
     }
     .detail{
       padding: 10px;
-      background-color: #ffffff;
+      background-color: var(--ae-surface, #ffffff);
       text-align: center;
       width: 100%;
       max-width: 400px;
@@ -39,7 +39,7 @@
 //   filter: brightness(1);
 // }
 .banner{
-   background-color: #ffffff;
+   background-color: var(--ae-surface, #ffffff);
     position: absolute;
     // object-fit: cover;
     width: 100%;

@@ -8,6 +8,8 @@ import { useStudentLearningHistory } from "../../hooks/useStudentLearningResume"
 import { getAccessibleCatalog } from "../../services/contentAccessService";
 import { getStudentAssignments, getStudentAssignmentsV2 } from "../../services/assignmentService";
 import { getSpeakingChallengeCatalog } from "../../services/speakingChallengeService";
+import { getWeeklyReport } from "../../services/weeklyReportService";
+import { roundFocusRate } from "../../utils/focusRate";
 import { findResumeBook, learningResumePath } from "../../services/studentLearningResume";
 import { getLearningTasks, getStudentMaterialCategories } from "../../utils/studentLearning";
 import { assignmentDisplayTitle, assignmentProgressLabel } from "../../utils/assignmentListening";
@@ -32,6 +34,10 @@ function StudentProgressOverview() {
     const assignmentsQuery = useStudentPageQuery("assignments:v1", () => getStudentAssignments(firebaseUser), { enabled: assignmentAccess });
     const assignmentsV2Query = useStudentPageQuery("assignments:v2", () => getStudentAssignmentsV2(firebaseUser), { enabled: assignmentAccess });
     const speakingQuery = useStudentPageQuery("speaking:catalog", () => getSpeakingChallengeCatalog(firebaseUser), { enabled: speakingAccess });
+    const weeklyQuery = useStudentPageQuery(`weekly:${Math.floor((Date.now() + 8 * 3600000 + 3 * 86400000) / (7 * 86400000))}:self`, () => getWeeklyReport(firebaseUser, { weekOffset: 0 }), { enabled: active, persist: true });
+    // 與每週報告頁共用同一份快取（同一週、自己）。
+    const weeklyAttention = weeklyQuery.data?.report?.attention;
+    const focusRate = weeklyAttention?.available ? roundFocusRate(weeklyAttention.focus_rate) : null;
 
     // Saved bookmarks only become links for books the catalog still authorizes.
     const listening = useMemo(() => {
@@ -106,7 +112,7 @@ function StudentProgressOverview() {
                 <span className="student-progress__value">{speakingQuery.loading ? "讀取中" : speakingQuery.error ? "無法讀取" : speaking.some(group => group.completed > 0) ? "全部完成" : "還沒開始"}</span>
                 <FiChevronRight aria-hidden="true" />
             </Link>)}
-            <Link className="student-settings-row" to="/student/weekly-report"><Tile tone="green"><FiMail /></Tile><div><strong>每週報告</strong></div><FiChevronRight aria-hidden="true" /></Link>
+            <Link className="student-settings-row" to="/student/weekly-report"><Tile tone="green"><FiMail /></Tile><div><strong>每週報告</strong></div>{focusRate !== null && <span className="student-progress__value">本週專注度 {focusRate}%</span>}<FiChevronRight aria-hidden="true" /></Link>
             <Link className="student-settings-row" to="/student/leaderboard"><Tile tone="yellow"><PiTrophyFill /></Tile><div><strong>排行榜</strong></div><FiChevronRight aria-hidden="true" /></Link>
         </div>
     </section>;

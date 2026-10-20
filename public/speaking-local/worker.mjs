@@ -54,7 +54,13 @@ self.onmessage = async ({ data }) => {
           self.postMessage({ id, type: 'progress', progress });
         },
       });
-      await recognizer;
+      const engine = await recognizer;
+      // Warm-up run on a second of silence: the first real recording no longer pays for engine
+      // start-up, and its time tells the page whether this device is fast enough for this model.
+      stage = 'warm-up';
+      const warmStarted = performance.now();
+      try { await engine(new Float32Array(16000), { max_new_tokens: 4, do_sample: false }); } catch { /* Timing only. */ }
+      const warmupMs = Math.round(performance.now() - warmStarted);
       let cached = false;
       try {
         const cache = await caches.open('transformers-cache');
@@ -62,7 +68,7 @@ self.onmessage = async ({ data }) => {
         cached = ['encoder_model_quantized.onnx', 'decoder_model_merged_quantized.onnx', 'tokenizer.json']
           .every(file => urls.some(url => url.includes(revision) && url.endsWith(file)));
       } catch { /* Cache persistence is best effort on mobile/private browsers. */ }
-      self.postMessage({ id, type: 'ready', cached, model });
+      self.postMessage({ id, type: 'ready', cached, model, warmupMs });
     } else if (type === 'transcribe') {
       stage = 'transcribe';
       if (!recognizer) throw new Error('not ready');

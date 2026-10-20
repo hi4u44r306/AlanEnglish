@@ -1,6 +1,6 @@
 .music-card {
   --quest-color: #4f75e8;
-  --quest-soft: #edf1ff;
+  --quest-soft: var(--ae-surface-muted, #edf1ff);
   position: relative;
   width: 100%;
   min-height: 104px;
@@ -12,7 +12,7 @@
   overflow: hidden;
   border: 2px solid rgba(79, 117, 232, .13);
   border-radius: 24px;
-  background: linear-gradient(115deg, #fff 0 68%, var(--quest-soft) 100%);
+  background: linear-gradient(115deg, var(--ae-surface, #fff) 0 68%, var(--quest-soft) 100%);
   box-shadow: 0 9px 24px rgba(31, 54, 101, .08);
   transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
 }
@@ -37,10 +37,10 @@
   pointer-events: none;
 }
 
-.music-card--theme-1 { --quest-color: #eb6d73; --quest-soft: #fff0f1; }
-.music-card--theme-2 { --quest-color: #16a886; --quest-soft: #e8fbf6; }
-.music-card--theme-3 { --quest-color: #e99b22; --quest-soft: #fff6df; }
-.music-card--theme-4 { --quest-color: #9a64dc; --quest-soft: #f5edff; }
+.music-card--theme-1 { --quest-color: #eb6d73; --quest-soft: var(--ae-surface-muted, #fff0f1); }
+.music-card--theme-2 { --quest-color: #16a886; --quest-soft: var(--ae-surface-muted, #e8fbf6); }
+.music-card--theme-3 { --quest-color: #e99b22; --quest-soft: var(--ae-warning-bg, #fff6df); }
+.music-card--theme-4 { --quest-color: #9a64dc; --quest-soft: var(--ae-surface-muted, #f5edff); }
 
 .music-card:hover {
   transform: translateY(-3px);
@@ -103,16 +103,16 @@
 .music-card__equalizer span:nth-child(4) { animation-delay: -.55s; }
 
 .music-card__info { position: relative; z-index: 1; flex: 1; min-width: 0; }
-.music-card__page { color: #162a4d; font-size: 21px; font-weight: 950; line-height: 1.25; }
+.music-card__page { color: var(--ae-text, #162a4d); font-size: 21px; font-weight: 950; line-height: 1.25; }
 
 .music-card__status { position: relative; z-index: 1; flex: 0 0 auto; display: flex; align-items: center; gap: 10px; }
-.music-card__plays { display: flex; align-items: center; gap: 7px; min-width: 84px; padding: 8px 12px; border: 1px solid rgba(255, 255, 255, .9); border-radius: 15px; background: rgba(255, 255, 255, .78); color: #52627b; box-shadow: 0 5px 12px rgba(35, 55, 93, .06); }
+.music-card__plays { display: flex; align-items: center; gap: 7px; min-width: 84px; padding: 8px 12px; border: 1px solid rgba(255, 255, 255, .9); border-radius: 15px; background: var(--ae-surface-glass, rgba(255, 255, 255, .78)); color: var(--ae-text-muted, #52627b); box-shadow: 0 5px 12px rgba(35, 55, 93, .06); }
 .music-card__plays svg { flex: 0 0 auto; color: var(--quest-color); font-size: 19px; }
 .music-card__plays span { display: grid; line-height: 1.05; }
-.music-card__plays small { color: #8a96a8; font-size: 9px; font-weight: 800; }
-.music-card__plays strong { color: #344763; font-size: 14px; }
+.music-card__plays small { color: var(--ae-text-muted, #8a96a8); font-size: 9px; font-weight: 800; }
+.music-card__plays strong { color: var(--ae-accent, #344763); font-size: 14px; }
 
-.music-card__check { display: grid; width: 52px; height: 52px; place-items: center; border-radius: 17px; background: #dff7e7; color: #247a45; font-size: 18px; font-weight: 900; box-shadow: 0 6px 14px rgba(36, 122, 69, .1); }
+.music-card__check { display: grid; width: 52px; height: 52px; place-items: center; border-radius: 17px; background: var(--ae-success-bg, #dff7e7); color: var(--ae-success, #247a45); font-size: 18px; font-weight: 900; box-shadow: 0 6px 14px rgba(36, 122, 69, .1); }
 .music-card__check span { font-size: 9px; line-height: 1; }
 
 @media (max-width: 600px) {
@@ -150,10 +150,10 @@
 }
 
 .music-card__status.has-assignment { align-items: flex-start; flex-direction: column; gap: 10px; max-width: 100%; }
-.music-card__assignment { color: #17365d; font-size: 15px; line-height: 1.6; overflow-wrap: anywhere; }
+.music-card__assignment { color: var(--ae-text, #17365d); font-size: 15px; line-height: 1.6; overflow-wrap: anywhere; }
 .music-card__assignment strong, .music-card__assignment span, .music-card__assignment small { display: block; }
-.music-card__assignment small { color: #52667c; font-size: 13px; }
-.music-card__status.has-assignment .music-card__plays { font-size: 13px; color: #52667c; }
+.music-card__assignment small { color: var(--ae-accent, #52667c); font-size: 13px; }
+.music-card__status.has-assignment .music-card__plays { font-size: 13px; color: var(--ae-accent, #52667c); }
 .music-card__status.has-assignment .music-card__plays strong { font-size: 15px; }
 
 .music-card__status.has-assignment .music-card__plays { border: 0; padding: 0; border-radius: 0; background: transparent; box-shadow: none; }
@@ -161,10 +161,10 @@
 .music-card__status.has-assignment .music-card__check { display: none; }
 @media (max-width: 600px) {
     .music-card--assignment { display: grid; grid-template-columns: 50px minmax(0, 1fr); }
-    .music-card--assignment .music-card__status { grid-column: 1 / -1; width: 100%; padding-top: 10px; border-top: 1px solid #dbe6ef; }
+    .music-card--assignment .music-card__status { grid-column: 1 / -1; width: 100%; padding-top: 10px; border-top: 1px solid var(--ae-border, #dbe6ef); }
 }
-.music-card__video { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-width: 44px; min-height: 44px; padding: 8px 12px; border: 1px solid #f0c4c4; border-radius: 15px; background: #fff; color: #b3261e; font-size: 14px; font-weight: 800; text-decoration: none; white-space: nowrap; }
-.music-card__video:hover { border-color: #b3261e; background: #fff5f5; color: #b3261e; }
+.music-card__video { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-width: 44px; min-height: 44px; padding: 8px 12px; border: 1px solid var(--ae-border, #f0c4c4); border-radius: 15px; background: var(--ae-surface, #fff); color: var(--ae-danger, #b3261e); font-size: 14px; font-weight: 800; text-decoration: none; white-space: nowrap; }
+.music-card__video:hover { border-color: #b3261e; background: var(--ae-surface-muted, #fff5f5); color: var(--ae-danger, #b3261e); }
 .music-card__video:focus-visible { outline: 3px solid #17365d; outline-offset: 3px; }
 .music-card__video svg { width: 20px; height: 20px; }
 
@@ -174,10 +174,11 @@
 .playlist-page .music-card.music-card .music-card__info { min-width: 0; }
 .playlist-page .music-card.music-card .music-card__title { font-size: 20px !important; font-weight: 800 !important; line-height: 1.3; overflow-wrap: anywhere; }
 .playlist-page .music-card.music-card .music-card__status { grid-column: auto !important; width: auto !important; margin: 0 !important; padding: 0 !important; border: 0 !important; display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; align-items: center !important; justify-content: flex-end; gap: 8px !important; }
-.playlist-page .music-card.music-card .music-card__plays { min-width: 0; padding: 0 !important; border: 0 !important; background: none !important; box-shadow: none !important; > svg, small { display: none !important; } strong { font-size: 16px; font-weight: 800; color: #17365d; white-space: nowrap; } }
-.playlist-page .music-card.music-card .music-card__video { padding: 8px 10px; > span { display: none; } }
+.playlist-page .music-card.music-card .music-card__plays { min-width: 0; padding: 0 !important; border: 0 !important; background: none !important; box-shadow: none !important; > svg, small { display: none !important; } strong { font-size: 16px; font-weight: 800; color: var(--ae-text, #17365d); white-space: nowrap; } }
+// 「看影片」文字要看得到，不能只剩 YouTube 圖示。
+.playlist-page .music-card.music-card .music-card__video { gap: 4px; padding: 8px 10px; font-size: 13px; }
 .playlist-page .music-card.music-card .music-card__check > span { display: none; }
-.playlist-page .music-card.music-card .music-card__count { font-size: 16px; font-weight: 800; color: #17365d; white-space: nowrap; }
+.playlist-page .music-card.music-card .music-card__count { font-size: 16px; font-weight: 800; color: var(--ae-text, #17365d); white-space: nowrap; }
 .playlist-page .music-card--assignment .music-card__assignment { display: flex; align-items: center; margin: 0; }
 .playlist-page .music-card--assignment .music-card__assignment span { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .music-card__count { display: none; }

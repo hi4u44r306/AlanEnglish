@@ -1,5 +1,6 @@
 # Alan English 專案狀態
 
+<<<<<<< HEAD
 ### 條款與說明頁草稿、綠界金流方向（2026-10-13，分支 `docs/policy-drafts`，純文件草稿／未公開）
 
 - 最後更新：2026-10-13 15:20（Asia/Taipei）。負責：Claude Code 聊天「教材定價與成本統整」。
@@ -7,6 +8,323 @@
 - 已完成：`docs/policy-drafts/` 四份草稿（商品與價格、退款與退貨、會員服務條款、隱私權政策）與 README。退費採保守寫法：實體習作本 7 天猶豫期；平台使用費按剩餘天數比例退；價格拆為習作本 NT$500＋平台使用費。
 - 未完成：【】標示的經營者名稱、客服聯絡方式、手續費、生效日期待擁有者提供；未經律師審閱；尚未做成網站頁面；綠界程式未動工（待取得測試環境）。
 - 下一步：擁有者審閱草稿並提供聯絡方式 → 綠界審核通過並同意新增網站 → 規劃第二階段（線上結帳、付款通知、寄送、訂單管理）。
+=======
+### 口說常見辨識差異放寬（2026-10-19，分支 `fix/speaking-linking-y`；需 pronunciation-coach 部署）
+
+- 擁有者要求「看過全部題庫，放寬常讓本機辨識出錯的字」。已發布 1,425 題（扣字母 72、[slots] 19、空 1 → 實測 1,333）。
+- 規則（speaking-foundation-answer／speaking-completeness）：數字轉英文字（`spellOutNumbers`）、its/it's 等片語同音（依對齊挑合併位置）、連寫／分開、英美拼法與人名、題目內斜線與括號展開（每題最多 32 種）。
+- 模擬「學生念其中一個版本＋辨識常見寫法」：main 1,286／1,333 通過 → 分支 1,333／1,333，無題目退步；錯字替換抽樣 200 題，通過數 main 155、分支 155，無新增放行。
+- 擁有者決定「重要名詞與地名人名一定要對」：新增 `speaking-key-nouns.ts`（753 字＋句中大寫字），`matchesChildFriendlySentence` 與一般朗讀都要求關鍵字全到（單複數 s 互通、不規則複數嚴格）。部署 pronunciation-coach 時檔案清單要加這個新檔。
+- 影響（全題庫，換掉最長字的錯讀 1,315 句）：仍被放過 main 948 → 放寬後 966 → 加名詞規則後 474；模擬正確念法 1,333／1,333 全過。
+- 題庫錯字 5 題（set 31 Q7 pruple、244 Q2 lenghth、301 Q4/Q5 straigh-A、302 Q6 yoursel f），需擁有者同意後修正題目文字。
+
+### 口說連音 y（2026-10-19，同分支）
+
+- 擁有者用學生帳號實測「They are its ears.」被聽成「its years」沒過；學生帳號因 `recheck_mode = staff` 不會再確認。
+- `alignThSoundAlikes`：聽到「y＋母音開頭答案字」時對回答案字。completeness 21 項（新增 1）、azure-sentence 4、local-handler 17。
+- PR #625 部署紀錄：v65 誤抄 `speaking-recording-policy.ts`（少 `? 12 : 25`），約 6 分鐘後 v66 修正；log 只有擁有者的檢查請求，無學生受影響。v66 與 main 16 檔一致。正式站前端 main.2f4b8193。
+
+### 口說同音字與沒過畫面（2026-10-19，分支 `fix/speaking-homophones`；需 pronunciation-coach 部署）
+
+- 擁有者實測「It is an eye.」被聽成「It is an "I".」沒過、且畫面同一件事講三次並顯示 75 分。
+- 後端 `speaking-foundation-answer.ts`：`alignThSoundAlikes` 先把同音字（HOMOPHONE_GROUPS，排除 no／know）對回答案字，`readingCoverage` 與 `matchesChildFriendlySentence` 都適用。
+- 前端：沒過不顯示分數（字母 Azure 題除外）；`SpeakingPracticeSteps` 底部紅字只留給字母題與 uncertain。
+- 驗證：speaking-completeness 20 項（新增同音字 1 項）、azure-sentence 4、local-handler 17；前端口說 267 項，`SpeakingChallengeFlow` 下一關測試偶發失敗（單獨重跑 4 次皆過，main 上同樣偶發）。
+- PR #624（全站按鈕整理）2026-10-19 已部署，正式站 main.8a21778e。
+
+### 全站按鈕 UX 整理（2026-10-19，分支 `fix/ux-audit`，只改前端，隨 PR 上線）
+
+- 依程式碼審查的 49 項分 4 批修（commit c246184c、d1376ec4、8e0ccf88、13fc9d9f）：誤按／弄丟資料加確認、觸控 44px、返回鍵與按鈕位置統一、公開頁入口與後台危險操作分開。手冊 v4.66 列出各角色變化。
+- 未做：#30 網購者開通流程（待擁有者說明現況）；#42 關閉中的後台頁（等級、連結、獎品、商品包、商城訂單、Boss 預覽、排行榜）維持不放入口（9782790c 還原），待擁有者決定。
+- 驗證：全部 Jest 1053 項，4 項未過——3 項在 main 也失敗（StudentNotifications 好友路由、Showcase 2 項），SpeakingChallengeFlow 1 項僅在全部同跑時逾時、單獨重跑 3 次通過；build 成功；本機截圖首頁 375／1280、口說拼字 320×640／375×667 不需捲動。
+- 未驗證：登入後多數頁面（作業、會話、點名、後台）未在瀏覽器實看；播放列 iPhone 安全區需實機。
+- 已知：混合任務若後端仍等聽力／發音步驟，畫面步驟全完成但狀態仍「待完成」（需改後端完成判定）。
+- PR #623（先聽一次）2026-10-19 已部署，正式站 chunk 含 `speaking-step-row`。
+
+### 口說「先聽一次」移到步驟列（2026-10-19，分支 `feat/speaking-listen-once-button`，只改前端，隨 PR 上線）
+
+- `SpeakingPracticeSteps` 新增 `.speaking-step-row`（步驟 + `SpeakingHeaderTools` 插槽）；兩個關卡頁標題列移除插槽；`SpeakingLessonPreparation` 文字改「先聽一次」（aria「先聽一次本關教材」），忙碌時改灰色「評分後再聽」。
+- 驗證：口說相關 5 個測試檔 102 項；本機 320／375／412／1280 截圖無溢出。
+- PR #622（轉文字加速）已於 2026-10-18 部署，正式站 main.68f7342d 含 worker v=3。
+
+### 口說轉文字加速（2026-10-18，分支 `feat/speaking-faster-local`，只改前端，隨 PR 上線）
+
+- 擁有者要求單題等待約 3 秒內：`localSpeakingRecognizer` 大模型改為單次超過 3 秒（原 8 秒）就換小模型；`worker.mjs`（v=3）載入後先用 1 秒靜音暖機並回報 `warmupMs`，大模型暖機超過 3 秒就在第一題前改載小模型。
+- 不剪錄音前後空白：Whisper 固定以 30 秒視窗計算，剪掉也幾乎不會變快。
+- 計時 migration 檔改名為正式版本 `20261018104520_speaking_local_client_timing.sql`。
+- 上一批部署驗證（PR #620）：計時 migration 已套用正式 `20261018104520`（`authenticated` 不能執行摘要函式）；pronunciation-coach v64 由 main 部署，和 main 16 檔一致；OPTIONS 200（max-age 7200）、未登入／錯誤 token 401；正式站前端含計時程式。
+
+### 電腦版學生頂端列：名字移到左邊（2026-10-18，分支 `fix/student-navbar-account-left`，只改 CSS）
+
+- `StudentNavbar.scss`：1280px 以上 `.ae-student-desktop-account` 改 `display: contents`，名字 chip 排到 Lv 卡片左邊，通知與登出留右邊；平板／手機不變。
+- 驗證：本機 3000 以 Test 2 看 1920、1280、1024、768 寬，無重疊；未跑測試與 build（純樣式）。
+
+### 口說評分計時（2026-10-18，分支 `feat/speaking-timing`，接在 PR #619 之後；需 migration＋pronunciation-coach 部署）
+
+- 前端：`utils/speakingClientTiming.js`；`localSpeakingRecognizer.transcribe` 回傳 transcribeMs／inferenceMs／model；`pronunciationCoachService` 送 `client_timing`，並記錄送評分與再確認往返，附在下一次。
+- 後端：`pronunciation-coach` `sanitizeClientTiming`，本機請求完成時寫入 `speaking_local_reading_requests.client_timing`。
+- Migration `20261018104520_speaking_local_client_timing.sql`：欄位（物件、≤1 KB）＋ `speaking_client_timing_summary_v1`。
+- 驗證：前端 64 項、後端 40 項（local-handler 新增計時 1 項）、SQL 2 項（PGlite）。
+
+### 再確認沒過的顯示修正（2026-10-18，分支 `fix/recheck-display`）
+
+- 擁有者以管理員試用：念 "It is a bar"（答案 car），Azure 正確判定沒過，但畫面「系統聽到」顯示 Azure 依參考句辨識的 "It is a car."、顯示 81 分、提示出現兩次。
+- 修正（只改前端）：Recorder 再確認時保留本機辨識文字 `local_recognized_text` 作為「系統聽到」；再確認沒過不顯示分數；SpeakingPracticeSteps 對 `rechecked` 結果不重複顯示 feedback。測試：Recorder 新增 1 項；口說相關 8 個測試檔 198 項通過。
+
+### Azure 再確認上線驗證（2026-10-18，PR #618）
+
+- Migration `20261018072826` 已套用（擁有者同意）；`pronunciation-coach` v62 由 main 部署，部署前確認線上 v61 與合併前 main 一致，部署後 16 檔逐檔與 main 相同；OPTIONS 回 max-age 7200，無登入／錯誤 token 皆 401。
+- 前端：Cloudflare 正式站 main.7ed5298b，含再確認樣式。
+- `recheck_mode` 已依擁有者同意改為 `staff`（只有管理員試用）；改為 `all` 前需擁有者確認。
+- 注意：本次 migration 在 PR 合併前從功能分支套用，內容與合併後 main 相同；之後依規則先合併再套用。
+
+### Azure 再確認與費用上限（2026-10-18，PR #618；migration 已於 2026-10-18 套用正式 `20261018072826`（擁有者同意），pronunciation-coach 於合併後由 main 部署；再確認預設 off，擁有者同意先開 staff）
+
+- Migration `20261018072826_speaking_azure_recheck_and_letter_cap.sql`：`speaking_azure_cost_policy`（recheck_mode off／staff／all、每日 5、同題 2、每月 600 秒、字母＋拼字每月 2250 秒）；attempts／requests 新增 `recheck_of_attempt_id`（唯一）；`reserve_speaking_azure_recheck_request_v1`；A–Z 與拼字預約加每月秒數上限（以線上定義為基礎）；`unified_cost_month_v1` 的 Azure 含 `azure_sentence_recheck`。
+- 後端：`speaking-completeness.localRecheckCandidate`、新檔 `speaking-azure-sentence.ts`（REST、逐字判定、challenge 失敗不回答案）；`pronunciation-coach` 本機沒過且接近時回 `recheck`，新增 multipart `azure_sentence_recheck_v1`（以存下的本機文字重判、預約、Azure、存 attempt）。
+- 前端：`submitSpeakingRecheck`（20 秒逾時）、Recorder 再確認狀態與退回本機結果、「發音評分」標籤、精簡提示；`letter_monthly_budget_exhausted` 納入額度錯誤。
+- 正式資料庫唯讀確認：`speaking_audio_budget_policy` 實際為每人 7200 秒／全站 360000 秒（非 repo 初值）；A–Z 預約原本無每月上限；拼字 provider 亦為 `azure_alphabet_basic`。
+- 驗證：後端 51 項（completeness、azure-sentence 新檔、local-handler 新增 5 項、alphabet、flow）；前端 8 個測試檔 180 項。Migration 隔離驗證：`scripts/speaking-azure-recheck-sql.test.mjs` 於 PGlite 0.5.10（裝在暫存資料夾、以 PGLITE_MODULE 指定，未改 package.json）執行真實 ledger／每日場次／月預算 migration 後套用本 migration，7 項通過（開關、單筆只能一次、他人／已通過／逾時拒絕、每日 5／同題 2、每月 600 秒且不占每日 10 輪、字母＋拼字 2250 秒、權限）。正式套用後唯讀確認：policy 為 off／5／2／600／2250、authenticated 無執行權、A–Z 函式含月上限、成本函式含再確認、本月字母用量最高 168 秒。`guardian-email` 錄音次數尚未排除再確認那筆（每天最多 5 筆）。
+
+### Azure 複查 第 1 階段：沒過時顯示系統聽到（2026-10-18，PR #617，合併即部署）
+
+- `src/utils/speakingWordDiff.js`：與伺服器 `speaking-completeness.ts` 相同的正規化、縮寫展開、LCS 與 th 對齊，只供顯示。
+- `SpeakingPronunciationRecorder`：本機評分沒過（非 uncertain、非 Azure 字母）時顯示 `recognized_text`；easy＋standard_sentence（含空字串題型）且有 `model_answer` 時另列題目並標出不同字（`.is-off`）。
+- 驗證：speakingWordDiff 4 項、Recorder 新增 2 項；相關 4 個測試檔 72 項通過。
+- 第 2、3 階段（伺服器接近判定、Azure 複查）待擁有者決定上限後再做；調查計畫重點：通過需 PronScore≥70（complete_question 規則）、A–Z 目前無每月個人上限。
+
+### 拼字標出正在拼的空格（2026-10-18，PR #615，已部署；正式站 main.aeb6cbd9）
+
+- `speakingGuidedSteps.spellingFocusIndex`：只拼其中一格時回傳第幾格（-1 表示全拼）；`WorkbookOnePictureChallenge` 拼字步驟把非目標空格填答案（`.answer-given`）、目標空格加 `.is-spell-target`；相鄰空格視為同一格。測試 40 項通過。
+
+### 下一步：本機先判、接近才送 Azure 複查（擁有者 2026-10-18 同意方向；每人每月全部服務成本目標約 NT$35）
+
+- 計畫調查中，尚未實作；屬重大改動（評分流程、付費服務、可能新增 migration），實作與部署前需再取得同意。
+
+### 口說評分加速 第 2 步：進度背景存檔（2026-10-18，PR #613，2026-10-18 已部署；正式站 main.cc9b2716）
+
+- 依據：答對時 `pronunciation-coach` 已寫入 attempt（answer_match 由伺服器判定），之後的 `speaking-challenge complete_question` 只標記進度（正式站平均 1155ms、p90 1848ms），原本畫面等它完成才播音效／換題。
+- 改為：`TextbookSpeakingChallenge.saveInBackground` 先把題目標為完成，`markComplete` 以 `utils/retryTransient`（無狀態碼或 5xx 重試，1s、3s）背景存；最終失敗或 hint_used 時改回未完成並顯示 `speaking-save-notice`。`WorkbookOnePictureChallenge.handleCorrect` 不再 await，停 `correctPauseMs`（1200；有 `pronunciation_tips` 為 2600）後換題，存檔失敗把該題加回本輪最後；最後一題等所有存檔完成才結算。A–Z（foundation round）不變。
+- 與原計畫差異：未把評分搬到瀏覽器（第二級需隱藏答案，且不會出現「先顯示通過、伺服器後來不通過」）。
+- 驗證：口說相關 10 個測試檔 177 項通過（含 `retryTransient` 3 項、背景存檔失敗重排 1 項）。
+
+### 2026-10-18 部署紀錄（PR #607–#611，擁有者同意「全部合併並部署」）
+
+- 合併：#607 文件、#608 拼字 3 次、#609 th 放寬、#610 預檢快取（四者先在本機整合，測試 274 項與 `CI=true npm run build` 通過）；#611 把 `speaking-completeness.ts` 的 `\u` 正規式改成等價寫法（部署工具會解碼 `\uXXXX`）。
+- Edge Function：部署前確認線上 `pronunciation-coach` v60、`speaking-challenge` v85 與合併前 main 一致；部署 `pronunciation-coach` v61（15 檔）、`speaking-challenge` v86（19 檔），部署後逐檔比對與 main 相同；OPTIONS 回 `access-control-max-age: 7200`，無登入／錯誤 token 皆 401。
+- 前端：Cloudflare 正式站 main.ea2525ac，407 分檔含拼字次數與 th 提醒樣式。
+- 未驗：學生實際錄音通過 th 案例、iPhone 實機。
+
+### 口說評分加速 第 1 步：預檢快取（2026-10-17，PR #610，2026-10-18 已部署）
+
+- 量測（正式站 24 小時）：本機轉文字估 1～8 秒（base 模型超過 8 秒才換 tiny，未記錄實際值）；`pronunciation-coach` POST 平均 783ms、p90 1046ms；答對再呼叫 `speaking-challenge` POST 平均 1155ms、p90 1848ms；兩者每次都有 OPTIONS 預檢約 270ms。45 次 POST 全部 200。
+- 本步：`pronunciation-coach`、`speaking-challenge` 的 CORS 加 `Access-Control-Max-Age: 7200`，瀏覽器快取預檢。需重新部署這兩支 Function。
+- 下一步（擁有者已同意方向）：② 轉完文字在瀏覽器以同一套規則先顯示結果，伺服器評分與存進度改背景（規則版本不符則等伺服器；存檔失敗自動重試，最終失敗提示「剛剛沒存到，請再念一次」；整輪結算前確認全部存好）；③ 記錄轉文字實際秒數再調模型門檻。
+
+### 口說評分 th 放寬（2026-10-17，PR #609，2026-10-18 已部署）
+
+- 起因：擁有者念 "It is her mouth." 兩次都被辨識成 "mouse"，完整度 75 但答案字不符而不通過。
+- 後端：`_shared/speaking-foundation-answer.ts` 新增 `thSoundAlikes`／`alignThSoundAlikes`（答案字含 th 時，th→s/f/t/d/z，字尾 th 可再加 e，視為同字），用於 `matchesChildFriendlySentence` 與 `speaking-completeness.ts` 的 `readingCoverage`；通過時回傳 `pronunciation_tips` 與提醒文字。只影響 `pronunciation-coach`（`speaking-challenge`、`speaking-content-manager` 未使用被改函式，不需重新部署）。
+- 前端：`SpeakingPronunciationRecorder` 通過時顯示黃色 th 提醒。
+- 驗證：`scripts/speaking-completeness.test.mjs` 17 項（含新增 th 案例）、`speaking-local-handler` 11 項、Recorder 43 項通過。`test-speaking-foundation-answer.mjs`、`test-speaking-pronunciation-reference.mjs` 在未改的 main 上即失敗（舊原始碼比對），與本次無關。
+
+### 拼字 3 次機會（2026-10-17，PR #608，2026-10-18 已部署）
+
+- `GuidedSpellStep`：填滿才判斷；拼錯整排標紅 0.9 秒後清空，不標個別字母；填滿後鎖住刪改；`SPELL_TRIES = 3`，3 次錯呼叫 `onFail`（`SpeakingPracticeSteps.onSpellFailed` → `WorkbookOnePictureChallenge.skipQuestion`），題目不算完成、下一輪再出現。只改前端。
+- 驗證：口說相關測試通過（含新增 3 次失敗案例）；本機 412 截圖（剩餘次數、3 次失敗）。
+
+### 口說麥克風心跳＋關卡頂列一排（2026-10-17，分支 `feat/mic-button-heartbeat`，PR #606，2026-10-17 已合併並部署）
+
+- 麥克風：無光暈、心跳動畫；錄音中綠色打勾「說完了」（`SpeakingPronunciationRecorder.jsx`、`SpeakingMinimalLevel.scss`）。
+- 頂列：拿掉頁碼（P.x）；「先聽本關教材」用 portal 放進關卡標題列（`SpeakingHeaderTools`＋`SpeakingHeaderToolsContext`），與題數進度同一排；標題列不存在時（讀取／結果）仍在上方。
+- 拼字：`gapAnswersFromPattern` 比對前去掉句尾中文提示括號（P4 的 10 題原本因此沒有拼字）；`spellingPlan` 超過 10 個字母只拼最長字、只顯示那一格；字母格依最長字以 `cqw` 縮小。
+- 一畫面：句子 >60／>110 字元縮小字級（`is-long`／`is-very-long`），`max-height: 740px` 縮小圖片、字母方塊、麥克風與間距。正式題庫 92 題看圖補句以 P11、P24、P4、P90 最長情況實測：375×667、412×844、1280×800 拼與念兩步卡片都在畫面內、無側向溢出；320×640 的 P11／P4／P90 仍需少量捲動（16–97px）。
+- 驗證：口說相關 7 個測試檔 134 項通過；本機 320／375／412／1280 截圖。只改前端。
+- 部署：合併 commit 563f088a；`CI=true npm run build` 成功；正式站 main.a68f1844 引用的 407 分檔（css ee6bceb8、js aa2c50b7）與本機建置雜湊相同，含新樣式（心跳、頂列、一畫面）。未在實機 iPhone 驗證。
+
+### 外觀只限管理員、其他人固定淺色（2026-10-17，分支 `feat/light-theme-for-students`，尚未部署）
+
+- `ThemeContext` 新增 `canChoose`（localStorage `ae-theme-admin`）；非管理員 resolved 一律 light。`ThemeRoleBridge`（AuthProvider 內）在登入確定後依 role 設定；`index.html` 開機腳本只有管理員旗標才套深色，避免學生先閃深色。MainNavbar 外觀列只給 admin；StudentNavbar 與 StudentSettings 移除外觀。
+- 每題片段（聽這題）：擁有者 2026-10-17 試聽 WB2 P4 發現題號與截斷，決定不要單句聽力；正式庫 906 筆片段全部改為 archived（可回復），程式保留但不顯示。
+- 驗證：theme／Navbar／StudentSettings 60 項通過；`CI=true npm run build` 成功。
+
+### 教學影片在平台內播放＋觀看紀錄（2026-10-17，分支 `feat/lesson-video`，PR #604）
+
+- 前端：`LessonVideoDialog`（YouTube IFrame API、youtube-nocookie、rel=0、fs=0；每秒取樣只累計連續播放，看滿 80% 送 complete；hidden 暫停並送 pause_hidden；播放時暫停頁面上的 audio；portal＋背景鎖捲）；`MusicCard` 的「看影片」改開視窗（lazy 載入），Playlist 在口說聽力準備頁也顯示（context=speaking_prep）。段落取自 `workbookVideoChapters`（本頁章節到下一章節）。
+- 後端（待部署）：`learning-activity` 新增 `video_watch`（start／complete／pause_hidden；activity_type=other、key video-start／video-watched／video-pause-hidden；complete 需同 session 的 start 且經過時間 ≥ 片段 80%；每小時 120 筆；只記學生）。`weekly-report` 回傳 `video`＋家長摘要一行；`guardian-email` 多「教學影片：看完 X 段」，暫停與 video-start 不算活躍日。無 migration。
+- 驗證：相關前端 405 項＋影片 5 項、`test:weekly-attention` 10 項通過；`CI=true npm run build` 成功；本機 320／412／1280 截圖（真實 YouTube 嵌入）無溢出。
+- 部署紀錄（2026-10-17，擁有者同意）：部署前確認線上版本與指紋未變；`learning-activity` v52、`weekly-report` v52、`guardian-email` v55，逐檔／逐段比對與 repo 一致，三者 OPTIONS 200、未登入／壞 token 401。前端隨 PR #604 合併。
+
+### Cloudflare 建置失敗：npm 10 套件清單相容（2026-10-17，分支 `fix/npm10-lockfile`）
+
+- 症狀：PR #602 合併後 Workers Builds 失敗（重試亦同），安裝階段 `npm ci` EUSAGE：lock 的 picomatch@2.3.2／yaml@1.10.3 不滿足 4.0.7／2.9.1。Cloudflare 環境為 npm 10.9.2＋node 24.21.0；lock 自 9/20 未變，先前建置成功。
+- 重現：Windows 的 npm 10 不會報錯；在 WSL Linux（node 24.21.0）以 npm 10.9.2 `ci --dry-run` 完整重現。原因是 fdir、postcss-load-config 的選用 peer（picomatch ^4、yaml ^2）在 Linux 的 ideal tree 被放到根目錄。
+- 修正：以 npm 10.9.2 在 Linux 執行 `install --package-lock-only`，只變動 13 筆：根目錄 picomatch→4.0.7、yaml→2.9.1，原本需要 2.x／1.x 的套件改用各自巢狀副本；其他套件版本完全不變。
+- 驗證：Linux npm 10.9.2 `ci --dry-run` 通過；Windows npm 11 `npm ci` 重裝、`CI=true npm run build` 成功、口說相關 260 項測試通過。
+- 9/19（`6f57ed57`）曾發生同類問題；之後若 Cloudflare 再換 npm 版本，可用同樣方式在 WSL 以對應版本重建 lock。
+
+### 跟著念三步：聽 → 拼 → 念（2026-10-17，分支 `feat/speaking-guided-steps`，尚未部署）
+
+- 只改前端，無 migration、無 Function。`utils/speakingGuidedSteps.js`（由 sentence_pattern＋model_answer 算出空格答案、步驟順序、字母方塊）；`SpeakingGuidedSteps.jsx`（步驟條、聽、拼）；`SpeakingPracticeSteps` 在 easy 依步驟顯示，念的步驟才出現完整句與麥克風；`WorkbookOnePictureChallenge` 念之前只顯示挖空句。「聽這題」改為大顆黃色按鈕（擁有者回報不明顯）。
+- 驗證：口說相關前端 21 組全過（含新 `SpeakingGuidedSteps`、`speakingGuidedSteps` 共 10 項）；`CI=true npm run build` 成功；本機假資料 320／412／1280 截圖無溢出。
+- 擁有者決定：片段含答案（先聽再拼）、拼字用點字母／打字、三步只當練習不影響通關。
+- 下一步：擁有者確認後合併上線；之後做 YouTube「看完整影片」按鈕。
+
+### 每題片段「聽這題」第一階段（2026-10-16，分支 `feat/speaking-question-clips`，已部署）
+
+- 資料表：`speaking_question_media_clips`（migration `20261016140406`，擁有者 2026-10-16 同意，已套用正式庫）。音檔（track_id＋起訖毫秒）或 YouTube（11 碼 id＋起訖毫秒），draft／approved／archived，每題每類型最多一個核准，RLS 開啟、只給 service_role。驗證：RLS true、0 policy、anon／authenticated 無 select、7 個索引、0 筆。預留 `private_object_key` 供日後改用預先剪好的小檔。
+- 後端：`_shared/speaking-question-clips.ts`（驗證、只在 easy／示範／純練習給片段、每條音軌只簽一次網址）。`speaking-challenge` question_set 回傳 `clip`（讀取失敗不影響關卡）；管理端改為獨立新 Function `speaking-clip-manager`（只限 admin，`list_question_clips`／`import_question_clips`／`review_question_clip`）；原因：`speaking-content-manager` 約 33 萬字元，部署工具無法一次上傳，故不動它。限制：建立新版草稿時片段不會自動帶過去（新版發布後需重新匯入），日後部署 content-manager 時再補。
+- 前端：`SpeakingQuestionClip`（獨立 audio、不經 MusicPlayer、不呼叫 record-play，播放時回報 busy 避免誤記專注度）；放在 `SpeakingPracticeSteps` 與老師唯讀預覽；管理端 `SpeakingQuestionClipReview`（匯入片段腳本 JSON、試聽、核准、移除）。`SpeakingActivityContext` 拆成獨立小檔，錄音元件改用它（順便修好錄音元件測試載入 Firebase 失敗）。
+- 驗證：`test:speaking-clips` 7 項；口說相關前端 22 組 266 項通過；`CI=true npm run build` 成功；本機假資料 320／412／1280px 無橫向溢出。
+- 擁有者決定（2026-10-16「都照建議」）：片段含答案（先聽再拼）；拼字用點字母或打字；三步流程取代「跟著念」當練習，通關／獎勵仍看「自己說」；接受片段網址指向整條音軌的風險。
+- 部署紀錄（2026-10-16，擁有者「同意部署並合併」）：`speaking-challenge` v85（19 檔逐檔比對與 repo 一致）、`speaking-clip-manager` v1（新）；三者 OPTIONS 200、未登入／壞 token 401。PR #601。
+- 下一步：由管理員匯入 Workbook 3 P4（題組 37，音檔 114）並試聽核准。第二階段：三步流程與拼字、YouTube 片段與「看完整影片」按鈕（不綁獎勵，遵守 YouTube 規定）。
+- 已知：正式庫 `academy_class_change` migration 版本為 `20261015031133`，repo 檔名為 `20261015120000`，內容未變，日後整理時對齊。
+
+### 口說專注度＋家長 Email 專注度（2026-10-16，分支 `feat/speaking-attention`）
+
+- 已上線（2026-10-16）：PR #597（含 #595 深色第二階段、#596 對話按鈕）合併為 main `e6ed4dfd`，Cloudflare Workers Builds success；正式站 asset 已含 `speaking-easy-answer__cue`、`speaking-session-topbar`、`weekly-student__focus` 等新類別。
+- 本批：`learning-activity` 新增 `speaking_attention`（reason：idle／hidden／left_prep；activity_type=`other`、key=`speaking-pause-*`，因資料表 CHECK 只允許 login/listening/conversation/ai/other，不需 migration；只記學生、每小時 60 筆）。前端 `useSpeakingAttention`（SpeakingAdventureSession 內）、聽力頁鎖定導回時記 left_prep。`weekly-report` 新增 `speaking_attention`（`buildSpeakingAttention`，分母為本週 `speaking_challenge_question_progress` 完成題數）與家長摘要一行；`guardian-email` 加入聽力／口說專注度（整十）並排除暫停事件計入活躍日。
+- 驗證：前端相關 423 項、`test:weekly-attention` 9 項通過；`CI=true npm run build` 成功。
+- 擁有者 2026-10-16 指示「部署全部」：三個 Function 於合併後部署，部署紀錄見下方更新。
+- 每題片段（第三級「聽了說」前置）：Workbook 3 P4 本機試做通過（擁有者試聽「聽起來很好」，不要題號）；腳本在 scratchpad（clipper.py），尚未建立資料表，下一步需擁有者同意 migration。
+
+### 口說等級：跟著念／自己說＋關卡視窗精簡（2026-10-16，分支 `feat/speaking-levels`，PR #597，前端尚未部署）
+
+- 第 1 階段（前端）：新增 `src/constants/speakingLevels.js`（easy＝「跟著念」、challenge＝「自己說」）；關卡視窗拿掉書本圖示與「依教材頁序完成」，標題改為「P.x 主題」、資訊改「題數／通過 X/Y 句」、規則一句話；讀取畫面、關卡標題、規則、結束動畫同步。未解鎖頁「回到地圖」回到同一本地圖。
+- 第 2 階段：`speaking-challenge` 移除 easy 模式把看圖挖空句答案清空的特例，**已部署 v84（2026-10-16，擁有者同意）**；以線上版為基礎，部署後逐檔比對 18 個檔案與 repo 完全一致，OPTIONS 200、未登入／壞 token 401。舊前端在第一級會同時看到挖空句與參考答案，新前端合併後改為圖片＋完整句子。部署過程中 MCP 工具會把 `\u005B` 轉成 `[`，故 `_shared/speaking-pronunciation-reference.ts` 正規式改寫為等價的 `\[` `\]`（以多組字串比對結果相同；v81–v83 短暫為錯誤正規式，但本 Function 不呼叫該段程式，無影響）。前端 `WorkbookOnePictureChallenge`：兩級都顯示圖片，第一級顯示完整句子並隱藏重複的參考答案框。
+- 驗證：口說相關測試 255 項通過；`CI=true npm run build` 成功；關卡視窗 320／375／412／768／1280px 淺色／深色無溢出；本機假資料看過看圖挖空句兩級畫面。
+- 待辦（依序）：第 3 階段 `practice_queue` 後端（需同意部署）；第 4 階段「我的進度」還要再練 N 句與清單頁；第 5 階段第三級「聽了說」（剪教材音檔存入 `speaking_question_audio`，涉及模式值／CHECK 與 R2，須先規劃並取得同意）。
+- 待擁有者確認：文件寫「同關每日正式完成一次」，程式目前只限制 A–Z；本批維持程式現狀。
+
+### 英文對話「開始回答」按鈕不再蓋住底部導覽列（2026-10-16，分支 `fix/conversation-dock-above-nav`，尚未部署）
+
+- 擁有者回報：對話頁的「開始回答」按鈕會擋住導覽列。在本機以學生身份重現：手機與平板（≤1279px，學生有底部導覽列）時，固定在畫面底部的按鈕正好疊在導覽列（我的進度／教材／冒險）上。
+- 修正：`ConversationUXGuard.scss` 有底部導覽列時，按鈕抬高到導覽列上方（`--student-bottom-nav-offset` + 78px），頁面底部留白同步增加。只改樣式；電腦版與老師／管理員版位置不變。
+- 第二個問題（擁有者在管理員手機版側邊選單看到）：按鈕圖層 `z-index: 1800` 高於側邊選單（1045）與遮罩（1040），蓋住選單底部的「登出」。改為 `1020`（仍在頁面內容上方、低於導覽列與選單）。已在擁有者的瀏覽器分頁確認登出鈕可見。
+- 驗證：390px 學生手機畫面導覽列完整可見；管理員手機版選單打開時登出鈕不被遮住；`CI=true npm run build` 成功。
+
+### 深色模式第二階段（2026-10-15，分支 `feat/dark-mode-phase2`，尚未部署）
+
+- 色票：`--ae-border` 改半透明白；新增 `--ae-success-bg／danger-bg／warning-bg／info-bg／purple-bg`（半透明色底）。批次腳本 `codemod9`：飽和的粉彩底色（chips、badges、tiles，共 287 處）依色相改用對應色底；`codemod10`：近白半透明背景（11 處）改用 `--ae-surface-glass`。淺色後備色不變。
+- 驗證：以 Sass 編譯 main 原檔與現檔，還原後備色後比對，74 個樣式檔淺色輸出一致；主題測試 8 項（色票防呆含新色底）；本機以自動檢查掃過學生（20 頁，390px）與管理員／老師／學生（50 頁，1100px），空資料狀態下僅管理員口說挑戰預覽頁偏白（遊戲美術，刻意保留）。
+- 刻意不做：把主要按鈕改成「淺底深字」反相。原因：全站按鈕以 `--ae-solid` 底配固定白字，反相要逐一確認每個按鈕的字色，風險高於收益；目前深色下主要按鈕為深灰底白字。
+- 限制：自動檢查用空資料，資料多的頁面（表格、清單）若有顏色問題需靠實際截圖回報。
+
+### 每週報告精簡（老師／管理員）＋專注度（2026-10-15，分支 `feat/weekly-report-attention`，尚未部署；兩個 Edge Function 已於 2026-10-15 經擁有者同意部署）
+
+- 需求：管理員版太雜，要像學生版精簡、讓家長一眼看到學了／聽了／會了多少、還可加強什麼與作業完成；另加專注度（放著不動自動暫停、切換頁面暫停）。
+- 資料調查：`listening_coverage_sessions` 沒有暫停原因；專注度需要新記錄。不新增資料表／migration：重用 `student_activity_events`（`activity_type=listening`，key `pause-idle`／`pause-hidden`，metadata 只有 track_id）。其他讀取該表的功能只取 `conversation` 類型，不受影響（已查 weekly-report、guardian-email）。
+- 後端：`learning-activity` 新增 `listening_pause`（只記學生、原因白名單、每小時最多 120 筆）；`weekly-report` 新增 `attention`（`attention.ts` 純函式，6 項測試）與家長文字摘要的專注度一行。專注度以整週為單位：起算日 `ATTENTION_TRACKING_SINCE=2026-10-19`（週一），只有整週都在起算日之後的週別才顯示；前端需在 10/19 前上線，否則首週資料不完整。
+- 前端：`MusicPlayer` 只在既有的「切換頁面暫停」與「還在學習嗎？倒數結束」兩處多送一個事件，不改任何計次、防掛機或獎勵判斷；`WeeklyReportParent`（含 `WeeklyAttention`）取代老師／管理員版頁首大量內容，圖表收進折疊；學生版補「這週沒有作業」。
+- 驗證：`npm run test:weekly-attention` 6 項、`WeeklyReport*`／`WeeklyReportParent` 16 項、MusicPlayer 相關測試通過；本機以假資料看過淺色／深色與三種專注度狀態。
+- 部署紀錄（2026-10-15，擁有者同意）：`learning-activity` v50（新增 `listening_pause`）、`weekly-report` v50（新增 `attention` 與家長摘要一行）。以線上版本為基礎加入新功能，其餘程式碼不變；部署後驗證：未登入 401、壞 token 401、CORS 正常。含已登入路徑的實測需等前端上線後由真實使用觀察。
+- 擁有者決定（2026-10-15）：專注度以一個禮拜為單位，起算日為 10/19（週一）；前端須在 10/19 前上線。
+
+### 問題回報（網站出問題時自動跳出並回報）（2026-10-15，分支 `feat/system-problem-report`；後端已部署，前端尚未部署）
+
+- 設計經審查代理（唯讀）檢查後調整：不新增資料表／migration，重用 `support_tickets`（category `other`、主旨前綴「【系統回報】」、`priority` 崩潰與載入失敗為 urgent）。
+- 後端：`support-manager` 於 2026-10-15 經擁有者同意部署為 v38（verify_jwt=false 不變）。新增 `system_report`：身分只信任 token 驗證後查到的學生資料（前端傳的姓名、信箱忽略；查不到學生一律匿名，用占位信箱）；診斷資訊清理（JWT、Bearer、簽名網址、email、長字串；只留路徑、堆疊前 5 行）；去重（report_id、同人同錯誤 1 小時內未結案）；三層限流（登入者 3／小時、匿名 20／小時、全站 60／小時）；一般客服表單拒絕冒用前綴，且計數排除系統回報；`list` 加 `kind` 篩選。線上 Netlify 測試網址已從允許來源移除（本來已停用）。
+- 部署後驗證：冒用前綴被拒（400）、匿名回報成功並正確忽略冒充的姓名／信箱、token 與 email 被遮蔽、同一 report_id 重送回傳既有案件、未登入 list 401、非允許來源 403。測試留下兩筆案件（#2、#3），已標示為已關閉。
+- 前端：`src/systemReport/`（錯誤邊界、對話框、重整次數保護、待補送回報、捲動位置還原、載入失敗偵測與新版本自動重整一次）；`index.js` 外層邊界＋`App.jsx` 內層邊界（換頁自動清除）；`AdminSupport` 加兩個分頁與緊急標記。
+- 驗證：`npm run test:system-report`（後端清理邏輯 9 項）、`src/systemReport` 元件測試 14 項通過；`CI=true npm run build` 成功；本機觸發載入失敗後，淺色與深色對話框顯示正常。
+- 不做／第二階段：「連續服務失敗」提示條、離線偵測進階處理；後端故障時刻意不提供重新整理（`AuthContext` 取不到使用者資料會登出）。
+
+### 公開首頁固定淺色（2026-10-15，分支 `feat/landing-always-light`，尚未部署）
+
+- 擁有者要求根目錄維持淺色較專業。`useForcedLightTheme()`（`src/theme/ThemeContext.jsx`）讓 `Showcase` 顯示期間固定淺色、離開後恢復使用者選擇；`public/index.html` 開機前腳本對 `/`、`/showcase` 直接用淺色避免閃黑；首頁選單移除外觀選項。
+- 驗證：主題測試 5 項通過、`CI=true npm run build` 成功。注意：`Showcase.test.jsx` 兩項測試在 main 上本來就失敗（文案改過、測試未更新），與本次無關，待另案修正。
+
+### 建立作業：名稱自動帶入、拿掉說明欄（2026-10-15，分支 `feat/assignment-auto-title`，尚未部署）
+
+- 擁有者要求：作業名稱沿用「日期＋班級＋功課」，說明欄不需要。
+- 修改：新增 `assignmentTitle.js`（含測試）；`TeacherAssignments.jsx` 自動帶入名稱（老師改過就不覆蓋、清空恢復），自動名稱不存進草稿；移除「作業說明」輸入欄（複製作業時說明清空）。後端與資料表不動（`description` 欄位仍可為空）。
+- 驗證：`TeacherAssignments`／`assignmentTitle`／services 測試 100＋9 項通過；`CI=true npm run build` 成功。
+- 待擁有者決定：教材可選範圍。目前前端與 `assignment-manager`（Edge Function，三處檢查）都限制為「班級目前生效的教材」；若要讓建立作業時可選任何教材，必須改後端並處理學生是否有該教材使用權，屬權限變更，需另批准。
+
+### 作業頁迷你播放器：展開按鈕不再壓住播放鍵（2026-10-15，分支 `fix/mini-player-toggle-overlap`，尚未部署）
+
+- 擁有者回報：在作業頁點開音檔再縮小，迷你播放器看起來怪。原因：窄螢幕（≤900px）下，絕對定位在右上角的「🎧 展開播放器」按鈕疊在播放鍵上。
+- 修正：`Containerfull.scss` 在 ≤900px 的迷你播放器上方留一排（`padding-top: 34px`）給按鈕。只改樣式；在使用者分頁預覽後確認不重疊（按鈕 y 666–695、播放鍵 y 712–754）。
+- 驗證：`CI=true npm run build` 成功。
+
+### 深色模式改為黑白灰、補齊漏換的頁面（2026-10-15，分支 `fix/dark-mode-monochrome`，尚未部署）
+
+- 擁有者回報：點名、帳號、教材、AI 發音教練、API 成本等頁面顏色怪（深色字壓在深色底、淺色底配淺色字），且不要藍字，要黑底白字。
+- 根因：①批次換色漏掉 SCSS 變數（`$navy`）與頁面自訂 CSS 變數；②壓縮成同一行的相鄰宣告每隔一個被略過（正規式吃掉前後分隔字元）；③中間亮度的底色（黃、灰）沒一起變暗；④色票檔被批次工具改成自己指向自己。
+- 修正：解開變數再分類；改成不吃分隔字元的正規式；亮度 ≥0.62 的底色與淺色漸層一律轉深；藍色底與藍色漸層轉深灰（`--ae-solid`）；強調色改為白（`--ae-accent: #f0f0f0`）；口說大挑戰（有場景美術）維持原本設計；`src/theme/themeTokens.test.js` 防止色票被改壞。
+- 驗證：以 Sass 編譯「main 原檔」與「現檔」，把 `var(--ae-xxx, 後備色)` 還原後逐字比對，88 個樣式檔淺色輸出一致（唯一差異是變數定義在別的檔案、值相同）；深色下 8 個頁面（點名、新增教師、離校生管理、班級教材、API 成本、發音教練、教材音檔、口說地圖）對比度全部 ≥4.5；`CI=true npm run build` 成功。
+- 仍可能有的問題：登入後其他沒逐頁看的頁面、行內樣式（style=）、非 # 色碼；口說大挑戰刻意維持原樣。
+- 提醒：批次腳本一律排除 `src/theme/`。
+
+### 深色模式改為黑底（2026-10-15，分支 `fix/dark-mode-black-palette`）
+
+- 擁有者回報：深色畫面是藍灰底、很醜，要像 ChatGPT／Claude 的黑底白字。原因：#586 合併後我重跑批次腳本，把 `src/theme/theme.scss` 的淺底色變數誤改成文字灰色（頁面底色變灰藍、按鈕淺底淺字）。
+- 修正：色票改為黑色系（頁面 #121212、卡片 #1c1c1e、文字 #ececec），`.app-shell`／`.management-page` 底色比卡片更深；`theme-color` 同步。只改 `theme.scss`、`ThemeContext.jsx`、`index.html`，淺色不受影響。
+- 提醒：日後若再跑批次腳本，必須排除 `src/theme/`。
+
+### 深色模式第一階段（2026-10-15，分支 `feat/dark-mode-phase1`，PR #586，已發布；#588 已改為黑底，Cloudflare build success）
+
+- 做法：`src/theme/`（`theme.scss` 深色色票、`ThemeContext.jsx`、`ThemeSelect.jsx`）；選擇存 localStorage 鍵 `ae-theme`（light／dark／system，預設 system）；`public/index.html` 開機前小腳本先設定 `data-theme`／`data-bs-theme` 與 `theme-color`，避免白閃；Toast 跟隨主題。
+- 全站樣式以腳本批次改成 `var(--ae-xxx, 原色碼)`（背景、文字、邊框、淺色漸層、頁面自訂變數）。**淺色模式不定義任何變數，所以一律落到原色碼**；已用腳本把所有 109 個變動樣式檔還原回原色碼，與 main 逐字相同，確認淺色不變。
+- 切換入口：MainNavbar（桌面帳號選單、手機側邊）、StudentNavbar 抽屜、個人資料頁、首頁（ShowcaseNavbar）。
+- 驗證：`CI=true npm run build` 成功；相關測試 16 檔 137 項通過；本機假登入截圖檢查深色的學生會員頁、個人資料頁、公開首頁。
+- 未完成：老師／管理員各頁、口說大挑戰、圖表／SVG 色、地圖、播放器等僅靠批次替換，尚未逐頁看過；網站內寫死的行內樣式（style=）與非 # 色碼（rgb、hsl、顏色名稱）未處理。PWA 啟動畫面、manifest 維持白底。
+- 回復：還原此 PR 即可，淺色不受影響。
+
+### 離校生回訪統計（2026-10-15，分支 `feat/departed-activity-report`，PR #585，已發布；函式已部署）
+
+- 目的：擁有者要保留離校帳號，讓畢業生決定是否付 NT$299；先看離校生有沒有回來登入。
+- 後端：新增唯讀 Edge Function `departed-student-activity`（已於 2026-10-15 經 MCP 部署 v1，verify_jwt=false 並自行驗 Firebase token、由資料庫確認 admin；不寫入任何資料、不需 migration）。未登入 401、非允許來源 403 已實測。計算邏輯在 `summarize.ts`（純函式）。
+- 前端：`DepartedActivitySummary.jsx`（在 `AdminStudentLifecycle` 選「離校生」時顯示）、`academyStudentService.loadDepartedStudentActivity`。
+- 驗證：`npm run test:departed-activity` 4 項、元件測試 3 項通過，`CI=true npm run build` 成功。正式庫目前 0 位離校生，所以畫面會顯示空狀態；未用真實管理員帳號實測。
+- 回復：停用前端區塊即可；函式唯讀，可直接保留。手冊 v4.40（尚未部署）。
+
+### 離校生登入說明卡（2026-10-15，分支 `feat/departed-student-landing`，進行中：本機完成、待 PR 合併）
+
+- 背景：擁有者詢問畢業／離校後帳號會不會被刪除，以及能否讓離校生自己決定要不要每月 NT$299 續用。查證（唯讀）：離校只把 `academy_enrollments` 改為 `withdrawn` 並保存班級教材（`process_academy_departure_with_materials`），專案資料庫排程只有 API 成本警示一個、沒有任何自動刪除或停用帳號；管理員手動刪帳號會被付款／兌換紀錄擋下。程式裡**沒有藍新／綠界金流**，只有 Stripe（`billing-manager`、`stripe-webhook`），且 `PUBLIC_SELF_SERVICE_BILLING_ENABLED = false`。
+- 修改：`DepartedStudentNotice.jsx`＋樣式（顏色用 `--ae-*` 變數並附淺色預設值）；`MembershipCenter.jsx` 對「role=student、learner_type=academy_student、非在校、且 membership.is_active 不為 true」顯示。線上扣款關閉時按鈕為「聯絡客服」。
+- 驗證：`DepartedStudentNotice`＋`MembershipCenter` 測試 14 項通過；`CI=true npm run build` 成功；本機假登入（未提交）390px 檢視版面正常（新手導覽彈窗為假資料造成）。尚未部署。
+- 建議（尚未做）：先用現有啟用碼＋轉帳／LINE 販售 NT$299，觀察需求再決定是否接金流；金流若選藍新需向藍新確認是否開通定期定額，且要新做整合與先在測試環境驗證。
+
+### 管理員調整單一學生班級（升班／降班）（2026-10-15，已發布：PR #582／main `9eba515c`，Cloudflare Workers Builds success；migration 與 Edge Function 已先經擁有者同意套用／部署；正式站實際調班尚未操作過）
+
+- 擁有者決定（2026-10-15）：只有管理員可調整；生效日預設今天、可改過去日期（不支援未來日期）；同意先在隔離環境（本機 PGlite）做，正式資料庫套用與函式部署須另行同意。MCP 只能看到一個 Supabase 專案（`alan-english`，即正式庫），沒有獨立測試庫，因此未對任何遠端資料庫寫入。
+- 設計：不改舊班級紀錄的 `class_id`（`apply_academy_placement_cycle` 的做法會讓離校教材推算與舊點名失準，且選畢業不走 `process_academy_departure_with_materials`）。改為關閉舊視窗並新增新視窗：舊 `academy_enrollments` 列改狀態 `transferred`（新增，非離校；`withdrawn`／`graduated` 會被 phase 02 權限同步與離校教材邏輯當成離校）、`access_ends_at = 生效日 − 1`；新列 `active`、`enrolled_at = 生效日`，承接原本的 `access_ends_at`／`scheduled_departure_at`。入班當天調整則直接更正班級。權限同步觸發器對舊視窗寫 `revoked`＋「withdrawn」字樣，函式內改寫成 `Academy class changed.`。歷史存於新表 `academy_class_changes`（RLS 開、一般角色無權限）。
+- 檔案：`supabase/migrations/20261015120000_academy_class_change.sql`（additive：放寬狀態檢查、新表、`change_academy_student_class()` 僅 `service_role` 可執行）；獨立的 Edge Function `academy-class-change`（`verify_jwt=false`、自己驗證 Firebase 身分並從資料庫確認 `admin`、重新驗證學生與班級、白話錯誤對照；不放進 2,376 行的 `academy-student-manager`，因為這台電腦沒有 Supabase CLI，只能用 MCP 貼上整檔部署，改小函式可避免誤動建立學生帳號與登入卡）；前端 `ClassChangeDialog.jsx`＋`AdminStudentLifecycle.jsx` 的「調整班級」按鈕＋`changeAcademyStudentClass` 服務。
+- 驗證：`scripts/academy-class-change-sql.test.mjs` 13 項在 PGlite 通過（載入真正的 phase 01 資料表／同步觸發器與擷取自 phase 02 的權限同步，涵蓋升班、降班、同日更正、連續調整視窗相接、不被當成離校、權限視窗與原因、離校排程搬移、各種錯誤不留半套資料、只影響指定學生、函式與資料表權限）；前端 `ClassChangeDialog`＋`AdminStudentLifecycle` 12 項通過；`node --experimental-strip-types --check` 通過。PGlite 以 `npm install --prefix` 暫存資料夾安裝（專案 package／lockfile 未變）。
+- 正式站驗收（2026-10-15）：建置 success；正式站程式內含 `academy-class-change`、`調整班級`、`調整原因`、`升班`、`降班`（中文為編碼形式）；首頁 200。登入後畫面（管理員「在校生／離校生管理」的按鈕與視窗）、實際調班尚待擁有者操作確認。
+- 正式環境操作紀錄（擁有者說「同意套用」後）：先唯讀確認正式庫結構與假設一致（狀態檢查原本四種、無同名物件、需要的欄位齊全、僅 2 筆 active 班級紀錄）→ `apply_migration` 名稱 `academy_class_change`（MCP 版本號由工具產生，與 repo 檔名 `20261015120000` 不同，之後若用 CLI `db push` 需 `migration repair`）→ 唯讀驗證：狀態檢查含 `transferred`、函式僅 `service_role` 可執行、新表 RLS 開且 `anon`／`authenticated` 無權限、班級紀錄筆數未變 → 部署 `academy-class-change` v1（`verify_jwt=false`）→ 以無憑證／假憑證／不明來源／GET／預檢對線上函式冒煙測試（401、401、403、405、204）。**尚未用真實管理員實際調班**（會改到真實學生，建議擁有者先拿確定要調的學生試一次）。
+- 未做／待辦：①（已完成）正式套用 migration 與部署函式；②先前報告提到的 `academy-student-manager` 新增 action 已撤回（該檔與主線完全相同，線上 v59 未更動）；②未來日期調班（需排程）；③整批升班精靈與 `attendance-manager` 依日期還原名單（舊點名在升班後會被「目前名單」過濾而看不到）；④既有 `apply_academy_placement_cycle` 仍是舊做法且沒有任何程式呼叫它，之後應改用新方式；⑤老師不可調整（依決定）。
+- 回復方式：此 migration 只新增不改舊資料；回復＝停用前端按鈕即可；若已有調班紀錄，舊視窗仍以 `transferred` 保存，不需刪除。
+
+### CSV 批次建立英文班學生：範本與說明重做（2026-10-15，分支 `feat/academy-csv-template`，進行中：本機完成，待 PR 合併）
+
+- 起因：擁有者的 CSV 入班日期是 `2026/9/1` 斜線格式，但後端 `academy-student-manager` 只接受 `YYYY-MM-DD`（`isIsoDate`），網頁只在顯示時用斜線，前端沒有轉換，導致誤解與上傳失敗。擁有者桌面的兩個批次檔已另存「_日期修正」版本（原檔未動，未讀取或輸出學生資料）。
+- 修改：`src/utils/academyStudentCsv.js` 新增 `normalizeAcademyCsvDate`（接受 `-`／`/`／`.` 分隔與 8 碼數字，無效日期原樣交給預覽報錯）、班級 NFKC＋大寫、去除多層 BOM、範例列防呆（`ACADEMY_STUDENT_CSV_EXAMPLE_NOTE`）、新版範本欄位（必填在前、補家長Email、選填標示）與 `buildAcademyStudentCsvExample`；`AcademyStudentCsvImport.jsx` 改為空白範本／填寫範例兩個下載鈕與「每一欄怎麼填」說明表；後端與資料表未變。舊版範本欄位仍相容。
+- 驗證：`academyStudentCsv`＋`AcademyStudentCsvImport` 測試 11 項通過（新增日期轉換、班級修正、兩層 BOM、範本欄位、範例列防呆）；`CI=true npm run build` 成功；本機以假管理員登入（未提交）在 390px／1280px 檢查頁面：8 欄說明、兩個下載鈕、無橫向溢出、無 console 錯誤。尚未部署。
+- 點名／升班調查（唯讀，2026-10-15）：CSV 匯入後每班點名表已會依 `academy_enrollments` 即時產生；升班用的 `academy_placement_cycles` 等表與函式已存在但無任何程式呼叫，且 `apply_academy_placement_cycle` 直接改原班級紀錄的 `class_id`（會讓離校教材推算與舊點名名單失準）、選畢業不走 `process_academy_departure_with_materials`。建議分階段：0 CSV 預覽各班人數（低風險）→ 1 新 migration（v2 套用、`transferred` 狀態，需擁有者同意與隔離環境）→ 2 管理員升班精靈 → 3 點名依日期還原名單 → 4 第一次正式升班（需同意）。待擁有者決定 6 個問題（E7 處理、誰能執行、是否記錄起訖日、CSV 是否只建新帳號、點名一班一天、撤回方式）。
+
+### 加入主畫面（PWA）（2026-10-15，已發布：PR #573／main `c86fbde9`，Cloudflare Workers Builds success；iPhone／Android 實機待驗）
+
+- 發布驗收（2026-10-15 00:2x，Asia/Taipei，擁有者說「幫我合併」後合併）：正式站 manifest（start_url `/userinfo?source=pwa`、any＋maskable 圖示、背景白）、`/pwa/*` 圖片（maskable、launch-logo、18 張 iOS 啟動圖）、`/web-push-sw.js`（含空 fetch 監聽、no-cache 標頭）、`/install`（iPhone 只有 Safari 5 步、Chrome 版顯示改用 Safari 提醒）、`/support`（返回在最上方、整頁一個畫面）皆回 200 且內容正確；Edge 載入正式站無 console 錯誤、worker 已註冊、未登入從 `/userinfo?source=pwa` 進入落在 `/`。合併後約數十秒內 `/pwa/launch-logo.png` 曾短暫回 HTML（節點同步），重查已正常。
+- 已知限制：iPhone 的 Chrome 加入主畫面時不保存啟動圖，開啟會先黑畫面兩三秒、圖示可能變替代圖（2026-10-14 實測），教學只留 Safari。學生首次設定頁為強制流程，只有「登出」出口。尚未實機驗證：各角色登入後導向、logo 交接是否仍閃動（啟動圖已依各機型狀態列高度位移，僅用 iPhone 17 Pro Max 錄影量測）。
+- 後續三個 PR（2026-10-15，擁有者說「幫我合併」後依序合併，main 最後為 `d1ada8fa`）：
+  - #575 `f86f8542`：logo 交接不再閃。網頁開機畫面（`#boot-splash`）的 logo 改為 WebP 內嵌在 `public/index.html`（約 50KB，由 `scripts/generate-pwa-assets.mjs` 產生並寫回 index.html），開機畫面一路撐到 `AppLaunchSplash` 離開（確認完登入）才移除，最久 8 秒；iOS 啟動圖的 logo 依各機型狀態列高度下移（`DEVICES` 內第四個數字），與網頁畫面重疊，以 iPhone 17 Pro Max 錄影量測誤差小於 1 像素。
+  - #576 `e6baf9ce`：圖片只載入一次。`public/_headers`：`/static/*` 與版本化圖示 immutable 一年、未帶雜湊的圖片一天、字型一週；`StudentAvatarImage` 載入過的網址換頁後直接顯示（模組內 `loadedSources`＋`img.complete` 檢查）；冒險頁書本卡片改用 640×427 小縮圖（`scripts/generate-speaking-book-thumbs.mjs`，35–59KB，原 200–300KB）；學生登入後閒置時預先載入冒險地圖圖片（`src/utils/adventureAssetWarmup.js`，省流量與非 4g 不執行）；統一圓形返回鈕 `BackButton`（客服頁、安裝教學頁、`StandaloneBackLink`）。公開頁面二次開啟實測差異很小（約 120KB 對 125KB），登入後頁面未量測。
+  - #577 `20f22683`：口說大挑戰回到地圖時停在目前關卡。`src/utils/centerOnLevel.js`：地圖出現後 2 秒內重複對準（剛離開 → 下一個目標 → 進行中 → 最後完成 → 第一關），使用者動手即停止且同一次進入不再拉回。**根因未確認**：以假登入＋假資料在 Chromium 走遍「關卡列表返回、瀏覽器上一頁、完成後返回、關閉摘要視窗」皆正常，無法重現 iPhone 的問題，修法屬防禦性；擁有者實機確認已不再跳到最上面。若再發生，優先懷疑 iOS WebKit 的捲動行為，可下載 Playwright WebKit 重現（需另行同意下載）。
+  - #578 `cb204ea2`（修復）：#577 合併後 Cloudflare Workers Builds 對 `20f22683` **失敗**（正式站維持 #575 版本、未受影響）。原因：雲端以 `CI=true` 建置，ESLint `react-hooks/exhaustive-deps` 警告被當成錯誤（#577 的 `useLayoutEffect` 漏列 `location.key`）；本機用 `CI=true npm run build` 重現並確認補上依賴項後成功。**教訓：高風險以外的前端修改也要用 `CI=true npm run build` 建置後再合併，預覽版用一般建置看不到這類錯誤。**
+- 正式站驗收（2026-10-15，#578 建置 success 後）：`/static/*` 回 `immutable` 一年；`/default-avatars/alan-*`、`/trial/*`、`/pwa/*` 一天、`/fonts/*` 一週；`/web-push-sw.js`、`/manifest.json` `no-cache`；6 張書本小縮圖（36–60KB）回 200；口說地圖頁 chunk（`618.ee085071`）含對準關卡程式；`/support`、`/install`、`/login`、`/try`、`/parents` 在主畫面模擬模式下返回鈕尺寸正確（圓形 44px／回首頁 101×44），Edge 載入無 console 錯誤；未登入從 `/userinfo?source=pwa` 進入落在 `/`。登入後頁面（頭貼不轉圈、冒險縮圖速度、各角色導向）仍待實機回報。
+  - #580 `4dec9c04`：忘記密碼（`/forgot-password`）、學員啟用（`/academy/student-setup`、`/academy/recover`）、邀請開通（`/academy/invite`）卡片最上方加 `BackButton`（連 `/login`）；本機以 `CI=true npm run build` 建置成功後才合併，正式站驗收：4 頁返回鈕 44×44、點擊回 `/login`、無 console 錯誤。
+- 已知與待辦：舊分支 `codex/hide-ai-review-entries-local` 的 12 個提交（擴充版地圖、週報折線圖等）擁有者決定不合併，維持 main 現行版本；2026-10-15 擁有者同意後已刪除該分支（最後位置 `4b807eeb`）、`backup/stash-wip-pre-pwa`（`2689d09f`）與已合併的 PWA 相關功能分支。倉庫為公開，網站優化.md 與圓體 Logo SVG 從未推送，只在本機 `backup/stash-untracked-*` 分支與 stash。正式站 Safari 實機仍待回報：頭貼是否不再轉圈、冒險縮圖速度、各角色登入後導向。
+- 最後更新：2026-10-14（Asia/Taipei）。負責：Claude Code 聊天「PWA 加入主畫面」。基準：origin/main（原本在 `codex/hide-ai-review-entries-local` 的未提交變更已收進 git stash 3 筆，未丟失）。
+- 目標：手機「加入主畫面」後有 App 圖示；點開先看品牌啟動畫面，再依登入狀態與角色進首頁；全螢幕、無網址列；iPhone Safari／Android Chrome 皆可。
+- 作法：`manifest.json` 的 `start_url` 改為既有入口 `/userinfo?source=pwa`（沿用 `RoleHomeRedirect`：主畫面開啟且未登入→公開首頁 /，登入後回 /userinfo；學生→/student/dashboard、老師→/teacher/dashboard、管理員→/admin/dashboard）；啟動畫面與背景改白色（#ffffff）、主題色 #073763；Google 字型改為不擋畫面載入（加快第一次出現畫面）、啟動圖與開機畫面加「Alan English」字樣（同一張組合圖 public/pwa/launch-logo.png），index.html 加開機畫面（僅主畫面模式，React 接手後移除）；圖示拆成 any＋maskable（新圖 `public/pwa/maskable-*.png`）；`index.html` 加 iOS 全螢幕 meta 與 18 張 `apple-touch-startup-image`（`public/pwa/splash/`，由 `scripts/generate-pwa-assets.mjs` 產生）；`RoleHomeRedirect` 載入中改顯示品牌啟動畫面（`src/pwa/AppLaunchSplash.jsx`）；`web-push-sw.js` 加 install／activate／空的 fetch 監聽（不快取、不攔截請求），並在 `src/index.js` 啟動時註冊（與推播共用同一支 worker）；`_headers` 讓 worker 與 manifest 不被快取。
+- 已通過：`src/pwa` 3 項與 `RoleHomeRedirect` 5 項新測試（`src/auth`、`src/pwa` 共 23 項通過）；本機 3000 以 Edge 做 Chrome 可安裝性檢查：manifest 無錯誤、service worker 已註冊、無 console 錯誤，僅剩測試無痕視窗造成的 in-incognito；未登入開 /userinfo?source=pwa 會進 /login。
+- 返回路徑檢查（2026-10-15，唯讀子代理＋抽查）：學生／老師／管理員登入後頁面都有導覽列，只有口說大挑戰關卡內頁、Boss 預覽、學生首次設定刻意不顯示導覽列（各自有返回／離開）；已補：登入／免費試聽／給家長頁在主畫面模式的「回首頁」鈕（src/pwa/StandaloneBackLink.jsx）、404「尋找教材」連結、Boss 預覽離開的備援頁。未動：首次設定強制流程（只能登出）、口說關卡只回教材地圖。尚未實機驗證。
+- 未驗收：Cloudflare 預覽版、iPhone／Android 實機（已登入、未登入、三種角色）；正式部署（需擁有者同意 merge）。不影響一般瀏覽器開網站；iOS 啟動圖只在從主畫面圖示開啟時使用。
+- 風險與回復：改動僅前端靜態檔與一支 worker；若異常，移除 `registerServiceWorker()` 呼叫並把 `start_url` 改回 `/` 即可回復；使用者端可刪除主畫面圖示。
+>>>>>>> origin/main
 
 ### 習作本平台方案第一階段（2026-10-13，已發布：PR #570／main `fdb3bda9`；真實帳號兌換待驗）
 

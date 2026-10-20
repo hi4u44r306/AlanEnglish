@@ -2,7 +2,7 @@
   // cursor: url("https://www.google.com/url?sa=i&url=https%3A%2F%2Fblog.tcea.org%2Fcopyright-free-images-2%2F&psig=AOvVaw3vYuvtdYCSRp_gOPIjjlAk&ust=1667921830393000&source=images&cd=vfe&ved=0CA0QjRxqFwoTCNj225OznPsCFQAAAAAdAAAAABAE"),
   //   auto;
   font-family: "Nunito", sans-serif;
-  background-color: #ffffff;
+  background-color: var(--ae-surface, #ffffff);
   height: fit-content;
   text-align: center;
   display: flex;
@@ -26,7 +26,7 @@
   .logincopyright {
     font-family: "Nunito", sans-serif;
     font-weight: 800;
-    color: #ff0000;
+    color: var(--ae-danger, #ff0000);
     font-size: 0.9rem;
     text-align: center;
     display: flex;
@@ -79,17 +79,17 @@
     text-shadow: 1px 0px 0px red;
   }
   .Tradeloginbrand span:nth-child(2) {
-    color: #f45d01;
+    color: var(--ae-warning, #f45d01);
     margin-right: 2px;
     text-shadow: 1px 0px 0px #f45d01;
   }
   .Tradeloginbrand span:nth-child(3) {
-    color: #eeb902;
+    color: var(--ae-warning, #eeb902);
     margin-right: 2px;
     text-shadow: 1px 0px 0px #eeb902;
   }
   .Tradeloginbrand span:nth-child(4) {
-    color: #04cc0b;
+    color: var(--ae-success, #04cc0b);
     margin-right: 2px;
     text-shadow: 1px 0px 0px #04cc0b;
   }
@@ -98,15 +98,15 @@
     margin: 6px;
   }
   .Tradeloginbrand span:nth-child(6) {
-    color: #2d7dd2;
+    color: var(--ae-accent, #2d7dd2);
     text-shadow: 1px 0px 0px #2d7dd2;
   }
   .Tradeloginbrand span:nth-child(7) {
-    color: #4062bb;
+    color: var(--ae-accent, #4062bb);
     text-shadow: 1px 0px 0px #4062bb;
   }
   .Tradeloginbrand span:nth-child(8) {
-    color: #52489c;
+    color: var(--ae-accent, #52489c);
     text-shadow: 1px 0px 0px #52489c;
   }
   .Tradeloginbrand span:nth-child(9) {
@@ -114,15 +114,15 @@
     text-shadow: 1px 0px 0px red;
   }
   .Tradeloginbrand span:nth-child(10) {
-    color: #f45d01;
+    color: var(--ae-warning, #f45d01);
     text-shadow: 1px 0px 0px #f45d01;
   }
   .Tradeloginbrand span:nth-child(11) {
-    color: #eeb902;
+    color: var(--ae-warning, #eeb902);
     text-shadow: 1px 0px 0px #eeb902;
   }
   .Tradeloginbrand span:nth-child(12) {
-    color: #4062bb;
+    color: var(--ae-accent, #4062bb);
     text-shadow: 1px 0px 0px #4062bb;
   }
   .Tradeloginbrandbottomtext {
@@ -187,7 +187,7 @@
       font-weight: 600;
       border: 3.5px solid #2d7dd2;
       color: rgb(0, 0, 0);
-      background-color: rgb(255, 255, 255);
+      background-color: var(--ae-surface-glass, rgb(255, 255, 255));
     }
   }
 }

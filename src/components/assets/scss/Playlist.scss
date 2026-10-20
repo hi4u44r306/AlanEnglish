@@ -3,9 +3,9 @@
   min-height: 100vh; min-height: 100dvh;
   padding: 18px 16px 110px;
   background:
-    radial-gradient(circle at 8% 4%, rgba(255, 207, 77, .22), transparent 20rem),
+    var(--ae-surface, radial-gradient(circle at 8% 4%, rgba(255, 207, 77, .22), transparent 20rem),
     radial-gradient(circle at 94% 10%, rgba(95, 126, 236, .18), transparent 22rem),
-    linear-gradient(180deg, #f4f8ff 0%, #f8fbff 48%, #fffaf2 100%);
+    linear-gradient(180deg, #f4f8ff 0%, #f8fbff 48%, #fffaf2 100%));
   box-sizing: border-box;
 }
 
@@ -85,7 +85,7 @@
 .playlist-header__stats > span { display: grid; min-width: 88px; gap: 2px; padding: 10px 13px; border: 1px solid rgba(255, 255, 255, .25); border-radius: 16px; background: rgba(255, 255, 255, .13); backdrop-filter: blur(6px); }
 .playlist-header__stats small { color: rgba(255, 255, 255, .72); font-size: 9px; font-weight: 850; }
 .playlist-header__stats strong { font-size: 16px; font-weight: 950; }
-.playlist-header__art { position: absolute; right: 34px; top: 50%; width: 138px; height: 128px; display: grid; place-items: center; border: 7px solid rgba(255, 255, 255, .26); border-radius: 30px; background: linear-gradient(145deg, #ffd85a, #ffad4f); color: #234a9b; box-shadow: 0 16px 0 rgba(30, 39, 111, .18); transform: translateY(-54%) rotate(5deg); }
+.playlist-header__art { position: absolute; right: 34px; top: 50%; width: 138px; height: 128px; display: grid; place-items: center; border: 7px solid rgba(255, 255, 255, .26); border-radius: 30px; background: linear-gradient(145deg, #ffd85a, #ffad4f); color: var(--ae-accent, #234a9b); box-shadow: 0 16px 0 rgba(30, 39, 111, .18); transform: translateY(-54%) rotate(5deg); }
 .playlist-header__art span { font-size: 30px; font-weight: 950; letter-spacing: -.06em; }
 .playlist-header__art i { position: absolute; color: #fff; font-size: 22px; font-style: normal; }
 .playlist-header__art i:nth-of-type(1) { top: -14px; left: -20px; color: #ffe16e; }
@@ -109,9 +109,9 @@
   margin-bottom: 16px;
   padding: 20px;
   background:
-    radial-gradient(circle at 100% 0%, rgba(90, 113, 240, 0.10), transparent 16rem),
-    #ffffff;
-  border: 1px solid #dfe5f0;
+    var(--ae-surface, radial-gradient(circle at 100% 0%, rgba(90, 113, 240, 0.10), transparent 16rem),
+    #ffffff);
+  border: 1px solid var(--ae-border, #dfe5f0);
   border-radius: 20px;
   box-shadow: 0 12px 34px rgba(35, 51, 83, 0.07);
   box-sizing: border-box;
@@ -123,14 +123,14 @@
   height: 54px;
   place-items: center;
   border-radius: 17px;
-  background: #eaf8f4;
-  color: #27866f;
+  background: var(--ae-surface-muted, #eaf8f4);
+  color: var(--ae-success, #27866f);
 }
 
 .playlist-homework-banner__copy > span {
   display: block;
   margin-bottom: 5px;
-  color: #5267e8;
+  color: var(--ae-accent, #5267e8);
   font-size: 10px;
   font-weight: 900;
   letter-spacing: 0.14em;
@@ -138,14 +138,14 @@
 
 .playlist-homework-banner h2 {
   margin: 0 0 6px;
-  color: #17233f;
+  color: var(--ae-text, #17233f);
   font-size: 21px;
   font-weight: 900;
 }
 
 .playlist-homework-banner p {
   margin: 0;
-  color: #77839a;
+  color: var(--ae-text-muted, #77839a);
   font-size: 12px;
   line-height: 1.55;
 }
@@ -162,24 +162,24 @@
   align-items: center;
   gap: 4px;
   padding: 6px 10px;
-  background: #ffffff;
-  color: #4055cf;
-  border: 1px solid #d7dfff;
+  background: var(--ae-surface, #ffffff);
+  color: var(--ae-accent, #4055cf);
+  border: 1px solid var(--ae-border, #d7dfff);
   border-radius: 999px;
   font-size: 12px;
   font-weight: 900;
 }
 
 .playlist-homework-chips strong.completed {
-  background: #eaf8f4;
-  color: #26755f;
-  border-color: #c8e5dc;
+  background: var(--ae-surface-muted, #eaf8f4);
+  color: var(--ae-success, #26755f);
+  border-color: var(--ae-border, #c8e5dc);
 }
 
 .playlist-homework-progress {
   min-width: 0;
   padding-left: 16px;
-  border-left: 1px solid #e8ecf3;
+  border-left: 1px solid var(--ae-border, #e8ecf3);
 }
 
 .playlist-homework-progress > strong,
@@ -188,14 +188,14 @@
 }
 
 .playlist-homework-progress > strong {
-  color: #17233f;
+  color: var(--ae-text, #17233f);
   font-size: 23px;
   font-weight: 900;
 }
 
 .playlist-homework-progress > span {
   margin: 3px 0 10px;
-  color: #8390a4;
+  color: var(--ae-text-muted, #8390a4);
   font-size: 11px;
   font-weight: 700;
 }
@@ -204,7 +204,7 @@
   height: 6px;
   overflow: hidden;
   border-radius: 999px;
-  background: #e5eaf1;
+  background: var(--ae-surface-muted, #e5eaf1);
 }
 
 .playlist-homework-progress > div > span {
@@ -255,12 +255,12 @@
 .playlist-empty {
   width: 100%;
   padding: 40px 20px;
-  color: #8895a3;
+  color: var(--ae-text-muted, #8895a3);
   font-size: 14px;
   font-weight: 500;
   text-align: center;
-  background: #ffffff;
-  border: 1px solid #e7ecf1;
+  background: var(--ae-surface, #ffffff);
+  border: 1px solid var(--ae-border, #e7ecf1);
   border-radius: 16px;
   box-sizing: border-box;
 }
@@ -277,7 +277,7 @@
   align-items: center;
   justify-content: center;
   gap: 10px;
-  color: #607285;
+  color: var(--ae-text-muted, #607285);
   font-size: 14px;
   font-weight: 600;
 }
@@ -298,21 +298,21 @@
   align-items: center;
   justify-content: center;
   padding: 20px;
-  color: #556779;
+  color: var(--ae-text-muted, #556779);
   text-align: center;
   box-sizing: border-box;
 }
 
 .playlist-error h2 {
   margin: 0 0 8px;
-  color: #3e5368;
+  color: var(--ae-accent, #3e5368);
   font-size: 22px;
   font-weight: 800;
 }
 
 .playlist-error p {
   margin: 0;
-  color: #83909d;
+  color: var(--ae-text-muted, #83909d);
   font-size: 14px;
 }
 
@@ -362,7 +362,7 @@
     align-items: center;
     gap: 4px 12px;
     padding: 13px 0 0;
-    border-top: 1px solid #e8ecf3;
+    border-top: 1px solid var(--ae-border, #e8ecf3);
     border-left: 0;
   }
 
@@ -434,12 +434,12 @@
   }
 }
 
-.playlist-homework-summary { font-weight: 700; color: #17365d; }
-.playlist-homework-rules { margin-bottom: 16px; color: #405873; font-size: 14px; line-height: 1.7; }
+.playlist-homework-summary { font-weight: 700; color: var(--ae-text, #17365d); }
+.playlist-homework-rules { margin-bottom: 16px; color: var(--ae-accent, #405873); font-size: 14px; line-height: 1.7; }
 .playlist-homework-rules p { margin: 0 0 6px; }
-.playlist-homework-deadline { color: #744715; }
-.playlist-homework-banner__copy button { min-height: 44px; margin-top: 8px; padding: 8px 12px; border: 1px solid #c5d6e6; border-radius: 8px; background: white; color: #17365d; }
+.playlist-homework-deadline { color: var(--ae-warning, #744715); }
+.playlist-homework-banner__copy button { min-height: 44px; margin-top: 8px; padding: 8px 12px; border: 1px solid var(--ae-border, #c5d6e6); border-radius: 8px; background: var(--ae-surface, white); color: var(--ae-text, #17365d); }
 
 .playlist-homework-banner__copy > p { font-size: 14px; line-height: 1.7; }
-.playlist-homework-banner__copy .playlist-homework-summary { margin: 8px 0; color: #17365d; font-size: 18px; font-weight: 700; }
-.playlist-homework-banner__copy .playlist-homework-deadline { color: #744715; }
+.playlist-homework-banner__copy .playlist-homework-summary { margin: 8px 0; color: var(--ae-text, #17365d); font-size: 18px; font-weight: 700; }
+.playlist-homework-banner__copy .playlist-homework-deadline { color: var(--ae-warning, #744715); }

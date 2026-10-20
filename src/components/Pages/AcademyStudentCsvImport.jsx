@@ -8,6 +8,7 @@ import {
 } from "../../services/academyStudentService";
 import {
     ACADEMY_STUDENT_CSV_MAX_ROWS,
+    buildAcademyStudentCsvExample,
     buildAcademyStudentCsvTemplate,
     buildAcademyStudentResultCsv,
     parseAcademyStudentCsv
@@ -30,6 +31,18 @@ const createRequestId = () => {
     return `${hex.slice(0, 4).join("")}-${hex.slice(4, 6).join("")}-${hex.slice(6, 8).join("")}-${hex.slice(8, 10).join("")}-${hex.slice(10).join("")}`;
 };
 
+// 頁面上的填寫說明；欄位名稱需與 ACADEMY_STUDENT_CSV_HEADERS 一致。
+const ACADEMY_CSV_FIELD_GUIDE = [
+    { name: "中文姓名", required: true, hint: "學生的中文姓名。" },
+    { name: "英文姓名", required: true, hint: "只能用英文字母，可含空格、句點、撇號或連字號，例如 Ming Wang。" },
+    { name: "班級", required: true, hint: "只能填 E1、E3、E5、E7。全形或小寫（例如 ｅ１、e1）會自動修正。" },
+    { name: "入班日期", required: true, hint: "例如 2026-09-01。填 2026/9/1 或 20260901 也可以，系統會自動轉換。" },
+    { name: "登入帳號", required: false, hint: "留空時由系統自動產生；自訂時不可和現有帳號重複。" },
+    { name: "家長Email", required: false, hint: "用來寄每週學習報告；可留空，兄弟姊妹可共用同一個。" },
+    { name: "權限截止日", required: false, hint: "通常留空。要填時格式同入班日期，且不可早於入班日期。" },
+    { name: "備註", required: false, hint: "給老師看的備註，例如需要特別留意的地方。" }
+];
+
 const downloadCsv = (contents, filename) => {
     const blob = new Blob([contents], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
@@ -44,7 +57,7 @@ const downloadCsv = (contents, filename) => {
 
 const displayDate = value => value || "無期限";
 
-function StudentLoginCards({ results, rows }) {
+function StudentLoginCards({ results, rows, onSaved }) {
     const successful = useMemo(() => results
         .filter(result => result.status === "success" && result.credentials?.activation_url)
         .map(result => ({
@@ -79,6 +92,7 @@ function StudentLoginCards({ results, rows }) {
         setDownloadError("");
         try {
             await downloadAcademyStudentLoginCardsDocx(results, rows);
+            onSaved?.();
         } catch (error) {
             setDownloadError(error?.message || "Word 登入卡產生失敗，請稍後再試");
         } finally {
@@ -91,6 +105,7 @@ function StudentLoginCards({ results, rows }) {
         setDownloadError("");
         try {
             await downloadAcademyStudentLoginCardsPdf(results, rows);
+            onSaved?.();
         } catch (error) {
             setDownloadError(error?.message || "PDF 登入卡產生失敗，請稍後再試");
         } finally {
@@ -113,7 +128,7 @@ function StudentLoginCards({ results, rows }) {
                     <button type="button" onClick={downloadPdf} disabled={downloadingPdf}>
                         {downloadingPdf ? "產生 PDF 中…" : "下載 PDF 登入卡"}
                     </button>
-                    <button type="button" onClick={() => window.print()}>列印 A4 登入卡</button>
+                    <button type="button" onClick={() => { window.print(); onSaved?.(); }}>列印 A4 登入卡</button>
                 </div>
             </div>
             {downloadError && <p className="academy-csv-audit-warning" role="alert">{downloadError}</p>}
@@ -167,6 +182,8 @@ function AcademyStudentCsvImport() {
     const [message, setMessage] = useState("");
     const [results, setResults] = useState([]);
     const [auditComplete, setAuditComplete] = useState(true);
+    // 這一批的結果或登入卡下載／列印過，清除畫面時就不用再問。
+    const [resultsSaved, setResultsSaved] = useState(false);
 
     const resetImport = () => {
         setFilename("");
@@ -177,7 +194,14 @@ function AcademyStudentCsvImport() {
         setResults([]);
         setSubmitted(false);
         setAuditComplete(true);
+        setResultsSaved(false);
         if (inputRef.current) inputRef.current.value = "";
+    };
+
+    const requestResetImport = () => {
+        if (results.length > 0 && !resultsSaved
+            && !window.confirm("登入卡和臨時密碼只顯示這一次，已經下載或列印了嗎？清除後就看不到了。")) return;
+        resetImport();
     };
 
     const handleFile = async event => {
@@ -236,6 +260,7 @@ function AcademyStudentCsvImport() {
             buildAcademyStudentResultCsv(results),
             `alan-english-student-import-result-${new Date().toISOString().slice(0, 10)}.csv`
         );
+        setResultsSaved(true);
     };
 
     const previewRows = Array.isArray(preview?.rows) ? preview.rows : [];
@@ -265,19 +290,28 @@ function AcademyStudentCsvImport() {
                 <div className="academy-csv-upload-grid">
                     <article>
                         <h2>下載 CSV 範本</h2>
-                        <p>欄位包含姓名、選填登入帳號、班級、日期、選填家長 Email 與備註；未填帳號時由系統自動產生。</p>
-                        <button
-                            type="button"
-                            className="academy-csv-secondary"
-                            onClick={() => downloadCsv(buildAcademyStudentCsvTemplate(), "alan-english-student-import-template.csv")}
-                        >
-                            下載範本
-                        </button>
+                        <p>用 Excel 開啟填寫，存檔時選「CSV UTF-8（逗號分隔）」。第一次使用可先下載填寫範例對照。</p>
+                        <div className="academy-csv-download-actions">
+                            <button
+                                type="button"
+                                className="academy-csv-secondary"
+                                onClick={() => downloadCsv(buildAcademyStudentCsvTemplate(), "alan-english-student-import-template.csv")}
+                            >
+                                下載空白範本
+                            </button>
+                            <button
+                                type="button"
+                                className="academy-csv-secondary academy-csv-secondary--quiet"
+                                onClick={() => downloadCsv(buildAcademyStudentCsvExample(), "alan-english-student-import-example.csv")}
+                            >
+                                下載填寫範例
+                            </button>
+                        </div>
                     </article>
 
                     <article>
                         <h2>選擇填好的 CSV</h2>
-                        <p>班級只接受 E1、E3、E5、E7；家長 Email 可留空，也可供兄弟姊妹共用。</p>
+                        <p>選好後會先預覽檢查，確認沒有錯誤才會建立帳號。每批最多 {ACADEMY_STUDENT_CSV_MAX_ROWS} 位。</p>
                         <label className="academy-csv-file-button">
                             <span>{loading ? "驗證中..." : "選擇 CSV 檔案"}</span>
                             <input
@@ -291,6 +325,18 @@ function AcademyStudentCsvImport() {
                         {filename && <small>{filename}</small>}
                     </article>
                 </div>
+
+                <section className="academy-csv-fields" aria-labelledby="academy-csv-fields-heading">
+                    <h2 id="academy-csv-fields-heading">每一欄怎麼填</h2>
+                    <dl>
+                        {ACADEMY_CSV_FIELD_GUIDE.map(field => (
+                            <div key={field.name}>
+                                <dt>{field.name}<span className={field.required ? "is-required" : ""}>{field.required ? "必填" : "選填"}</span></dt>
+                                <dd>{field.hint}</dd>
+                            </div>
+                        ))}
+                    </dl>
+                </section>
 
                 {message && (
                     <div className={`academy-csv-message ${results.length > 0 ? "success" : ""}`} role="status">
@@ -376,12 +422,12 @@ function AcademyStudentCsvImport() {
                                 </tbody>
                             </table>
                         </div>
-                        <StudentLoginCards results={results} rows={rows} />
+                        <StudentLoginCards results={results} rows={rows} onSaved={() => setResultsSaved(true)} />
                     </section>
                 )}
 
                 {(preview || results.length > 0) && (
-                    <button type="button" className="academy-csv-reset" onClick={resetImport} disabled={submitting}>
+                    <button type="button" className="academy-csv-reset" onClick={requestResetImport} disabled={submitting}>
                         清除畫面並匯入下一批
                     </button>
                 )}

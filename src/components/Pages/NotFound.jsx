@@ -18,7 +18,7 @@ const NotFound = () => {
                 <div className="notfound-actions">
                     <Link className="notfound-primary" to={home}>回到首頁</Link>
                     {canGoBack && <button type="button" onClick={() => navigate(-1)}>回上一頁</button>}
-                    <Link to={isAuthenticated ? "/materials" : "/links"}>尋找教材</Link>
+                    {(!isAuthenticated || role === "student") && <Link to={isAuthenticated ? "/student/books" : "/links"}>尋找教材</Link>}
                 </div>
             </section>
         </main>

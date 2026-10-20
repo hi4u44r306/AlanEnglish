@@ -4,6 +4,9 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { useDispatch, useSelector } from "react-redux";
 import MusicCard from "./MusicCard";
 
+jest.mock("./LessonVideoDialog", () => function LessonVideo({ segment, context }) {
+    return <div data-testid="lesson-video">{segment.videoId} {segment.start}-{segment.end} {context}</div>;
+});
 jest.mock("react-redux", () => ({
     useDispatch: jest.fn(),
     useSelector: jest.fn()
@@ -38,6 +41,15 @@ describe("MusicCard", () => {
         view.rerender(<MusicCard music={{ ...music, audioURL: null }} onStart={onStart} />);
         fireEvent.click(screen.getByRole("button", { name: "音檔暫時無法播放 P22" }));
         expect(onStart).toHaveBeenCalledTimes(1);
+    });
+
+    it("hideVideo 仍可隱藏看影片按鈕", () => {
+        useSelector.mockImplementation(selector => selector({ musicReducer: { playing: null, playingStatus: false } }));
+        const video = { ...music, type: "Workbook_2", page: "P4" };
+        const view = render(<MusicCard music={video} />);
+        expect(screen.getByRole("button", { name: /教學影片/ })).toBeInTheDocument();
+        view.rerender(<MusicCard music={video} hideVideo />);
+        expect(screen.queryByRole("button", { name: /教學影片/ })).not.toBeInTheDocument();
     });
 
     it("播放中以符合按鈕尺寸的四條音樂等化器顯示狀態", () => {
@@ -136,17 +148,17 @@ describe("MusicCard", () => {
         expect(view.container.querySelector(".music-card--completed")).not.toBeNull();
     });
 
-    it("links a workbook track to its page in the YouTube lesson video without touching playback", () => {
+    it("opens this page's part of the lesson video inside the platform without touching playback", async () => {
         const dispatch = jest.fn();
         useDispatch.mockReturnValue(dispatch);
         useSelector.mockImplementation(selector => selector({ musicReducer: { playing: null, playingStatus: false } }));
-        const view = render(<MusicCard music={{ ...music, type: "Workbook_1" }} />);
-        const link = screen.getByRole("link", { name: "在 YouTube 看 P22 的教學影片" });
-        expect(link).toHaveAttribute("href", "https://www.youtube.com/watch?v=IgMCnPvCHyI&t=233s");
-        expect(link).toHaveAttribute("target", "_blank");
-        expect(link).toHaveAttribute("rel", "noopener noreferrer");
+        const view = render(<MusicCard music={{ ...music, type: "Workbook_1" }} videoContext="speaking_prep" />);
+        expect(screen.queryByRole("link")).not.toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "看 P22 的教學影片" }));
+        const dialog = await screen.findByTestId("lesson-video");
+        expect(dialog).toHaveTextContent("IgMCnPvCHyI 233-728 speaking_prep");
         expect(dispatch).not.toHaveBeenCalled();
         view.rerender(<MusicCard music={{ ...music, type: "Workbook_1", page: "P23" }} />);
-        expect(screen.queryByRole("link")).not.toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: /教學影片/ })).not.toBeInTheDocument();
     });
 });

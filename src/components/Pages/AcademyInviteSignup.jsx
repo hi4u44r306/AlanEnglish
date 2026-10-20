@@ -18,6 +18,7 @@ import {
     isReceivableEmail,
     RECEIVABLE_EMAIL_HELP
 } from "../../utils/emailValidation";
+import BackButton from "../fragment/BackButton";
 import "./css/Platform.scss";
 
 const RESEND_SECONDS = 60;
@@ -186,6 +187,7 @@ function AcademyInviteSignup({ manualEntry = false }) {
         return (
             <main className="platform-public">
                 <section className="platform-public-card">
+                    <div className="ae-back-row"><BackButton to="/login" ariaLabel="返回登入" /></div>
                     <span className="platform-eyebrow">ACADEMY ACCOUNT ACTIVATION</span>
                     <h1>開通英文班帳號</h1>
                     <p>輸入櫃檯提供的登入 Email 與一次性開通碼，接著就能自行設定密碼。</p>
@@ -225,16 +227,17 @@ function AcademyInviteSignup({ manualEntry = false }) {
         );
     }
 
-    if (!invitation) return <main className="platform-public"><section className="platform-public-card platform-center"><div className="platform-icon">⚠️</div><h1>無法使用這份邀請</h1><p>{error || "邀請連結不完整，請向英文班索取新的邀請連結或開通碼。"}</p><Link className="platform-secondary" to="/support">聯絡客服</Link></section></main>;
+    if (!invitation) return <main className="platform-public"><section className="platform-public-card platform-center"><div className="ae-back-row"><BackButton to="/login" ariaLabel="返回登入" /></div><div className="platform-icon">⚠️</div><h1>無法使用這份邀請</h1><p>{error || "邀請連結不完整，請向英文班索取新的邀請連結或開通碼。"}</p><Link className="platform-secondary" to="/support">聯絡客服</Link></section></main>;
 
     if (claimedUser || invitation.status === "claimed") {
         const inviteSessionUser = claimedUser || (firebaseUser?.email?.toLowerCase() === invitation.invited_email ? firebaseUser : null);
-        return <main className="platform-public"><section className="platform-public-card platform-center"><div className="platform-icon">✉️</div><span className="platform-eyebrow">EMAIL VERIFICATION</span><h1>最後一步：驗證 Email</h1><p>驗證信已寄到 <strong>{invitation.invited_email}</strong>。驗證完成後才會啟用英文班權限。</p>{firebaseUser && !inviteSessionUser && <div className="platform-verification-notice error" role="alert">目前登入的帳號與邀請 Email 不同，請先切換帳號。</div>}{notice && <div className="platform-verification-notice success">{notice}</div>}{error && <div className="platform-verification-notice error" role="alert">{error}</div>}<div className="platform-verification-actions">{inviteSessionUser ? <><button className="platform-primary" type="button" onClick={activate} disabled={submitting}>{submitting ? "確認中…" : "我已完成 Email 驗證"}</button><button className="platform-secondary" type="button" onClick={() => sendVerification(inviteSessionUser)} disabled={sending || cooldown > 0}>{sending ? "寄送中…" : cooldown > 0 ? `${cooldown} 秒後可重寄` : "重新寄送驗證信"}</button></> : firebaseUser ? <button className="platform-primary" type="button" onClick={logout}>切換到受邀帳號</button> : <Link className="platform-primary" to="/login" state={{ from: { pathname: "/academy/invite", search: `?token=${encodeURIComponent(token)}` } }}>登入後確認驗證</Link>}</div><p className="platform-footnote">仍未收到？請檢查垃圾郵件，或 <Link to="/support">聯絡客服</Link>。</p></section></main>;
+        return <main className="platform-public"><section className="platform-public-card platform-center"><div className="ae-back-row"><BackButton to="/login" ariaLabel="返回登入" /></div><div className="platform-icon">✉️</div><span className="platform-eyebrow">EMAIL VERIFICATION</span><h1>最後一步：驗證 Email</h1><p>驗證信已寄到 <strong>{invitation.invited_email}</strong>。驗證完成後才會啟用英文班權限。</p>{firebaseUser && !inviteSessionUser && <div className="platform-verification-notice error" role="alert">目前登入的帳號與邀請 Email 不同，請先切換帳號。</div>}{notice && <div className="platform-verification-notice success">{notice}</div>}{error && <div className="platform-verification-notice error" role="alert">{error}</div>}<div className="platform-verification-actions">{inviteSessionUser ? <><button className="platform-primary" type="button" onClick={activate} disabled={submitting}>{submitting ? "確認中…" : "我已完成 Email 驗證"}</button><button className="platform-secondary" type="button" onClick={() => sendVerification(inviteSessionUser)} disabled={sending || cooldown > 0}>{sending ? "寄送中…" : cooldown > 0 ? `${cooldown} 秒後可重寄` : "重新寄送驗證信"}</button></> : firebaseUser ? <button className="platform-primary" type="button" onClick={logout}>切換到受邀帳號</button> : <Link className="platform-primary" to="/login" state={{ from: { pathname: "/academy/invite", search: `?token=${encodeURIComponent(token)}` } }}>登入後確認驗證</Link>}</div><p className="platform-footnote">仍未收到？請檢查垃圾郵件，或 <Link to="/support">聯絡客服</Link>。</p></section></main>;
     }
 
     return (
         <main className="platform-public">
             <section className="platform-public-card">
+                <div className="ae-back-row"><BackButton to="/login" ariaLabel="返回登入" /></div>
                 <span className="platform-eyebrow">ACADEMY INVITATION</span>
                 <h1>設定你的英文班帳號</h1>
                 <p>{invitation.chinese_name}，你受邀加入 {invitation.class_code} 班。請自行設定密碼，櫃檯與老師都看不到你的密碼。</p>

@@ -302,13 +302,13 @@ function LinkAdmin() {
                                                 />
                                             </label>
                                             <div className="link-admin-page__edit-actions">
-                                                <button type="button" onClick={() => handleUpdate(item)} disabled={updating} aria-label={`儲存 ${item.title}`}>
-                                                    <BiSave />
-                                                    {updating ? "儲存中..." : "儲存"}
-                                                </button>
                                                 <button type="button" onClick={cancelEditing} disabled={updating} className="secondary" aria-label={`取消編輯 ${item.title}`}>
                                                     <BiX />
                                                     取消
+                                                </button>
+                                                <button type="button" onClick={() => handleUpdate(item)} disabled={updating} aria-label={`儲存 ${item.title}`}>
+                                                    <BiSave />
+                                                    {updating ? "儲存中..." : "儲存"}
                                                 </button>
                                             </div>
                                         </div>

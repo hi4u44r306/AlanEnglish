@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Suspense, lazy, useState } from "react";
 import "../assets/scss/MusicCard.scss";
 import { AiFillPlayCircle } from "react-icons/ai";
 import { FiHeadphones, FiCheck, FiYoutube } from "react-icons/fi";
@@ -10,7 +10,9 @@ import {
     setPlayPauseStatus
 } from "../../actions/actions";
 import { hasReachedListeningMastery, LISTENING_MASTERY_REQUIRED_PLAYS } from "../../constants/listeningProgress";
-import { getTrackVideoUrl } from "../../constants/workbookVideoChapters";
+import { getTrackVideoSegment } from "../../constants/workbookVideoChapters";
+// 影片播放器（含 YouTube 程式）按下「看影片」才載入。
+const LessonVideoDialog = lazy(() => import("./LessonVideoDialog"));
 
 function MusicCard({
     music,
@@ -20,7 +22,9 @@ function MusicCard({
     progressStatus = "ready",
     onStart,
     assignmentProgress,
-    assignmentProgressStatus = "ready"
+    assignmentProgressStatus = "ready",
+    hideVideo = false,
+    videoContext = "playlist"
 }) {
     const dispatch = useDispatch();
 
@@ -37,7 +41,9 @@ function MusicCard({
         ) || 0;
 
     const completed = progressStatus === "ready" && hasReachedListeningMastery(progress);
-    const videoUrl = getTrackVideoUrl(music?.type, page);
+    // 教學影片在平台裡播（不跳到 YouTube），只播這一頁的段落。
+    const videoSegment = getTrackVideoSegment(music?.type, page);
+    const [videoOpen, setVideoOpen] = useState(false);
     // The page already names the book, so the card shows just the track ("P22").
     const bookName = String(music?.bookname || "").trim();
     const shortTitle = raw => bookName && String(raw).startsWith(bookName) ? String(raw).slice(bookName.length).trim() || raw : raw;
@@ -165,7 +171,8 @@ function MusicCard({
 
             <div className={`music-card__status${assignmentProgress ? " has-assignment" : ""}`}>
                 {assignmentProgress && <div className="music-card__assignment"><strong>{assignmentProgress.completed ? "本次作業已完成" : "本次作業"}</strong><span>{assignmentProgressStatus !== "ready" ? "作業進度尚未確認" : `已聽 ${assignmentProgress.playCount} 次，還需 ${Math.max(0, assignmentProgress.requiredListens - assignmentProgress.playCount)} 次`}</span><b className="music-card__count" aria-hidden="true">{assignmentProgressStatus === "ready" ? `${Math.min(assignmentProgress.playCount, assignmentProgress.requiredListens)} / ${assignmentProgress.requiredListens} 次` : "—"}</b><small>老師指定：{assignmentProgress.requiredListens} 次</small></div>}
-                {videoUrl && <a className="music-card__video" href={videoUrl} target="_blank" rel="noopener noreferrer" aria-label={`在 YouTube 看 ${title} 的教學影片`}><FiYoutube aria-hidden="true" /><span>看影片</span></a>}
+                {videoSegment && !hideVideo && <button type="button" className="music-card__video" onClick={() => setVideoOpen(true)} aria-label={`看 ${title} 的教學影片`}><FiYoutube aria-hidden="true" /><span>看影片</span></button>}
+                {videoOpen && videoSegment && <Suspense fallback={null}><LessonVideoDialog segment={videoSegment} title={shortTitle(title)} trackId={Number(music?.id) || undefined} context={videoContext} onClose={() => setVideoOpen(false)} /></Suspense>}
                 <div className="music-card__plays">
                     <FiHeadphones aria-hidden="true" />
                     <span><small>{assignmentProgress ? "長期熟練累積" : "熟練進度"}</small><strong>{progressStatus === "ready" ? `${Math.min(playCount, LISTENING_MASTERY_REQUIRED_PLAYS)} / ${LISTENING_MASTERY_REQUIRED_PLAYS}` : progressStatus === "loading" ? "讀取中" : "紀錄未載入"}</strong></span>

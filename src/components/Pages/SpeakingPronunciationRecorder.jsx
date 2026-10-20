@@ -1,13 +1,14 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
-import { FiAlertCircle, FiCheckCircle, FiMic, FiRefreshCw, FiSend, FiVolume2 } from "react-icons/fi";
-import { submitSpeakingPronunciationAttempt, submitAlphabetPronunciationAttempt } from "../../services/pronunciationCoachService";
+import { FiAlertCircle, FiCheck, FiCheckCircle, FiMic, FiRefreshCw, FiSend, FiVolume2 } from "react-icons/fi";
+import { submitSpeakingPronunciationAttempt, submitAlphabetPronunciationAttempt, submitSpeakingRecheck } from "../../services/pronunciationCoachService";
 import { retainLocalSpeakingRecognizer } from "../../services/localSpeakingRecognizer";
 import { convertAudioBlobToWav } from "../../utils/audioWav";
 import { playSpeakingFeedbackSound, prepareSpeakingFeedbackSound } from "../../utils/speakingFeedbackSound";
 import "./css/SpeakingPronunciationRecorder.scss";
 import { microphoneIssue } from "../../utils/microphoneIssue";
+import { diffSpokenWords } from "../../utils/speakingWordDiff";
 import MicrophonePermissionHelp from "../fragment/MicrophonePermissionHelp";
-import { SpeakingActivityContext } from "./SpeakingAdventureSession";
+import { SpeakingActivityContext } from "./SpeakingActivityContext";
 import { speakingRecordingSeconds, SPEAKING_BUDGET_ERROR_CODES } from "../../utils/speakingRecordingPolicy";
 
 const recordingMimeType = () => {
@@ -51,6 +52,7 @@ export default function SpeakingPronunciationRecorder({
     const [elapsed, setElapsed] = useState(0);
     const [preparing, setPreparing] = useState(false);
     const [submitting, setSubmitting] = useState(false);
+    const [rechecking, setRechecking] = useState(false);
     const [result, setResult] = useState(null);
     const [error, setError] = useState("");
     const [microphoneProblem, setMicrophoneProblem] = useState(null);
@@ -245,12 +247,26 @@ export default function SpeakingPronunciationRecorder({
             const currentGate = submissionGateRef.current;
             if (token !== generationRef.current || currentGate.practiceOnly || currentGate.budgetBlocked || currentGate.disabled) return;
             transcriptionRef.current = transcription;
-            const score = azureLetters
+            let score = azureLetters
                 ? await submitAlphabetPronunciationAttempt({ firebaseUser, questionId: question.id, audio, foundationRoundId, challengeSessionId, challengeMode })
                 : await submitSpeakingPronunciationAttempt({ firebaseUser, questionId: question.id, ...transcription, foundationRoundId, challengeSessionId, challengeMode });
             if (token !== generationRef.current) return;
-            const measuredScore = azureLetters ? score?.scores?.pronunciation : score?.scores?.completeness;
-            if (score?.assessment_kind !== (azureLetters ? "azure_pronunciation" : "local_completeness_v1") || typeof score?.answer_match !== "boolean" || !Number.isFinite(measuredScore) || measuredScore < 0 || measuredScore > 100) {
+            // 只差一點沒過：伺服器同意時，用同一段錄音請 Azure 再確認；失敗或逾時就用本機結果。
+            if (!azureLetters && score?.answer_match === false && score?.recheck) {
+                setRechecking(true);
+                // Azure 依參考句辨識，聽到的文字會往答案靠；畫面上「系統聽到」一律用這台裝置聽到的句子。
+                const localHeard = score.recognized_text;
+                try {
+                    score = { ...await submitSpeakingRecheck({ firebaseUser, questionId: question.id, audio, attemptId: score.recheck.attempt_id,
+                        recognizedText: transcription?.recognizedText || "", challengeSessionId, challengeMode }), local_recognized_text: localHeard };
+                } catch {
+                    score = { ...score, recheck: null };
+                } finally { if (token === generationRef.current) setRechecking(false); }
+                if (token !== generationRef.current) return;
+            }
+            const azureScored = azureLetters || score?.rechecked === true;
+            const measuredScore = azureScored ? score?.scores?.pronunciation : score?.scores?.completeness;
+            if (score?.assessment_kind !== (azureScored ? "azure_pronunciation" : "local_completeness_v1") || typeof score?.answer_match !== "boolean" || !Number.isFinite(measuredScore) || measuredScore < 0 || measuredScore > 100) {
                 throw new Error("assessment_response_incomplete");
             }
             setResult(score);
@@ -280,10 +296,17 @@ export default function SpeakingPronunciationRecorder({
         finally { if (token === generationRef.current) { submittingRef.current = false; setSubmitting(false); } }
     };
 
-    const pronunciationScore = Math.round((azureLetters ? result?.scores?.pronunciation : result?.scores?.completeness) || 0);
+    const rechecked = result?.rechecked === true;
+    const pronunciationScore = Math.round((azureLetters || rechecked ? result?.scores?.pronunciation : result?.scores?.completeness) || 0);
     const assessmentUncertain = result?.assessment_status === "uncertain";
     const answerMatched = !assessmentUncertain && result?.answer_match !== false;
     const resultTone = assessmentUncertain ? "practice" : answerMatched ? scoreTone(pronunciationScore) : "retry";
+    // 沒過時讓學生看到系統聽到了什麼。只有「跟著念」的一般句子題手機上有題目原句（評分也用它），
+    // 才逐字標出不一樣的字；看圖、問答與「自己說」只顯示聽到的句子，不透露答案。
+    const heardText = !azureLetters && result && !answerMatched && !assessmentUncertain ? String(result.local_recognized_text || result.recognized_text || "").trim() : "";
+    const comparable = challengeMode === "easy" && ["", "standard_sentence"].includes(String(interactionType || question.interaction_type || ""));
+    const heardDiff = heardText && comparable && !rechecked && question.model_answer ? diffSpokenWords(question.model_answer, heardText) : null;
+    const renderWords = words => words.map((word, index) => <React.Fragment key={index}>{index ? " " : ""}<span className={word.ok ? undefined : "is-off"}>{word.text}</span></React.Fragment>);
     const accessibleDisabledReason = /\d+\s*秒後播放提示音/.test(disabledReason)
         ? "三秒後播放提示音。"
         : disabledReason;
@@ -306,7 +329,7 @@ export default function SpeakingPronunciationRecorder({
         {!result && <>
             <div className="speaking-recording-heading">
                 <strong>{submitting ? "正在聽你的回答…" : recording ? (voiceDetected ? "聽到你的聲音了" : "麥克風已啟用，直接開口說") : preparing ? engineReady ? "正在準備評分音檔…" : "正在準備語音辨識…" : recordedBlob ? "錄音完成，先聽聽看送評的聲音" : practiceOnly ? "啟用麥克風錄音練習" : "啟用麥克風開始挑戰"}</strong>
-                <span>{submitting ? "請稍候，完成後會顯示練習結果。" : recording ? `最長 ${maxRecordingSeconds} 秒，說完後按${canFinishAndAssess ? "完成並評分；也可以先停止並回聽" : "完成錄音"}。` : preparing ? "請稍候，不需要重新錄音。" : recordedBlob ? practiceOnly ? "聽聽自己的聲音，想再練可以重新錄音。" : "確認清楚後，再交給 AI 評分。" : `每次最長 ${maxRecordingSeconds} 秒；本題會立刻開始收音。`}</span>
+                <span>{submitting ? "請稍候，完成後會顯示練習結果。" : recording ? `最長 ${maxRecordingSeconds} 秒，說完後按「說完了」${canFinishAndAssess ? "；也可以先停止並回聽" : ""}。` : preparing ? "請稍候，不需要重新錄音。" : recordedBlob ? practiceOnly ? "聽聽自己的聲音，想再練可以重新錄音。" : "確認清楚後，再交給 AI 評分。" : `每次最長 ${maxRecordingSeconds} 秒；本題會立刻開始收音。`}</span>
             </div>
             {recording && <div className="speaking-recording-countdown" role="timer" aria-label={`錄音剩餘 ${remainingSeconds} 秒`}><strong>{remainingSeconds}</strong><span>秒</span></div>}
             {disabledReason && <p className="speaking-pronunciation-notice">{disabledReason}</p>}
@@ -315,19 +338,27 @@ export default function SpeakingPronunciationRecorder({
                 className={`speaking-pronunciation-mic${recording ? " is-recording" : ""}`}
                 onClick={recording ? () => stop(canFinishAndAssess) : start}
                 disabled={!engineReady || preparing || submitting || Boolean(disabledReason)}
-                aria-label={recording ? canFinishAndAssess ? "完成並評分" : "完成錄音" : microphoneProblem?.retry || "開始錄音"}
+                aria-label={recording ? canFinishAndAssess ? "說完了，送出評分" : "說完了，結束錄音" : microphoneProblem?.retry || "開始錄音"}
             >
-                {recording ? <FiSend aria-hidden="true" /> : <FiMic aria-hidden="true" />}
-                <span>{recording ? canFinishAndAssess ? "完成並評分" : "完成錄音" : preparing ? "準備中…" : microphoneProblem?.retry || "啟用麥克風"}</span>
+                {recording ? <FiCheck aria-hidden="true" /> : <FiMic aria-hidden="true" />}
+                <span>{recording ? "說完了" : preparing ? "準備中…" : microphoneProblem?.retry || "啟用麥克風"}</span>
             </button>}
             {recording && canFinishAndAssess && <button type="button" className="secondary" onClick={() => stop()} disabled={preparing || submitting || Boolean(disabledReason)}><FiVolume2 aria-hidden="true" />先停止並回聽</button>}
             {previewUrl && <div className="speaking-recording-preview"><audio controls src={previewUrl} aria-label="回聽我的錄音">你的瀏覽器不支援錄音播放。</audio><div><button type="button" className="secondary" onClick={start} disabled={submitting || preparing || Boolean(disabledReason)}><FiRefreshCw />重新錄音</button>{!practiceOnly && <button type="button" onClick={() => submit()} disabled={submitting || preparing || budgetBlocked || Boolean(disabledReason)}><FiSend />{submitting ? "AI 評分中…" : error ? "重試評分" : "送出評分"}</button>}</div></div>}
-            <small className="speaking-recording-privacy">{practiceOnly ? "錄音只留在這個頁面供回聽，不上傳、不評分，也不增加通關或獎勵。" : azureLetters ? "字母與拼字錄音送至 Azure 評分；答案正確且達 70 分即可通過。" : "錄音在這台裝置辨識，只傳送辨識文字供核對及儲存。分數是朗讀完整度，不是發音準確度。"}</small>
+            <small className="speaking-recording-privacy">{practiceOnly ? "錄音只留在這個頁面供回聽，不上傳、不評分，也不增加通關或獎勵。" : azureLetters ? "字母與拼字錄音送至 Azure 評分；答案正確且達 70 分即可通過。" : "錄音在這台裝置辨識，只傳送辨識文字；只差一點沒過時才把這段錄音送 Azure 再確認，網站不保存錄音。"}</small>
         </>}
+        {rechecking && <p className="speaking-recheck-status" role="status">差一點！正在請系統再確認一次…</p>}
         {result && <div className={`speaking-pronunciation-result is-${resultTone}`} role="status" aria-live="polite" aria-atomic="true">
             <header>{answerMatched ? <FiCheckCircle aria-hidden="true" /> : <FiAlertCircle aria-hidden="true" />}<span>本次練習結果</span><strong>{answerMatched ? scoreLabel(pronunciationScore) : assessmentUncertain ? "系統沒有聽清楚" : "回答方式還差一點"}</strong></header>
-            <p className="speaking-completeness-score"><span>{azureLetters ? "字母發音" : "朗讀完整度"}</span><strong>{pronunciationScore} 分</strong></p>
+            {/* 沒過不顯示分數：「75 分」看起來像過了，孩子會誤會；改看下面「系統聽到」。 */}
+            {(answerMatched || azureLetters) && <p className="speaking-completeness-score"><span>{azureLetters ? "字母發音" : rechecked ? "發音評分" : "朗讀完整度"}</span><strong>{pronunciationScore} 分</strong></p>}
+            {heardText && <div className="speaking-heard">
+                <p><span>系統聽到</span><strong lang="en">{heardDiff ? renderWords(heardDiff.heard) : heardText}</strong></p>
+                {heardDiff && <p><span>題目是</span><strong lang="en">{renderWords(heardDiff.expected)}</strong></p>}
+                <small>{rechecked ? result.feedback : heardDiff ? "標色的字和題目不一樣，再念一次。" : "可能是系統聽錯：回聽錄音確認後，再清楚念一次。"}</small>
+            </div>}
             {previewUrl && <details className="speaking-result-replay"><summary>回聽我的錄音</summary><audio controls src={previewUrl} aria-label="回聽我的錄音">你的瀏覽器不支援錄音播放。</audio></details>}
+            {answerMatched && result.pronunciation_tips?.length > 0 && <p className="speaking-pronunciation-tip"><strong>th 可以再念清楚</strong><span>{result.pronunciation_tips.map(tip => `${tip.word}（系統聽成 ${tip.heard}）`).join("、")}。下次把舌尖輕放在上下牙齒中間再念，會更標準。</span></p>}
             {assessmentUncertain && <p className="speaking-pronunciation-feedback"><span>{result.feedback || "這次沒有聽清楚，不算你答錯，請再試一次。"}</span></p>}
             <div className="speaking-result-actions">
                 {onListenAgain && <button type="button" className="secondary" onClick={onListenAgain} disabled={audioWorking || submitting}><FiVolume2 aria-hidden="true" />{audioWorking ? "示範播放中…" : "再聽示範"}</button>}

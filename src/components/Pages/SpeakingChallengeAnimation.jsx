@@ -5,7 +5,7 @@ import "./css/SpeakingChallengeAnimation.scss";
 
 export function SpeakingChallengeReturn({ toCatalog = false }) {
     return <main className="speaking-transition-page" role="status" aria-live="polite">
-        <div className="speaking-return-card"><FiMap aria-hidden="true" /><strong>{toCatalog ? "返回教材列表中…" : "返回地圖中…"}</strong></div>
+        <div className="speaking-return-card"><FiMap aria-hidden="true" /><strong>{toCatalog ? "回到教材列表中…" : "回到地圖中…"}</strong></div>
     </main>;
 }
 
@@ -59,7 +59,7 @@ export function SpeakingChallengeCompletion({ notice, mode, reference, staffPrev
             <p className="speaking-celebration-reference">{reference}</p>
             <div className="speaking-celebration-stars" aria-hidden="true">{[0, 1, 2].map(index => <span key={index} style={{ "--star-delay": `${.35 + index * .26}s` }}>★</span>)}</div>
             <h1 id="speaking-celebration-title">{staffPreview ? "通關動畫預覽" : mode === "easy" ? "練習完成！" : "闖關成功！"}</h1>
-            <p id="speaking-celebration-description">{staffPreview ? "預覽不會寫入進度或發放獎勵" : mode === "challenge" ? "挑戰通關已記錄！" : "練習不計正式通關；準備好後再試挑戰模式。"}</p>
+            <p id="speaking-celebration-description">{staffPreview ? "預覽不會寫入進度或發放獎勵" : mode === "challenge" ? "挑戰通關已記錄！" : "「跟著念」不算過關；準備好就試試「自己說」。"}</p>
             <span className="speaking-celebration-star-count">全部完成！</span>
             <div className="speaking-celebration-rewards">
                 <div aria-label={`本次獲得 ${xp} XP`}><span className="speaking-celebration-rewards__icon is-xp"><FiZap aria-hidden="true" /></span><small>經驗值</small><strong><AnimatedReward amount={xp} /><em>XP</em></strong></div>
@@ -68,7 +68,7 @@ export function SpeakingChallengeCompletion({ notice, mode, reference, staffPrev
             {!staffPreview && xp === 0 && (!REWARD_SHOP_ENABLED || points === 0) && <small className="speaking-celebration-reward-note">{mode === "challenge" ? "獎勵只在首次通關發放" : REWARD_SHOP_ENABLED ? "練習不發放 XP 或 AE Points" : "練習不發放 XP"}</small>}
             {nextTopic && onNext && <p className="speaking-celebration-next-topic"><small>下一個目標</small><strong>{nextTopic}</strong></p>}
             <button type="button" className="speaking-celebration-next" onClick={onNext || onReturn}>{onNext ? "前往下一關" : "回地圖繼續冒險"}<FiArrowRight aria-hidden="true" /></button>
-            <button type="button" className="speaking-celebration-return" onClick={onReturn}>返回地圖</button>
+            <button type="button" className="speaking-celebration-return" onClick={onReturn}>回到地圖</button>
         </section>
     </main>;
 }

@@ -12,9 +12,14 @@
     .membership-compact-card + .membership-compact-card { display: none !important; }
 
     .membership-page-header { display: grid !important; gap: 12px; margin-bottom: 16px !important; padding: 0 !important; border: 0 !important; background: none !important; box-shadow: none !important; }
-    .membership-page-title h1 { margin: 0 !important; font-size: 28px !important; font-weight: 800 !important; color: #17365d !important; }
+    .membership-page-title h1 { margin: 0 !important; font-size: 28px !important; font-weight: 800 !important; color: var(--ae-text, #17365d) !important; }
     .membership-access-summary { margin: 0 !important; }
-    .platform-card { border: 1px solid #d5e3f0 !important; border-radius: 20px !important; box-shadow: none !important; }
-    .platform-section-title h2 { font-size: 20px !important; font-weight: 800 !important; color: #17365d !important; }
+    .platform-card { border: 1px solid var(--ae-border, #d5e3f0) !important; border-radius: 20px !important; box-shadow: none !important; }
+    .platform-section-title h2 { font-size: 20px !important; font-weight: 800 !important; color: var(--ae-text, #17365d) !important; }
     .membership-feature-columns { display: block !important; }
+
+    // The email-verification card is the one place a description is needed: it says where the
+    // mail went and that the trial only starts after verifying. Description first, buttons below.
+    .membership-verification-card .platform-section-title { display: grid !important; gap: 12px; }
+    .membership-verification-card .platform-section-title p { display: block !important; margin: 6px 0 0; color: var(--ae-text-muted, #526780); }
 }

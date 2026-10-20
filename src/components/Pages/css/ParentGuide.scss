@@ -2,11 +2,11 @@
 // to fit on about one phone screen.
 .parent-guide__title { font-size: clamp(30px, 8.6vw, 44px) !important; line-height: 1.25 !important; }
 
-.parent-guide__steps li > span { display: grid; justify-items: center; gap: 6px; min-height: 76px; padding: 12px 6px; border: 1px solid var(--trial-line); border-radius: 16px; background: #fff; font-size: 15px; font-weight: 800; text-align: center; }
+.parent-guide__steps li > span { display: grid; justify-items: center; gap: 6px; min-height: 76px; padding: 12px 6px; border: 1px solid var(--trial-line); border-radius: 16px; background: var(--ae-surface, #fff); font-size: 15px; font-weight: 800; text-align: center; }
 
-.parent-guide__reasons { display: grid; gap: 0; margin: 0 auto 16px; padding: 0; list-style: none; border: 1px solid var(--trial-line); border-radius: 20px; background: #fff; overflow: hidden;
+.parent-guide__reasons { display: grid; gap: 0; margin: 0 auto 16px; padding: 0; list-style: none; border: 1px solid var(--trial-line); border-radius: 20px; background: var(--ae-surface, #fff); overflow: hidden;
     li { display: grid; gap: 2px; padding: 14px 18px; }
-    li + li { border-top: 1px solid #e6edf5; }
+    li + li { border-top: 1px solid var(--ae-border, #e6edf5); }
     strong { font-size: 19px; font-weight: 800; }
     span { font-size: 16px; line-height: 1.5; color: var(--trial-muted); }
 }

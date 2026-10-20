@@ -61,7 +61,7 @@
   margin: 20px;
 }
 .editstudentbtn {
-  background-color: #2384cd;
+  background-color: var(--ae-solid, #2384cd);
   color: rgb(255, 255, 255);
   border-radius: 5px;
   font-weight: 500;
@@ -81,7 +81,7 @@
   }
 }
 .updatebtn {
-  background-color: #103755;
+  background-color: var(--ae-solid, #103755);
   color: white;
   padding: 3px 14px;
   border-radius: 4px;
@@ -113,7 +113,7 @@
     font-weight: 700;
     background-color: rgb(250, 136, 92);
     border-radius: 20px;
-    border: solid 2px #ffffff;
+    border: solid 2px var(--ae-surface, #ffffff);
     padding: 10px;
     width: 100px;
     height: 50px;
@@ -123,7 +123,7 @@
   justify-content: space-evenly;
   font-size: 20px;
   font-weight: 900;
-  color: #005b7f;
+  color: var(--ae-text, #005b7f);
   width: 200px;
   text-align: center;
   align-items: center;
@@ -133,7 +133,7 @@
   justify-content: space-evenly;
   font-size: 25px;
   font-weight: 900;
-  color: #d10b0b;
+  color: var(--ae-danger, #d10b0b);
   text-align: center;
   align-items: center;
 }

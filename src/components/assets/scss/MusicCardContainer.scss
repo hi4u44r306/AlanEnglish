@@ -1,5 +1,5 @@
 .music-card-container{
-  background-color: #fcf8ec;
+  background-color: var(--ae-surface-muted, #fcf8ec);
   display: flex;
   flex-flow: row wrap;
   justify-content: space-evenly;

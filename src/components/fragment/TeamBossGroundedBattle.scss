@@ -28,7 +28,7 @@
  .tb-encounter-art .tb-encounter-fallback {position:absolute;inset:0;width:100%;height:100%;object-fit:contain;filter:none;animation:none;z-index:1;}
  .tb-encounter-art[data-boss-renderer=webgl] .tb-encounter-fallback {visibility:hidden;}
  .tb-encounter-art[data-boss-renderer=static] canvas {visibility:hidden;}
- .tb-encounter-rune {position:absolute;z-index:0;left:22%;right:22%;bottom:0;height:9%;border:2px solid #b7b5ef;border-radius:50%;opacity:var(--boss-rune,0);box-shadow:inset 0 0 26px #ab96ef,0 0 25px #c6b0ed;}
+ .tb-encounter-rune {position:absolute;z-index:0;left:22%;right:22%;bottom:0;height:9%;border:2px solid var(--ae-border, #b7b5ef);border-radius:50%;opacity:var(--boss-rune,0);box-shadow:inset 0 0 26px #ab96ef,0 0 25px #c6b0ed;}
  .tb-native-damage {z-index:3;color:#ffe498;text-shadow:0 2px #102338;}
  .tb-native-event-caption,.tb-boss-counter-label {color:#eefaff;background:#102338e6;border-radius:9px;max-width:100%;overflow-wrap:anywhere;}
  @media(max-width:600px) {
