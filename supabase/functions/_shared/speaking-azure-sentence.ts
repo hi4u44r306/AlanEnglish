@@ -4,8 +4,8 @@ import { MEANING_SWAP_WORDS } from "./speaking-completeness.ts";
 
 // 句子「再確認」：本機判沒過但只差一點時，用同一段錄音請 Azure 依參考句逐字評分。
 // 參考句只在伺服器；回給「自己說」的內容不含答案字。
-// 通過要整句發音 ≥ 70：complete_question 只認 pronunciation_score（或 completeness_score）≥ 70 的那一筆。
-export const SENTENCE_RECHECK_PASS_SCORE = 70;
+// 通過要整句發音 ≥ 60（擁有者 2026-10-22 決定）：complete_question 認 pronunciation_score（或 completeness_score）≥ 60 的那一筆。
+export const SENTENCE_RECHECK_PASS_SCORE = 60;
 const CORE_WORD_MIN_ACCURACY = 60;
 const MEANING_WORD_MIN_ACCURACY = 80;
 const TIMEOUT_MS = 15000;

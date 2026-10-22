@@ -21,7 +21,7 @@ jest.mock("../../utils/speakingFeedbackSound", () => ({
 }));
 
 describe("SpeakingPronunciationRecorder", () => {
-    it("70 分結果抵達立即開始保存，保存尚未完成時仍鎖住送評", async () => {
+    it("通過結果抵達立即開始保存，保存尚未完成時仍鎖住送評", async () => {
         global.setTimeout = originalTimeout;
         convertAudioBlobToWav.mockResolvedValue(new Blob([new Uint8Array(1600)], {type:"audio/wav"}));
         submitSpeakingPronunciationAttempt.mockResolvedValue({assessment_kind:"local_completeness_v1",answer_match:true,scores:{completeness:70}});
@@ -32,12 +32,13 @@ describe("SpeakingPronunciationRecorder", () => {
         fireEvent.click(await screen.findByRole("button",{name:"先停止並回聽"}));
         fireEvent.click(await screen.findByRole("button",{name:"送出評分"}));
         await waitFor(()=>expect(onScored).toHaveBeenCalledTimes(1));
-        expect(screen.getByText("70 分")).toBeInTheDocument();
+        expect(screen.getByText("通過了！")).toBeInTheDocument();
+        expect(screen.queryByText(/\d+ 分/)).not.toBeInTheDocument();
         expect(screen.getByRole("button",{name:"再練一次"})).toBeDisabled();
         await act(async()=>saved(true));
         expect(screen.getByRole("button",{name:"再練一次"})).toBeEnabled();
     });
-    it("拼字使用 Azure，顯示實際發音分數且不準備本機模型",async()=>{
+    it("拼字使用 Azure，只顯示通過而不顯示分數，且不準備本機模型",async()=>{
         convertAudioBlobToWav.mockResolvedValue(new Blob([new Uint8Array(1600)],{type:"audio/wav"}));
         submitAlphabetPronunciationAttempt.mockResolvedValue({assessment_kind:"azure_pronunciation",answer_match:true,scores:{pronunciation:78,completeness:100}});
         const onScored=jest.fn().mockResolvedValue(true);
@@ -46,7 +47,8 @@ describe("SpeakingPronunciationRecorder", () => {
         fireEvent.click(await screen.findByRole("button",{name:"先停止並回聽"}));
         fireEvent.click(await screen.findByRole("button",{name:"送出評分"}));
         await waitFor(()=>expect(onScored).toHaveBeenCalledTimes(1));
-        expect(screen.getByText("78 分")).toBeInTheDocument();
+        expect(screen.getByText("通過了！")).toBeInTheDocument();
+        expect(screen.queryByText(/78|\d+ 分/)).not.toBeInTheDocument();
         expect(submitAlphabetPronunciationAttempt).toHaveBeenCalledWith(expect.objectContaining({challengeMode:"challenge",audio:expect.any(Blob)}));
         expect(retainLocalSpeakingRecognizer).not.toHaveBeenCalled();
         expect(submitSpeakingPronunciationAttempt).not.toHaveBeenCalled();
@@ -144,7 +146,7 @@ describe("SpeakingPronunciationRecorder", () => {
         expect(onScored).not.toHaveBeenCalled();
         expect(playSpeakingFeedbackSound).not.toHaveBeenCalled();
         fireEvent.click(screen.getByRole("button", { name: "重試評分" }));
-        await screen.findByText("表現良好");
+        await screen.findByText("通過了！");
         await waitFor(() => expect(onScored).toHaveBeenCalledTimes(1));
         expect(submitSpeakingPronunciationAttempt.mock.calls.at(-1)[0]).toEqual(expect.objectContaining({recognizedText:"My name is Amy.",audioSeconds:2}));
         expect(submitSpeakingPronunciationAttempt.mock.calls.at(-1)[0].audio).toBeUndefined();
@@ -166,7 +168,7 @@ describe("SpeakingPronunciationRecorder", () => {
         expect(screen.queryByText("本次練習結果")).not.toBeInTheDocument();
         expect(onScored).not.toHaveBeenCalled();
         resolveScore({ assessment_kind: "local_completeness_v1", answer_match: true, scores: { completeness: 88 } });
-        await screen.findByText("表現良好");
+        await screen.findByText("通過了！");
         await waitFor(() => expect(setBusy).toHaveBeenLastCalledWith(false));
     });
     it("不完整評分回應不能被當成通關", async () => {
@@ -243,11 +245,11 @@ describe("SpeakingPronunciationRecorder", () => {
             challengeSessionId: "22222222-2222-4222-8222-222222222222"
         })));
         expect(convertAudioBlobToWav).toHaveBeenCalledTimes(1);
-        expect(await screen.findByText("表現良好")).toBeInTheDocument();
+        expect(await screen.findByText("通過了！")).toBeInTheDocument();
         expect(screen.getByRole("status")).toHaveTextContent("本次練習結果");
         expect(screen.queryByText("我聽到")).not.toBeInTheDocument();
         expect(screen.queryByText("My name is Amy.")).not.toBeInTheDocument();
-        expect(screen.getByText("88 分")).toBeInTheDocument();
+        expect(screen.getByText("通過了！")).toBeInTheDocument();
         expect(screen.queryByText("90")).not.toBeInTheDocument();
         expect(screen.queryByLabelText("逐字朗讀結果")).not.toBeInTheDocument();
         expect(screen.queryByLabelText("朗讀比對說明")).not.toBeInTheDocument();
@@ -408,7 +410,8 @@ describe("SpeakingPronunciationRecorder", () => {
         await waitFor(() => expect(onScored).toHaveBeenCalledWith(expect.objectContaining({ answer_match: true, rechecked: true })));
         expect(submitSpeakingRecheck).toHaveBeenCalledWith(expect.objectContaining({ questionId: 16, audio: wav, attemptId: 41, challengeSessionId: "s1" }));
         expect(onScored).toHaveBeenCalledTimes(1);
-        expect(await screen.findByText("發音評分")).toBeInTheDocument();
+        expect(await screen.findByText("通過了！")).toBeInTheDocument();
+        expect(screen.queryByText(/發音評分|\d+ 分/)).not.toBeInTheDocument();
     });
 
     it("再確認沒過：系統聽到顯示這台裝置聽到的句子，不顯示分數，提示只出現一次", async () => {
@@ -450,7 +453,7 @@ describe("SpeakingPronunciationRecorder", () => {
         await act(async () => fireEvent.click(screen.getByRole("button", {name:/開始錄音/})));
         await act(async () => fireEvent.click(screen.getByRole("button", {name:"先停止並回聽"})));
         await act(async () => fireEvent.click(screen.getByRole("button", {name:/送出評分/})));
-        expect(screen.getByText("85 分")).toBeInTheDocument();
+        expect(screen.getByText("通過了！")).toBeInTheDocument();
         expect(screen.queryByText("85%")).not.toBeInTheDocument();
         expect(onScored).toHaveBeenCalledTimes(1);
     });
@@ -472,7 +475,7 @@ describe("SpeakingPronunciationRecorder", () => {
         if (azure) expect(service).toHaveBeenCalledWith(expect.objectContaining({ audio: wav }));
         else expect(retainLocalSpeakingRecognizer.mock.results[0].value.recognizer.transcribe).toHaveBeenCalledWith(wav, 25);
         expect(convertAudioBlobToWav).toHaveBeenCalledTimes(1);
-        expect(screen.getByText("88 分")).toBeInTheDocument();
+        expect(screen.getByText("通過了！")).toBeInTheDocument();
         expect(document.querySelector("details.speaking-result-replay")).not.toHaveAttribute("open");
         expect(screen.getByLabelText("回聽我的錄音")).toHaveAttribute("src", "blob:scoring-wav");
         expect(URL.createObjectURL).toHaveBeenCalledWith(wav);
@@ -579,7 +582,7 @@ describe("SpeakingPronunciationRecorder", () => {
         expect(submitSpeakingPronunciationAttempt).not.toHaveBeenCalled();
         expect(screen.getByRole("button", { name: "重試評分" })).toBeEnabled();
         fireEvent.click(screen.getByRole("button", { name: "重試評分" }));
-        expect(await screen.findByText("85 分")).toBeInTheDocument();
+        expect(await screen.findByText("通過了！")).toBeInTheDocument();
         expect(submitSpeakingPronunciationAttempt).toHaveBeenCalledTimes(1);
     });
 

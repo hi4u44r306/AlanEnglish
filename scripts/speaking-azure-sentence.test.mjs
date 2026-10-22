@@ -5,13 +5,15 @@ import { evaluateAzureSentenceAssessment, publicRecheckResult } from "../supabas
 const word = (Word, AccuracyScore, ErrorType = "None") => ({ Word, PronunciationAssessment: { AccuracyScore, ErrorType } });
 const payload = (PronScore, words, Display = "It is her mouth.") => ({ NBest: [{ Display, PronunciationAssessment: { PronScore, AccuracyScore: PronScore, FluencyScore: 90, CompletenessScore: 100 }, Words: words }] });
 
-test("每個重要的字都念到、整句 ≥ 70 才通過", () => {
+test("每個重要的字都念到、整句 ≥ 60 才通過", () => {
     const ok = evaluateAzureSentenceAssessment(payload(82, [word("It", 90), word("is", 85), word("her", 92), word("mouth", 74)]));
     assert.equal(ok.answer_match, true);
     assert.equal(ok.scores.pronunciation, 82);
     assert.equal(ok.assessment_kind, "azure_pronunciation");
-    const low = evaluateAzureSentenceAssessment(payload(65, [word("It", 90), word("is", 85), word("her", 92), word("mouth", 74)]));
-    assert.equal(low.answer_match, false, "整句 65 不通過");
+    const low = evaluateAzureSentenceAssessment(payload(55, [word("It", 90), word("is", 85), word("her", 92), word("mouth", 74)]));
+    assert.equal(low.answer_match, false, "整句 55 不通過");
+    const edge = evaluateAzureSentenceAssessment(payload(60, [word("It", 90), word("is", 85), word("her", 92), word("mouth", 74)]));
+    assert.equal(edge.answer_match, true, "整句 60 剛好通過（國小生不用念得很標準）");
 });
 
 test("重要的字發音太差、漏念或多念 not 都不通過", () => {

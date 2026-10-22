@@ -1,10 +1,10 @@
 import { selectAzureAssessmentResult, readAzureWordAssessment } from "./azure-pronunciation.ts";
 import { matchesFoundationAnswer, evaluateLetterSpellingAssessment } from "./speaking-foundation-answer.ts";
 
-// A single letter is under a second of sound, so its score swings a lot; it passes at 60.
-// Spelling a whole word gives the scorer more to work with and keeps the usual 70.
+// Primary-school children do not need to sound perfect: letters and spelling both pass at 60 (owner decision
+// 2026-10-22). A single letter is under a second of sound, so its score swings a lot anyway.
 export const ALPHABET_LETTER_PASS_SCORE = 60;
-export const LETTER_SPELLING_PASS_SCORE = 70;
+export const LETTER_SPELLING_PASS_SCORE = 60;
 const score = (value: unknown) => Number.isFinite(Number(value)) ? Math.max(0, Math.min(100, Number(value))) : 0;
 export async function assessAzureAlphabet(audio: ArrayBuffer, answer: string, key: string, region: string, interactionType = "alphabet_round") {
     if (!key || !/^[a-z0-9-]{2,32}$/.test(region)) throw Object.assign(new Error("A–Z 評分服務尚未設定"), { status: 503, code: "service_not_configured" });

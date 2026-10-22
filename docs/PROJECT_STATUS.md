@@ -1,5 +1,14 @@
 # Alan English 專案狀態
 
+### 口說只顯示通過／沒過、字母拼字與再確認門檻 70 → 60（2026-10-22，分支 `feat/speaking-pass-only`；需 migration＋兩支 Function 部署，尚未套用）
+
+- 擁有者決定：不顯示分數；通過約 60 分（國小生不用念得很標準）。句子題本機朗讀仍是 70% 字數＋重要名詞（不是發音分數，不降）。
+- 前端：`SpeakingPronunciationRecorder` 只顯示「通過了！」，移除分數列；規則頁與錄音說明不寫分數。
+- 後端：`LETTER_SPELLING_PASS_SCORE`、`SENTENCE_RECHECK_PASS_SCORE` 70 → 60；`speaking-challenge` 完成題目時的檢查 `< 70` → `< 60`。
+- Migration `20261022090000_speaking_pass_score_60.sql`：只 `create or replace complete_speaking_session_question_v2`，門檻 70 → 60（`record_speaking_foundation_challenge_v4` 本來就是 A–Z 60，不動）。順序：先套 migration（對現行 Function 無影響，因為舊版只會送 ≥70），再部署兩支 Function。
+- 驗證：前端口說 197 項、azure-sentence 4、azure-alphabet 5（新增拼字 59/60）、local-handler 17、completeness 33、PGlite 新 migration 2＋舊 70 測試 10。
+- 部署後記得把 repo 的 migration 檔名改成資料庫實際版本號。
+
 ### 條款與說明頁草稿、綠界金流方向（2026-10-13，分支 `docs/policy-drafts`，純文件草稿／未公開）
 
 - 最後更新：2026-10-13 15:20（Asia/Taipei）。負責：Claude Code 聊天「教材定價與成本統整」。

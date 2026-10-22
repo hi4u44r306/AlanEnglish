@@ -599,7 +599,7 @@ Deno.serve(async (req: Request) => {
                 if (attemptError) throw attemptError;
                 // Every question needs a saved server decision for this session.
                 // Local ASR text is client-reported; scores/completion flags are ignored.
-                if (!attempt || attempt.answer_match !== true || Number(attempt.pronunciation_score ?? attempt.completeness_score) < 70) {
+                if (!attempt || attempt.answer_match !== true || Number(attempt.pronunciation_score ?? attempt.completeness_score) < 60) {
                     return json(409, { error: "這一題要先完成正確的口說評分", code: "correct_assessment_required" });
                 }
                 {
