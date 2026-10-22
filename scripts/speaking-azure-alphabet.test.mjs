@@ -26,3 +26,13 @@ test('字母正確仍須 60 分；拼字使用分開的參考字母與聲音對�
   const result=await assessAzureAlphabet(new ArrayBuffer(2),'CAT','synthetic','southeastasia','letter_spelling');assert.equal(result.answer_match,true);assert.equal(result.scores.pronunciation,82);
  }finally{globalThis.fetch=originalFetch;}
 });
+test('拼字與單一字母同樣 60 分通過、59 分不通過（國小生不用念得很標準）',async()=>{
+ const originalFetch=globalThis.fetch;
+ try{
+  for(const value of [59,60]){
+   globalThis.fetch=async()=>new Response(JSON.stringify({NBest:[{Display:'cat',PronunciationAssessment:{PronScore:value,AccuracyScore:85,FluencyScore:80},Words:['C','A','T'].map(Word=>({Word,AccuracyScore:85,ErrorType:'None'}))}]}));
+   const result=await assessAzureAlphabet(new ArrayBuffer(2),'CAT','synthetic','southeastasia','letter_spelling');
+   assert.equal(result.answer_match,value>=60);assert.equal(result.pass_score,60);
+  }
+ }finally{globalThis.fetch=originalFetch;}
+});

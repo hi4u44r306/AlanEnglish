@@ -17,8 +17,6 @@ const recordingMimeType = () => {
         .find(type => window.MediaRecorder.isTypeSupported(type)) || "";
 };
 
-const scoreLabel = score => score >= 70 ? "表現良好" : score >= 60 ? "再練一次會更好" : "先聽示範，再慢慢重讀";
-const scoreTone = score => score >= 70 ? "good" : score >= 60 ? "practice" : "retry";
 const ROUND_RESET_ERROR_CODES = new Set([
     "foundation_round_invalid",
     "foundation_round_required",
@@ -73,7 +71,7 @@ export default function SpeakingPronunciationRecorder({
     submissionGateRef.current = { practiceOnly, budgetBlocked, disabled: Boolean(disabledReason) };
     useEffect(() => {
         if (practiceOnly) { setEngineReady(true); setEngineInfo("錄音回聽練習，不送出評分。"); return undefined; }
-        if (azureLetters) { setEngineReady(true); setEngineInfo("字母與拼字評分 · 70 分通過"); return undefined; }
+        if (azureLetters) { setEngineReady(true); setEngineInfo("字母與拼字評分"); return undefined; }
         const lease = retainLocalSpeakingRecognizer(); engineRef.current = lease.recognizer;
         let active = true;
         setEngineReady(lease.recognizer.ready);
@@ -279,7 +277,7 @@ export default function SpeakingPronunciationRecorder({
                     : score?.answer_match === false
                     ? "retry"
                     : saved === false ? "practice"
-                    : scoreTone(Math.round(measuredScore))
+                    : "good"
             );
         } catch (cause) {
             if (token !== generationRef.current) return;
@@ -297,10 +295,9 @@ export default function SpeakingPronunciationRecorder({
     };
 
     const rechecked = result?.rechecked === true;
-    const pronunciationScore = Math.round((azureLetters || rechecked ? result?.scores?.pronunciation : result?.scores?.completeness) || 0);
     const assessmentUncertain = result?.assessment_status === "uncertain";
     const answerMatched = !assessmentUncertain && result?.answer_match !== false;
-    const resultTone = assessmentUncertain ? "practice" : answerMatched ? scoreTone(pronunciationScore) : "retry";
+    const resultTone = assessmentUncertain ? "practice" : answerMatched ? "good" : "retry";
     // 沒過時讓學生看到系統聽到了什麼。只有「跟著念」的一般句子題手機上有題目原句（評分也用它），
     // 才逐字標出不一樣的字；看圖、問答與「自己說」只顯示聽到的句子，不透露答案。
     const heardText = !azureLetters && result && !answerMatched && !assessmentUncertain ? String(result.local_recognized_text || result.recognized_text || "").trim() : "";
@@ -345,13 +342,12 @@ export default function SpeakingPronunciationRecorder({
             </button>}
             {recording && canFinishAndAssess && <button type="button" className="secondary" onClick={() => stop()} disabled={preparing || submitting || Boolean(disabledReason)}><FiVolume2 aria-hidden="true" />先停止並回聽</button>}
             {previewUrl && <div className="speaking-recording-preview"><audio controls src={previewUrl} aria-label="回聽我的錄音">你的瀏覽器不支援錄音播放。</audio><div><button type="button" className="secondary" onClick={start} disabled={submitting || preparing || Boolean(disabledReason)}><FiRefreshCw />重新錄音</button>{!practiceOnly && <button type="button" onClick={() => submit()} disabled={submitting || preparing || budgetBlocked || Boolean(disabledReason)}><FiSend />{submitting ? "AI 評分中…" : error ? "重試評分" : "送出評分"}</button>}</div></div>}
-            <small className="speaking-recording-privacy">{practiceOnly ? "錄音只留在這個頁面供回聽，不上傳、不評分，也不增加通關或獎勵。" : azureLetters ? "字母與拼字錄音送至 Azure 評分；答案正確且達 70 分即可通過。" : "錄音在這台裝置辨識，只傳送辨識文字；只差一點沒過時才把這段錄音送 Azure 再確認，網站不保存錄音。"}</small>
+            <small className="speaking-recording-privacy">{practiceOnly ? "錄音只留在這個頁面供回聽，不上傳、不評分，也不增加通關或獎勵。" : azureLetters ? "字母與拼字錄音送至 Azure 評分，念對就能通過。" : "錄音在這台裝置辨識，只傳送辨識文字；只差一點沒過時才把這段錄音送 Azure 再確認，網站不保存錄音。"}</small>
         </>}
         {rechecking && <p className="speaking-recheck-status" role="status">差一點！正在請系統再確認一次…</p>}
         {result && <div className={`speaking-pronunciation-result is-${resultTone}`} role="status" aria-live="polite" aria-atomic="true">
-            <header>{answerMatched ? <FiCheckCircle aria-hidden="true" /> : <FiAlertCircle aria-hidden="true" />}<span>本次練習結果</span><strong>{answerMatched ? scoreLabel(pronunciationScore) : assessmentUncertain ? "系統沒有聽清楚" : "回答方式還差一點"}</strong></header>
-            {/* 沒過不顯示分數：「75 分」看起來像過了，孩子會誤會；改看下面「系統聽到」。 */}
-            {(answerMatched || azureLetters) && <p className="speaking-completeness-score"><span>{azureLetters ? "字母發音" : rechecked ? "發音評分" : "朗讀完整度"}</span><strong>{pronunciationScore} 分</strong></p>}
+            <header>{answerMatched ? <FiCheckCircle aria-hidden="true" /> : <FiAlertCircle aria-hidden="true" />}<span>本次練習結果</span><strong>{answerMatched ? "通過了！" : assessmentUncertain ? "系統沒有聽清楚" : "回答方式還差一點"}</strong></header>
+            {/* 只顯示通過或沒過，不顯示分數：孩子看到「75 分」會以為過了，也會互相比分數。 */}
             {heardText && <div className="speaking-heard">
                 <p><span>系統聽到</span><strong lang="en">{heardDiff ? renderWords(heardDiff.heard) : heardText}</strong></p>
                 {heardDiff && <p><span>題目是</span><strong lang="en">{renderWords(heardDiff.expected)}</strong></p>}
