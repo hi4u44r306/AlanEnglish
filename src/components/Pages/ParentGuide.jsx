@@ -24,7 +24,7 @@ const REASONS = [
 export default function ParentGuide() {
     return (
         <main className="trial-lesson parent-guide">
-            <StandaloneBackLink />
+            <StandaloneBackLink always />
             <Helmet>
                 <title>給家長：Alan English 是什麼｜Alan English</title>
                 <meta name="description" content="Alan English 是配合課本的英文練習網站：課本翻到哪一頁，就有那一頁的老師教學影片、聽力與口說練習。" />
