@@ -28,7 +28,9 @@ const A4_HEIGHT_TWIPS = 16838;
 const PAGE_MARGIN_TWIPS = 0;
 const TABLE_WIDTH_TWIPS = A4_WIDTH_TWIPS - (PAGE_MARGIN_TWIPS * 2);
 const CARD_WIDTH_TWIPS = Math.floor(TABLE_WIDTH_TWIPS / 2);
-const CARD_HEIGHT_TWIPS = Math.floor(A4_HEIGHT_TWIPS / 4);
+// 4 列加起來要略小於 A4 高度：Word 在表格後面一定會多一個空段落，剛好等於頁高時會被擠到第二頁。
+const CARD_HEIGHT_TWIPS = 4200;
+const TAIL_PARAGRAPH_TWIPS = 20;
 const CARD_CONTENT_WIDTH_TWIPS = CARD_WIDTH_TWIPS - 480;
 const CARD_INFO_WIDTH_TWIPS = Math.round(CARD_CONTENT_WIDTH_TWIPS * 0.57);
 const CARD_QR_WIDTH_TWIPS = CARD_CONTENT_WIDTH_TWIPS - CARD_INFO_WIDTH_TWIPS;
@@ -57,6 +59,12 @@ const paragraph = (children, options = {}) => new Paragraph({
     children
 });
 
+// Word 要求表格後面一定要有一個段落；縮到 1 pt 行高，才不會撐高格子。
+const tinyParagraph = () => new Paragraph({
+    spacing: { before: 0, after: 0, line: TAIL_PARAGRAPH_TWIPS, lineRule: "exact" },
+    children: [new TextRun({ text: "", size: 2 })]
+});
+
 const text = (value, options = {}) => new TextRun({
     text: String(value ?? ""),
     font: FONT,
@@ -81,7 +89,7 @@ const buildCardCell = (card, qrCodeDataUrl) => {
 
     return new TableCell({
         width: { size: CARD_WIDTH_TWIPS, type: DXA_WIDTH },
-        margins: { top: 120, bottom: 120, left: 240, right: 240 },
+        margins: { top: 0, bottom: 0, left: 240, right: 240 },
         verticalAlign: VERTICAL_CENTER,
         borders: {
             top: { style: "none", size: 0, color: "auto" },
@@ -96,7 +104,7 @@ const buildCardCell = (card, qrCodeDataUrl) => {
             borders: NO_TABLE_BORDERS,
             rows: [new TableRow({
                 cantSplit: true,
-                height: { value: CARD_HEIGHT_TWIPS - 260, rule: HEIGHT_EXACT },
+                height: { value: CARD_HEIGHT_TWIPS - 300, rule: HEIGHT_EXACT },
                 children: [
                     new TableCell({
                         width: { size: CARD_INFO_WIDTH_TWIPS, type: DXA_WIDTH },
@@ -149,7 +157,7 @@ const buildCardCell = (card, qrCodeDataUrl) => {
                     })
                 ]
             })]
-        })]
+        }), tinyParagraph()]
     });
 };
 
@@ -190,6 +198,7 @@ const buildPageTable = cards => {
         width: { size: TABLE_WIDTH_TWIPS, type: DXA_WIDTH },
         columnWidths: [CARD_WIDTH_TWIPS, CARD_WIDTH_TWIPS],
         layout: TABLE_LAYOUT_FIXED,
+        borders: NO_TABLE_BORDERS,
         rows
     });
 };
@@ -233,7 +242,10 @@ export const buildAcademyStudentLoginCardsDocx = async (results, rows) => {
                     }
                 }
             },
-            children: [buildPageTable(pageCards)]
+            children: [
+                buildPageTable(pageCards),
+                tinyParagraph()
+            ]
         }))
     });
     return Packer.toBlob(document);
