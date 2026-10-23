@@ -1,16 +1,26 @@
 import QRCode from "qrcode";
 import { getSuccessfulStudentLoginCards } from "./academyStudentLoginCards";
-import {
-    Document,
-    ImageRun,
-    Packer,
-    Paragraph,
-    Table,
-    TableCell,
-    TableRow,
-    TextRun
-} from "docx";
 export { getSuccessfulStudentLoginCards } from "./academyStudentLoginCards";
+
+// docx 的套件版本放進網站打包後會壞掉（TextRun 取不到，下載 Word 時出現 "_h is not a constructor"），
+// 所以改成按下「下載 Word」才從本站載入一份獨立檔案；測試環境直接用 node_modules。
+const DOCX_SCRIPT_URL = "/vendor/docx-9.7.1.iife.js";
+let Document, ImageRun, Packer, Paragraph, Table, TableCell, TableRow, TextRun;
+let docxLoading = null;
+const loadDocx = () => {
+    if (process.env.NODE_ENV === "test") return Promise.resolve(require("docx"));
+    if (typeof window !== "undefined" && window.docx?.Document) return Promise.resolve(window.docx);
+    if (!docxLoading) {
+        docxLoading = new Promise((resolve, reject) => {
+            const script = document.createElement("script");
+            script.src = DOCX_SCRIPT_URL;
+            script.onload = () => (window.docx?.Document ? resolve(window.docx) : reject(new Error("Word 元件載入不完整")));
+            script.onerror = () => reject(new Error("Word 元件載入失敗，請重新整理後再試"));
+            document.head.appendChild(script);
+        }).catch(error => { docxLoading = null; throw error; });
+    }
+    return docxLoading;
+};
 
 const A4_WIDTH_TWIPS = 11906;
 const A4_HEIGHT_TWIPS = 16838;
@@ -187,6 +197,7 @@ const buildPageTable = cards => {
 export const buildAcademyStudentLoginCardsDocx = async (results, rows) => {
     const cards = getSuccessfulStudentLoginCards(results, rows);
     if (cards.length === 0) throw new Error("沒有可輸出的學生登入卡");
+    ({ Document, ImageRun, Packer, Paragraph, Table, TableCell, TableRow, TextRun } = await loadDocx());
 
     const renderedCards = await Promise.all(cards.map(async card => {
         const qrCodeDataUrl = await QRCode.toDataURL(card.activationUrl, {
