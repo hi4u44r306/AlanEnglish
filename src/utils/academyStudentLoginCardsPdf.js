@@ -55,43 +55,50 @@ const drawCard = async (context, card, qrCodeDataUrl, x, y) => {
     const qrSize = 214;
     const qrX = x + CARD_WIDTH - padding - qrSize;
     const qrY = y + Math.round((CARD_HEIGHT - qrSize) / 2) - 8;
-    const studentName = card.englishName
-        ? `${card.chineseName} · ${card.englishName}`
-        : card.chineseName;
     const recoveryCodes = card.recoveryCodes.length
         ? card.recoveryCodes.slice(0, 2).join("   ")
         : "—";
+    const textMaxWidth = infoWidth - (padding * 2);
+    // 中文名與英文名各占一行，避免長名字被橫向壓扁；沒有英文名時，下方內容往上靠。
+    const base = card.englishName ? 124 : 100;
 
-    drawText(context, "ALAN ENGLISH  英文班登入卡", infoX, y + 22, {
+    drawText(context, "ALAN ENGLISH  英文班登入卡", infoX, y + 20, {
         size: 18,
         weight: 700,
         color: "#2b66c3"
     });
-    const textMaxWidth = infoWidth - (padding * 2);
-    drawText(context, studentName, infoX, y + 62, {
-        size: 29,
+    drawText(context, card.chineseName, infoX, y + 52, {
+        size: 32,
         weight: 700,
         color: "#0f1f3a",
         maxWidth: textMaxWidth
     });
-    drawText(context, "帳號", infoX, y + 116, { size: 17, weight: 700, color: "#64748b" });
-    drawText(context, card.username, infoX, y + 141, { size: 25, weight: 700, maxWidth: textMaxWidth });
-    drawText(context, "臨時密碼", infoX, y + 188, { size: 17, weight: 700, color: "#64748b" });
-    drawText(context, card.temporaryPassword, infoX, y + 213, { size: 23, weight: 700, maxWidth: textMaxWidth });
-    drawText(context, "復原碼", infoX, y + 258, { size: 17, weight: 700, color: "#64748b" });
-    drawText(context, recoveryCodes, infoX, y + 283, {
-        size: 23,
+    if (card.englishName) {
+        drawText(context, card.englishName, infoX, y + 92, {
+            size: 22,
+            weight: 700,
+            color: "#475569",
+            maxWidth: textMaxWidth
+        });
+    }
+    drawText(context, "帳號", infoX, y + base, { size: 18, weight: 700, color: "#64748b" });
+    drawText(context, card.username, infoX, y + base + 25, { size: 26, weight: 700, maxWidth: textMaxWidth });
+    drawText(context, "臨時密碼", infoX, y + base + 66, { size: 18, weight: 700, color: "#64748b" });
+    drawText(context, card.temporaryPassword, infoX, y + base + 91, { size: 24, weight: 700, maxWidth: textMaxWidth });
+    drawText(context, "復原碼", infoX, y + base + 132, { size: 18, weight: 700, color: "#64748b" });
+    drawText(context, recoveryCodes, infoX, y + base + 157, {
+        size: 24,
         weight: 700,
         color: "#9a3412",
         maxWidth: textMaxWidth
     });
-    drawText(context, "掃描右側 QR Code 設定密碼", infoX, y + 337, { size: 16, color: "#64748b" });
-    drawText(context, "復原碼每組只能使用一次", infoX, y + 362, { size: 16, color: "#64748b" });
+    drawText(context, "掃描右側 QR Code 設定密碼", infoX, y + base + 202, { size: 19, color: "#64748b", maxWidth: textMaxWidth });
+    drawText(context, "復原碼每組只能使用一次", infoX, y + base + 228, { size: 19, color: "#64748b", maxWidth: textMaxWidth });
 
     const qrImage = await loadImage(qrCodeDataUrl);
     context.drawImage(qrImage, qrX, qrY, qrSize, qrSize);
     drawText(context, "掃描開始設定", qrX + (qrSize / 2), qrY + qrSize + 10, {
-        size: 16,
+        size: 18,
         color: "#64748b",
         align: "center"
     });

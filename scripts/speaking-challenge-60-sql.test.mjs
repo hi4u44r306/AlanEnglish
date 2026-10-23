@@ -1,4 +1,4 @@
-// 通過門檻 70 → 60 的 migration（20261022090000）：在原有 70 分的函式上再套用，驗證只有門檻變了。
+// 通過門檻 70 → 60 的 migration（20261022021310）：在原有 70 分的函式上再套用，驗證只有門檻變了。
 import {before, after, test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
@@ -36,7 +36,7 @@ before(async()=>{
  `);
  await db.exec(read('20260918063338_speaking_challenge_daily_sessions.sql'));
  await db.exec(read('20261007155958_speaking_challenge_only_reassessment.sql'));
- await db.exec(read('20261022090000_speaking_pass_score_60.sql'));
+ await db.exec(read('20261022021310_speaking_pass_score_60.sql'));
 });
 after(()=>db.close());
 test('59 分拒絕，60 分接受；答案錯誤、提示、舊回合仍不能通關',async()=>{

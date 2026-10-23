@@ -119,7 +119,7 @@ const buildCardCell = (card, qrCodeDataUrl) => {
                                 spacing: { before: 0, after: 60, line: 260 }
                             }),
                             paragraph([text("掃描右側 QR Code 設定密碼；復原碼每組只能用一次。", {
-                                size: 14,
+                                size: 16,
                                 color: "64748B"
                             })], { alignment: ALIGN_LEFT, spacing: { before: 0, after: 0, line: 210 } })
                         ]
