@@ -3,9 +3,10 @@ import { getSuccessfulStudentLoginCards } from "./academyStudentLoginCards";
 
 const PAGE_WIDTH = 1240;
 const PAGE_HEIGHT = 1754;
-const PAGE_MARGIN = 32;
-const COLUMN_GAP = 14;
-const ROW_GAP = 14;
+// A4 貼紙紙每頁 8 張、滿版：卡片之間與頁面四周都不留空，裁切由貼紙本身處理。
+const PAGE_MARGIN = 0;
+const COLUMN_GAP = 0;
+const ROW_GAP = 0;
 const COLUMNS = 2;
 const ROWS = 4;
 const CARDS_PER_PAGE = COLUMNS * ROWS;
@@ -49,7 +50,8 @@ const drawText = (context, value, x, y, options = {}) => {
 };
 
 const drawCard = async (context, card, qrCodeDataUrl, x, y) => {
-    const padding = 22;
+    // 貼紙印刷可能偏移幾毫米，文字離邊緣多留一些。
+    const padding = 34;
     const infoX = x + padding;
     const infoWidth = Math.round(CARD_WIDTH * 0.58);
     const qrSize = 214;
@@ -61,39 +63,41 @@ const drawCard = async (context, card, qrCodeDataUrl, x, y) => {
     const textMaxWidth = infoWidth - (padding * 2);
     // 中文名與英文名各占一行，避免長名字被橫向壓扁；沒有英文名時，下方內容往上靠。
     const base = card.englishName ? 124 : 100;
+    // 文字區塊在整張貼紙裡上下置中；有無英文名都用同一個起點，相鄰貼紙的標題才會對齊。
+    const textY = y + Math.max(0, Math.round((CARD_HEIGHT - (124 + 227)) / 2) - 20);
 
-    drawText(context, "ALAN ENGLISH  英文班登入卡", infoX, y + 20, {
+    drawText(context, "ALAN ENGLISH  英文班登入卡", infoX, textY + 20, {
         size: 18,
         weight: 700,
         color: "#2b66c3"
     });
-    drawText(context, card.chineseName, infoX, y + 52, {
+    drawText(context, card.chineseName, infoX, textY + 52, {
         size: 32,
         weight: 700,
         color: "#0f1f3a",
         maxWidth: textMaxWidth
     });
     if (card.englishName) {
-        drawText(context, card.englishName, infoX, y + 92, {
+        drawText(context, card.englishName, infoX, textY + 92, {
             size: 22,
             weight: 700,
             color: "#475569",
             maxWidth: textMaxWidth
         });
     }
-    drawText(context, "帳號", infoX, y + base, { size: 18, weight: 700, color: "#64748b" });
-    drawText(context, card.username, infoX, y + base + 25, { size: 26, weight: 700, maxWidth: textMaxWidth });
-    drawText(context, "臨時密碼", infoX, y + base + 66, { size: 18, weight: 700, color: "#64748b" });
-    drawText(context, card.temporaryPassword, infoX, y + base + 91, { size: 24, weight: 700, maxWidth: textMaxWidth });
-    drawText(context, "復原碼", infoX, y + base + 132, { size: 18, weight: 700, color: "#64748b" });
-    drawText(context, recoveryCodes, infoX, y + base + 157, {
+    drawText(context, "帳號", infoX, textY + base, { size: 18, weight: 700, color: "#64748b" });
+    drawText(context, card.username, infoX, textY + base + 25, { size: 26, weight: 700, maxWidth: textMaxWidth });
+    drawText(context, "臨時密碼", infoX, textY + base + 66, { size: 18, weight: 700, color: "#64748b" });
+    drawText(context, card.temporaryPassword, infoX, textY + base + 91, { size: 24, weight: 700, maxWidth: textMaxWidth });
+    drawText(context, "復原碼", infoX, textY + base + 132, { size: 18, weight: 700, color: "#64748b" });
+    drawText(context, recoveryCodes, infoX, textY + base + 157, {
         size: 24,
         weight: 700,
         color: "#9a3412",
         maxWidth: textMaxWidth
     });
-    drawText(context, "掃描右側 QR Code 設定密碼", infoX, y + base + 202, { size: 19, color: "#64748b", maxWidth: textMaxWidth });
-    drawText(context, "復原碼每組只能使用一次", infoX, y + base + 228, { size: 19, color: "#64748b", maxWidth: textMaxWidth });
+    drawText(context, "掃描右側 QR Code 設定密碼", infoX, textY + base + 202, { size: 19, color: "#64748b", maxWidth: textMaxWidth });
+    drawText(context, "復原碼每組只能使用一次", infoX, textY + base + 228, { size: 19, color: "#64748b", maxWidth: textMaxWidth });
 
     const qrImage = await loadImage(qrCodeDataUrl);
     context.drawImage(qrImage, qrX, qrY, qrSize, qrSize);
@@ -113,19 +117,6 @@ const renderPagePng = async cards => {
 
     context.fillStyle = "#ffffff";
     context.fillRect(0, 0, PAGE_WIDTH, PAGE_HEIGHT);
-
-    for (let index = 0; index < CARDS_PER_PAGE; index += 1) {
-        const row = Math.floor(index / COLUMNS);
-        const column = index % COLUMNS;
-        const x = PAGE_MARGIN + (column * (CARD_WIDTH + COLUMN_GAP));
-        const y = PAGE_MARGIN + (row * (CARD_HEIGHT + ROW_GAP));
-        context.save();
-        context.strokeStyle = "#a8b4c7";
-        context.lineWidth = 2;
-        context.setLineDash([9, 7]);
-        context.strokeRect(x + 1, y + 1, CARD_WIDTH - 2, CARD_HEIGHT - 2);
-        context.restore();
-    }
 
     for (let index = 0; index < cards.length; index += 1) {
         const card = cards[index];

@@ -14,11 +14,12 @@ import {
 
 const A4_WIDTH_TWIPS = 11906;
 const A4_HEIGHT_TWIPS = 16838;
-const PAGE_MARGIN_TWIPS = 360;
+// A4 貼紙紙每頁 8 張、滿版：頁面四周與卡片之間都不留空。
+const PAGE_MARGIN_TWIPS = 0;
 const TABLE_WIDTH_TWIPS = A4_WIDTH_TWIPS - (PAGE_MARGIN_TWIPS * 2);
 const CARD_WIDTH_TWIPS = Math.floor(TABLE_WIDTH_TWIPS / 2);
-const CARD_HEIGHT_TWIPS = 3900;
-const CARD_CONTENT_WIDTH_TWIPS = CARD_WIDTH_TWIPS - 220;
+const CARD_HEIGHT_TWIPS = Math.floor(A4_HEIGHT_TWIPS / 4);
+const CARD_CONTENT_WIDTH_TWIPS = CARD_WIDTH_TWIPS - 480;
 const CARD_INFO_WIDTH_TWIPS = Math.round(CARD_CONTENT_WIDTH_TWIPS * 0.57);
 const CARD_QR_WIDTH_TWIPS = CARD_CONTENT_WIDTH_TWIPS - CARD_INFO_WIDTH_TWIPS;
 const CARDS_PER_PAGE = 8;
@@ -26,7 +27,6 @@ const FONT = "Microsoft JhengHei";
 const DXA_WIDTH = "dxa";
 const ALIGN_CENTER = "center";
 const ALIGN_LEFT = "left";
-const BORDER_DASHED = "dashed";
 const HEIGHT_EXACT = "exact";
 const SECTION_NEXT_PAGE = "nextPage";
 const TABLE_LAYOUT_FIXED = "fixed";
@@ -71,13 +71,13 @@ const buildCardCell = (card, qrCodeDataUrl) => {
 
     return new TableCell({
         width: { size: CARD_WIDTH_TWIPS, type: DXA_WIDTH },
-        margins: { top: 70, bottom: 70, left: 110, right: 110 },
+        margins: { top: 120, bottom: 120, left: 240, right: 240 },
         verticalAlign: VERTICAL_CENTER,
         borders: {
-            top: { style: BORDER_DASHED, size: 4, color: "A8B4C7" },
-            bottom: { style: BORDER_DASHED, size: 4, color: "A8B4C7" },
-            left: { style: BORDER_DASHED, size: 4, color: "A8B4C7" },
-            right: { style: BORDER_DASHED, size: 4, color: "A8B4C7" }
+            top: { style: "none", size: 0, color: "auto" },
+            bottom: { style: "none", size: 0, color: "auto" },
+            left: { style: "none", size: 0, color: "auto" },
+            right: { style: "none", size: 0, color: "auto" }
         },
         children: [new Table({
             width: { size: CARD_CONTENT_WIDTH_TWIPS, type: DXA_WIDTH },
@@ -86,7 +86,7 @@ const buildCardCell = (card, qrCodeDataUrl) => {
             borders: NO_TABLE_BORDERS,
             rows: [new TableRow({
                 cantSplit: true,
-                height: { value: 3500, rule: HEIGHT_EXACT },
+                height: { value: CARD_HEIGHT_TWIPS - 260, rule: HEIGHT_EXACT },
                 children: [
                     new TableCell({
                         width: { size: CARD_INFO_WIDTH_TWIPS, type: DXA_WIDTH },
@@ -146,10 +146,10 @@ const buildCardCell = (card, qrCodeDataUrl) => {
 const buildBlankCell = () => new TableCell({
     width: { size: CARD_WIDTH_TWIPS, type: DXA_WIDTH },
     borders: {
-        top: { style: BORDER_DASHED, size: 4, color: "A8B4C7" },
-        bottom: { style: BORDER_DASHED, size: 4, color: "A8B4C7" },
-        left: { style: BORDER_DASHED, size: 4, color: "A8B4C7" },
-        right: { style: BORDER_DASHED, size: 4, color: "A8B4C7" }
+        top: { style: "none", size: 0, color: "auto" },
+        bottom: { style: "none", size: 0, color: "auto" },
+        left: { style: "none", size: 0, color: "auto" },
+        right: { style: "none", size: 0, color: "auto" }
     },
     children: [new Paragraph("")]
 });
