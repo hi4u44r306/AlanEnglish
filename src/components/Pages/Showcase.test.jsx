@@ -28,9 +28,9 @@ describe("Showcase", () => {
         expect(screen.queryByText("平台方案與 AI 加購的價格是多少？")).not.toBeInTheDocument();
         expect(screen.queryByText(/免費試用|7 天試用|7 天免費試用/)).not.toBeInTheDocument();
         expect(screen.queryByRole("link", { name: /免費試用|免費體驗/ })).not.toBeInTheDocument();
-        // 免費試一課暫時關閉：公開首頁只有登入入口。
-        expect(screen.queryByRole("link", { name: /免費試一課/ })).not.toBeInTheDocument();
-        screen.getAllByRole("link", { name: /^登入/ }).forEach(link => expect(link).toHaveAttribute("href", "/login"));
+        screen.getAllByRole("link", { name: /已有帳號？登入/ }).forEach(link => expect(link).toHaveAttribute("href", "/login"));
+        // 公開首頁的主要入口是免費試一課，登入放在次要按鈕。
+        screen.getAllByRole("link", { name: /免費試一課/ }).forEach(link => expect(link).toHaveAttribute("href", "/try"));
         expect(screen.getByRole("heading", { name: "AI 口說大挑戰" })).toBeInTheDocument();
     });
 });

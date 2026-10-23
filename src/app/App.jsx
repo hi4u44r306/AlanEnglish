@@ -77,6 +77,7 @@ const ReviewCenter = lazy(() => import("../components/Pages/ReviewCenter"));
 const WeeklyReport = lazy(() => import("../components/Pages/WeeklyReport"));
 const MembershipCenter = lazy(() => import("../components/Pages/MembershipCenter"));
 const Rewards = lazy(() => import("../components/Pages/Rewards"));
+const TrialLesson = lazy(() => import("../components/Pages/TrialLesson"));
 const StudentMaterials = lazy(() => import("../components/Pages/StudentMaterials"));
 const ParentGuide = lazy(() => import("../components/Pages/ParentGuide"));
 const TeamBossSpeakingPreview = lazy(() => import("../components/Pages/TeamBossSpeakingPreview/Preview"));
@@ -155,7 +156,7 @@ const App = () => {
                 <Routes>
                     <Route path="/" element={<Showcase />} />
                     <Route path="/install" element={<InstallGuide />} />
-                    <Route path="/try" element={<Navigate to="/" replace />} />
+                    <Route path="/try" element={<TrialLesson />} />
                     <Route path="/parents" element={<ParentGuide />} />
                     <Route path="/links" element={<Links />} />
                     <Route path="/basic-reading" element={<BasicReading />} />

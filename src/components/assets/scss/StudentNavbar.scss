@@ -303,6 +303,26 @@
   color: var(--ae-accent, #2355c7) !important;
 }
 
+.ae-student-desktop-logout {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 12px;
+  border: 1px solid var(--ae-border, #d5e3f0);
+  border-radius: 14px;
+  background: var(--ae-surface, #fff);
+  color: var(--ae-text, #243553);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.ae-student-desktop-logout:hover { background: var(--ae-surface-muted, #edf4ff); }
+.ae-student-desktop-logout:focus-visible { outline: 3px solid #245fc5; outline-offset: 2px; }
+.ae-student-desktop-logout:disabled { opacity: .6; cursor: default; }
+@media (max-width: 1279px) { .ae-student-desktop-logout { display: none; } }
+
 .ae-student-account-chip {
   display: inline-flex;
   align-items: center;
@@ -841,9 +861,13 @@ html:has(.ae-student-navbar) { overscroll-behavior-y: none; }
 @media (min-width: 1280px) {
   .ae-student-navbar .ae-student-desktop-account { display: contents; }
   .ae-student-navbar .ae-student-account-link { order: -2; margin-right: -10px; }
-  .ae-student-navbar .ae-growth-header { order: -1; }
+  // 中間的按鈕脫離排版後，等級卡要靠左，不能被 space-between 推到中間。
+  .ae-student-navbar .ae-growth-header { order: -1; margin-right: auto; }
   .ae-student-navbar .ae-notification-dropdown { margin-right: -12px; }
-  // 頂端按鈕固定在畫面正中央，不受左邊名字與等級卡寬度影響。
+}
+// 夠寬時（左邊名字、等級、點數與右邊通知、登出都放得下），頂端按鈕固定在畫面正中央；
+// 較窄時維持夾在左右兩組之間，避免蓋到等級卡。
+@media (min-width: 1500px) {
   .ae-student-navbar .ae-navbar-container { position: relative; }
   .ae-student-navbar .ae-student-desktop-nav { position: absolute; inset: 0; margin: auto; width: max-content; height: max-content; flex: none; }
 }

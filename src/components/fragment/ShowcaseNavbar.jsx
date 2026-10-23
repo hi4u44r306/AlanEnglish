@@ -120,6 +120,10 @@ function ShowcaseNavbar({ nav1, nav2, nav4 }) {
                         </Nav>
 
                         <div className="showcase-navbar-actions">
+                            <Link className="showcase-navbar-trial" to="/try" onClick={closeMobileMenu}>
+                                免費試一課
+                                <BiChevronRight aria-hidden="true" />
+                            </Link>
                             <Link className="showcase-navbar-login" to="/login" onClick={closeMobileMenu}>
                                 <BiLogIn />
                                 登入
