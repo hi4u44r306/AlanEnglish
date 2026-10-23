@@ -46,10 +46,9 @@ export default function ParentGuide() {
             <p className="parent-guide__note">國小學生適用。手機、平板、電腦都能用，不用安裝。</p>
 
             <footer className="trial-lesson__next">
-                <h2>先試一課，再決定</h2>
+                <h2>想了解更多？</h2>
                 <div>
-                    <Link className="is-primary" to="/try">免費試一課：顏色</Link>
-                    <Link to="/support">想買教材，聯絡我們</Link>
+                    <Link className="is-primary" to="/support">聯絡我們</Link>
                 </div>
             </footer>
         </main>

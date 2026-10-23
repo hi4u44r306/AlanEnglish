@@ -843,6 +843,9 @@ html:has(.ae-student-navbar) { overscroll-behavior-y: none; }
   .ae-student-navbar .ae-student-account-link { order: -2; margin-right: -10px; }
   .ae-student-navbar .ae-growth-header { order: -1; }
   .ae-student-navbar .ae-notification-dropdown { margin-right: -12px; }
+  // 頂端按鈕固定在畫面正中央，不受左邊名字與等級卡寬度影響。
+  .ae-student-navbar .ae-navbar-container { position: relative; }
+  .ae-student-navbar .ae-student-desktop-nav { position: absolute; inset: 0; margin: auto; width: max-content; height: max-content; flex: none; }
 }
 
 // When the bottom navigation is showing it already sits on the iPhone Home Indicator area and
