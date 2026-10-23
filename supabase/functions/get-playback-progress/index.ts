@@ -1,5 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { createRemoteJWKSet, jwtVerify } from "npm:jose@5";
+import { shapeRecentListening } from "../_shared/recent-listening.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -47,8 +48,9 @@ Deno.serve(async (req: Request) => {
     }
 
     const body = await req.json();
+    const recentOnly = body?.action === "recent_tracks";
     const bookId = Number(body?.book_id);
-    if (!Number.isFinite(bookId) || bookId <= 0) {
+    if (!recentOnly && (!Number.isFinite(bookId) || bookId <= 0)) {
       return json(400, { error: "book_id 不正確" });
     }
 
@@ -70,7 +72,32 @@ Deno.serve(async (req: Request) => {
     if (!account) return json(404, { error: "找不到使用者帳號" });
 
     if (account.role !== "student") {
-      return json(200, { success: true, progress: [], daily_count: 0, monthly_count: 0 });
+      return json(200, { success: true, progress: [], recent: [], daily_count: 0, monthly_count: 0 });
+    }
+
+    // 接著聽：最近完整聽過的音檔（只讀這位學生自己的 student_track_progress，每本教材一首）。
+    if (recentOnly) {
+      const { data: progressRows, error: recentError } = await admin
+        .from("student_track_progress")
+        .select("track_id, last_played_at")
+        .eq("student_id", account.id)
+        .not("last_played_at", "is", null)
+        .order("last_played_at", { ascending: false })
+        .limit(60);
+      if (recentError) return json(500, { error: "無法讀取最近聆聽紀錄" });
+      const recentTrackIds = [...new Set((progressRows || []).map(row => row.track_id))];
+      if (!recentTrackIds.length) return json(200, { success: true, recent: [] });
+      const { data: trackRows, error: recentTracksError } = await admin
+        .from("music_tracks")
+        .select("id, book_id, page, title, music_name, enabled")
+        .in("id", recentTrackIds);
+      if (recentTracksError) return json(500, { error: "無法讀取教材音檔" });
+      const recentBookIds = [...new Set((trackRows || []).map(track => track.book_id))];
+      const { data: bookRows, error: recentBooksError } = recentBookIds.length
+        ? await admin.from("books").select("id, code").in("id", recentBookIds)
+        : { data: [], error: null };
+      if (recentBooksError) return json(500, { error: "無法讀取教材" });
+      return json(200, { success: true, recent: shapeRecentListening(progressRows || [], trackRows || [], bookRows || []) });
     }
 
     const { data: tracks, error: tracksError } = await admin

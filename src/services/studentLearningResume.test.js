@@ -53,3 +53,16 @@ test("storage failures retain the in-memory bookmark without interrupting learni
     expect(() => saveStudentLearningResume(scope, book, track)).not.toThrow();
     expect(readStudentLearningResume(scope)?.trackId).toBe("7");
 });
+
+test("mergeLearningHistory keeps the newer entry per book, newest book first, and server entries are not limited to 30 days", () => {
+    const { mergeLearningHistory } = require("./studentLearningResume");
+    const local = [{ bookId: "10", bookCode: "A", trackId: "1", trackTitle: "t1", page: "P1", savedAt: 2000 }];
+    const server = [
+        { book_id: 10, book_code: "A", track_id: 9, track_title: "t9", page: "P9", last_played_at: new Date(1000).toISOString() },
+        { book_id: 11, book_code: "B", track_id: 5, track_title: "t5", page: "P5", last_played_at: new Date(3000).toISOString() },
+        { book_id: "bad id!", book_code: "C", track_id: 1, last_played_at: new Date(5000).toISOString() }
+    ];
+    expect(mergeLearningHistory(local, server).map(item => [item.bookId, item.trackId])).toEqual([["11", "5"], ["10", "1"]]);
+    expect(mergeLearningHistory([], [{ book_id: 12, book_code: "D", track_id: 3, last_played_at: "2020-01-01T00:00:00Z" }])).toHaveLength(1);
+    expect(mergeLearningHistory(undefined, undefined)).toEqual([]);
+});

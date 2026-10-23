@@ -79,6 +79,23 @@ export const subscribeStudentLearningResume = listener => {
     return () => listeners.delete(listener);
 };
 
+// 本機書籤（這台瀏覽器最近打開的音檔）與伺服器紀錄（最近完整聽過的音檔，登出、換裝置都還在）合併：
+// 每本教材取較新的一筆，最新的排前面。伺服器紀錄不受 30 天限制。
+export const mergeLearningHistory = (localHistory, serverItems) => {
+    const newest = new Map();
+    const consider = value => {
+        if (!value || !identifier(value.bookId) || !identifier(value.trackId) || !text(value.bookCode, 120) || !Number.isFinite(value.savedAt)) return;
+        const current = newest.get(value.bookId);
+        if (!current || value.savedAt > current.savedAt) newest.set(value.bookId, value);
+    };
+    (Array.isArray(localHistory) ? localHistory : []).forEach(consider);
+    (Array.isArray(serverItems) ? serverItems : []).forEach(item => consider({
+        bookId: identifier(item?.book_id), bookCode: text(item?.book_code, 120), trackId: identifier(item?.track_id),
+        trackTitle: text(item?.track_title, 200), page: text(item?.page, 80), savedAt: Date.parse(item?.last_played_at)
+    }));
+    return [...newest.values()].sort((left, right) => right.savedAt - left.savedAt).slice(0, MAX_BOOKS);
+};
+
 export const findResumeBook = (bookmark, books) => bookmark
     ? books.find(book => String(book.id) === bookmark.bookId && book.code === bookmark.bookCode && !book.locked && book.canOpen !== false)
     : null;

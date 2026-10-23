@@ -10,12 +10,14 @@ import { getStudentAssignments, getStudentAssignmentsV2 } from "../../services/a
 import { clearStudentPageCache, studentPageScope } from "../../services/studentPageCache";
 import { saveStudentLearningResume } from "../../services/studentLearningResume";
 import { getWeeklyReport } from "../../services/weeklyReportService";
+import { getRecentListening } from "../../services/listeningService";
 
 jest.mock("../../auth/AuthContext", () => ({ useAuth: jest.fn() }));
 jest.mock("../../services/contentAccessService", () => ({ getAccessibleCatalog: jest.fn() }));
 jest.mock("../../services/speakingChallengeService", () => ({ getSpeakingChallengeCatalog: jest.fn() }));
 jest.mock("../../services/assignmentService", () => ({ getStudentAssignments: jest.fn(), getStudentAssignmentsV2: jest.fn() }));
 jest.mock("../../services/weeklyReportService", () => ({ getWeeklyReport: jest.fn() }));
+jest.mock("../../services/listeningService", () => ({ getRecentListening: jest.fn() }));
 
 const auth = (features, uid = "learner-a") => ({ firebaseUser: { uid }, role: "student", studentProfile: { membership: { is_active: true, effective_access: { features } } } });
 const scopeOf = value => studentPageScope(value.firebaseUser, value.role, value.studentProfile);
@@ -35,6 +37,7 @@ beforeEach(() => {
         { id: 3, title: "已完成的作業", due_at: "2099-01-01T00:00:00Z", progress: { completed: true } }
     ] });
     getStudentAssignmentsV2.mockResolvedValue({ assignments: [] });
+    getRecentListening.mockResolvedValue({ recent: [] });
     getWeeklyReport.mockResolvedValue({ report: { attention: { available: false, focus_rate: null } } });
     getSpeakingChallengeCatalog.mockResolvedValue({ challenges: [
         { id: 1, book: { id: 10, name: "Workbook 1" }, is_completed: true },
@@ -151,4 +154,27 @@ test("專注度還沒開始記錄時，每週報告列不顯示數字", async ()
     renderOverview();
     await waitFor(() => expect(getWeeklyReport).toHaveBeenCalled());
     expect(screen.getByRole("link", { name: /每週報告/ })).not.toHaveTextContent("專注度");
+});
+
+test("接著聽：登出清掉本機紀錄後，仍從伺服器記得最近完整聽過的一首", async () => {
+    useAuth.mockReturnValue(auth({ assignments: false, pronunciation: false }));
+    getRecentListening.mockResolvedValue({ recent: [
+        { book_id: 10, book_code: "Workbook_1", track_id: 22, track_title: "Unit 2", page: "P22", last_played_at: "2020-01-05T00:00:00Z" },
+        { book_id: 11, book_code: "Workbook_2", track_id: 5, track_title: "鎖住的書", page: "P1", last_played_at: "2026-10-01T00:00:00Z" }
+    ] });
+    renderOverview();
+    const listen = await screen.findByRole("link", { name: "接著聽 Workbook 1 P22" });
+    expect(listen).toHaveAttribute("href", "/student/books/Workbook_1?resume=22");
+    expect(screen.queryByText("鎖住的書")).not.toBeInTheDocument();
+});
+
+test("接著聽：本機比伺服器新時用本機的", async () => {
+    const student = auth({ assignments: false, pronunciation: false });
+    useAuth.mockReturnValue(student);
+    getRecentListening.mockResolvedValue({ recent: [
+        { book_id: 10, book_code: "Workbook_1", track_id: 22, track_title: "Unit 2", page: "P22", last_played_at: "2020-01-05T00:00:00Z" }
+    ] });
+    save(student, { id: 10, code: "Workbook_1" }, { id: 30, title: "Unit 9", page: "P30" });
+    renderOverview();
+    expect(await screen.findByRole("link", { name: "接著聽 Workbook 1 P30" })).toHaveAttribute("href", "/student/books/Workbook_1?resume=30");
 });
