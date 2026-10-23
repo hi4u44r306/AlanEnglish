@@ -1,6 +1,5 @@
 import QRCode from "qrcode";
 import { getSuccessfulStudentLoginCards } from "./academyStudentLoginCards";
-export { getSuccessfulStudentLoginCards } from "./academyStudentLoginCards";
 import {
     Document,
     ImageRun,
@@ -11,6 +10,7 @@ import {
     TableRow,
     TextRun
 } from "docx";
+export { getSuccessfulStudentLoginCards } from "./academyStudentLoginCards";
 
 const A4_WIDTH_TWIPS = 11906;
 const A4_HEIGHT_TWIPS = 16838;
