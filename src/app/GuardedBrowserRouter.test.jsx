@@ -11,3 +11,14 @@ afterEach(() => jest.restoreAllMocks());
 test.each(["native", "programmatic"])("cancelled %s back keeps the original mounted draft", async kind => { mount(); fireEvent.click(screen.getByText("Open form")); fireEvent.change(screen.getByLabelText("Draft"), { target: { value: "Never discard" } }); if (kind === "native") act(() => window.history.back()); else fireEvent.click(screen.getByText("Back")); await waitFor(() => expect(window.confirm).toHaveBeenCalledTimes(1)); await waitFor(() => expect(window.location.pathname).toBe("/form")); expect(screen.getByLabelText("Draft")).toHaveValue("Never discard"); window.confirm.mockReturnValue(true); act(() => window.history.back()); await screen.findByText("Open form"); expect(window.location.pathname).toBe("/first"); });
 test("cancelled native forward keeps a newly edited form and can then proceed", async () => { mount(); fireEvent.click(screen.getByText("Open form")); fireEvent.click(screen.getByText("Leave")); expect(window.confirm).not.toHaveBeenCalled(); act(() => window.history.back()); await screen.findByLabelText("Draft"); fireEvent.change(screen.getByLabelText("Draft"), { target: { value: "Keep forward draft" } }); act(() => window.history.forward()); await waitFor(() => expect(window.confirm).toHaveBeenCalledTimes(1)); await waitFor(() => expect(window.location.pathname).toBe("/form")); expect(screen.getByLabelText("Draft")).toHaveValue("Keep forward draft"); window.confirm.mockReturnValue(true); act(() => window.history.forward()); await screen.findByText("After"); expect(window.confirm).toHaveBeenCalledTimes(2); });
 test("disabled auth scope permits a back redirect without prompting", async () => { mount(false); fireEvent.click(screen.getByText("Open form")); fireEvent.change(screen.getByLabelText("Draft"), { target: { value: "Expired" } }); act(() => window.history.back()); await screen.findByText("Open form"); expect(window.confirm).not.toHaveBeenCalled(); });
+test("navigating to a lazy page that has no Suspense keeps the old page until it loads, instead of crashing", async () => {
+    const Lazy = React.lazy(() => new Promise(resolve => setTimeout(() => resolve({ default: () => <p>Lazy page</p> }), 30)));
+    window.history.replaceState(null, "", "/home");
+    render(<GuardedBrowserRouter future={{ v7_startTransition: true }}><Routes>
+        <Route path="/home" element={<Link to="/lazy">Open lazy</Link>} />
+        <Route path="/lazy" element={<Lazy />} />
+    </Routes></GuardedBrowserRouter>);
+    fireEvent.click(screen.getByText("Open lazy"));
+    expect(screen.getByText("Open lazy")).toBeInTheDocument();
+    expect(await screen.findByText("Lazy page")).toBeInTheDocument();
+});
