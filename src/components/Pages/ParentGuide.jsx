@@ -24,7 +24,7 @@ const REASONS = [
 export default function ParentGuide() {
     return (
         <main className="trial-lesson parent-guide">
-            <StandaloneBackLink />
+            <StandaloneBackLink always />
             <Helmet>
                 <title>給家長：Alan English 是什麼｜Alan English</title>
                 <meta name="description" content="Alan English 是配合課本的英文練習網站：課本翻到哪一頁，就有那一頁的老師教學影片、聽力與口說練習。" />
@@ -46,9 +46,10 @@ export default function ParentGuide() {
             <p className="parent-guide__note">國小學生適用。手機、平板、電腦都能用，不用安裝。</p>
 
             <footer className="trial-lesson__next">
-                <h2>想了解更多？</h2>
+                <h2>先試一課，再決定</h2>
                 <div>
-                    <Link className="is-primary" to="/support">聯絡我們</Link>
+                    <Link className="is-primary" to="/try">免費試一課：顏色</Link>
+                    <Link to="/support">想買教材，聯絡我們</Link>
                 </div>
             </footer>
         </main>

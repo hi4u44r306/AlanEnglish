@@ -81,7 +81,7 @@ export default function TrialLesson() {
 
     return (
         <main className="trial-lesson">
-            <StandaloneBackLink />
+            <StandaloneBackLink always />
             <Helmet>
                 <title>免費試聽一課：顏色｜Alan English</title>
                 <meta name="description" content="不用登入，免費試聽 Alan English Workbook 1 第 28 頁「顏色」：看老師教、聽課本音檔、自己開口說。" />
