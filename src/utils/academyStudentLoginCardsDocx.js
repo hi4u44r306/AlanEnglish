@@ -1,7 +1,7 @@
 import QRCode from "qrcode";
 import { getSuccessfulStudentLoginCards } from "./academyStudentLoginCards";
 export { getSuccessfulStudentLoginCards } from "./academyStudentLoginCards";
-const {
+import {
     Document,
     ImageRun,
     Packer,
@@ -10,7 +10,7 @@ const {
     TableCell,
     TableRow,
     TextRun
-} = require("docx");
+} from "docx";
 
 const A4_WIDTH_TWIPS = 11906;
 const A4_HEIGHT_TWIPS = 16838;
