@@ -10,7 +10,8 @@ import { getStudentAssignments, getStudentAssignmentsV2 } from "../../services/a
 import { getSpeakingChallengeCatalog } from "../../services/speakingChallengeService";
 import { getWeeklyReport } from "../../services/weeklyReportService";
 import { roundFocusRate } from "../../utils/focusRate";
-import { findResumeBook, learningResumePath } from "../../services/studentLearningResume";
+import { findResumeBook, learningResumePath, mergeLearningHistory } from "../../services/studentLearningResume";
+import { getRecentListening } from "../../services/listeningService";
 import { getLearningTasks, getStudentMaterialCategories } from "../../utils/studentLearning";
 import { assignmentDisplayTitle, assignmentProgressLabel } from "../../utils/assignmentListening";
 import forestScene from "../assets/speaking-map/unified-forest-a-v1.webp";
@@ -31,6 +32,7 @@ function StudentProgressOverview() {
     const speakingAccess = active && features.pronunciation === true;
     const history = useStudentLearningHistory();
     const catalogQuery = useStudentPageQuery("catalog", () => getAccessibleCatalog(firebaseUser), { enabled: active });
+    const recentListeningQuery = useStudentPageQuery("listening:recent", () => getRecentListening(firebaseUser), { enabled: active });
     const assignmentsQuery = useStudentPageQuery("assignments:v1", () => getStudentAssignments(firebaseUser), { enabled: assignmentAccess });
     const assignmentsV2Query = useStudentPageQuery("assignments:v2", () => getStudentAssignmentsV2(firebaseUser), { enabled: assignmentAccess });
     const speakingQuery = useStudentPageQuery("speaking:catalog", () => getSpeakingChallengeCatalog(firebaseUser), { enabled: speakingAccess });
@@ -42,8 +44,10 @@ function StudentProgressOverview() {
     // Saved bookmarks only become links for books the catalog still authorizes.
     const listening = useMemo(() => {
         const books = getStudentMaterialCategories(catalogQuery.data?.categories).flatMap(category => category.books);
-        return history.map(bookmark => ({ bookmark, book: findResumeBook(bookmark, books) })).filter(item => item.book);
-    }, [history, catalogQuery.data]);
+        // 本機書籤加上伺服器記得的「最近完整聽過」，登出或換裝置後也找得到。
+        const merged = mergeLearningHistory(history, recentListeningQuery.data?.recent);
+        return merged.map(bookmark => ({ bookmark, book: findResumeBook(bookmark, books) })).filter(item => item.book);
+    }, [history, catalogQuery.data, recentListeningQuery.data]);
 
     const speaking = useMemo(() => {
         const groups = new Map();

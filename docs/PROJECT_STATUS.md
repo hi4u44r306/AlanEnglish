@@ -1,5 +1,13 @@
 # Alan English 專案狀態
 
+### 「接著聽」改由伺服器記得（2026-10-23，分支 `feat/resume-from-server`；需部署 get-playback-progress，尚未部署）
+
+- 擁有者回報「接著聽」不見：原本只存瀏覽器 localStorage（30 天、登出時 `clearStudentPageCache` 會清掉），換裝置也沒有。決定：接著聽顯示「最近完整聽過的一首」（`student_track_progress.last_played_at`，有效聆聽才更新）。
+- 後端：`get-playback-progress` 新增 `action: "recent_tracks"`（只讀本人資料、每本書一首、最多 12 本；不需 migration；`_shared/recent-listening.ts`）。舊用法（book_id）不變。
+- 前端：`getRecentListening`＋`mergeLearningHistory`（本機與伺服器每本書取較新的）；對照教材權限後才顯示，沒開通的書不出現。
+- 驗證：helper 3 項、前端 18 項（含登出後由伺服器還原、本機較新用本機）、完整 CI 建置。後端與正式資料庫目前只有測試帳號有紀錄，真實學生尚無資料可驗。
+- 部署順序：先合併前端（後端未部署時 `recent_tracks` 會回 400，畫面退回只看本機，不壞），再部署 Function 並逐檔比對。
+
 ### 學生電腦版頂端列修正：等級被蓋住、登出按鈕（2026-10-23，分支 `fix/navbar-level-logout`）
 
 - PR #633 把中間按鈕改成絕對置中後，等級卡被 space-between 推到畫面中間、被按鈕蓋住（擁有者回報「等級不見了」）。已修：等級卡靠左；絕對置中只留給 ≥1500px，較窄維持原本夾在左右兩組之間。電腦版右邊新增可見的「登出」按鈕（≥1280px；原本只在點名字的選單裡）。

@@ -63,6 +63,13 @@ export const getBookPlaybackProgress = async (
     );
 };
 
+// 接著聽：伺服器記得的「最近完整聽過的音檔」，換電腦或登出再登入也還在。
+export const getRecentListening = async firebaseUser => callListeningFunction(
+    "get-playback-progress",
+    firebaseUser,
+    { action: "recent_tracks" }
+);
+
 export const recordTrackPlay = async (
     firebaseUser,
     trackId,
