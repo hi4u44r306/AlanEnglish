@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Crop, FileImage, LoaderCircle, RefreshCw, Scissors, X } from "lucide-react";
+import { loadPdfJsLib } from "../../utils/pdfjsLoader";
 
 const RENDER_SCALE = 2.75;
 const MAX_OUTPUT_SIDE = 2400;
@@ -88,11 +89,7 @@ export default function SpeakingPdfImageCropper({ disabled, onUseCrop, onClose }
         setLoading(true);
         setError("");
         try {
-            const [pdfjs, worker] = await Promise.all([
-                import("pdfjs-dist/legacy/build/pdf"),
-                import("pdfjs-dist/legacy/build/pdf.worker.entry")
-            ]);
-            pdfjs.GlobalWorkerOptions.workerSrc = worker.default || worker;
+            const pdfjs = await loadPdfJsLib();
             // isEvalSupported:false 擋掉 PDF.js 字型 eval 的任意程式碼執行（CVE-2024-4367）。
             const loaded = await pdfjs.getDocument({ data: await file.arrayBuffer(), isEvalSupported: false }).promise;
             pdf?.destroy?.();

@@ -1,5 +1,14 @@
 # Alan English 專案狀態
 
+### PDF.js 安全升級：階段 0＋1（2026-10-28，分支 `fix/pdfjs-security`，只改前端，尚未合併）
+
+- 階段 0：管理員 PDF 切割（`pdfBookSplitter.js`）與擷圖（`SpeakingPdfImageCropper.jsx`）的 `getDocument` 加 `isEvalSupported:false`，擋 CVE-2024-4367。
+- 階段 1：`pdfjs-dist` 3.11.174 → 固定 `4.10.38`。兩處改用 `src/utils/pdfjsLoader.js`；4.x 沒有 `pdf.worker.entry`，worker 放 `public/vendor/pdf.worker-4.10.38.min.mjs`（同 docx 前例，不用 `import.meta.url`，因 Jest 27 解析不了）。升級 pdfjs 時要同步換該檔與 loader 的版本號，`pdfjsLoader.test.js` 會檢查檔名、套件版本、檔案內容三者一致。
+- 效果：`npm audit` 49 → 46（嚴重 1 → 0、高 20 → 18）；`canvas`、`tar`、`@mapbox/node-pre-gyp` 已從 lockfile 消失。
+- 驗證：目標測試 15 項通過；`CI=true npm run build` 成功，打包檔已無 3.11.174；npm 10.9.2 `npm ci --dry-run` 通過（對應 10/17 Cloudflare 的 lockfile 事故）；瀏覽器實測 4.10.38＋vendor worker 能載入 2 頁 PDF 並畫到畫布（`.mjs` MIME 為 text/javascript）。
+- 尚未驗證：管理員頁（`/admin/speaking-content`）實際擷圖與整本書切割；Cloudflare 對 `/vendor/*.mjs` 的 MIME；合併後正式站。回復：revert 合併 commit。
+- 後續（另案）：階段 2 Firebase 10→12（核心登入，需隔離測試與授權）、階段 3 overrides、react-router 7、改用 Vite。
+
 ### 套件漏洞小修（2026-10-28，分支 `fix/npm-audit-nonbreaking`；只改 `package-lock.json`，隨 PR 上線）
 
 - 本機 Node 先更新到 24.22.1（10 月安全版）。`npm audit` 由 58 個降到 49 個（嚴重 2→1、高 25→20）：只跑不加 `--force` 的 `npm audit fix`，9 個套件小版本、移除 1 個。
