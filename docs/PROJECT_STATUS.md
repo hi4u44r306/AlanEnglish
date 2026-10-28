@@ -1,5 +1,11 @@
 # Alan English 專案狀態
 
+### 套件漏洞小修（2026-10-28，分支 `fix/npm-audit-nonbreaking`；只改 `package-lock.json`，隨 PR 上線）
+
+- 本機 Node 先更新到 24.22.1（10 月安全版）。`npm audit` 由 58 個降到 49 個（嚴重 2→1、高 25→20）：只跑不加 `--force` 的 `npm audit fix`，9 個套件小版本、移除 1 個。
+- 剩下的嚴重項是間接相依的 `tar`；`--force` 的建議是裝 `react-scripts@0.0.0`（無意義降級），不採用。其餘多來自 `react-scripts` 5 建置工具與 Firebase 10，要處理須升主版本，另案評估。
+- 驗證：Node 24.22.1 完整 `npm run build` 成功（含 SEO 頁與 Cloudflare 資產產生）。未跑完整測試（沒動程式碼，只動 lockfile）。
+
 ### 「接著聽」改由伺服器記得（2026-10-23，分支 `feat/resume-from-server`；需部署 get-playback-progress，尚未部署）
 
 - 擁有者回報「接著聽」不見：原本只存瀏覽器 localStorage（30 天、登出時 `clearStudentPageCache` 會清掉），換裝置也沒有。決定：接著聽顯示「最近完整聽過的一首」（`student_track_progress.last_played_at`，有效聆聽才更新）。
