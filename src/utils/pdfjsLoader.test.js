@@ -15,10 +15,12 @@ describe("pdfjsLoader", () => {
     });
 
     it("public/vendor 的 worker 與套件裡的內容完全相同", () => {
-        const vendor = fs.readFileSync(path.join(root, "public", "vendor", "pdf.worker-4.10.38.min.mjs"));
-        const dist = fs.readFileSync(
+        // Windows 的 autocrlf 檢出會把換行轉成 CRLF，所以比對前先統一換行。
+        const read = file => fs.readFileSync(file, "utf8").replace(/\r\n/g, "\n");
+        const vendor = read(path.join(root, "public", "vendor", "pdf.worker-4.10.38.min.mjs"));
+        const dist = read(
             path.join(root, "node_modules", "pdfjs-dist", "legacy", "build", "pdf.worker.min.mjs")
         );
-        expect(vendor.equals(dist)).toBe(true);
+        expect(vendor === dist).toBe(true);
     });
 });
