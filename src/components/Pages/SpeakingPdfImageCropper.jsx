@@ -93,7 +93,8 @@ export default function SpeakingPdfImageCropper({ disabled, onUseCrop, onClose }
                 import("pdfjs-dist/legacy/build/pdf.worker.entry")
             ]);
             pdfjs.GlobalWorkerOptions.workerSrc = worker.default || worker;
-            const loaded = await pdfjs.getDocument({ data: await file.arrayBuffer() }).promise;
+            // isEvalSupported:false 擋掉 PDF.js 字型 eval 的任意程式碼執行（CVE-2024-4367）。
+            const loaded = await pdfjs.getDocument({ data: await file.arrayBuffer(), isEvalSupported: false }).promise;
             pdf?.destroy?.();
             setPdf(loaded);
             setFileName(file.name);

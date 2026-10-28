@@ -31,7 +31,8 @@ const loadPdfJs = async sourceBytes => {
     pdfjs.GlobalWorkerOptions.workerSrc = worker.default || worker;
     // PDF.js may transfer its input to its worker, so retain the original bytes
     // for pdf-lib and any subsequent fallback attempt.
-    return pdfjs.getDocument({ data: sourceBytes.slice(0) }).promise;
+    // isEvalSupported:false 擋掉 PDF.js 字型 eval 的任意程式碼執行（CVE-2024-4367）。
+    return pdfjs.getDocument({ data: sourceBytes.slice(0), isEvalSupported: false }).promise;
 };
 
 const createCopiedChunk = async (sourcePdf, start, end, PDFDocument) => {
