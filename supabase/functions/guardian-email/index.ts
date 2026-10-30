@@ -274,38 +274,72 @@ const buildEmail = (report: any) => {
         `・作業：${assignmentText}\n` +
         extras.map(([label, value]) => `・${label}：${value}\n`).join("") +
         `\n${report.status.label}：${report.status.message}\n\nAlan English`;
-    const tile = (value: string | number, unit: string, label: string, color: string) => `
-          <td style="width:33.33%;padding:0 4px;vertical-align:top">
-            <div style="background:${color};border-radius:14px;padding:16px 6px;text-align:center">
-              <div style="font-size:30px;font-weight:800;line-height:1.1;color:#17365d">${value}<span style="font-size:14px;font-weight:700"> ${unit}</span></div>
+    // Email 版面只能用 table＋inline style，不依賴外部 CSS／圖片；顏色沿用家長驗證碼信的四色頂條。
+    const tile = (value: string | number, unit: string, label: string, background: string, accent: string, numberColor: string) => `
+          <td width="33.33%" valign="top" style="padding:0 4px">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="center" style="background-color:${background};border-top:5px solid ${accent};border-radius:14px;padding:16px 4px">
+              <div style="font-size:32px;font-weight:800;line-height:1.1;color:${numberColor}">${value}<span style="font-size:13px;font-weight:700;color:#42566e"> ${unit}</span></div>
               <div style="font-size:13px;color:#42566e;margin-top:6px">${label}</div>
-            </div>
+            </td></tr></table>
           </td>`;
-    const row = (label: string, value: string, last = false) => `
-        <tr><td style="padding:14px 4px;${last ? "" : "border-bottom:1px solid #edf0f5;"}color:#42566e;white-space:nowrap">${escapeHtml(label)}</td><td style="padding:14px 4px;${last ? "" : "border-bottom:1px solid #edf0f5;"}text-align:right;font-weight:700;color:#17365d">${escapeHtml(value)}</td></tr>`;
+    const dotColors = ["#2b66c3", "#3fb984", "#ffd45c", "#ff7a59"];
+    const row = (label: string, value: string, index: number, last = false) => {
+        const border = last ? "" : "border-bottom:1px solid #edf0f5;";
+        return `
+        <tr>
+          <td width="18" valign="middle" style="padding:14px 0;${border}"><table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td width="10" height="10" style="background-color:${dotColors[index % dotColors.length]};border-radius:5px;font-size:0;line-height:0">&nbsp;</td></tr></table></td>
+          <td style="padding:14px 4px;${border}color:#42566e;white-space:nowrap">${escapeHtml(label)}</td>
+          <td align="right" style="padding:14px 4px;${border}font-weight:700;color:#142443">${escapeHtml(value)}</td>
+        </tr>`;
+    };
     const rows = [["口說大挑戰", speakingText], ["作業", assignmentText], ...extras];
     const html = `<!doctype html>
 <html lang="zh-Hant">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head>
-<body style="margin:0;background:#f5f8fc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft JhengHei',sans-serif;color:#17365d">
-  <div style="max-width:560px;margin:0 auto;padding:24px 14px">
-    <div style="background:#17365d;color:#ffffff;border-radius:20px 20px 0 0;padding:24px">
-      <div style="font-size:22px;font-weight:800;line-height:1.4">${studentName} 這週的英文學習</div>
-      <div style="font-size:14px;opacity:.85;margin-top:4px">${report.range.startDate} ～ ${report.range.endDate}</div>
-    </div>
-    <div style="background:#ffffff;padding:24px 20px;border-radius:0 0 20px 20px">
-      <p style="font-size:16px;line-height:1.7;margin:0 0 16px">${guardianName}：</p>
-      <table role="presentation" style="width:100%;border-collapse:collapse;table-layout:fixed"><tr>${tile(m.active_days, "/ 7 天", "有練習的天數", "#e4efff")}${tile(m.listening_count, "次", "聽力有效聆聽", "#e4f3ea")}${tile(m.speaking_passed, "題", "口說通過", "#fff6d7")}
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="color-scheme" content="light only"><title>Alan English 學習週報</title></head>
+<body style="margin:0;padding:0;background-color:#e8eef9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft JhengHei','PingFang TC',sans-serif;color:#17233d">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#e8eef9">
+<tr><td align="center" style="padding:28px 12px">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%">
+    <tr><td style="border-radius:22px 22px 0 0;overflow:hidden;font-size:0;line-height:0">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+        <td width="25%" height="8" style="background-color:#2b66c3;font-size:0;line-height:0">&nbsp;</td>
+        <td width="25%" height="8" style="background-color:#ffd45c;font-size:0;line-height:0">&nbsp;</td>
+        <td width="25%" height="8" style="background-color:#3fb984;font-size:0;line-height:0">&nbsp;</td>
+        <td width="25%" height="8" style="background-color:#ff7a59;font-size:0;line-height:0">&nbsp;</td>
       </tr></table>
-      <div style="background:#f5f8fc;border-radius:14px;padding:16px;margin:18px 0">
-        <strong style="font-size:17px;color:#17365d">${escapeHtml(report.status.label)}</strong>
-        <p style="font-size:15px;line-height:1.7;margin:6px 0 0;color:#42566e">${escapeHtml(report.status.message)}</p>
-      </div>
-      <table role="presentation" style="width:100%;border-collapse:collapse;font-size:15px">${rows.map(([label, value], index) => row(label, value, index === rows.length - 1)).join("")}
+    </td></tr>
+    <tr><td style="background-color:#142443;padding:28px 28px 26px">
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+        <td style="background-color:#ffd45c;color:#142443;font-size:12px;font-weight:800;letter-spacing:2px;padding:6px 12px;border-radius:999px">ALAN ENGLISH 學習週報</td>
+      </tr></table>
+      <h1 style="margin:16px 0 6px;font-size:26px;line-height:1.35;color:#ffffff;font-weight:800">${studentName} 這週的英文學習</h1>
+      <p style="margin:0;font-size:14px;line-height:1.7;color:#c9d6f2">${report.range.startDate} ～ ${report.range.endDate}</p>
+    </td></tr>
+    <tr><td style="background-color:#ffffff;padding:28px 20px 8px">
+      <p style="margin:0 0 18px 8px;font-size:16px;line-height:1.7;color:#17233d">${guardianName}：</p>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="table-layout:fixed"><tr>${tile(m.active_days, "/ 7 天", "有練習的天數", "#e4efff", "#2b66c3", "#2b66c3")}${tile(m.listening_count, "次", "聽力有效聆聽", "#e4f5ec", "#3fb984", "#1f8f62")}${tile(m.speaking_passed, "題", "口說通過", "#fff6d7", "#ffd45c", "#b27b00")}
+      </tr></table>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:20px"><tr>
+        <td style="background-color:#f3f6fb;border-left:5px solid #ff7a59;border-radius:12px;padding:16px 18px">
+          <strong style="font-size:17px;color:#142443">${escapeHtml(report.status.label)}</strong>
+          <p style="margin:6px 0 0;font-size:15px;line-height:1.7;color:#42566e">${escapeHtml(report.status.message)}</p>
+        </td>
+      </tr></table>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:12px;font-size:15px">${rows.map(([label, value], index) => row(label, value, index, index === rows.length - 1)).join("")}
       </table>
-      <p style="font-size:12px;color:#6b7c93;line-height:1.7;margin:22px 0 0">「有效聆聽」是孩子實際聽滿八成以上才算一次。這封信由 Alan English 自動寄出；如需停止收信或更換信箱，請聯絡授課老師。</p>
-    </div>
-  </div>
+    </td></tr>
+    <tr><td style="background-color:#ffffff;padding:8px 28px 28px">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+        <td style="background-color:#f3f6fb;border-radius:10px;padding:14px 16px;font-size:12px;line-height:1.8;color:#667085">「有效聆聽」是孩子實際聽滿八成以上才算一次。這封信由 Alan English 自動寄出；如需停止收信或更換信箱，請聯絡授課老師。</td>
+      </tr></table>
+    </td></tr>
+    <tr><td style="background-color:#142443;border-radius:0 0 22px 22px;padding:18px 28px;text-align:center">
+      <div style="font-size:13px;font-weight:700;color:#ffd45c;letter-spacing:1px">Alan English</div>
+      <div style="font-size:12px;color:#9fb2d9;margin-top:4px">國小學生的英文學習平台</div>
+    </td></tr>
+  </table>
+</td></tr>
+</table>
 </body>
 </html>`;
     return { subject, text, html };
