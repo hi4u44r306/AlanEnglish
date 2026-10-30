@@ -1,4 +1,5 @@
 import QRCode from "qrcode";
+import JSZip from "jszip";
 import { TextEncoder } from "util";
 import {
     buildAcademyStudentLoginCardsDocx,
@@ -68,5 +69,38 @@ describe("academyStudentLoginCardsDocx", () => {
         );
         expect(blob).toBeInstanceOf(Blob);
         expect(blob.size).toBeGreaterThan(1000);
+    });
+
+    test("每頁 12 格：13 位學生分成 2 頁，每頁 6 列、每列高 2800 twips", async () => {
+        QRCode.toDataURL.mockResolvedValue(ONE_PIXEL_PNG);
+        const manyRows = Array.from({ length: 13 }, (_, index) => ({
+            source_row: index + 2,
+            chinese_name: `學生${index}`,
+            english_name: `Student${index}`
+        }));
+        const manyResults = manyRows.map(row => ({
+            source_row: row.source_row,
+            status: "success",
+            credentials: {
+                username: `student${row.source_row}`,
+                temporary_password: "Ae-K7M2-P9RX",
+                activation_url: `https://alanenglish.com.tw/academy/student-setup?token=${row.source_row}`,
+                recovery_codes: ["123456", "654321"]
+            }
+        }));
+
+        const blob = await buildAcademyStudentLoginCardsDocx(manyResults, manyRows);
+        const buffer = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = () => reject(reader.error);
+            reader.readAsArrayBuffer(blob);
+        });
+        const zip = await JSZip.loadAsync(buffer);
+        const xml = await zip.file("word/document.xml").async("string");
+
+        // 外層每頁 6 列（第 2 頁的空格會補滿），內層卡片表格的列高另外是 2500。
+        expect(xml.match(/w:val="2800"/g)).toHaveLength(12);
+        expect(xml.match(/<w:sectPr/g)).toHaveLength(2);
     });
 });
