@@ -168,6 +168,8 @@ const guardianVerificationEmail = (studentName: string, code: string) => {
         subject: "Alan English 家長 Email 驗證碼",
         text: `您好，${studentName || "學生"} 正在設定 Alan English 家長 Email。\n\n驗證碼：${code}\n\n驗證碼 10 分鐘內有效。若不是您本人操作，請忽略這封信。`,
         // Email 版面只能用 table＋inline style，不依賴外部 CSS／圖片；驗證碼維持純文字方便複製。
+        // 標題與頁尾刻意用淺藍底、深色字：Gmail 手機版深色模式會自動反轉顏色且無法關閉，
+        // 深色底會被反轉成淺色而和內容區不協調，整封信用淺色系才會一起反轉成一致的深色。
         // 信件摘要（preheader）刻意不放驗證碼，避免在收件匣清單或通知預覽直接露出。
         html: `<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light only"><title>Alan English 家長 Email 驗證碼</title></head>
 <body style="margin:0;padding:0;background-color:#e8eef9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft JhengHei','PingFang TC',sans-serif;color:#17233d">
@@ -175,7 +177,7 @@ const guardianVerificationEmail = (studentName: string, code: string) => {
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#e8eef9"><tr><td align="center" style="padding:28px 12px">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%">
 <tr><td style="border-radius:22px 22px 0 0;overflow:hidden;font-size:0;line-height:0"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td width="25%" height="8" style="background-color:#2b66c3;font-size:0;line-height:0">&nbsp;</td><td width="25%" height="8" style="background-color:#ffd45c;font-size:0;line-height:0">&nbsp;</td><td width="25%" height="8" style="background-color:#3fb984;font-size:0;line-height:0">&nbsp;</td><td width="25%" height="8" style="background-color:#ff7a59;font-size:0;line-height:0">&nbsp;</td></tr></table></td></tr>
-<tr><td style="background-color:#142443;padding:30px 28px 26px"><table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td style="background-color:#ffd45c;color:#142443;font-size:12px;font-weight:800;letter-spacing:2px;padding:6px 12px;border-radius:999px">ALAN ENGLISH</td></tr></table><h1 style="margin:16px 0 6px;font-size:28px;line-height:1.3;color:#ffffff;font-weight:800">家長 Email 驗證</h1><p style="margin:0;font-size:15px;line-height:1.7;color:#c9d6f2">只差一步，完成孩子的學習帳號設定</p></td></tr>
+<tr><td style="background-color:#dce8fb;padding:30px 28px 26px"><table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td style="background-color:#ffd45c;color:#142443;font-size:12px;font-weight:800;letter-spacing:2px;padding:6px 12px;border-radius:999px">ALAN ENGLISH</td></tr></table><h1 style="margin:16px 0 6px;font-size:28px;line-height:1.3;color:#142443;font-weight:800">家長 Email 驗證</h1><p style="margin:0;font-size:15px;line-height:1.7;color:#42566e">只差一步，完成孩子的學習帳號設定</p></td></tr>
 <tr><td style="background-color:#ffffff;padding:30px 28px 8px"><p style="margin:0 0 6px;font-size:17px;line-height:1.8;color:#17233d">您好，<strong style="color:#244680">${safeName}</strong> 正在設定 Alan English 家長 Email。</p><p style="margin:0 0 14px;font-size:14px;line-height:1.7;color:#667085">請在 <strong style="color:#ff7a59">10 分鐘內</strong>，把下面這組驗證碼輸入網站：</p>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="center" style="background-color:#fff6d7;border:3px solid #ffd45c;border-radius:18px;padding:22px 10px"><div style="font-size:12px;font-weight:700;letter-spacing:3px;color:#9a6b00;margin-bottom:8px">您的驗證碼</div><div style="font-size:42px;line-height:1.2;font-weight:800;letter-spacing:10px;color:#142443;font-family:'SF Mono',Menlo,Consolas,monospace">${safeCode}</div></td></tr></table>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:24px">
@@ -184,7 +186,7 @@ const guardianVerificationEmail = (studentName: string, code: string) => {
 <tr><td width="40" valign="top" style="padding:0 0 6px"><table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td align="center" width="30" height="30" style="background-color:#ff7a59;color:#ffffff;font-size:15px;font-weight:800;border-radius:15px">3</td></tr></table></td><td valign="middle" style="padding:0 0 6px;font-size:15px;line-height:1.6;color:#17233d">按「確認驗證碼」，完成！</td></tr>
 </table></td></tr>
 <tr><td style="background-color:#ffffff;padding:8px 28px 28px"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="background-color:#f3f6fb;border-left:4px solid #2b66c3;border-radius:10px;padding:14px 16px;font-size:13px;line-height:1.8;color:#667085">如果不是您本人操作，請直接忽略這封信，不會有任何變更。<br>Alan English 不會透過 Email 向您索取密碼。</td></tr></table></td></tr>
-<tr><td style="background-color:#142443;border-radius:0 0 22px 22px;padding:18px 28px;text-align:center"><div style="font-size:13px;font-weight:700;color:#ffd45c;letter-spacing:1px">Alan English</div><div style="font-size:12px;color:#9fb2d9;margin-top:4px">國小學生的英文學習平台</div></td></tr>
+<tr><td style="background-color:#dce8fb;border-radius:0 0 22px 22px;padding:18px 28px;text-align:center"><div style="font-size:13px;font-weight:700;color:#244680;letter-spacing:1px">Alan English</div><div style="font-size:12px;color:#667085;margin-top:4px">國小學生的英文學習平台</div></td></tr>
 </table></td></tr></table></body></html>`
     };
 };

@@ -1,6 +1,14 @@
 # Alan English 專案狀態
 
-### 家長驗證碼信與學習週報改成繽紛版面（2026-10-30，分支 `feat/guardian-email-design`；只改信件樣板，尚未部署）
+### 家長信件標題與頁尾改淺色，配合手機深色模式（2026-10-30，分支 `feat/email-light-header`；只改信件樣板，尚未部署）
+
+- 擁有者用 iPhone Gmail 深色模式看測試信，標題（深藍 #142443）被 Gmail 自動反轉成亮色、內容區變暗，整體怪色。Gmail 手機版深色模式為強制套用，沒有 `color-scheme`／媒體查詢可關閉。寄了 X（#2b66c3）、Y（#4a86e0）、Z（淺藍 #dce8fb＋深色字）三封測試信到擁有者信箱比較；X、Y 仍怪，擁有者選 Z。
+- 改動：驗證碼信（`membership-manager` 的 `guardianVerificationEmail`）與週報（`guardian-email` 的 `buildEmail`）的標題與頁尾改淺藍底 #dce8fb、標題字 #142443、副標 #42566e、頁尾字 #244680／#667085。只改顏色，內容與邏輯不動。
+- 驗證：兩支函式 `deno check` 通過；用假資料產出 HTML，Chrome 截圖淺色模式正常；手機 Gmail 淺色／深色以 Z 測試信由擁有者看過。實際經 Resend 寄出的信、Outlook 尚未實測。
+- **尚未部署**：部署前先取得擁有者同意；部署後逐檔比對遠端與本機。
+- 前一批（v4.73：驗證碼信與週報改繽紛版面）已於 2026-10-30 部署：`guardian-email` v56、`membership-manager` v72，遠端與本機逐檔相同，兩支函式不帶登入呼叫皆回 401（啟動正常）。
+
+### 家長驗證碼信與學習週報改成繽紛版面（2026-10-30，分支 `feat/guardian-email-design`；PR #639 已合併，已部署）
 
 - 擁有者要求登入卡設定時家長收到的驗證信「比較繽紛、有設計感」，並加上學習週報。先做 A／B 兩版預覽，擁有者選 A 版（四色頂條＋深藍標題＋黃色驗證碼框＋1-2-3 步驟）；週報預覽確認後照做。
 - 改動：`supabase/functions/membership-manager/index.ts` 的 `guardianVerificationEmail`（驗證碼信；先前誤以為在 `guardian-email`，實際寄驗證碼的是 `membership-manager`）與 `supabase/functions/guardian-email/index.ts` 的 `buildEmail`（週報）。只換 HTML 樣板；主旨、純文字版、驗證碼邏輯、有效期限、寄送頻率限制、冪等 key、資料表全部沒動。信件只用 table＋inline style，驗證碼維持純文字；驗證信的信件摘要（preheader）刻意不放驗證碼。
