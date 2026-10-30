@@ -1,6 +1,14 @@
 # Alan English 專案狀態
 
-### 登入卡改為一頁 12 格（2026-10-30，分支 `feat/login-cards-12-per-page`；只改前端，尚未提交／部署）
+### 家長驗證碼信與學習週報改成繽紛版面（2026-10-30，分支 `feat/guardian-email-design`；只改信件樣板，尚未部署）
+
+- 擁有者要求登入卡設定時家長收到的驗證信「比較繽紛、有設計感」，並加上學習週報。先做 A／B 兩版預覽，擁有者選 A 版（四色頂條＋深藍標題＋黃色驗證碼框＋1-2-3 步驟）；週報預覽確認後照做。
+- 改動：`supabase/functions/membership-manager/index.ts` 的 `guardianVerificationEmail`（驗證碼信；先前誤以為在 `guardian-email`，實際寄驗證碼的是 `membership-manager`）與 `supabase/functions/guardian-email/index.ts` 的 `buildEmail`（週報）。只換 HTML 樣板；主旨、純文字版、驗證碼邏輯、有效期限、寄送頻率限制、冪等 key、資料表全部沒動。信件只用 table＋inline style，驗證碼維持純文字；驗證信的信件摘要（preheader）刻意不放驗證碼。
+- 驗證：兩支函式 `deno check` 通過（需從專案資料夾外執行：專案內的 `package.json` 會讓 Deno 找不到 `npm:jose@5`）；把改好的樣板抽出來用假資料實際產出 HTML——驗證信（姓名含 `<` `>` 已跳脫、驗證碼只出現一次）、週報（完整資料與「沒有作業／口說」的精簡資料兩種）都用 Chrome 截圖看過，375px 寬度不跑版。
+- 未驗證：Outlook、實際 Gmail／Apple Mail 顯示；實際經 Resend 寄出（沒有寄任何真實信件）。
+- **尚未部署**：要讓家長看到新樣子需部署 `membership-manager`（含會員功能，部署前先說明影響與回復方式）與 `guardian-email`，並於部署後立即逐檔比對遠端與本機。
+
+### 登入卡改為一頁 12 格（2026-10-30，分支 `feat/login-cards-12-per-page`；PR #638 已合併，Cloudflare 建置成功；正式站實際下載尚未驗收）
 
 - 擁有者提供「帳號密碼格式」Word 範本（空白格線：2 欄 × 6 列、每格 5953 × 2645 twips、頁邊距 0，不取範本的淺藍底色與白框），要求批次建帳號輸出改成一頁 12 格。照範本 2645 排時 6 列只有 279.5 mm，底部剩 17 mm；擁有者確認貼紙是滿版沒有空白，所以列高改為 2800 twips（約 49.4 mm，6 列 = 16800，剛好略小於 A4 的 16838，Word 表格後的空段落才不會被擠到下一頁）。Word 與 PDF 一起改（`academyStudentLoginCardsDocx.js`／`academyStudentLoginCardsPdf.js`）。
 - 格子高度只剩原本的 67%，原版內容放不下（先用範本尺寸實測：復原碼被切一半、提示文字整行不見）。改法：Word 每行改固定行高（`exact`）、資訊欄加寬到 62%、中英文姓名併成同一行；姓名／帳號／密碼太長時依估算寬度縮小字級，姓名縮到最小仍放不下才分兩行；提示文字在分號處斷成兩行。PDF 版同步縮排（QR 214→150 px），格子高度由 twips 換算（約 291.6 px），6 列撐滿頁面。
