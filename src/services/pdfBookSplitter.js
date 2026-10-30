@@ -1,3 +1,5 @@
+import { loadPdfJsLib } from "../utils/pdfjsLoader";
+
 export const WHOLE_BOOK_CHUNK_PAGES = 10;
 export const MAX_WHOLE_BOOK_BYTES = 500 * 1024 * 1024;
 export const MAX_WHOLE_BOOK_PAGES = 500;
@@ -24,14 +26,11 @@ const toJpegBlob = (canvas, quality) => new Promise((resolve, reject) => {
 });
 
 const loadPdfJs = async sourceBytes => {
-    const [pdfjs, worker] = await Promise.all([
-        import("pdfjs-dist/legacy/build/pdf"),
-        import("pdfjs-dist/legacy/build/pdf.worker.entry")
-    ]);
-    pdfjs.GlobalWorkerOptions.workerSrc = worker.default || worker;
+    const pdfjs = await loadPdfJsLib();
     // PDF.js may transfer its input to its worker, so retain the original bytes
     // for pdf-lib and any subsequent fallback attempt.
-    return pdfjs.getDocument({ data: sourceBytes.slice(0) }).promise;
+    // isEvalSupported:false 擋掉 PDF.js 字型 eval 的任意程式碼執行（CVE-2024-4367）。
+    return pdfjs.getDocument({ data: sourceBytes.slice(0), isEvalSupported: false }).promise;
 };
 
 const createCopiedChunk = async (sourcePdf, start, end, PDFDocument) => {
