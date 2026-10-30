@@ -275,6 +275,7 @@ const buildEmail = (report: any) => {
         extras.map(([label, value]) => `・${label}：${value}\n`).join("") +
         `\n${report.status.label}：${report.status.message}\n\nAlan English`;
     // Email 版面只能用 table＋inline style，不依賴外部 CSS／圖片；顏色沿用家長驗證碼信的四色頂條。
+    // 標題與頁尾刻意用淺藍底、深色字：Gmail 手機版深色模式會自動反轉顏色且無法關閉，整封信用淺色系才會一起反轉成一致的深色。
     const tile = (value: string | number, unit: string, label: string, background: string, accent: string, numberColor: string) => `
           <td width="33.33%" valign="top" style="padding:0 4px">
             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="center" style="background-color:${background};border-top:5px solid ${accent};border-radius:14px;padding:16px 4px">
@@ -308,12 +309,12 @@ const buildEmail = (report: any) => {
         <td width="25%" height="8" style="background-color:#ff7a59;font-size:0;line-height:0">&nbsp;</td>
       </tr></table>
     </td></tr>
-    <tr><td style="background-color:#142443;padding:28px 28px 26px">
+    <tr><td style="background-color:#dce8fb;padding:28px 28px 26px">
       <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
         <td style="background-color:#ffd45c;color:#142443;font-size:12px;font-weight:800;letter-spacing:2px;padding:6px 12px;border-radius:999px">ALAN ENGLISH 學習週報</td>
       </tr></table>
-      <h1 style="margin:16px 0 6px;font-size:26px;line-height:1.35;color:#ffffff;font-weight:800">${studentName} 這週的英文學習</h1>
-      <p style="margin:0;font-size:14px;line-height:1.7;color:#c9d6f2">${report.range.startDate} ～ ${report.range.endDate}</p>
+      <h1 style="margin:16px 0 6px;font-size:26px;line-height:1.35;color:#142443;font-weight:800">${studentName} 這週的英文學習</h1>
+      <p style="margin:0;font-size:14px;line-height:1.7;color:#42566e">${report.range.startDate} ～ ${report.range.endDate}</p>
     </td></tr>
     <tr><td style="background-color:#ffffff;padding:28px 20px 8px">
       <p style="margin:0 0 18px 8px;font-size:16px;line-height:1.7;color:#17233d">${guardianName}：</p>
@@ -333,9 +334,9 @@ const buildEmail = (report: any) => {
         <td style="background-color:#f3f6fb;border-radius:10px;padding:14px 16px;font-size:12px;line-height:1.8;color:#667085">「有效聆聽」是孩子實際聽滿八成以上才算一次。這封信由 Alan English 自動寄出；如需停止收信或更換信箱，請聯絡授課老師。</td>
       </tr></table>
     </td></tr>
-    <tr><td style="background-color:#142443;border-radius:0 0 22px 22px;padding:18px 28px;text-align:center">
-      <div style="font-size:13px;font-weight:700;color:#ffd45c;letter-spacing:1px">Alan English</div>
-      <div style="font-size:12px;color:#9fb2d9;margin-top:4px">國小學生的英文學習平台</div>
+    <tr><td style="background-color:#dce8fb;border-radius:0 0 22px 22px;padding:18px 28px;text-align:center">
+      <div style="font-size:13px;font-weight:700;color:#244680;letter-spacing:1px">Alan English</div>
+      <div style="font-size:12px;color:#667085;margin-top:4px">國小學生的英文學習平台</div>
     </td></tr>
   </table>
 </td></tr>
