@@ -19,7 +19,12 @@ import {
     reissueAcademyStudentLoginCard,
     sendAcademyPasswordReset
 } from "../../services/academyStudentService";
+import { sendGuardianReportBatch } from "../../services/guardianEmailService";
 import AccountManagement from "./AccountManagement";
+
+jest.mock("../../services/guardianEmailService", () => ({
+    sendGuardianReportBatch: jest.fn()
+}));
 
 jest.mock("../../auth/AuthContext", () => ({
     useAuth: jest.fn()
@@ -281,6 +286,38 @@ describe("AccountManagement", () => {
         expect(screen.getByText("目前暱稱：Brave Owl")).toBeInTheDocument();
         expect(screen.getByText("Sunny Fox")).toBeInTheDocument();
         expect(screen.getByText("Brave Owl")).toBeInTheDocument();
+    });
+
+    test("lets an admin send this week's parent reports to all active parents after confirming", async () => {
+        sendGuardianReportBatch.mockResolvedValue({ totals: { sent: 3, skipped: 1, failed: 0 } });
+        renderPage();
+        await screen.findByText(academyStudent.name);
+
+        fireEvent.click(screen.getByRole("button", { name: "寄送本週家長週報" }));
+
+        expect(window.confirm).toHaveBeenCalledWith(expect.stringContaining("寄出後無法收回"));
+        await waitFor(() => expect(sendGuardianReportBatch).toHaveBeenCalledTimes(1));
+        expect(sendGuardianReportBatch).toHaveBeenCalledWith(firebaseUser);
+        await waitFor(() => expect(screen.getByRole("button", { name: "寄送本週家長週報" })).toBeEnabled());
+    });
+
+    test("does not send parent reports when the admin cancels the confirmation", async () => {
+        window.confirm.mockReturnValue(false);
+        renderPage();
+        await screen.findByText(academyStudent.name);
+
+        fireEvent.click(screen.getByRole("button", { name: "寄送本週家長週報" }));
+
+        expect(window.confirm).toHaveBeenCalledTimes(1);
+        expect(sendGuardianReportBatch).not.toHaveBeenCalled();
+    });
+
+    test("hides the parent report button from teachers", async () => {
+        useAuth.mockReturnValue({ firebaseUser, role: "teacher", studentProfile: { firebase_uid: firebaseUser.uid } });
+        renderPage();
+        await screen.findByText(academyStudent.name);
+
+        expect(screen.queryByRole("button", { name: "寄送本週家長週報" })).not.toBeInTheDocument();
     });
 
     test("filters by role, class, plan, activation, account and access status", async () => {

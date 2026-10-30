@@ -25,6 +25,7 @@ import {
     setTeacherClassCodes
 } from "../../services/academyStudentService";
 import { sendBrandedPasswordResetEmail } from "../../services/authEmailService";
+import { sendGuardianReportBatch } from "../../services/guardianEmailService";
 import { getPrimaryAccessPlanCode, getPrimaryAccessPlanLabel } from "../../constants/membershipPlans";
 import "./css/ManagementDashboard.scss";
 
@@ -92,6 +93,7 @@ function AccountManagement() {
     const setInvitations = updater => accountQuery.update(data => ({ ...data, invitations: updater(data.invitations) }));
     const [saving, setSaving] = useState(false);
     const [resettingEmail, setResettingEmail] = useState("");
+    const [sendingReports, setSendingReports] = useState(false);
     const [reissuingStudentId, setReissuingStudentId] = useState(null);
     const [reissuedLoginCard, setReissuedLoginCard] = useState(null);
     const [reissuedLoginCardQr, setReissuedLoginCardQr] = useState("");
@@ -484,6 +486,21 @@ function AccountManagement() {
         setView(current => ({ ...current, searchText: "", roleFilter: "all", classFilter: "all", planFilter: "all", activationFilter: "all", accountStatusFilter: "active", accessFilter: "all", page: 1, scrollY: 0 }));
     };
 
+    // 一鍵寄出本週家長週報（後端只允許管理員；寄出後無法收回，所以先確認一次）。
+    const sendWeeklyReports = async () => {
+        if (sendingReports) return;
+        if (!window.confirm("確定現在寄送本週家長週報給所有已啟用的家長嗎？寄出後無法收回。")) return;
+        setSendingReports(true);
+        try {
+            const result = await sendGuardianReportBatch(firebaseUser);
+            toast.success(`週報寄送完成：成功 ${result?.totals?.sent || 0}、略過 ${result?.totals?.skipped || 0}、失敗 ${result?.totals?.failed || 0}`);
+        } catch (error) {
+            toast.error(error?.message || "週報批次寄送失敗");
+        } finally {
+            setSendingReports(false);
+        }
+    };
+
     return (
         <div className="management-page">
             <section className="management-hero">
@@ -504,6 +521,9 @@ function AccountManagement() {
                     {isAdmin && <Link to="/admin/accounts/create-staff" className="management-primary-link">
                         新增教師／管理員
                     </Link>}
+                    {isAdmin && <button type="button" className="management-secondary-button" onClick={sendWeeklyReports} disabled={sendingReports}>
+                        {sendingReports ? "寄送中…" : "寄送本週家長週報"}
+                    </button>}
                 </div>
             </section>
 
