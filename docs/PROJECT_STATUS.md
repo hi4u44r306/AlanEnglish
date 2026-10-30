@@ -1,5 +1,12 @@
 # Alan English 專案狀態
 
+### 「寄送本週家長週報」按鈕搬到帳號管理頁（2026-10-30，分支 `feat/batch-report-button`；只改前端，尚未合併）
+
+- 擁有者問能不能把批次寄送週報的按鈕改到帳號管理頁，選方案 A（上方按鈕列第三顆、次要樣式）。原按鈕在 `MembershipAdmin.jsx`「家長週報」分頁（呼叫 `sendGuardianReportBatch` → `guardian-email` 的 `send_batch`）。
+- 改動：`AccountManagement.jsx` 新增管理員專用的「寄送本週家長週報」按鈕（`window.confirm` 確認、寄送中停用、完成顯示成功／略過／失敗數）；`ManagementDashboard.scss` 新增 `.management-secondary-button`；`MembershipAdmin.jsx` 移除原按鈕與 `sendBatch`，保留自動寄送設定並加一行指向帳號管理頁的提示。後端、寄送規則與權限不動（`send_batch` 後端本來就只允許管理員／排程）。
+- 驗證：`AccountManagement` 與 `MembershipAdmin` 測試 19 項通過（新增 3 項：管理員確認後寄出且帶 `firebaseUser`、取消確認不寄、老師看不到按鈕）；用真實 SCSS 與同樣標籤結構在 1280／768／412 三個寬度實際畫出按鈕列，無溢出，窄版自動換行。
+- 未驗證：正式站管理員頁實際畫面與實際按下寄送（不會在未取得擁有者同意下觸發真的寄信；目前家長聯絡資料只有 1 筆）。`AccountManagement.test.jsx` 本來就有 `import/first` 的 ESLint 錯誤（`beforeEach` 寫在匯入前），這次新增的匯入落在同一寫法裡，沒有另外處理。
+
 ### 家長信件標題與頁尾改淺色，配合手機深色模式（2026-10-30，分支 `feat/email-light-header`；PR #640 已合併，已部署）
 
 - 擁有者用 iPhone Gmail 深色模式看測試信，標題（深藍 #142443）被 Gmail 自動反轉成亮色、內容區變暗，整體怪色。Gmail 手機版深色模式為強制套用，沒有 `color-scheme`／媒體查詢可關閉。寄了 X（#2b66c3）、Y（#4a86e0）、Z（淺藍 #dce8fb＋深色字）三封測試信到擁有者信箱比較；X、Y 仍怪，擁有者選 Z。
@@ -30,7 +37,8 @@
 - 階段 1：`pdfjs-dist` 3.11.174 → 固定 `4.10.38`。兩處改用 `src/utils/pdfjsLoader.js`；4.x 沒有 `pdf.worker.entry`，worker 放 `public/vendor/pdf.worker-4.10.38.min.mjs`（同 docx 前例，不用 `import.meta.url`，因 Jest 27 解析不了）。升級 pdfjs 時要同步換該檔與 loader 的版本號，`pdfjsLoader.test.js` 會檢查檔名、套件版本、檔案內容三者一致。
 - 效果：`npm audit` 49 → 46（嚴重 1 → 0、高 20 → 18）；`canvas`、`tar`、`@mapbox/node-pre-gyp` 已從 lockfile 消失。
 - 驗證：目標測試 15 項通過；`CI=true npm run build` 成功，打包檔已無 3.11.174；npm 10.9.2 `npm ci --dry-run` 通過（對應 10/17 Cloudflare 的 lockfile 事故）；瀏覽器實測 4.10.38＋vendor worker 能載入 2 頁 PDF 並畫到畫布（`.mjs` MIME 為 text/javascript）。
-- 尚未驗證：管理員頁（`/admin/speaking-content`）實際擷圖與整本書切割（擁有者未回報實測就指示合併）；Cloudflare 對 `/vendor/*.mjs` 的 MIME；合併後正式站。回復：revert 合併 commit。合併前把最新 `main` 併進分支（只有本檔衝突，兩邊段落都保留），再以 PDF.js 版套件跑 `CI=true npm run build` 與目標測試。
+- 尚未驗證：管理員頁（`/admin/speaking-content`）實際擷圖與整本書切割（擁有者未回報實測就指示合併）；合併後正式站實際操作。回復：revert 合併 commit。
+- 合併後驗收（2026-10-30，main `f79b96a2`）：Cloudflare Workers Builds 成功；正式站 `/vendor/pdf.worker-4.10.38.min.mjs` 回 200、`Content-Type: text/javascript`、開頭為 PDF.js；首頁 200。管理員頁實際擷圖與整本切割仍待擁有者實測。合併前把最新 `main` 併進分支（只有本檔衝突，兩邊段落都保留），再以 PDF.js 版套件跑 `CI=true npm run build` 與目標測試。
 - 後續（另案）：階段 2 Firebase 10→12（核心登入，需隔離測試與授權）、階段 3 overrides、react-router 7、改用 Vite。
 
 ### 套件漏洞小修（2026-10-28，分支 `fix/npm-audit-nonbreaking`；只改 `package-lock.json`，隨 PR 上線）

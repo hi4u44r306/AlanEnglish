@@ -79,6 +79,36 @@
   }
 }
 
+// 次要按鈕：和 .management-primary-link 同高同圓角，白底藍框，避免「一鍵寄出」這類動作太醒目而誤按。
+.management-secondary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 18px;
+  border: 2px solid #3478db;
+  border-radius: 10px;
+  background: #fff;
+  color: #2867c2;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: #eef5ff;
+  }
+
+  &:focus-visible {
+    outline: 3px solid #ffd45c;
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
 .dashboard-stat-grid {
   max-width: 1180px;
   margin: 0 auto 24px;
