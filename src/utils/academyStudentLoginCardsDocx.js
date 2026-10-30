@@ -24,17 +24,21 @@ const loadDocx = () => {
 
 const A4_WIDTH_TWIPS = 11906;
 const A4_HEIGHT_TWIPS = 16838;
-// A4 貼紙紙每頁 8 張、滿版：頁面四周與卡片之間都不留空。
+// A4 滿版貼紙紙每頁 12 張（2 欄 × 6 列），頁面四周與卡片之間都不留空（擁有者確認貼紙沒有空白邊）。
+// 範本「帳號密碼格式」的格子是 5953 × 2645 twips，但 6 列只有 279.5 mm，下方會剩 17 mm，所以高度改成撐滿 A4。
 const PAGE_MARGIN_TWIPS = 0;
 const TABLE_WIDTH_TWIPS = A4_WIDTH_TWIPS - (PAGE_MARGIN_TWIPS * 2);
 const CARD_WIDTH_TWIPS = Math.floor(TABLE_WIDTH_TWIPS / 2);
-// 4 列加起來要略小於 A4 高度：Word 在表格後面一定會多一個空段落，剛好等於頁高時會被擠到第二頁。
-const CARD_HEIGHT_TWIPS = 4200;
+// 6 列加起來（16800）要略小於 A4 高度：Word 在表格後面一定會多一個空段落，剛好等於頁高時會被擠到第二頁。
+const CARD_HEIGHT_TWIPS = 2800;
 const TAIL_PARAGRAPH_TWIPS = 20;
 const CARD_CONTENT_WIDTH_TWIPS = CARD_WIDTH_TWIPS - 480;
-const CARD_INFO_WIDTH_TWIPS = Math.round(CARD_CONTENT_WIDTH_TWIPS * 0.57);
+const CARD_INFO_WIDTH_TWIPS = Math.round(CARD_CONTENT_WIDTH_TWIPS * 0.62);
 const CARD_QR_WIDTH_TWIPS = CARD_CONTENT_WIDTH_TWIPS - CARD_INFO_WIDTH_TWIPS;
-const CARDS_PER_PAGE = 8;
+// 資訊欄左右內距 50 + 90，扣掉後才是文字真正能用的寬度。
+const INFO_TEXT_WIDTH_TWIPS = CARD_INFO_WIDTH_TWIPS - 140;
+const LINE_EXACT = "exact";
+const CARDS_PER_PAGE = 12;
 const FONT = "Microsoft JhengHei";
 const DXA_WIDTH = "dxa";
 const ALIGN_CENTER = "center";
@@ -80,10 +84,62 @@ const dataUrlToBytes = dataUrl => {
     return Uint8Array.from(binary, character => character.charCodeAt(0));
 };
 
+// 格子只有約 46 mm 高，每一行都用固定行高（exact）才算得準；文字太長時縮小字級，免得換行把下面的內容擠出格子。
+const CJK_PATTERN = /[⺀-￿]/;
+const estimateEm = value => Array.from(String(value ?? "")).reduce(
+    (sum, character) => sum + (CJK_PATTERN.test(character) ? 1 : 0.62),
+    0
+);
+const fitHalfPoints = (value, baseHalfPoints, widthTwips, minHalfPoints) => {
+    const em = estimateEm(value);
+    if (em === 0) return baseHalfPoints;
+    const maxHalfPoints = Math.floor((widthTwips / 20 / em) * 2);
+    return Math.max(minHalfPoints, Math.min(baseHalfPoints, maxHalfPoints));
+};
+const fitsOneLine = (value, halfPoints, widthTwips) => estimateEm(value) * (halfPoints / 2) <= widthTwips / 20;
+
+const LABEL_HALF_POINTS = 15;
+// 「標籤＋內容」同一行：內容可用寬度 = 文字寬度扣掉標籤（含後面兩個空格）。
+const labeledLine = (label, value, valueOptions, spacingAfter, lineTwips) => paragraph([
+    text(`${label}  `, { bold: true, size: LABEL_HALF_POINTS, color: "64748B" }),
+    text(value, {
+        bold: true,
+        ...valueOptions,
+        size: fitHalfPoints(
+            value,
+            valueOptions.size,
+            INFO_TEXT_WIDTH_TWIPS - Math.ceil(estimateEm(`${label}  `) * LABEL_HALF_POINTS * 10),
+            14
+        )
+    })
+], { alignment: ALIGN_LEFT, spacing: { before: 0, after: spacingAfter, line: lineTwips, lineRule: LINE_EXACT } });
+
+// 中英文姓名盡量同一行；兩者合起來縮到最小字級還放不下時，才分成兩行（英文名較小）。
+const nameParagraphs = card => {
+    const nameColor = "0F1F3A";
+    const oneLine = card.englishName ? `${card.chineseName} · ${card.englishName}` : card.chineseName;
+    const oneLineSize = fitHalfPoints(oneLine, 24, INFO_TEXT_WIDTH_TWIPS, 18);
+    if (!card.englishName || fitsOneLine(oneLine, oneLineSize, INFO_TEXT_WIDTH_TWIPS)) {
+        return [paragraph([text(oneLine, { bold: true, size: oneLineSize, color: nameColor })], {
+            alignment: ALIGN_LEFT,
+            spacing: { before: 0, after: 40, line: 320, lineRule: LINE_EXACT }
+        })];
+    }
+    return [
+        paragraph([text(card.chineseName, {
+            bold: true,
+            size: fitHalfPoints(card.chineseName, 24, INFO_TEXT_WIDTH_TWIPS, 18),
+            color: nameColor
+        })], { alignment: ALIGN_LEFT, spacing: { before: 0, after: 0, line: 320, lineRule: LINE_EXACT } }),
+        paragraph([text(card.englishName, {
+            bold: true,
+            size: fitHalfPoints(card.englishName, 18, INFO_TEXT_WIDTH_TWIPS, 14),
+            color: "475569"
+        })], { alignment: ALIGN_LEFT, spacing: { before: 0, after: 40, line: 240, lineRule: LINE_EXACT } })
+    ];
+};
+
 const buildCardCell = (card, qrCodeDataUrl) => {
-    const studentName = card.englishName
-        ? `${card.chineseName} · ${card.englishName}`
-        : card.chineseName;
     const recoveryOne = card.recoveryCodes[0] || "—";
     const recoveryTwo = card.recoveryCodes[1] || "—";
 
@@ -113,33 +169,18 @@ const buildCardCell = (card, qrCodeDataUrl) => {
                         borders: NO_TABLE_BORDERS,
                         children: [
                             paragraph([
-                                text("ALAN ENGLISH", { bold: true, size: 16, color: "2B66C3" }),
+                                text("ALAN ENGLISH", { bold: true, size: 15, color: "2B66C3" }),
                                 text("  英文班登入卡", { bold: true, size: 15, color: "2B66C3" })
-                            ], { alignment: ALIGN_LEFT, spacing: { before: 0, after: 80, line: 220 } }),
-                            paragraph([text(studentName, { bold: true, size: 26, color: "0F1F3A" })], {
-                                alignment: ALIGN_LEFT,
-                                spacing: { before: 0, after: 100, line: 280 }
-                            }),
+                            ], { alignment: ALIGN_LEFT, spacing: { before: 0, after: 40, line: 220, lineRule: LINE_EXACT } }),
+                            ...nameParagraphs(card),
+                            labeledLine("帳號", card.username, { size: 21 }, 40, 280),
+                            labeledLine("臨時密碼", card.temporaryPassword, { size: 20 }, 30, 270),
+                            labeledLine("復原碼", `${recoveryOne}  ${recoveryTwo}`, { size: 20, color: "9A3412" }, 40, 270),
+                            // 在分號處斷成兩行，避免最後一個字單獨掉到第二行。
                             paragraph([
-                                text("帳號  ", { bold: true, size: 15, color: "64748B" }),
-                                text(card.username, { bold: true, size: 22 })
-                            ], { alignment: ALIGN_LEFT, spacing: { before: 0, after: 55, line: 250 } }),
-                            paragraph([
-                                text("臨時密碼  ", { bold: true, size: 15, color: "64748B" }),
-                                text(card.temporaryPassword, { bold: true, size: 20 })
-                            ], { alignment: ALIGN_LEFT, spacing: { before: 0, after: 80, line: 250 } }),
-                            paragraph([text("復原碼", { bold: true, size: 15, color: "64748B" })], {
-                                alignment: ALIGN_LEFT,
-                                spacing: { before: 0, after: 10, line: 210 }
-                            }),
-                            paragraph([text(`${recoveryOne}  ${recoveryTwo}`, { bold: true, size: 22, color: "9A3412" })], {
-                                alignment: ALIGN_LEFT,
-                                spacing: { before: 0, after: 60, line: 260 }
-                            }),
-                            paragraph([text("掃描右側 QR Code 設定密碼；復原碼每組只能用一次。", {
-                                size: 16,
-                                color: "64748B"
-                            })], { alignment: ALIGN_LEFT, spacing: { before: 0, after: 0, line: 210 } })
+                                text("掃描右側 QR Code 設定密碼；", { size: 14, color: "64748B" }),
+                                text("復原碼每組只能用一次。", { size: 14, color: "64748B", break: 1 })
+                            ], { alignment: ALIGN_LEFT, spacing: { before: 0, after: 0, line: 200, lineRule: LINE_EXACT } })
                         ]
                     }),
                     new TableCell({

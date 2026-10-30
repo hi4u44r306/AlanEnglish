@@ -1,12 +1,36 @@
 # Alan English 專案狀態
 
-### PDF.js 安全升級：階段 0＋1（2026-10-28，分支 `fix/pdfjs-security`，只改前端，尚未合併）
+### 家長信件標題與頁尾改淺色，配合手機深色模式（2026-10-30，分支 `feat/email-light-header`；PR #640 已合併，已部署）
+
+- 擁有者用 iPhone Gmail 深色模式看測試信，標題（深藍 #142443）被 Gmail 自動反轉成亮色、內容區變暗，整體怪色。Gmail 手機版深色模式為強制套用，沒有 `color-scheme`／媒體查詢可關閉。寄了 X（#2b66c3）、Y（#4a86e0）、Z（淺藍 #dce8fb＋深色字）三封測試信到擁有者信箱比較；X、Y 仍怪，擁有者選 Z。
+- 改動：驗證碼信（`membership-manager` 的 `guardianVerificationEmail`）與週報（`guardian-email` 的 `buildEmail`）的標題與頁尾改淺藍底 #dce8fb、標題字 #142443、副標 #42566e、頁尾字 #244680／#667085。只改顏色，內容與邏輯不動。
+- 驗證：兩支函式 `deno check` 通過；用假資料產出 HTML，Chrome 截圖淺色模式正常；手機 Gmail 淺色／深色以 Z 測試信由擁有者看過。實際經 Resend 寄出的信、Outlook 尚未實測。
+- **已部署**（擁有者說「合併並部署」）：`membership-manager` v73、`guardian-email` v57。部署前先下載線上版本，確認與合併前 `main` 逐字相同（含 `_shared` 兩個共用檔）；部署後再下載比對，遠端與本機逐檔相同；兩支函式不帶登入呼叫皆回 401（啟動正常）。`verify_jwt` 維持 false。回復用：前一版 v72／v56 的原始碼即上一個 commit。
+- 擁有者另寄學習週報測試信（用擁有者自己的 Gmail 寄出，非 Resend）確認手機深色／淺色都正常。實際經 Resend 寄出的信、Outlook 尚未實測。
+- 家長稱呼維持「家長您好」：目前 `guardian_contacts` 只有 1 筆、0 筆有填 `guardian_name`；若日後有人填姓名，信會變成「○○ 家長您好」（原本就有的行為，沒改）。
+
+### 家長驗證碼信與學習週報改成繽紛版面（2026-10-30，分支 `feat/guardian-email-design`；PR #639 已合併，已部署）
+
+- 擁有者要求登入卡設定時家長收到的驗證信「比較繽紛、有設計感」，並加上學習週報。先做 A／B 兩版預覽，擁有者選 A 版（四色頂條＋深藍標題＋黃色驗證碼框＋1-2-3 步驟）；週報預覽確認後照做。
+- 改動：`supabase/functions/membership-manager/index.ts` 的 `guardianVerificationEmail`（驗證碼信；先前誤以為在 `guardian-email`，實際寄驗證碼的是 `membership-manager`）與 `supabase/functions/guardian-email/index.ts` 的 `buildEmail`（週報）。只換 HTML 樣板；主旨、純文字版、驗證碼邏輯、有效期限、寄送頻率限制、冪等 key、資料表全部沒動。信件只用 table＋inline style，驗證碼維持純文字；驗證信的信件摘要（preheader）刻意不放驗證碼。
+- 驗證：兩支函式 `deno check` 通過（需從專案資料夾外執行：專案內的 `package.json` 會讓 Deno 找不到 `npm:jose@5`）；把改好的樣板抽出來用假資料實際產出 HTML——驗證信（姓名含 `<` `>` 已跳脫、驗證碼只出現一次）、週報（完整資料與「沒有作業／口說」的精簡資料兩種）都用 Chrome 截圖看過，375px 寬度不跑版。
+- 未驗證：Outlook、實際 Gmail／Apple Mail 顯示；實際經 Resend 寄出（沒有寄任何真實信件）。
+- 已部署：`membership-manager` v72、`guardian-email` v56（同日又以 PR #640 更新為 v73／v57）。
+
+### 登入卡改為一頁 12 格（2026-10-30，分支 `feat/login-cards-12-per-page`；PR #638 已合併，Cloudflare 建置成功；擁有者已確認登入卡 OK）
+
+- 擁有者提供「帳號密碼格式」Word 範本（空白格線：2 欄 × 6 列、每格 5953 × 2645 twips、頁邊距 0，不取範本的淺藍底色與白框），要求批次建帳號輸出改成一頁 12 格。照範本 2645 排時 6 列只有 279.5 mm，底部剩 17 mm；擁有者確認貼紙是滿版沒有空白，所以列高改為 2800 twips（約 49.4 mm，6 列 = 16800，剛好略小於 A4 的 16838，Word 表格後的空段落才不會被擠到下一頁）。Word 與 PDF 一起改（`academyStudentLoginCardsDocx.js`／`academyStudentLoginCardsPdf.js`）。
+- 格子高度只剩原本的 67%，原版內容放不下（先用範本尺寸實測：復原碼被切一半、提示文字整行不見）。改法：Word 每行改固定行高（`exact`）、資訊欄加寬到 62%、中英文姓名併成同一行；姓名／帳號／密碼太長時依估算寬度縮小字級，姓名縮到最小仍放不下才分兩行；提示文字在分號處斷成兩行。PDF 版同步縮排（QR 214→150 px），格子高度由 twips 換算（約 291.6 px），6 列撐滿頁面。
+- 驗證：登入卡 Word／PDF 測試 5 項通過（新增「13 位學生 → 2 頁、每頁 6 列、列高 2800」）。用假資料（含最長姓名「歐陽王小明明 · Christopher Alexander」、25 字元帳號、無英文名）實際產出：本機 Word 開啟 12 位 = 1 頁、13 位 = 2 頁，內容無被切；PDF 由瀏覽器畫布實際渲染目視檢查。
+- 未驗證：貼紙機實際列印位置與格子是否與貼紙對得準（請先用普通紙試印對光）；iPhone／其他 Word 版本開啟。
+
+### PDF.js 安全升級：階段 0＋1（2026-10-28，分支 `fix/pdfjs-security`，只改前端；擁有者於 2026-10-30 說「PDF.js 合併」後合併）
 
 - 階段 0：管理員 PDF 切割（`pdfBookSplitter.js`）與擷圖（`SpeakingPdfImageCropper.jsx`）的 `getDocument` 加 `isEvalSupported:false`，擋 CVE-2024-4367。
 - 階段 1：`pdfjs-dist` 3.11.174 → 固定 `4.10.38`。兩處改用 `src/utils/pdfjsLoader.js`；4.x 沒有 `pdf.worker.entry`，worker 放 `public/vendor/pdf.worker-4.10.38.min.mjs`（同 docx 前例，不用 `import.meta.url`，因 Jest 27 解析不了）。升級 pdfjs 時要同步換該檔與 loader 的版本號，`pdfjsLoader.test.js` 會檢查檔名、套件版本、檔案內容三者一致。
 - 效果：`npm audit` 49 → 46（嚴重 1 → 0、高 20 → 18）；`canvas`、`tar`、`@mapbox/node-pre-gyp` 已從 lockfile 消失。
 - 驗證：目標測試 15 項通過；`CI=true npm run build` 成功，打包檔已無 3.11.174；npm 10.9.2 `npm ci --dry-run` 通過（對應 10/17 Cloudflare 的 lockfile 事故）；瀏覽器實測 4.10.38＋vendor worker 能載入 2 頁 PDF 並畫到畫布（`.mjs` MIME 為 text/javascript）。
-- 尚未驗證：管理員頁（`/admin/speaking-content`）實際擷圖與整本書切割；Cloudflare 對 `/vendor/*.mjs` 的 MIME；合併後正式站。回復：revert 合併 commit。
+- 尚未驗證：管理員頁（`/admin/speaking-content`）實際擷圖與整本書切割（擁有者未回報實測就指示合併）；Cloudflare 對 `/vendor/*.mjs` 的 MIME；合併後正式站。回復：revert 合併 commit。合併前把最新 `main` 併進分支（只有本檔衝突，兩邊段落都保留），再以 PDF.js 版套件跑 `CI=true npm run build` 與目標測試。
 - 後續（另案）：階段 2 Firebase 10→12（核心登入，需隔離測試與授權）、階段 3 overrides、react-router 7、改用 Vite。
 
 ### 套件漏洞小修（2026-10-28，分支 `fix/npm-audit-nonbreaking`；只改 `package-lock.json`，隨 PR 上線）

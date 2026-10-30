@@ -10,9 +10,9 @@ global.TextEncoder = TextEncoder;
 const ONE_PIXEL_PNG = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=";
 
 describe("academyStudentLoginCardsPdf", () => {
-    test("每頁安排 8 張學生登入卡", () => {
-        const cards = Array.from({ length: 9 }, (_, index) => ({ username: `student${index}` }));
-        expect(paginateAcademyStudentLoginCards(cards).map(page => page.length)).toEqual([8, 1]);
+    test("每頁安排 12 張學生登入卡（2 欄 × 6 列）", () => {
+        const cards = Array.from({ length: 13 }, (_, index) => ({ username: `student${index}` }));
+        expect(paginateAcademyStudentLoginCards(cards).map(page => page.length)).toEqual([12, 1]);
     });
 
     test("可建立多頁 A4 PDF", async () => {
