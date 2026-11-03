@@ -33,7 +33,19 @@ const taiwanDate = () => new Intl.DateTimeFormat("en-CA", {
     day: "2-digit"
 }).format(new Date());
 
-const hasAiTask = (sourceType: string) => (
+// 回傳錯誤訊息；沒問題回傳 null。dueAt 為已轉成 ISO 的字串或 null。
+const validateAssignmentDates = (assignedDate: string, rawDueAt: unknown): { error: string | null; dueAt: string | null } => {
+    const dateMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(assignedDate);
+    const assignedStart = dateMatch ? Date.parse(assignedDate + "T00:00:00+08:00") : NaN;
+    if (Number.isNaN(assignedStart)) return { error: "發布日期格式不正確", dueAt: null };
+    if (!rawDueAt) return { error: null, dueAt: null };
+    const dueMs = Date.parse(String(rawDueAt));
+    if (Number.isNaN(dueMs)) return { error: "截止日期格式不正確", dueAt: null };
+    if (dueMs < assignedStart) return { error: "截止日期不能早於發布日期", dueAt: null };
+    return { error: null, dueAt: new Date(dueMs).toISOString() };
+};
+
+const hasAiTask =(sourceType: string) => (
     sourceType === "ai_material" || sourceType === "mission_pack"
 );
 
@@ -725,10 +737,11 @@ Deno.serve(async (req: Request) => {
             const description = cleanText(body?.description, 1000) || null;
             const targetClass = cleanText(body?.target_class, 80);
             const assignedDate = cleanText(body?.assigned_date, 20) || taiwanDate();
-            const dueAt = body?.due_at ? new Date(String(body.due_at)).toISOString() : null;
             if (!title) return json(400, { error: "請輸入作業名稱" });
             if (!CLASS_CODES.has(targetClass)) return json(400, { error: "必須選擇 E1、E3、E5 或 E7 目標班級" });
-            if (body?.due_at && Number.isNaN(Date.parse(String(body.due_at)))) return json(400, { error: "截止日期格式不正確" });
+            const dateCheck = validateAssignmentDates(assignedDate, body?.due_at);
+            if (dateCheck.error) return json(400, { error: dateCheck.error });
+            const dueAt = dateCheck.dueAt;
             const managedCodes = await getManagedClassCodes(admin, caller);
             if (!managedCodes.includes(targetClass)) return json(403, { error: "你沒有管理這個班級的權限" });
             const classMaterial = await getClassMaterial(admin, targetClass);
@@ -832,9 +845,9 @@ Deno.serve(async (req: Request) => {
             const sourceType = String(body?.source_type || "");
             const targetClass = String(body?.target_class || "").trim().slice(0, 80);
             const assignedDate = String(body?.assigned_date || taiwanDate());
-            const dueAt = body?.due_at
-                ? new Date(String(body.due_at)).toISOString()
-                : null;
+            const dateCheck = validateAssignmentDates(assignedDate, body?.due_at);
+            if (dateCheck.error) return json(400, { error: dateCheck.error });
+            const dueAt = dateCheck.dueAt;
             const passingScore = Math.min(
                 100,
                 Math.max(0, Number(body?.passing_score) || 90)

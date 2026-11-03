@@ -10,6 +10,13 @@ export default function useSpeakingAttention({ firebaseUser, role, questionSetId
     const lastSentRef = useRef({});
     const busyRef = useRef(busy);
     busyRef.current = busy;
+    const armIdleRef = useRef(null);
+
+    // 錄音／評分結束（busy 變 false）時重新計時；否則 busy 期間到期的那次 timer 被略過後，
+    // 要等學生下一次點擊才會再開始偵測閒置。
+    useEffect(() => {
+        if (!busy) armIdleRef.current?.();
+    }, [busy]);
 
     useEffect(() => {
         if (role !== "student" || !firebaseUser || !questionSetId) return undefined;
@@ -30,12 +37,14 @@ export default function useSpeakingAttention({ firebaseUser, role, questionSetId
             if (document.visibilityState === "hidden") send("hidden");
             else armIdle();
         };
+        armIdleRef.current = armIdle;
         const events = ["pointerdown", "keydown", "touchstart"];
         events.forEach(name => window.addEventListener(name, armIdle, { passive: true }));
         document.addEventListener("visibilitychange", onVisibility);
         armIdle();
         return () => {
             window.clearTimeout(idleTimer);
+            armIdleRef.current = null;
             events.forEach(name => window.removeEventListener(name, armIdle));
             document.removeEventListener("visibilitychange", onVisibility);
         };

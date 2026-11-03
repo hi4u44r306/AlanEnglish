@@ -1,5 +1,12 @@
 # Alan English 專案狀態
 
+### 作業日期驗證與口說閒置計時修正（2026-11-03，分支 `fix/assignment-date-and-speaking-idle`；尚未合併、Edge Function 尚未部署）
+
+- 來源：專注度模擬報告（PR #643）列出的三個缺口。
+- 改動：①`assignment-manager` 新增 `validateAssignmentDates`，兩條建立路徑（舊版與 V2）共用：發布日格式錯誤、截止日格式錯誤、截止早於發布日都回 400 訊息，不再在驗證前拋 RangeError；截止日可空白（不設期限）。②`TeacherAssignments.jsx` 新增 `assignmentDateProblem`，發布與預覽前擋下空白發布日、格式錯誤、截止早於發布。③`useSpeakingAttention` 在 busy（錄音／評分）結束時重新啟動 90 秒閒置計時。
+- 驗證：新增 `scripts/assignment-date-validation.test.mjs`（6 項）、`TeacherAssignments` 日期 2 項、`useSpeakingAttention` 1 項（已確認舊版會失敗）；兩個前端測試檔共 15 項通過。`deno check` 的 6 個型別錯誤與 `main` 相同，無新增。
+- 未驗證：Edge Function 未實際執行、**未部署**（需擁有者同意，部署前先比對線上版本）；正式站畫面未看。
+
 ### 「寄送本週家長週報」按鈕搬到帳號管理頁（2026-10-30，分支 `feat/batch-report-button`；只改前端，尚未合併）
 
 - 擁有者問能不能把批次寄送週報的按鈕改到帳號管理頁，選方案 A（上方按鈕列第三顆、次要樣式）。原按鈕在 `MembershipAdmin.jsx`「家長週報」分頁（呼叫 `sendGuardianReportBatch` → `guardian-email` 的 `send_batch`）。
