@@ -1,5 +1,11 @@
 # Alan English 專案狀態
 
+### 專注度模擬測試與老師版報告（2026-11-03，分支 `feat/attention-simulation`；只新增測試與文件，未改正式程式碼，未部署）
+
+- 由 Codex 產生、Claude 複查：`scripts/simulations/`（`node --test scripts/simulations/run-attention.test.mjs` 會跑 Jest 模擬並重產報告）與 `docs/simulations/attention-simulation-report.html`（34 張樣本卡：老師出作業、四種身分所見、10 種聽力樣本、口說與作業聽力專注度）。結果 43 項通過。
+- 發現但**未修**：①老師表單不擋空白日期與截止早於發布（`TeacherAssignments.jsx:361`）；②`assignment-manager` 對錯誤格式截止日在驗證前拋例外（`index.ts:1714`）；③口說 busy 超過 90 秒後 idle 計時可能不再啟動（`useSpeakingAttention.js:26`）。
+- 限制：專注度只看操作中斷（切頁、閒置），無法辨識「放空但沒切頁」；聽力閒置 15 分鐘才要求確認。未驗證真實帳號、真機、R2。
+
 ### 「寄送本週家長週報」按鈕搬到帳號管理頁（2026-10-30，分支 `feat/batch-report-button`；只改前端，尚未合併）
 
 - 擁有者問能不能把批次寄送週報的按鈕改到帳號管理頁，選方案 A（上方按鈕列第三顆、次要樣式）。原按鈕在 `MembershipAdmin.jsx`「家長週報」分頁（呼叫 `sendGuardianReportBatch` → `guardian-email` 的 `send_batch`）。
