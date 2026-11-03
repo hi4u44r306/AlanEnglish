@@ -37,6 +37,14 @@ const todayTaiwan = () => new Intl.DateTimeFormat("en-CA", {
     day: "2-digit"
 }).format(new Date());
 
+// 發布日不可空白；有填截止日時，不可早於發布日（兩者都是 YYYY-MM-DD，可直接比字串）。
+export const assignmentDateProblem = ({ assigned_date: assignedDate, due_date: dueDate }) => {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(String(assignedDate || ""))) return "請選擇發布日期。";
+    if (dueDate && !/^\d{4}-\d{2}-\d{2}$/.test(String(dueDate))) return "截止日期格式不正確。";
+    if (dueDate && dueDate < assignedDate) return "截止日期不能早於發布日期。";
+    return "";
+};
+
 const formatDateTime = value => {
     if (!value) return "";
     return new Intl.DateTimeFormat("zh-TW", {
@@ -377,6 +385,8 @@ const TeacherAssignmentsEditor = () => {
             return;
         }
         if (!classes.includes(form.target_class)) { setMessage("請選擇目前有權發布的班級。"); return; }
+        const dateProblem = assignmentDateProblem(form);
+        if (dateProblem) { setMessage(dateProblem); return; }
         if (!mixedMode && trackIds.some(id => !tracks.some(track => track.id === id && books.some(book => Number(book.id) === Number(track.book_id))))) {
             setMessage("草稿中有音檔已停用或不在本班教材中，請重新選擇。"); return;
         }
@@ -493,6 +503,8 @@ const TeacherAssignmentsEditor = () => {
             setMessage("請至少加入一個活動後再預覽。");
             return;
         }
+        const previewDateProblem = assignmentDateProblem(form);
+        if (previewDateProblem) { setMessage(previewDateProblem); return; }
         setSaving(true);
         setMessage("");
         try {

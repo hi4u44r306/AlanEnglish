@@ -3,7 +3,7 @@ beforeEach(() => clearStaffPageCache());
 import React from "react";
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import TeacherAssignments from "./TeacherAssignments";
+import TeacherAssignments, { assignmentDateProblem } from "./TeacherAssignments";
 import { createAssignment, createAssignmentV2, getTeacherAssignmentBootstrap, getTeacherAssignments } from "../../services/assignmentService";
 import { clearTeacherAssignmentDraft, readTeacherAssignmentDraft, saveTeacherAssignmentDraft } from "../../services/teacherAssignmentDraft";
 
@@ -130,4 +130,18 @@ test("assignment name fills itself from date, class and homework, and the descri
     fireEvent.change(screen.getByLabelText("作業名稱"), { target: { value: "我自己取的名字" } });
     fireEvent.change(screen.getByLabelText("發布班級"), { target: { value: "E1" } });
     expect(screen.getByLabelText("作業名稱")).toHaveValue("我自己取的名字");
+});
+
+describe("assignmentDateProblem", () => {
+    test("有效日期通過；截止日可空白代表不設期限", () => {
+        expect(assignmentDateProblem({ assigned_date: "2026-11-03", due_date: "2026-11-10" })).toBe("");
+        expect(assignmentDateProblem({ assigned_date: "2026-11-03", due_date: "2026-11-03" })).toBe("");
+        expect(assignmentDateProblem({ assigned_date: "2026-11-03", due_date: "" })).toBe("");
+    });
+    test("擋下空白發布日、格式錯誤與截止早於發布", () => {
+        expect(assignmentDateProblem({ assigned_date: "", due_date: "" })).toMatch(/發布日期/);
+        expect(assignmentDateProblem({ assigned_date: "bad", due_date: "" })).toMatch(/發布日期/);
+        expect(assignmentDateProblem({ assigned_date: "2026-11-03", due_date: "x" })).toMatch(/格式/);
+        expect(assignmentDateProblem({ assigned_date: "2026-11-10", due_date: "2026-11-03" })).toMatch(/不能早於/);
+    });
 });

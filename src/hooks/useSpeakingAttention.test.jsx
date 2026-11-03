@@ -45,3 +45,14 @@ test("老師與管理員不記錄", () => {
     act(() => { jest.advanceTimersByTime(SPEAKING_IDLE_MS * 2); });
     expect(recordSpeakingAttention).not.toHaveBeenCalled();
 });
+
+test("錄音評分超過 90 秒後結束，結束時重新計時，之後發呆仍會記 idle", () => {
+    const view = render(<Probe firebaseUser={user} role="student" questionSetId={7} mode="easy" busy />);
+    act(() => { jest.advanceTimersByTime(SPEAKING_IDLE_MS * 2); });
+    expect(recordSpeakingAttention).not.toHaveBeenCalled();
+    view.rerender(<Probe firebaseUser={user} role="student" questionSetId={7} mode="easy" busy={false} />);
+    act(() => { jest.advanceTimersByTime(SPEAKING_IDLE_MS - 1000); });
+    expect(recordSpeakingAttention).not.toHaveBeenCalled();
+    act(() => { jest.advanceTimersByTime(2000); });
+    expect(recordSpeakingAttention).toHaveBeenCalledWith(user, { reason: "idle", question_set_id: 7, mode: "easy" });
+});
