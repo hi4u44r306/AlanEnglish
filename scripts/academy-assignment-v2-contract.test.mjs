@@ -132,6 +132,7 @@ test("13. 學生新版 AI 作答只使用伺服器快照並核對灰度、班級
     assert.match(assignmentManager, /action === "submit_assignment_v2_ai"/);
     assert.match(assignmentManager, /isAssignmentV2Enabled/);
     assert.match(assignmentManager, /getActiveStudentClass/);
+    assert.match(assignmentManager, /String\(assignment\.assigned_date \|\| ""\) > taiwanDate\(\)/);
     assert.match(assignmentManager, /question_snapshot/);
     assert.match(assignmentManager, /assignment_item_id,student_id/);
     assert.match(assignmentService, /getStudentAssignmentsV2/);

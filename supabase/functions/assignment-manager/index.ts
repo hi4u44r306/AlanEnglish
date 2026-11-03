@@ -1377,10 +1377,10 @@ Deno.serve(async (req: Request) => {
                 return json(400, { error: "作業資料不完整或目前沒有有效英文班身分" });
             }
             const { data: assignment, error: assignmentError } = await admin.from("assignments")
-                .select("id,target_class,enabled,source_type,schema_version")
+                .select("id,target_class,enabled,source_type,schema_version,assigned_date")
                 .eq("id", assignmentId).maybeSingle();
             if (assignmentError) throw assignmentError;
-            if (!assignment || !assignment.enabled || assignment.target_class !== enrollmentClass || assignment.source_type !== "multi_activity_v2" || Number(assignment.schema_version) !== 2) {
+            if (!assignment || !assignment.enabled || assignment.target_class !== enrollmentClass || assignment.source_type !== "multi_activity_v2" || Number(assignment.schema_version) !== 2 || String(assignment.assigned_date || "") > taiwanDate()) {
                 return json(403, { error: "這份新版作業目前無法提交" });
             }
             const { data: item, error: itemError } = await admin.from("assignment_items")

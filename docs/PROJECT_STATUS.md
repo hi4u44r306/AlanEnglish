@@ -1,5 +1,11 @@
 # Alan English 專案狀態
 
+### 新版 AI 作業提交補上「開放日」檢查（2026-11-03，分支 `fix/assignment-v2-ai-submit-open-date`；尚未合併、尚未部署）
+
+- 來源：用 Codex 唯讀審查 `assignment-manager`，發現 `submit_assignment_v2_ai` 沒檢查 `assigned_date`，同班在學學生若知道作業與題項 ID，可在開放日前提交並取得答案；作業列表本來就有擋（`.lte("assigned_date", today)`），提交沒擋。已對照原始碼確認。
+- 改動：提交時多讀 `assigned_date`，晚於台灣今天就回 403（與其他不可提交情況同一則訊息）；`scripts/academy-assignment-v2-contract.test.mjs` 測試 13 補一條斷言。
+- 驗證：該檔測試 13 通過；測試 8、12 在未改動的 `main` 上就失敗（與此修正無關，未處理）。Edge Function 未執行、未部署，需擁有者同意後才部署並比對線上版本。
+
 ### 「寄送本週家長週報」按鈕搬到帳號管理頁（2026-10-30，分支 `feat/batch-report-button`；只改前端，尚未合併）
 
 - 擁有者問能不能把批次寄送週報的按鈕改到帳號管理頁，選方案 A（上方按鈕列第三顆、次要樣式）。原按鈕在 `MembershipAdmin.jsx`「家長週報」分頁（呼叫 `sendGuardianReportBatch` → `guardian-email` 的 `send_batch`）。
