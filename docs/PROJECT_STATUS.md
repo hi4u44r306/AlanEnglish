@@ -1,12 +1,22 @@
 # Alan English 專案狀態
 
-### 家長 Email 防止老師直接更換（2026-11-04，分支 `fix/guardian-email-teacher-lock`；尚未合併、Edge Function 尚未部署）
+### 首次登入拿掉生日、家長 Email 加紅字提示與寄信前確認（2026-11-04，分支 `feat/onboarding-no-birthday`；資料庫修改已於 2026-11-04 套用到正式資料庫，前端隨合併部署）
+
+- 來源：擁有者決定（家長 Email 同時收週報與找回密碼，生日不再需要）；deep-reasoner 調查確認其他功能未依賴生日（生日月活動 2026-10-11 已停用、`guardian-email` 與 `weekly-report` 未使用生日）。
+- 改動：①新 migration `20261104020000_onboarding_without_birthday.sql`：`complete_student_onboarding_if_ready` 完成條件改為「已改密碼＋家長 Email 已驗證」，仍回傳 `birthday_complete`，不碰資料。②`StudentOnboarding.jsx`：拿掉生日步驟（兩步）、家長 Email 步驟加紅字提醒、輸入兩次、寄出前顯示完整信箱確認。③`StudentOnboarding.scss`：紅字提示與確認區塊樣式。④手冊 v4.77、`PROJECT_LOGIC.md` 首次登入規則。
+- 驗證：`StudentOnboarding` 測試 8 項通過（新增紅字提示、兩次不一致擋下、確認畫面與修改、確認後才寄出）；`student-onboarding-contract.test.mjs` 新增對新 migration 的檢查。
+- 部署順序（不可反）：**先套用 migration、再部署前端**。無 Edge Function 變更。回復：用 `20260916015253` 第 126-179 行原文再 create or replace。
+- 選擇性回填（正式資料，需擁有者同意）：對「已改密碼、家長已驗證、沒有生日、卡在首次登入」的學生各呼叫一次該函式；先跑唯讀 `select count(*)` 預覽。
+- 已套用：因正式資料庫的遷移紀錄與本機檔案版本不完全對得上（`db push` 拒絕執行），改用 Supabase 工具套用同內容的函式修改（紀錄版本為套用當下時間，非檔名時間）；套用後已比對函式定義：完成條件不含生日、只有 service_role 可執行、仍回傳 `birthday_complete`。套用時卡在首次登入頁的學生為 0 位，不需回填。
+- 未驗證：正式站實際畫面與手機寬度未看過。
+
+### 家長 Email 防止老師直接更換（2026-11-04，分支 `fix/guardian-email-teacher-lock`；PR #645 已合併，`learning-activity`、`membership-manager` 已於 2026-11-04 部署並與 repo 逐檔比對一致）
 
 - 來源：重度調查（deep-reasoner）發現：`learning-activity` 的 `guardian_upsert`（老師與管理員）與 `membership-manager` 的 `complete_signup` 會覆蓋 `guardian_contacts.email` 卻沿用舊信箱的 `email_verified_at`，新信箱不用收驗證碼就被視為已驗證；之後若做「寄重設連結到家長 Email」，老師可改成自己的信箱接管學生帳號。
 - 改動：①`guardian_upsert` 先讀目前信箱，已有信箱且和送來的不同就回 409；只在原本沒有信箱時第一次填入，且 `email_verified_at` 一律設為 null；回傳與儀表板查詢多帶 `email_verified_at`。②`complete_signup` 只在沒有家長信箱時才寫入（未驗證），不覆蓋既有。③`ManagementDashboard.jsx`：已有信箱時 Email 欄唯讀並顯示已驗證／尚未驗證。④手冊 v4.76。
 - 驗證：新增 `scripts/guardian-email-teacher-lock.test.mjs`（已確認舊程式會失敗）、`ManagementDashboard` 測試 +2（共 4 項通過）；兩支 Edge 的 `deno check` 無錯誤。
 - 取捨：管理員目前也不能在「學習概況」直接換信箱；管理員專用的更換流程（新信箱收驗證碼後才生效）是下一批，尚未做。家長本人在設定頁自行驗證更換不受影響。
-- 未驗證：Edge Function 未實際執行、**未部署**（需擁有者同意；部署前先下載線上版本比對，部署後再比對）；正式站畫面未看。無資料庫變更。
+- 已部署：兩支函式部署前先確認線上版本與合併前 main 一致，部署後逐檔比對一致；未登入請求仍回 401。未驗證：用真實老師帳號改家長 Email 的實際回應（409）、正式站畫面。無資料庫變更。
 ### 作業日期驗證與口說閒置計時修正（2026-11-03，分支 `fix/assignment-date-and-speaking-idle`；已合併 main，Edge Function 尚未部署）
 
 - 來源：專注度模擬報告（PR #643）列出的三個缺口。
