@@ -45,6 +45,39 @@ describe("ProtectedRoute onboarding gate", () => {
         expect(screen.queryByText("受保護內容")).not.toBeInTheDocument();
     });
 
+    it("sends an academy student whose password was reset by an admin to set a new one first", () => {
+        useAuth.mockReturnValue({
+            authLoading: false,
+            isAuthenticated: true,
+            role: "student",
+            studentProfile: {
+                authentication_method: "academy_username",
+                must_change_password: true,
+                onboarding: { required: false },
+                membership: { is_active: true }
+            }
+        });
+        renderRoutes();
+        expect(screen.getByText("首次登入設定")).toBeInTheDocument();
+        expect(screen.queryByText("受保護內容")).not.toBeInTheDocument();
+    });
+
+    it("does not gate a normal student, an email account, or the onboarding page itself", () => {
+        useAuth.mockReturnValue({
+            authLoading: false,
+            isAuthenticated: true,
+            role: "student",
+            studentProfile: {
+                authentication_method: "email",
+                must_change_password: true,
+                onboarding: { required: false },
+                membership: { is_active: true }
+            }
+        });
+        renderRoutes();
+        expect(screen.getByText("受保護內容")).toBeInTheDocument();
+    });
+
     it("allows the dedicated onboarding route to render", () => {
         renderRoutes({ allowsIncompleteOnboarding: true });
         expect(screen.getByText("受保護內容")).toBeInTheDocument();

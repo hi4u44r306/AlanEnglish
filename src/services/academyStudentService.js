@@ -75,7 +75,7 @@ const callAcademyStudentManager = async (
         );
     }
 
-    if (["create_student", "create_staff_account", "create_invitation", "batch_create_students", "delete_student_account", "delete_invitation", "reissue_student_login_card"].includes(body?.action)) invalidateStaffPageCache(firebaseUser?.uid);
+    if (["create_student", "create_staff_account", "create_invitation", "batch_create_students", "delete_student_account", "delete_invitation", "reissue_student_login_card", "admin_reset_student_password"].includes(body?.action)) invalidateStaffPageCache(firebaseUser?.uid);
     return result;
 };
 
@@ -384,6 +384,21 @@ export const completeGuardianPasswordReset = async (token, password) => callAcad
     { allowAnonymous: true }
 );
 
+export const adminResetAcademyStudentPassword = async (
+    firebaseUser,
+    studentId,
+    confirmationUsername,
+    reason
+) => callAcademyStudentManager(
+    firebaseUser,
+    {
+        action: "admin_reset_student_password",
+        student_id: Number(studentId),
+        confirmation_username: String(confirmationUsername || "").trim().toLowerCase(),
+        reason: String(reason || "").trim()
+    }
+);
+
 export const deleteAcademyInvitation = async (
     firebaseUser,
     invitationId,
@@ -427,6 +442,7 @@ const academyStudentService = {
     activateStudentLogin,
     recoverStudentLogin,
     requestGuardianPasswordReset,
+    adminResetAcademyStudentPassword,
     previewGuardianPasswordReset,
     completeGuardianPasswordReset,
     previewAcademyStudents,

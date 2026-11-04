@@ -36,8 +36,12 @@ const ProtectedRoute = ({
 
     if (
         role === "student"
-        && studentProfile?.onboarding?.required === true
         && !allowsIncompleteOnboarding
+        && (
+            studentProfile?.onboarding?.required === true
+            // 管理員替已啟用的英文班學生重設密碼後，學生下次登入必須先自己設定新密碼。
+            || (studentProfile?.authentication_method === "academy_username" && studentProfile?.must_change_password === true)
+        )
     ) {
         return <Navigate to="/student/onboarding" replace state={{ from: location }} />;
     }
