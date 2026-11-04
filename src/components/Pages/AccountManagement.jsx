@@ -12,8 +12,11 @@ import "react-toastify/dist/ReactToastify.css";
 import { useAuth } from "../../auth/AuthContext";
 import {
     archiveManagedAccount,
+    confirmGuardianEmailChange,
+    getGuardianEmailStatus,
     getManagedAccounts,
     getManagedNicknameHistory,
+    requestGuardianEmailChange,
     restoreManagedAccount,
     updateManagedAccount
 } from "../../services/membershipService";
@@ -102,6 +105,9 @@ function AccountManagement() {
     const [passwordResetForm, setPasswordResetForm] = useState({ username: "", reason: "" });
     const [passwordResetting, setPasswordResetting] = useState(false);
     const [resetPasswordResult, setResetPasswordResult] = useState(null);
+    const [guardianChange, setGuardianChange] = useState(null);
+    const [guardianChangeForm, setGuardianChangeForm] = useState({ newEmail: "", confirmEmail: "", code: "" });
+    const [guardianChangeBusy, setGuardianChangeBusy] = useState(false);
     const [changingStatusId, setChangingStatusId] = useState(null);
     const [deleteTarget, setDeleteTarget] = useState(null);
     const [deleteConfirmation, setDeleteConfirmation] = useState("");
@@ -435,6 +441,63 @@ function AccountManagement() {
         }
     };
 
+    const openGuardianChange = async account => {
+        if (!isAdmin || !firebaseUser || !account?.id) return;
+        setGuardianChangeForm({ newEmail: "", confirmEmail: "", code: "" });
+        setGuardianChange({ account, status: null, requestId: null, newEmailMasked: "" });
+        try {
+            const status = await getGuardianEmailStatus(firebaseUser, account.id);
+            setGuardianChange(current => current && current.account.id === account.id ? {
+                ...current,
+                status,
+                requestId: status?.pending?.request_id || null,
+                newEmailMasked: status?.pending?.new_email_masked || ""
+            } : current);
+        } catch (error) {
+            toast.error(error?.message || "目前無法讀取家長 Email 狀態");
+        }
+    };
+
+    const closeGuardianChange = () => {
+        setGuardianChange(null);
+        setGuardianChangeForm({ newEmail: "", confirmEmail: "", code: "" });
+    };
+
+    const sendGuardianChangeCode = async event => {
+        event.preventDefault();
+        if (!isAdmin || !firebaseUser || !guardianChange?.account?.id || guardianChangeBusy) return;
+        setGuardianChangeBusy(true);
+        try {
+            const result = await requestGuardianEmailChange(firebaseUser, {
+                studentId: guardianChange.account.id,
+                newEmail: guardianChangeForm.newEmail,
+                confirmEmail: guardianChangeForm.confirmEmail
+            });
+            setGuardianChange(current => current ? { ...current, requestId: result?.request_id || null, newEmailMasked: result?.masked_email || "" } : current);
+            setGuardianChangeForm(current => ({ ...current, code: "" }));
+            toast.success("驗證碼已寄到新的家長 Email，請請家長把 6 位數驗證碼告訴你");
+        } catch (error) {
+            toast.error(error?.message || "寄送驗證碼失敗");
+        } finally {
+            setGuardianChangeBusy(false);
+        }
+    };
+
+    const confirmGuardianChange = async event => {
+        event.preventDefault();
+        if (!isAdmin || !firebaseUser || !guardianChange?.requestId || guardianChangeBusy) return;
+        setGuardianChangeBusy(true);
+        try {
+            await confirmGuardianEmailChange(firebaseUser, guardianChange.requestId, guardianChangeForm.code);
+            toast.success("家長 Email 已更換");
+            closeGuardianChange();
+        } catch (error) {
+            toast.error(error?.message || "驗證碼確認失敗");
+        } finally {
+            setGuardianChangeBusy(false);
+        }
+    };
+
     const openInvitationDelete = invitation => {
         if (!isAdmin || invitation.claimed_by_student_id) return;
         const email = String(invitation.invited_email || "").toLowerCase();
@@ -736,6 +799,9 @@ function AccountManagement() {
                                                                 暱稱紀錄
                                                             </button>
                                                         )}
+                                                        {isAdmin && account.role === "student" && account.account_status !== "archived" && (
+                                                            <button type="button" className="management-edit-button" onClick={() => openGuardianChange(account)}>更換家長 Email</button>
+                                                        )}
                                                         {isAdmin && account.role === "student" && (
                                                             <button type="button" className="management-edit-button" onClick={() => setBirthdayTarget(account)}>更正生日</button>
                                                         )}
@@ -897,6 +963,50 @@ function AccountManagement() {
                     </>
                 )}
             </section>
+
+            {guardianChange && (
+                <section className="management-panel" aria-labelledby="guardian-change-title">
+                    <div className="management-pending-heading">
+                        <div>
+                            <span className="management-eyebrow">Guardian email</span>
+                            <h2 id="guardian-change-title">更換 {guardianChange.account.name || guardianChange.account.login_username} 的家長 Email</h2>
+                            <p>
+                                目前的家長 Email：<strong>{guardianChange.status ? (guardianChange.status.current_email_masked || "尚未設定") : "讀取中…"}</strong>
+                                {guardianChange.status?.current_email_masked ? `（${guardianChange.status.current_email_verified ? "已驗證" : "尚未驗證"}）` : ""}。
+                                新的信箱會先收到一組 6 位數驗證碼，<strong>請確認是家長本人要求更換</strong>（例如聯絡簿留言或電話），再請家長把驗證碼告訴你。驗證成功前，舊的家長 Email 維持有效。
+                            </p>
+                        </div>
+                    </div>
+                    {!guardianChange.requestId ? (
+                        <form className="management-form" onSubmit={sendGuardianChangeCode}>
+                            <label>
+                                <span>新的家長 Email</span>
+                                <input type="email" value={guardianChangeForm.newEmail} onChange={event => setGuardianChangeForm(current => ({ ...current, newEmail: event.target.value }))} autoComplete="off" required />
+                            </label>
+                            <label>
+                                <span>再輸入一次新的家長 Email</span>
+                                <input type="email" value={guardianChangeForm.confirmEmail} onChange={event => setGuardianChangeForm(current => ({ ...current, confirmEmail: event.target.value }))} autoComplete="off" required />
+                            </label>
+                            <div className="management-form-actions">
+                                <button type="button" className="management-edit-button" onClick={closeGuardianChange} disabled={guardianChangeBusy}>取消</button>
+                                <button type="submit" className="management-reset-button" disabled={guardianChangeBusy || !guardianChangeForm.newEmail.trim() || !guardianChangeForm.confirmEmail.trim()}>{guardianChangeBusy ? "寄送中…" : "寄送驗證碼到新信箱"}</button>
+                            </div>
+                        </form>
+                    ) : (
+                        <form className="management-form" onSubmit={confirmGuardianChange}>
+                            <p>驗證碼已寄到 <strong>{guardianChange.newEmailMasked}</strong>，10 分鐘內有效。</p>
+                            <label>
+                                <span>家長告訴你的 6 位數驗證碼</span>
+                                <input inputMode="numeric" pattern="[0-9]{6}" maxLength={6} autoComplete="off" value={guardianChangeForm.code} onChange={event => setGuardianChangeForm(current => ({ ...current, code: event.target.value.replace(/\D/g, "") }))} required />
+                            </label>
+                            <div className="management-form-actions">
+                                <button type="button" className="management-edit-button" onClick={() => setGuardianChange(current => current ? { ...current, requestId: null, newEmailMasked: "" } : current)} disabled={guardianChangeBusy}>重新輸入信箱</button>
+                                <button type="submit" className="management-reset-button" disabled={guardianChangeBusy || guardianChangeForm.code.length !== 6}>{guardianChangeBusy ? "確認中…" : "確認更換"}</button>
+                            </div>
+                        </form>
+                    )}
+                </section>
+            )}
 
             {passwordResetTarget && (
                 <section className="management-panel" aria-labelledby="password-reset-title">

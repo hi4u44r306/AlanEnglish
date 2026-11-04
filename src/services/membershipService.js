@@ -1,7 +1,7 @@
 import { invalidateStaffPageCache } from "./staffPageCache";
 import { callEdgeFunction } from "./edgeFunctionClient";
 
-const STAFF_DISPLAY_WRITES = new Set(["update_account", "archive_account", "restore_account", "admin_correct_birth_date", "admin_update_plan", "admin_grant_access", "admin_set_membership_status", "update_student_profile"]);
+const STAFF_DISPLAY_WRITES = new Set(["update_account", "archive_account", "restore_account", "admin_correct_birth_date", "admin_update_plan", "admin_grant_access", "admin_set_membership_status", "update_student_profile", "admin_confirm_guardian_email_change"]);
 const callMembership = async (firebaseUser, action, payload = {}) => {
     const result = await callEdgeFunction("membership-manager", firebaseUser, { action, ...payload });
     if (STAFF_DISPLAY_WRITES.has(action)) invalidateStaffPageCache(firebaseUser?.uid);
@@ -18,6 +18,21 @@ export const requestGuardianEmailVerification = (firebaseUser, guardianEmail) =>
 export const confirmGuardianEmailVerification = (firebaseUser, requestId, code) => callMembership(
     firebaseUser,
     "confirm_guardian_email_verification",
+    { request_id: requestId, code }
+);
+export const getGuardianEmailStatus = (firebaseUser, studentId) => callMembership(
+    firebaseUser,
+    "admin_guardian_email_status",
+    { student_id: studentId }
+);
+export const requestGuardianEmailChange = (firebaseUser, { studentId, newEmail, confirmEmail }) => callMembership(
+    firebaseUser,
+    "admin_request_guardian_email_change",
+    { student_id: studentId, new_email: newEmail, confirm_email: confirmEmail }
+);
+export const confirmGuardianEmailChange = (firebaseUser, requestId, code) => callMembership(
+    firebaseUser,
+    "admin_confirm_guardian_email_change",
     { request_id: requestId, code }
 );
 export const getStudentNotifications = (firebaseUser, payload = {}) => callMembership(firebaseUser, "notifications", payload);
