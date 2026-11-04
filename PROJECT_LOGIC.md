@@ -841,6 +841,7 @@ features.assignments = true
 - 管理員可立即列印 A4 登入卡，或直接下載 A4 Word／PDF 登入卡檔；每位學生的中文姓名、英文姓名、帳號、一次性臨時密碼與兩組復原碼集中在同一格左側，右側放大顯示 QR Code，每頁 12 格（2 欄 × 6 列，每格 5953 × 2800 twips，約 105 × 49.4 mm，6 列撐滿 A4 高度，Word 與 PDF 相同）並盡量使用完整格子空間。QR Code 與 PDF 頁面必須在瀏覽器本機產生，不得將啟用連結交給第三方服務。
 - 學生可以使用登入帳號與一次性臨時密碼登入，或沿用 QR 啟用流程；使用臨時密碼登入後，所有一般學生頁都必須導向首次登入設定，直到完成更換密碼與家長 Email 驗證（2026-11-04 起不再要求生日；完成條件在 `complete_student_onboarding_if_ready`，不得再加回 date_of_birth）。
 - 後端只有在 Firebase 帳號的 `passwordUpdatedAt` 晚於臨時密碼發放時間時，才可清除 `must_change_password`；不得只相信前端宣稱已改密碼。
+- 英文班學生忘記密碼可寄一次性重設連結到「已驗證且確實收過驗證碼」的家長 Email（`academy-student-manager` 的 `request_guardian_password_reset` 等三個免登入 action）：token 只存雜湊、30 分鐘、一次性；所有情況回同一句話並補齊回應時間；限流以帳號雜湊與來源雜湊計算（與帳號是否存在無關）；改密碼順序固定為保留 → 改 Firebase → 完成。家長信箱只能經驗證流程變更，老師不可直接換（見 `learning-activity` 的 `guardian_upsert`）。
 - 生日只允許學生在尚未設定時寫入一次，設定後不可由學生修改；此欄位會影響生日獎勵，資料庫必須防止一般更新繞過限制。
 - 家長 Email 驗證碼有效 10 分鐘並限制寄送與錯誤嘗試次數；資料庫只保存 keyed hash，不保存明文驗證碼。更換 Email 時先保存 pending 值，驗證成功後才原子替換正式聯絡信箱；未驗證或寄送失敗時原信箱維持不變。
 - 學生掃描登入卡後必須確認或補齊中文姓名與英文姓名，再自行設定至少 6 個字元的密碼；中英文姓名與密碼均由 Edge Function 再次驗證，不可信任前端 required。密碼可使用小寫英文、數字或符號，前端與 Edge Function 必須採用相同的最短長度規則。

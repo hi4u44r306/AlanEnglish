@@ -700,3 +700,10 @@ textarea { resize: vertical; }
 .platform-link-button:focus-visible { outline: 2px solid #2a5fa8; outline-offset: 2px; border-radius: 6px; }
 .platform-card-hint { min-width: 0; }
 @media (max-width: 420px) { .platform-card-hint__qr { display: none; } .platform-card-hint dl > div.is-target { flex-wrap: wrap; } }
+
+/* 忘記密碼：兩個方法的區塊 */
+.platform-reset-option { margin: 22px 0 0; padding: 18px 16px; border: 1px solid #dbe5f3; border-radius: 16px; background: #fbfdff; text-align: left; }
+.platform-reset-option h2 { margin: 0 0 10px; font-size: 17px; color: #16355d; }
+.platform-reset-option > p { margin: 0; color: var(--ae-text-muted, #53627a); line-height: 1.7; }
+.platform-reset-option .platform-form > p { margin: 0 0 4px; color: var(--ae-text-muted, #53627a); line-height: 1.7; }
+.platform-reset-option .platform-verification-notice { margin: 0; line-height: 1.7; }
