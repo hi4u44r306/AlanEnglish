@@ -4,7 +4,6 @@ import useStaffView from "../../hooks/useStaffView";
 import useStaffPageQuery from "../../hooks/useStaffPageQuery";
 import ReadRefreshStatus from "../fragment/ReadRefreshStatus";
 import QRCode from "qrcode";
-import AdminBirthDateDialog from "../fragment/AdminBirthDateDialog";
 import TeacherClassPermissions from "../fragment/TeacherClassPermissions";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -127,11 +126,6 @@ function AccountManagement() {
     const setAccountStatusFilter = value => setFilter("accountStatusFilter", value);
     const setAccessFilter = value => setFilter("accessFilter", value);
     const accountList = useRef(null);
-    const [birthdayTarget, setBirthdayTarget] = useState(null);
-    const closeBirthdayDialog = useCallback(() => setBirthdayTarget(null), []);
-    const saveBirthdayInList = useCallback(student => {
-        setAccounts(items => items.map(item => Number(item.id) === Number(student.id) ? { ...item, date_of_birth: student.date_of_birth } : item));
-    }, [setAccounts]);
     const [editingAccount, setEditingAccount] = useState(null);
     const [editForm, setEditForm] = useState({
         name: "",
@@ -788,9 +782,6 @@ function AccountManagement() {
                                                         {isAdmin && account.role === "student" && account.account_status !== "archived" && (
                                                             <button type="button" className="management-edit-button" onClick={() => openGuardianChange(account)}>更換家長 Email</button>
                                                         )}
-                                                        {isAdmin && account.role === "student" && (
-                                                            <button type="button" className="management-edit-button" onClick={() => setBirthdayTarget(account)}>更正生日</button>
-                                                        )}
                                                         {isAdmin && account.email && account.authentication_method !== "academy_username" && account.account_status !== "archived" && (
                                                             <button
                                                                 type="button"
@@ -1174,8 +1165,6 @@ function AccountManagement() {
                     </section>
                 </div>
             )}
-
-            {isAdmin && birthdayTarget && <AdminBirthDateDialog key={birthdayTarget.id} account={birthdayTarget} onClose={closeBirthdayDialog} onSaved={saveBirthdayInList} />}
 
             {nicknameHistoryTarget && (
                 <div className="management-delete-backdrop" role="presentation">
