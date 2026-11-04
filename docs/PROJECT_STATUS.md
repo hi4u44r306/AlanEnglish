@@ -15,7 +15,7 @@
 
 - 來源：重度調查結論——既有「重新發登入卡」只能用在尚未啟用的帳號；學生復原碼也用完時，管理員沒有任何自助辦法。
 - 資料庫（新 migration `20261104110000_admin_student_password_reset.sql`，只新增）：稽核表 `academy_student_password_admin_resets`（RLS 開啟、全部 revoke、不存密碼）＋函式 `admin_record_student_password_reset_v1`（只有 service_role 能執行；再次確認管理員有效、學生已啟用；標記 `must_change_password`；發放時間用後端傳入的「Firebase 改密碼時間＋2 秒」，避免管理員設定臨時密碼被誤判成學生已改密碼）。
-- 後端（`academy-student-manager`）：`admin_reset_student_password`——只有管理員；要輸入學生帳號確認、寫原因；**先改 Firebase 密碼（並使舊登入失效）再記錄**；臨時密碼只回給管理員一次，不寫 log、不進稽核表。
+- 後端（`academy-student-manager`）：`admin_reset_student_password`——只有管理員；要輸入學生帳號確認、寫原因；**先改 Firebase 密碼（並使舊登入失效）再記錄**；臨時密碼是隨機 8 位數字（10000000～99999999，無「Ae-」前綴；用密碼學亂數＋拒絕抽樣），只回給管理員一次，不寫 log、不進稽核表。取捨：比登入卡的 `Ae-XXXX-XXXX` 好猜（約 9 千萬種 vs 一兆種），所以學生登入後必須立刻自己改掉。擁有者先要 6 位數，看過風險後改成 8 位數。
 - 前端：`AccountManagement.jsx` 新增管理員專用「重設密碼」面板與一次性顯示臨時密碼；`ProtectedRoute.jsx` 與 `Login.jsx`：已啟用的英文班學生若 `must_change_password` 為 true，導到 `/student/onboarding` 先設定新密碼（Email 帳號不受影響）。
 - 驗證：`AccountManagement`、`ProtectedRoute`、`Login` 測試 30 項通過（新增 4 項：管理員流程與一次性顯示、未啟用與老師看不到、導流兩項）；新增 `scripts/admin-student-password-reset-contract.test.mjs`；`deno check` 無錯誤。
 - 部署順序（不可反）：先套用 migration → 部署 `academy-student-manager` → 再合併前端。需先合併 #648（同一支後端檔）。回復：移除稽核表與函式、重新部署舊版後端。

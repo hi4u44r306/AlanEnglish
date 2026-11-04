@@ -647,6 +647,18 @@ const createTemporaryPassword = (): string => {
     return `Ae-${compact.slice(0, 4)}-${compact.slice(4, 8)}`;
 };
 
+// 管理員重設密碼用：隨機 8 位數字（10000000～99999999），沒有前綴。用拒絕抽樣避免取餘數造成的偏差。
+// 比登入卡上的「Ae-XXXX-XXXX」好猜，所以學生登入後必須立刻自己改掉。
+const createNumericTemporaryPassword = (): string => {
+    const range = 90_000_000;
+    const limit = Math.floor(0x1_0000_0000 / range) * range;
+    const values = new Uint32Array(1);
+    do {
+        crypto.getRandomValues(values);
+    } while (values[0] >= limit);
+    return String(10_000_000 + (values[0] % range));
+};
+
 const createFirebaseAccount = async (
     input: StudentInput,
     temporaryPassword: string
@@ -1596,7 +1608,7 @@ const adminResetStudentPassword = async (
         throw new HttpError(400, "CONFIRMATION_MISMATCH", "請輸入這位學生的登入帳號來確認");
     }
 
-    const temporaryPassword = createTemporaryPassword();
+    const temporaryPassword = createNumericTemporaryPassword();
     await updateFirebasePasswordByUid(cleanText(student.firebase_uid, 200), temporaryPassword);
 
     const { data, error } = await admin.rpc("admin_record_student_password_reset_v1", {

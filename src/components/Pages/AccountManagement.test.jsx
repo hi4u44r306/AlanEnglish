@@ -288,7 +288,7 @@ describe("AccountManagement", () => {
         adminResetAcademyStudentPassword.mockResolvedValue({
             success: true,
             account: { id: 67, name: "E3 測試學生", username: "e3teststudent" },
-            credentials: { username: "e3teststudent", temporary_password: "Ae-TEST-0000", shown_once: true }
+            credentials: { username: "e3teststudent", temporary_password: "48291357", shown_once: true }
         });
         renderPage();
 
@@ -302,11 +302,11 @@ describe("AccountManagement", () => {
         await waitFor(() => expect(adminResetAcademyStudentPassword).toHaveBeenCalledWith(
             firebaseUser, 67, "E3TestStudent", "家長說孩子忘記密碼"
         ));
-        expect(await screen.findByText("Ae-TEST-0000")).toBeInTheDocument();
+        expect(await screen.findByText("48291357")).toBeInTheDocument();
         expect(screen.getByText(/只在目前畫面顯示一次/)).toBeInTheDocument();
 
         fireEvent.click(screen.getByRole("button", { name: "已抄下，關閉" }));
-        expect(screen.queryByText("Ae-TEST-0000")).not.toBeInTheDocument();
+        expect(screen.queryByText("48291357")).not.toBeInTheDocument();
     });
 
     test("does not offer a password reset for an unactivated student or to a teacher", async () => {
