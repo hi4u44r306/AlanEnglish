@@ -309,6 +309,32 @@ describe("AccountManagement", () => {
         expect(screen.queryByText("48291357")).not.toBeInTheDocument();
     });
 
+    test("scrolls the password reset panel and the temporary password into view when they appear", async () => {
+        const scroll = jest.fn();
+        window.HTMLElement.prototype.scrollIntoView = scroll;
+        try {
+            getManagedAccounts.mockResolvedValue({ accounts: [{ ...academyStudent, activated_at: "2026-10-01T00:00:00Z" }] });
+            adminResetAcademyStudentPassword.mockResolvedValue({
+                success: true,
+                account: { id: 67, name: "E3 測試學生", username: "e3teststudent" },
+                credentials: { username: "e3teststudent", temporary_password: "48291357", shown_once: true }
+            });
+            renderPage();
+
+            fireEvent.click(await screen.findByRole("button", { name: "重設密碼" }));
+            await waitFor(() => expect(scroll).toHaveBeenCalledTimes(1));
+            expect(scroll).toHaveBeenLastCalledWith(expect.objectContaining({ block: "start" }));
+
+            fireEvent.change(screen.getByLabelText(/輸入這位學生的登入帳號/), { target: { value: "e3teststudent" } });
+            fireEvent.change(screen.getByLabelText(/重設原因/), { target: { value: "測試" } });
+            fireEvent.click(screen.getByRole("button", { name: "產生新的臨時密碼" }));
+            expect(await screen.findByText("48291357")).toBeInTheDocument();
+            await waitFor(() => expect(scroll).toHaveBeenCalledTimes(2));
+        } finally {
+            delete window.HTMLElement.prototype.scrollIntoView;
+        }
+    });
+
     test("does not offer a password reset for an unactivated student or to a teacher", async () => {
         renderPage();
         await screen.findByText("E3 測試學生");
