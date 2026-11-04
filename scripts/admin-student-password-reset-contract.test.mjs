@@ -48,6 +48,11 @@ assert.ok(
     "順序必須是：先改 Firebase 密碼，再記錄發放時間"
 );
 assert.match(fn, /p_issued_at: new Date\(Date\.now\(\) \+ 2000\)\.toISOString\(\)/);
+assert.match(fn, /createNumericTemporaryPassword\(\)/, "管理員重設用隨機 8 位數字");
+const numeric = sliceBetween(edge, "const createNumericTemporaryPassword = ", "const createFirebaseAccount = async (");
+assert.match(numeric, /range = 90_000_000/);
+assert.match(numeric, /crypto\.getRandomValues/, "要用密碼學等級的亂數");
+assert.match(numeric, /10_000_000 \+ \(values\[0\] % range\)/, "範圍是 10000000 到 99999999");
 assert.doesNotMatch(fn, /console\.(log|error|warn)\([^)]*temporaryPassword/, "不可記錄臨時密碼");
 assert.doesNotMatch(fn, /console\.(log|error|warn)\([^)]*temporary_password/, "不可記錄臨時密碼");
 
