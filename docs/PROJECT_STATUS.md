@@ -1,5 +1,12 @@
 # Alan English 專案狀態
 
+### 重設密碼面板自動捲動、用臨時密碼登入後直接改密碼（2026-11-04，分支 `fix/autoscroll-and-direct-password-change`；尚未合併）
+
+- 來源：擁有者試用時發現面板在列表下方看不到；並要求「用臨時密碼登入後，不用再輸入一次臨時密碼，直接改密碼」。
+- 改動：①`AccountManagement.jsx`：「重設密碼」「更換家長 Email」面板與「新的臨時密碼」面板出現時自動 `scrollIntoView`（尊重 prefers-reduced-motion）並聚焦第一個欄位；工具函式放在元件外避免 hooks 相依警告。②`StudentOnboarding.jsx`：設定密碼步驟移除「目前的臨時密碼」欄位，直接 `updatePassword`；新密碼不能等於臨時密碼（用新密碼當目前密碼嘗試重新驗證，成功就代表相同而擋下）；只有 Firebase 回 `auth/requires-recent-login` 時才多出臨時密碼欄位並重新驗證。③`StudentOnboarding.scss`：說明文字樣式。
+- 驗證：`StudentOnboarding`、`AccountManagement` 測試 32 項通過（新增 4 項：直接改密碼、與臨時密碼相同被擋、登入太久才要求再輸入、面板自動捲動）；用真實樣式在 1280／768／412／360 看版面無溢出。
+- 取捨：少打一次臨時密碼更方便，但「新密碼＝臨時密碼」的檢查改成多打一次登入服務的驗證請求；登入已久時學生仍會看到一次臨時密碼欄位。
+- 未驗證：正式站實際畫面；「登入太久才要求重新確認身分」的情況只用測試模擬，沒有用真實帳號放很久再試。
 ### 帳號管理拿掉「更正生日」按鈕（2026-11-04，分支 `fix/remove-admin-birthday-button`；尚未合併）
 
 - 來源：擁有者要求（首次登入已不填生日，沒有地方需要更正）。

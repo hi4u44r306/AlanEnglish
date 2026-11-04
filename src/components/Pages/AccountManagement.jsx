@@ -81,6 +81,15 @@ const getAccountActivationStatus = (account, invitationByEmail) => {
     return invitation?.status || (account.must_change_password ? "direct_pending" : "legacy");
 };
 
+// 面板在列表下方，按下按鈕後自動捲過去（尊重「減少動態效果」設定），並把游標放進第一個欄位。
+const scrollPanelIntoView = ref => {
+    const element = ref.current;
+    if (!element || typeof element.scrollIntoView !== "function") return;
+    const reduceMotion = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+    element.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+    element.querySelector("input, textarea")?.focus({ preventScroll: true });
+};
+
 function AccountManagement() {
     const { firebaseUser, role, studentProfile } = useAuth();
     const accountQuery = useStaffPageQuery("accounts", async () => {
@@ -106,6 +115,12 @@ function AccountManagement() {
     const [guardianChange, setGuardianChange] = useState(null);
     const [guardianChangeForm, setGuardianChangeForm] = useState({ newEmail: "", confirmEmail: "", reason: "" });
     const [guardianChangeBusy, setGuardianChangeBusy] = useState(false);
+    const passwordResetPanelRef = useRef(null);
+    const guardianChangePanelRef = useRef(null);
+    const resetResultPanelRef = useRef(null);
+    useEffect(() => { if (passwordResetTarget) scrollPanelIntoView(passwordResetPanelRef); }, [passwordResetTarget]);
+    useEffect(() => { if (guardianChange?.account?.id) scrollPanelIntoView(guardianChangePanelRef); }, [guardianChange?.account?.id]);
+    useEffect(() => { if (resetPasswordResult) scrollPanelIntoView(resetResultPanelRef); }, [resetPasswordResult]);
     const [changingStatusId, setChangingStatusId] = useState(null);
     const [deleteTarget, setDeleteTarget] = useState(null);
     const [deleteConfirmation, setDeleteConfirmation] = useState("");
@@ -942,7 +957,7 @@ function AccountManagement() {
             </section>
 
             {guardianChange && (
-                <section className="management-panel" aria-labelledby="guardian-change-title">
+                <section className="management-panel" ref={guardianChangePanelRef} aria-labelledby="guardian-change-title">
                     <div className="management-pending-heading">
                         <div>
                             <span className="management-eyebrow">Guardian email</span>
@@ -976,7 +991,7 @@ function AccountManagement() {
             )}
 
             {passwordResetTarget && (
-                <section className="management-panel" aria-labelledby="password-reset-title">
+                <section className="management-panel" ref={passwordResetPanelRef} aria-labelledby="password-reset-title">
                     <div className="management-pending-heading">
                         <div>
                             <span className="management-eyebrow">Reset password</span>
@@ -1002,7 +1017,7 @@ function AccountManagement() {
             )}
 
             {resetPasswordResult?.credentials && (
-                <section className="management-panel management-login-card-panel" aria-live="polite">
+                <section className="management-panel management-login-card-panel" ref={resetResultPanelRef} aria-live="polite">
                     <div className="management-pending-heading">
                         <div>
                             <span className="management-eyebrow">Temporary password</span>

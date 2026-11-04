@@ -9,6 +9,8 @@ import {
     requestGuardianEmailVerification
 } from "../../services/membershipService";
 import { enableWebPush, getCurrentWebPushStatus, getWebPushAvailability, getWebPushConfig } from "../../services/webPushService";
+import { EmailAuthProvider, reauthenticateWithCredential, updatePassword } from "firebase/auth";
+import { markAcademyPasswordChanged } from "../../services/academyStudentService";
 
 jest.mock("../../auth/AuthContext", () => ({ useAuth: jest.fn() }));
 jest.mock("../../services/membershipService", () => ({
@@ -180,6 +182,59 @@ describe("StudentOnboarding", () => {
             expect.objectContaining({ email: "student@example.com" }),
             "parent@example.com"
         ));
+    });
+
+    it("lets a student who just logged in with the temporary password set a new one directly, without typing the temporary password again", async () => {
+        reauthenticateWithCredential.mockRejectedValue({ code: "auth/invalid-credential" });
+        updatePassword.mockResolvedValue();
+        markAcademyPasswordChanged.mockResolvedValue({ success: true });
+        render(<MemoryRouter><StudentOnboarding /></MemoryRouter>);
+
+        expect(screen.queryByLabelText(/臨時密碼/)).not.toBeInTheDocument();
+        expect(screen.getByText(/不用再輸入一次臨時密碼/)).toBeInTheDocument();
+        fireEvent.change(screen.getByLabelText("新密碼"), { target: { value: "my-new-pass" } });
+        fireEvent.change(screen.getByLabelText("再輸入一次"), { target: { value: "my-new-pass" } });
+        fireEvent.click(screen.getByRole("button", { name: "設定新密碼" }));
+
+        await waitFor(() => expect(updatePassword).toHaveBeenCalledWith(expect.objectContaining({ email: "student@example.com" }), "my-new-pass"));
+        await waitFor(() => expect(markAcademyPasswordChanged).toHaveBeenCalled());
+        expect(refreshStudentProfile).toHaveBeenCalled();
+    });
+
+    it("does not allow the new password to be the same as the temporary password", async () => {
+        reauthenticateWithCredential.mockResolvedValue({});
+        render(<MemoryRouter><StudentOnboarding /></MemoryRouter>);
+
+        fireEvent.change(screen.getByLabelText("新密碼"), { target: { value: "48291357" } });
+        fireEvent.change(screen.getByLabelText("再輸入一次"), { target: { value: "48291357" } });
+        fireEvent.click(screen.getByRole("button", { name: "設定新密碼" }));
+
+        expect(await screen.findByRole("alert")).toHaveTextContent("新密碼不可與一次性臨時密碼相同");
+        expect(updatePassword).not.toHaveBeenCalled();
+        expect(markAcademyPasswordChanged).not.toHaveBeenCalled();
+    });
+
+    it("only asks for the temporary password again when Firebase wants a fresh sign-in", async () => {
+        reauthenticateWithCredential.mockRejectedValueOnce({ code: "auth/invalid-credential" });
+        updatePassword
+            .mockRejectedValueOnce({ code: "auth/requires-recent-login" })
+            .mockResolvedValueOnce();
+        markAcademyPasswordChanged.mockResolvedValue({ success: true });
+        render(<MemoryRouter><StudentOnboarding /></MemoryRouter>);
+
+        fireEvent.change(screen.getByLabelText("新密碼"), { target: { value: "my-new-pass" } });
+        fireEvent.change(screen.getByLabelText("再輸入一次"), { target: { value: "my-new-pass" } });
+        fireEvent.click(screen.getByRole("button", { name: "設定新密碼" }));
+
+        expect(await screen.findByRole("alert")).toHaveTextContent("請再輸入一次剛剛登入用的一次性臨時密碼");
+        const current = await screen.findByLabelText("剛剛登入用的一次性臨時密碼");
+        fireEvent.change(current, { target: { value: "48291357" } });
+        reauthenticateWithCredential.mockResolvedValueOnce({});
+        fireEvent.click(screen.getByRole("button", { name: "設定新密碼" }));
+
+        await waitFor(() => expect(EmailAuthProvider.credential).toHaveBeenCalledWith("student@example.com", "48291357"));
+        await waitFor(() => expect(updatePassword).toHaveBeenCalledTimes(2));
+        await waitFor(() => expect(markAcademyPasswordChanged).toHaveBeenCalled());
     });
 
     it("does not replace the guardian email until the code is confirmed", async () => {

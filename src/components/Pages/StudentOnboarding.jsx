@@ -18,7 +18,7 @@ import "./css/StudentOnboarding.scss";
 
 const passwordError = error => {
     if (["auth/invalid-credential", "auth/wrong-password"].includes(error?.code)) {
-        return "目前密碼不正確，請使用登入卡上的一次性臨時密碼。";
+        return "臨時密碼不正確，請輸入剛剛登入用的那一組一次性臨時密碼。";
     }
     if (error?.code === "auth/too-many-requests") return "嘗試次數過多，請稍後再試。";
     if (error?.code === "auth/requires-recent-login") return "登入狀態已過期，請登出後重新登入。";
@@ -44,6 +44,8 @@ function StudentOnboarding() {
     } = useAuth();
     const steps = studentProfile?.onboarding?.steps || {};
     const [passwordForm, setPasswordForm] = useState({ current: "", next: "", confirm: "" });
+    // 剛用臨時密碼登入時，直接設定新密碼就好；只有登入太久、Firebase 要求重新確認身分時，才請他再輸入一次臨時密碼。
+    const [needCurrentPassword, setNeedCurrentPassword] = useState(false);
     const [guardianEmail, setGuardianEmail] = useState(studentProfile?.guardian?.email || "");
     const [guardianEmailAgain, setGuardianEmailAgain] = useState("");
     const [pendingGuardianEmail, setPendingGuardianEmail] = useState("");
@@ -129,6 +131,20 @@ function StudentOnboarding() {
         setMessage({ type: "success", text: "已略過裝置通知。之後可隨時到選單的「通知設定」開啟。" });
     };
 
+    // 用「新密碼」當作目前密碼重新驗證一次：成功代表新密碼和臨時密碼一樣，不允許。
+    const matchesCurrentPassword = async candidate => {
+        try {
+            await reauthenticateWithCredential(
+                firebaseUser,
+                EmailAuthProvider.credential(firebaseUser.email, candidate)
+            );
+            return true;
+        } catch (error) {
+            if (["auth/invalid-credential", "auth/wrong-password"].includes(error?.code)) return false;
+            throw error;
+        }
+    };
+
     const changePassword = async event => {
         event.preventDefault();
         setMessage({ type: "", text: "" });
@@ -139,21 +155,37 @@ function StudentOnboarding() {
         if (passwordForm.next !== passwordForm.confirm) {
             return setMessage({ type: "error", text: "兩次輸入的新密碼不一致。" });
         }
-        if (passwordForm.current === passwordForm.next) {
+        if (needCurrentPassword && !passwordForm.current) {
+            return setMessage({ type: "error", text: "請輸入剛剛登入用的一次性臨時密碼。" });
+        }
+        if (needCurrentPassword && passwordForm.current === passwordForm.next) {
             return setMessage({ type: "error", text: "新密碼不可與一次性臨時密碼相同。" });
         }
 
         setWorking("password");
         try {
-            await reauthenticateWithCredential(
-                firebaseUser,
-                EmailAuthProvider.credential(firebaseUser.email, passwordForm.current)
-            );
-            await updatePassword(firebaseUser, passwordForm.next);
+            if (needCurrentPassword) {
+                await reauthenticateWithCredential(
+                    firebaseUser,
+                    EmailAuthProvider.credential(firebaseUser.email, passwordForm.current)
+                );
+            } else if (await matchesCurrentPassword(passwordForm.next)) {
+                return setMessage({ type: "error", text: "新密碼不可與一次性臨時密碼相同，請設定你自己的密碼。" });
+            }
+            try {
+                await updatePassword(firebaseUser, passwordForm.next);
+            } catch (updateError) {
+                if (updateError?.code === "auth/requires-recent-login" && !needCurrentPassword) {
+                    setNeedCurrentPassword(true);
+                    return setMessage({ type: "error", text: "為了安全，請再輸入一次剛剛登入用的一次性臨時密碼，確認是你本人。" });
+                }
+                throw updateError;
+            }
             await firebaseUser.getIdToken(true);
             await markAcademyPasswordChanged(firebaseUser);
             await refreshStudentProfile();
             setPasswordForm({ current: "", next: "", confirm: "" });
+            setNeedCurrentPassword(false);
             setMessage({ type: "success", text: "新密碼已設定。請繼續完成下面的資料。" });
         } catch (error) {
             setMessage({ type: "error", text: passwordError(error) });
@@ -249,7 +281,9 @@ function StudentOnboarding() {
                         <p>密碼已更換完成。之後請使用新密碼登入。</p>
                     ) : (
                         <form onSubmit={changePassword}>
-                            <label><span>目前的一次性臨時密碼</span><input type="password" autoComplete="current-password" value={passwordForm.current} onChange={event => setPasswordForm(current => ({ ...current, current: event.target.value }))} required /></label>
+                            {needCurrentPassword
+                                ? <label><span>剛剛登入用的一次性臨時密碼</span><input type="password" autoComplete="current-password" value={passwordForm.current} onChange={event => setPasswordForm(current => ({ ...current, current: event.target.value }))} required /></label>
+                                : <p className="student-onboarding-direct-note">你剛剛已經用臨時密碼登入了，現在直接設定自己的新密碼就好，不用再輸入一次臨時密碼。</p>}
                             <div className="student-onboarding-form-grid">
                                 <label><span>新密碼</span><input type="password" autoComplete="new-password" minLength={6} value={passwordForm.next} onChange={event => setPasswordForm(current => ({ ...current, next: event.target.value }))} required /></label>
                                 <label><span>再輸入一次</span><input type="password" autoComplete="new-password" minLength={6} value={passwordForm.confirm} onChange={event => setPasswordForm(current => ({ ...current, confirm: event.target.value }))} required /></label>
