@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { EmailAuthProvider, reauthenticateWithCredential, updatePassword } from "firebase/auth";
-import { FiBell, FiCheck, FiLock, FiMail, FiShield } from "react-icons/fi";
+import { FiAlertTriangle, FiBell, FiCheck, FiLock, FiMail } from "react-icons/fi";
 import { useAuth } from "../../auth/AuthContext";
 import {
     confirmGuardianEmailVerification,
-    requestGuardianEmailVerification,
-    updateStudentProfile
+    requestGuardianEmailVerification
 } from "../../services/membershipService";
 import { markAcademyPasswordChanged } from "../../services/academyStudentService";
 import {
@@ -15,7 +14,6 @@ import {
     getWebPushAvailability,
     getWebPushConfig
 } from "../../services/webPushService";
-import BirthdaySelect from "../fragment/BirthdaySelect";
 import "./css/StudentOnboarding.scss";
 
 const passwordError = error => {
@@ -26,6 +24,8 @@ const passwordError = error => {
     if (error?.code === "auth/requires-recent-login") return "登入狀態已過期，請登出後重新登入。";
     return error?.message || "目前無法更新密碼，請稍後再試。";
 };
+
+const normalizeEmail = value => String(value || "").trim().toLowerCase();
 
 function StepStatus({ complete }) {
     return complete
@@ -44,8 +44,9 @@ function StudentOnboarding() {
     } = useAuth();
     const steps = studentProfile?.onboarding?.steps || {};
     const [passwordForm, setPasswordForm] = useState({ current: "", next: "", confirm: "" });
-    const [birthday, setBirthday] = useState(studentProfile?.date_of_birth || "");
     const [guardianEmail, setGuardianEmail] = useState(studentProfile?.guardian?.email || "");
+    const [guardianEmailAgain, setGuardianEmailAgain] = useState("");
+    const [pendingGuardianEmail, setPendingGuardianEmail] = useState("");
     const [verification, setVerification] = useState({ requestId: null, maskedEmail: "", code: "" });
     const [working, setWorking] = useState("");
     const [message, setMessage] = useState({ type: "", text: "" });
@@ -61,21 +62,18 @@ function StudentOnboarding() {
 
     const completedCount = [
         steps.password_complete,
-        steps.birthday_complete,
         steps.guardian_email_complete
     ].filter(Boolean).length;
 
     const activeStep = !steps.password_complete ? "password"
-        : !steps.birthday_complete ? "birthday"
-            : !steps.guardian_email_complete ? "guardian" : "done";
+        : !steps.guardian_email_complete ? "guardian" : "done";
 
     useEffect(() => {
-        setBirthday(studentProfile?.date_of_birth || "");
         setGuardianEmail(studentProfile?.guardian?.email || "");
-    }, [studentProfile?.date_of_birth, studentProfile?.guardian?.email]);
+    }, [studentProfile?.guardian?.email]);
 
     useEffect(() => {
-        if (!shouldOfferPush || !firebaseUser || completedCount < 3) return undefined;
+        if (!shouldOfferPush || !firebaseUser || completedCount < 2) return undefined;
         let cancelled = false;
         const availability = getWebPushAvailability();
         setPushStatus({ ...availability, active: false });
@@ -98,7 +96,7 @@ function StudentOnboarding() {
     useEffect(() => {
         if (
             studentProfile?.onboarding?.required !== false
-            || completedCount < 3
+            || completedCount < 2
             || (shouldOfferPush && !pushDecisionMade)
         ) return;
         const requested = location.state?.from;
@@ -164,28 +162,22 @@ function StudentOnboarding() {
         }
     };
 
-    const saveBirthday = async event => {
+    const reviewGuardianEmail = event => {
         event.preventDefault();
         setMessage({ type: "", text: "" });
-        if (!birthday) return setMessage({ type: "error", text: "請選擇正確的出生年月日。" });
-        setWorking("birthday");
-        try {
-            await updateStudentProfile(firebaseUser, { date_of_birth: birthday });
-            await refreshStudentProfile();
-            setMessage({ type: "success", text: "生日已保存。設定後不可自行修改。" });
-        } catch (error) {
-            setMessage({ type: "error", text: error?.message || "目前無法保存生日。" });
-        } finally {
-            setWorking("");
+        const first = normalizeEmail(guardianEmail);
+        if (first !== normalizeEmail(guardianEmailAgain)) {
+            return setMessage({ type: "error", text: "兩次輸入的家長 Email 不一致，請再確認。" });
         }
+        setPendingGuardianEmail(first);
     };
 
-    const sendGuardianCode = async event => {
-        event.preventDefault();
+    const sendGuardianCode = async () => {
         setMessage({ type: "", text: "" });
         setWorking("guardian-send");
         try {
-            const result = await requestGuardianEmailVerification(firebaseUser, guardianEmail);
+            const result = await requestGuardianEmailVerification(firebaseUser, pendingGuardianEmail);
+            setPendingGuardianEmail("");
             if (result?.already_verified) {
                 await refreshStudentProfile();
                 setMessage({ type: "success", text: "這個家長 Email 已完成驗證。" });
@@ -234,14 +226,14 @@ function StudentOnboarding() {
                     <span>FIRST LOGIN</span>
                     <h1>第一次登入，先完成帳號設定</h1>
                     <p>一次完成一個步驟。需要填寫家長資料時，可以請家長一起協助。</p>
-                    <div className="student-onboarding-progress" aria-label={`已完成 ${completedCount} 個步驟，共 3 個`}>
-                        <div style={{ width: `${(completedCount / 3) * 100}%` }} />
+                    <div className="student-onboarding-progress" aria-label={`已完成 ${completedCount} 個步驟，共 2 個`}>
+                        <div style={{ width: `${(completedCount / 2) * 100}%` }} />
                     </div>
-                    <strong>{completedCount}／3 已完成</strong>
+                    <strong>{completedCount}／2 已完成</strong>
                 </header>
 
                 <ol className="student-onboarding-steps" aria-label="帳號設定步驟">
-                    {[{ key: "password", label: "設定密碼", complete: steps.password_complete }, { key: "birthday", label: "確認生日", complete: steps.birthday_complete }, { key: "guardian", label: "家長信箱", complete: steps.guardian_email_complete }].map((step, index) => (
+                    {[{ key: "password", label: "設定密碼", complete: steps.password_complete }, { key: "guardian", label: "家長信箱", complete: steps.guardian_email_complete }].map((step, index) => (
                         <li key={step.key} aria-current={activeStep === step.key ? "step" : undefined} className={step.complete ? "is-complete" : ""}><span aria-hidden="true">{step.complete ? <FiCheck /> : index + 1}</span>{step.label}</li>
                     ))}
                 </ol>
@@ -268,21 +260,8 @@ function StudentOnboarding() {
                     )}
                 </article>
 
-                <article hidden={activeStep !== "birthday"} className={`student-onboarding-card ${steps.birthday_complete ? "complete" : ""}`}>
-                    <header><div><FiShield /><span>步驟 2</span><h2>確認出生年月日</h2></div><StepStatus complete={steps.birthday_complete} /></header>
-                    {steps.birthday_complete ? (
-                        <p>生日已保存為 {studentProfile?.date_of_birth}。為保護獎勵紀錄，學生無法自行修改。</p>
-                    ) : (
-                        <form onSubmit={saveBirthday}>
-                            <BirthdaySelect value={birthday} onChange={setBirthday} disabled={Boolean(working)} required idPrefix="student-onboarding-birthday" />
-                            <small>生日會影響生日獎勵。送出前請確認正確，設定後不可自行修改。</small>
-                            <button type="submit" disabled={Boolean(working)}>{working === "birthday" ? "保存中…" : "確認並保存生日"}</button>
-                        </form>
-                    )}
-                </article>
-
                 <article hidden={activeStep !== "guardian"} className={`student-onboarding-card ${steps.guardian_email_complete ? "complete" : ""}`}>
-                    <header><div><FiMail /><span>步驟 3</span><h2>驗證家長 Email</h2></div><StepStatus complete={steps.guardian_email_complete} /></header>
+                    <header><div><FiMail /><span>步驟 2</span><h2>驗證家長 Email</h2></div><StepStatus complete={steps.guardian_email_complete} /></header>
                     {steps.guardian_email_complete ? (
                         <p>家長 Email 已完成驗證：{studentProfile?.guardian?.email}</p>
                     ) : verification.requestId ? (
@@ -290,18 +269,31 @@ function StudentOnboarding() {
                             <p>驗證碼已寄到 {verification.maskedEmail}。</p>
                             <label><span>6 位數驗證碼</span><input inputMode="numeric" pattern="[0-9]{6}" maxLength={6} autoComplete="one-time-code" value={verification.code} onChange={event => setVerification(current => ({ ...current, code: event.target.value.replace(/\D/g, "") }))} required /></label>
                             <button type="submit" disabled={Boolean(working)}>{working === "guardian-verify" ? "驗證中…" : "確認驗證碼"}</button>
-                            <button type="button" className="secondary" disabled={Boolean(working)} onClick={() => setVerification({ requestId: null, maskedEmail: "", code: "" })}>更換 Email／重新寄送</button>
+                            <button type="button" className="secondary" disabled={Boolean(working)} onClick={() => { setVerification({ requestId: null, maskedEmail: "", code: "" }); setGuardianEmailAgain(""); setPendingGuardianEmail(""); }}>更換 Email／重新寄送</button>
                         </form>
+                    ) : pendingGuardianEmail ? (
+                        <div className="student-onboarding-confirm" role="group" aria-label="確認家長 Email">
+                            <p>驗證碼將寄到 <strong>{pendingGuardianEmail}</strong>，請確認沒有打錯。</p>
+                            <div className="student-onboarding-push-actions">
+                                <button type="button" onClick={sendGuardianCode} disabled={Boolean(working)}>{working === "guardian-send" ? "寄送中…" : "確認寄出"}</button>
+                                <button type="button" className="secondary" onClick={() => setPendingGuardianEmail("")} disabled={Boolean(working)}>修改</button>
+                            </div>
+                        </div>
                     ) : (
-                        <form onSubmit={sendGuardianCode}>
+                        <form onSubmit={reviewGuardianEmail}>
+                            <div className="student-onboarding-critical" role="note">
+                                <FiAlertTriangle aria-hidden="true" />
+                                <p><strong>請務必填寫家長常用、收得到信的 Email。</strong>每週學習進度報告會寄到這裡，之後忘記密碼也要靠這個信箱收驗證碼。填錯將收不到報告，也無法找回密碼。</p>
+                            </div>
                             <label><span>家長 Email</span><input type="email" autoComplete="email" value={guardianEmail} onChange={event => setGuardianEmail(event.target.value)} placeholder="parent@example.com" required /></label>
-                            <small>我們會寄送驗證碼。驗證成功前，不會把這個 Email 設為正式聯絡信箱。</small>
-                            <button type="submit" disabled={Boolean(working)}>{working === "guardian-send" ? "寄送中…" : "寄送驗證碼"}</button>
+                            <label><span>再輸入一次家長 Email</span><input type="email" autoComplete="off" value={guardianEmailAgain} onChange={event => setGuardianEmailAgain(event.target.value)} placeholder="parent@example.com" required /></label>
+                            <small>下一步會先請你確認信箱，再寄送驗證碼。驗證成功前，不會把這個 Email 設為正式聯絡信箱。</small>
+                            <button type="submit" disabled={Boolean(working)}>下一步：確認信箱</button>
                         </form>
                     )}
                 </article>
 
-                {shouldOfferPush && completedCount === 3 && (
+                {shouldOfferPush && completedCount === 2 && (
                     <article className={`student-onboarding-card student-onboarding-push ${pushStatus?.active ? "complete" : ""}`}>
                         <header>
                             <div><FiBell /><span>可選設定</span><h2>開啟網頁通知</h2></div>
@@ -332,7 +324,7 @@ function StudentOnboarding() {
                 )}
 
                 {/* 必要資料都完成後，就不再顯示「先登出，稍後再完成」。 */}
-                {completedCount < 3 && <button type="button" className="student-onboarding-logout" onClick={logout}>先登出，稍後再完成</button>}
+                {completedCount < 2 && <button type="button" className="student-onboarding-logout" onClick={logout}>先登出，稍後再完成</button>}
             </section>
         </main>
     );

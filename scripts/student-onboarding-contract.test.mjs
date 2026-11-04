@@ -3,8 +3,9 @@ import { readFile } from "node:fs/promises";
 
 const read = path => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-const [migration, recoveryMigration, membership, academy, protectedRoute] = await Promise.all([
+const [migration, noBirthdayMigration, recoveryMigration, membership, academy, protectedRoute] = await Promise.all([
     read("supabase/migrations/20260916015253_student_onboarding_guardian_email_verification.sql"),
+    read("supabase/migrations/20261104020000_onboarding_without_birthday.sql"),
     read("supabase/migrations/20260909090000_secure_academy_recovery_codes.sql"),
     read("supabase/functions/membership-manager/index.ts"),
     read("supabase/functions/academy-student-manager/index.ts"),
@@ -54,6 +55,16 @@ assert.match(recoveryMigration, /now\(\) - interval '1 hour'/);
 assert.match(recoveryMigration, /reservation_expires_at = now\(\) \+ interval '5 minutes'/);
 assert.match(recoveryMigration, /revoke all on public\.academy_student_recovery_attempts from public, anon, authenticated/i);
 assert.match(recoveryMigration, /grant execute on function public\.reserve_academy_student_recovery_code[\s\S]*to service_role/i);
+
+// 首次登入不再要求生日：完成條件只剩「已改密碼 + 家長 Email 已驗證」，仍回傳 birthday_complete 供舊前端使用
+const completionBlock = noBirthdayMigration.match(/if v_student\.onboarding_required[\s\S]*?then/)?.[0] || "";
+assert.match(completionBlock, /not v_student\.must_change_password/);
+assert.match(completionBlock, /and v_guardian_verified/);
+assert.doesNotMatch(completionBlock, /date_of_birth/, "the completion condition must not require a birthday");
+assert.match(noBirthdayMigration, /'birthday_complete', v_student\.date_of_birth is not null/);
+assert.match(noBirthdayMigration, /revoke all on function public\.complete_student_onboarding_if_ready\(bigint\)\s+from public, anon, authenticated/i);
+assert.match(noBirthdayMigration, /grant execute on function public\.complete_student_onboarding_if_ready\(bigint\) to service_role/i);
+assert.doesNotMatch(noBirthdayMigration, /drop\s+(table|column)|delete\s+from|truncate/i, "the migration must be additive and must not touch data");
 
 assert.match(protectedRoute, /studentProfile\?\.onboarding\?\.required === true/);
 assert.match(protectedRoute, /to="\/student\/onboarding"/);

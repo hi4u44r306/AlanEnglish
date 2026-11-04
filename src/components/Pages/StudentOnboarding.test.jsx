@@ -45,7 +45,6 @@ describe("StudentOnboarding", () => {
                     required: true,
                     steps: {
                         password_complete: false,
-                        birthday_complete: false,
                         guardian_email_complete: false
                     }
                 }
@@ -71,11 +70,11 @@ describe("StudentOnboarding", () => {
     it("advances only after the profile confirms the prior step, preserving later form state", () => {
         const context = useAuth();
         const view = render(<MemoryRouter><StudentOnboarding /></MemoryRouter>);
-        useAuth.mockReturnValue({ ...context, studentProfile: { ...context.studentProfile, onboarding: { required: true, steps: { password_complete: true, birthday_complete: false, guardian_email_complete: false } } } });
+        useAuth.mockReturnValue({ ...context, studentProfile: { ...context.studentProfile, onboarding: { required: true, steps: { password_complete: true, guardian_email_complete: false } } } });
         view.rerender(<MemoryRouter><StudentOnboarding /></MemoryRouter>);
-        expect(screen.getByRole("heading", { name: "確認出生年月日" })).toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: "驗證家長 Email" })).toBeInTheDocument();
         expect(screen.queryByRole("heading", { name: "設定自己的密碼" })).not.toBeInTheDocument();
-        expect(screen.queryByRole("button", { name: "寄送驗證碼" })).not.toBeInTheDocument();
+        expect(screen.queryByRole("heading", { name: "確認出生年月日" })).not.toBeInTheDocument();
     });
 
     it("only requests browser notification permission after the student presses the opt-in button", async () => {
@@ -83,7 +82,7 @@ describe("StudentOnboarding", () => {
             .mockResolvedValueOnce({ supported: true, reason: "", active: false })
             .mockResolvedValueOnce({ supported: true, reason: "", active: true });
         const context = useAuth();
-        useAuth.mockReturnValue({ ...context, studentProfile: { ...context.studentProfile, onboarding: { required: false, steps: { password_complete: true, birthday_complete: true, guardian_email_complete: true } } } });
+        useAuth.mockReturnValue({ ...context, studentProfile: { ...context.studentProfile, onboarding: { required: false, steps: { password_complete: true, guardian_email_complete: true } } } });
         render(<MemoryRouter initialEntries={[{ pathname: "/student/onboarding", state: { firstLogin: true } }]}><StudentOnboarding /></MemoryRouter>);
 
         expect(enableWebPush).not.toHaveBeenCalled();
@@ -96,7 +95,7 @@ describe("StudentOnboarding", () => {
         expect(await screen.findByText("已開啟")).toBeInTheDocument();
     });
 
-    it("lets a student skip optional notifications after the three required steps", async () => {
+    it("lets a student skip optional notifications after the two required steps", async () => {
         useAuth.mockReturnValue({
             firebaseUser: { email: "student@example.com", getIdToken: jest.fn() },
             studentProfile: {
@@ -106,7 +105,6 @@ describe("StudentOnboarding", () => {
                     required: false,
                     steps: {
                         password_complete: true,
-                        birthday_complete: true,
                         guardian_email_complete: true
                     }
                 }
@@ -128,18 +126,75 @@ describe("StudentOnboarding", () => {
         expect(enableWebPush).not.toHaveBeenCalled();
     });
 
+    const guardianStepContext = () => {
+        const context = useAuth();
+        useAuth.mockReturnValue({ ...context, studentProfile: { ...context.studentProfile, onboarding: { required: true, steps: { password_complete: true, guardian_email_complete: false } } } });
+    };
+
+    it("does not ask for a birthday and shows a prominent notice about the weekly report and password recovery", () => {
+        guardianStepContext();
+        render(<MemoryRouter><StudentOnboarding /></MemoryRouter>);
+
+        expect(screen.queryByText(/出生年月日|生日/)).not.toBeInTheDocument();
+        expect(screen.getByText("1／2 已完成")).toBeInTheDocument();
+        const notice = screen.getByRole("note");
+        expect(notice).toHaveClass("student-onboarding-critical");
+        expect(notice).toHaveTextContent("每週學習進度報告");
+        expect(notice).toHaveTextContent("忘記密碼");
+        expect(notice).toHaveTextContent("填錯將收不到");
+    });
+
+    it("blocks sending when the two guardian emails differ", () => {
+        guardianStepContext();
+        render(<MemoryRouter><StudentOnboarding /></MemoryRouter>);
+
+        fireEvent.change(screen.getByLabelText("家長 Email"), { target: { value: "parent@example.com" } });
+        fireEvent.change(screen.getByLabelText("再輸入一次家長 Email"), { target: { value: "parnet@example.com" } });
+        fireEvent.click(screen.getByRole("button", { name: "下一步：確認信箱" }));
+
+        expect(screen.getByRole("alert")).toHaveTextContent("兩次輸入的家長 Email 不一致");
+        expect(requestGuardianEmailVerification).not.toHaveBeenCalled();
+        expect(screen.queryByRole("group", { name: "確認家長 Email" })).not.toBeInTheDocument();
+    });
+
+    it("shows the full address for confirmation first and only sends after the student confirms", async () => {
+        guardianStepContext();
+        requestGuardianEmailVerification.mockResolvedValue({ request_id: 19, masked_email: "p***@example.com" });
+        render(<MemoryRouter><StudentOnboarding /></MemoryRouter>);
+
+        fireEvent.change(screen.getByLabelText("家長 Email"), { target: { value: " Parent@Example.com " } });
+        fireEvent.change(screen.getByLabelText("再輸入一次家長 Email"), { target: { value: "parent@example.com" } });
+        fireEvent.click(screen.getByRole("button", { name: "下一步：確認信箱" }));
+
+        const confirmBox = screen.getByRole("group", { name: "確認家長 Email" });
+        expect(confirmBox).toHaveTextContent("驗證碼將寄到 parent@example.com");
+        expect(requestGuardianEmailVerification).not.toHaveBeenCalled();
+
+        fireEvent.click(screen.getByRole("button", { name: "修改" }));
+        expect(screen.getByLabelText("家長 Email")).toBeInTheDocument();
+        expect(requestGuardianEmailVerification).not.toHaveBeenCalled();
+
+        fireEvent.click(screen.getByRole("button", { name: "下一步：確認信箱" }));
+        fireEvent.click(screen.getByRole("button", { name: "確認寄出" }));
+        await waitFor(() => expect(requestGuardianEmailVerification).toHaveBeenCalledWith(
+            expect.objectContaining({ email: "student@example.com" }),
+            "parent@example.com"
+        ));
+    });
+
     it("does not replace the guardian email until the code is confirmed", async () => {
         requestGuardianEmailVerification.mockResolvedValue({
             request_id: 19,
             masked_email: "p***@example.com"
         });
         confirmGuardianEmailVerification.mockResolvedValue({ success: true });
-        const context = useAuth();
-        useAuth.mockReturnValue({ ...context, studentProfile: { ...context.studentProfile, onboarding: { required: true, steps: { password_complete: true, birthday_complete: true, guardian_email_complete: false } } } });
+        guardianStepContext();
         render(<MemoryRouter><StudentOnboarding /></MemoryRouter>);
 
         fireEvent.change(screen.getByLabelText("家長 Email"), { target: { value: "parent@example.com" } });
-        fireEvent.click(screen.getByRole("button", { name: "寄送驗證碼" }));
+        fireEvent.change(screen.getByLabelText("再輸入一次家長 Email"), { target: { value: "parent@example.com" } });
+        fireEvent.click(screen.getByRole("button", { name: "下一步：確認信箱" }));
+        fireEvent.click(screen.getByRole("button", { name: "確認寄出" }));
         await waitFor(() => expect(requestGuardianEmailVerification).toHaveBeenCalledWith(
             expect.objectContaining({ email: "student@example.com" }),
             "parent@example.com"

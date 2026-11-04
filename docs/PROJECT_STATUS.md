@@ -1,5 +1,13 @@
 # Alan English 專案狀態
 
+### 首次登入拿掉生日、家長 Email 加紅字提示與寄信前確認（2026-11-04，分支 `feat/onboarding-no-birthday`；尚未合併、**資料庫修改尚未套用**）
+
+- 來源：擁有者決定（家長 Email 同時收週報與找回密碼，生日不再需要）；deep-reasoner 調查確認其他功能未依賴生日（生日月活動 2026-10-11 已停用、`guardian-email` 與 `weekly-report` 未使用生日）。
+- 改動：①新 migration `20261104020000_onboarding_without_birthday.sql`：`complete_student_onboarding_if_ready` 完成條件改為「已改密碼＋家長 Email 已驗證」，仍回傳 `birthday_complete`，不碰資料。②`StudentOnboarding.jsx`：拿掉生日步驟（兩步）、家長 Email 步驟加紅字提醒、輸入兩次、寄出前顯示完整信箱確認。③`StudentOnboarding.scss`：紅字提示與確認區塊樣式。④手冊 v4.77、`PROJECT_LOGIC.md` 首次登入規則。
+- 驗證：`StudentOnboarding` 測試 8 項通過（新增紅字提示、兩次不一致擋下、確認畫面與修改、確認後才寄出）；`student-onboarding-contract.test.mjs` 新增對新 migration 的檢查。
+- 部署順序（不可反）：**先套用 migration、再部署前端**。無 Edge Function 變更。回復：用 `20260916015253` 第 126-179 行原文再 create or replace。
+- 選擇性回填（正式資料，需擁有者同意）：對「已改密碼、家長已驗證、沒有生日、卡在首次登入」的學生各呼叫一次該函式；先跑唯讀 `select count(*)` 預覽。
+- 未驗證：migration 尚未在任何資料庫執行；正式站畫面與手機寬度未實際看過。
 ### 作業日期驗證與口說閒置計時修正（2026-11-03，分支 `fix/assignment-date-and-speaking-idle`；已合併 main，Edge Function 尚未部署）
 
 - 來源：專注度模擬報告（PR #643）列出的三個缺口。

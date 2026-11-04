@@ -209,3 +209,23 @@
 .student-onboarding-hero { box-shadow: none; }
 .student-onboarding-card { box-shadow: none; border-radius: 16px; }
 @media (max-width: 360px) { .student-onboarding-steps { gap: 6px; font-size: 12px; } .student-onboarding-steps li { gap: 4px; } }
+
+/* 家長 Email 是週報與找回密碼的唯一信箱，提示要夠醒目 */
+.student-onboarding-critical {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 14px 16px;
+    border: 2px solid #d92d20;
+    border-radius: 14px;
+    color: #b42318;
+    background: #fef3f2;
+}
+
+.student-onboarding-critical svg { flex: 0 0 auto; width: 24px; height: 24px; margin-top: 2px; }
+.student-onboarding-critical p { margin: 0; color: #b42318; font-size: 15px; font-weight: 700; line-height: 1.6; }
+.student-onboarding-critical strong { font-size: 16px; font-weight: 900; }
+
+.student-onboarding-confirm { margin-top: 20px; }
+.student-onboarding-confirm p { margin: 0; line-height: 1.7; word-break: break-all; }
+.student-onboarding-confirm strong { color: var(--ae-accent, #16355d); font-size: 18px; }
