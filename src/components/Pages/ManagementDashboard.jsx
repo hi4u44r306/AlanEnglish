@@ -365,8 +365,9 @@ function ManagementDashboard() {
                                                                         <input value={guardianForm.guardian_name} onChange={event => setGuardianForm(previous => ({ ...previous, guardian_name: event.target.value }))} />
                                                                     </label>
                                                                     <label>
-                                                                        <span>家長 Email</span>
-                                                                        <input type="email" value={guardianForm.email} onChange={event => setGuardianForm(previous => ({ ...previous, email: event.target.value }))} />
+                                                                        <span>家長 Email{student.guardian?.email ? `（${student.guardian?.email_verified_at ? "已驗證" : "尚未驗證"}）` : ""}</span>
+                                                                        <input type="email" value={guardianForm.email} readOnly={Boolean(student.guardian?.email)} aria-describedby={student.guardian?.email ? "guardian-email-locked-hint" : undefined} onChange={event => setGuardianForm(previous => ({ ...previous, email: event.target.value }))} />
+                                                                        {student.guardian?.email && <small id="guardian-email-locked-hint">家長 Email 同時用於週報與找回密碼，變更須由管理員驗證，這裡不能修改。</small>}
                                                                     </label>
                                                                     <label>
                                                                         <span>手機</span>
