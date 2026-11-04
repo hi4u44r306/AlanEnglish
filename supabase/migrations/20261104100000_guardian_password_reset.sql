@@ -3,15 +3,26 @@
 --
 -- 設計重點：
 --   * token 只存 SHA-256 雜湊，30 分鐘有效，一次性；新的要求會作廢舊的。
---   * 只寄給「家長 Email 已驗證，且確實收過驗證碼」的信箱（guardian_email_verification_requests
---     有 status = 'verified' 且 pending_email 與目前信箱相同）。2026-09-16 當時被直接標成已驗證的舊信箱
---     不符合條件，必須重新驗證。
+--   * 只寄給「家長 Email 已驗證」的信箱，而且要有可信的來源，二選一：
+--       (a) 確實收過驗證碼（guardian_email_verification_requests 有 status = 'verified' 且 pending_email
+--           與目前信箱相同）；或 (b) 由管理員親自設定（guardian_contacts.email_set_by_admin_at 有值；
+--           例如離婚的家庭要把信箱從爸爸改成媽媽，不可能叫爸爸收驗證碼）。
+--     2026-09-16 當時被直接標成已驗證的舊信箱兩者都不符合，必須重新驗證或由管理員重設。
 --   * 頻率限制以「帳號雜湊」與「來源雜湊」計算，與帳號是否存在無關，不會洩漏帳號存在與否。
 --   * 完成時先保留（reservation）5 分鐘再改 Firebase 密碼，沿用復原碼的做法。
 --
 -- 回復方式：移除這兩張表與四個函式即可（它們只有本功能使用，不影響其他資料）。
 
 begin;
+
+-- 管理員直接設定家長 Email 時留下記號（由「管理員更換家長 Email」功能寫入）。
+alter table public.guardian_contacts
+    add column if not exists email_set_by_admin_id bigint references public.students(id) on delete set null,
+    add column if not exists email_set_by_admin_at timestamptz;
+
+create index if not exists guardian_contacts_email_set_by_admin_idx
+    on public.guardian_contacts (email_set_by_admin_id)
+    where email_set_by_admin_id is not null;
 
 create table if not exists public.academy_password_reset_tokens (
     id bigint generated always as identity primary key,
@@ -112,12 +123,15 @@ begin
         where g.student_id = v_student.id
           and g.email is not null
           and g.email_verified_at is not null
-          and exists (
-              select 1
-              from public.guardian_email_verification_requests r
-              where r.student_id = v_student.id
-                and r.status = 'verified'
-                and r.pending_email = lower(btrim(g.email))
+          and (
+              g.email_set_by_admin_at is not null
+              or exists (
+                  select 1
+                  from public.guardian_email_verification_requests r
+                  where r.student_id = v_student.id
+                    and r.status = 'verified'
+                    and r.pending_email = lower(btrim(g.email))
+              )
           );
     end if;
 
