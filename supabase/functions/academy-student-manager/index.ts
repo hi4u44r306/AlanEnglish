@@ -2123,6 +2123,216 @@ const recoverStudentLogin = async (
     return json(req, 200, { success: true, username, message: "新的登入密碼已設定" });
 };
 
+const GUARDIAN_RESET_GENERIC_MESSAGE = "如果這個帳號已設定並驗證家長 Email，重設連結已寄出。若 10 分鐘內沒收到，請改用登入卡復原碼或聯絡老師。";
+const GUARDIAN_RESET_MIN_RESPONSE_MS = 1200;
+
+const escapeHtml = (value: unknown): string => cleanText(value, 2000)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+
+// 信件裡只露出學生姓名的頭尾，避免寄錯信箱時讓陌生人看到完整姓名。
+const maskStudentName = (name: string): string => {
+    const chars = Array.from(cleanText(name, 100));
+    if (chars.length <= 1) return "同學";
+    if (chars.length === 2) return `${chars[0]}○`;
+    return `${chars[0]}${"○".repeat(chars.length - 2)}${chars[chars.length - 1]}`;
+};
+
+const sendGuardianPasswordResetEmail = async (
+    admin: SupabaseClient,
+    email: string,
+    studentName: string,
+    resetLink: string,
+    idempotencyKey: string
+): Promise<void> => {
+    const apiKey = Deno.env.get("RESEND_API_KEY")?.trim();
+    if (!apiKey) throw new Error("RESEND_NOT_CONFIGURED");
+    const { data: settings, error } = await admin
+        .from("guardian_email_settings")
+        .select("from_email,from_name,reply_to")
+        .eq("id", 1)
+        .maybeSingle();
+    if (error || !settings?.from_email) throw new Error("MAIL_SETTINGS_MISSING");
+
+    const masked = maskStudentName(studentName);
+    const title = "重設 Alan English 學生密碼";
+    const safeLink = escapeHtml(resetLink);
+    const text = `${title}\n\n${masked} 的家長您好：\n孩子的登入帳號提出了「忘記密碼」要求。請在 30 分鐘內用下面的連結設定新密碼，連結只能使用一次。\n\n${resetLink}\n\n如果不是你們要求的，請忽略這封信，孩子的密碼不會改變。請勿轉傳這個連結。\nAlan English`;
+    const html = `<!doctype html><html lang="zh-Hant"><body style="margin:0;background:#f3f6fb;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:#17233d"><div style="max-width:600px;margin:0 auto;padding:28px 16px"><div style="background:#142443;color:#fff;padding:28px;border-radius:20px 20px 0 0"><div style="font-size:12px;letter-spacing:.16em;color:#ffd45c">ALAN ENGLISH</div><h1 style="font-size:25px;margin:10px 0 0">${title}</h1></div><div style="background:#fff;padding:28px;border-radius:0 0 20px 20px"><p style="font-size:16px;line-height:1.8;margin-top:0">${escapeHtml(masked)} 的家長您好：<br>孩子的登入帳號提出了「忘記密碼」要求。請在 <b>30 分鐘內</b>設定新密碼，連結只能使用一次。</p><p style="margin:28px 0"><a href="${safeLink}" style="display:inline-block;background:#315fda;color:#fff;text-decoration:none;font-weight:700;padding:14px 22px;border-radius:12px">設定新密碼</a></p><p style="font-size:13px;line-height:1.7;color:#667085">按鈕無法開啟時，請複製以下連結到瀏覽器：<br><span style="word-break:break-all">${safeLink}</span></p><p style="font-size:13px;color:#667085;margin-bottom:0">如果不是你們要求的，請忽略這封信，孩子的密碼不會改變。請勿轉傳這個連結。</p></div></div></body></html>`;
+
+    const response = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+            "Idempotency-Key": idempotencyKey
+        },
+        body: JSON.stringify({
+            from: `${settings.from_name || "Alan English"} <${settings.from_email}>`,
+            to: [email],
+            subject: title,
+            html,
+            text,
+            ...(settings.reply_to ? { reply_to: settings.reply_to } : {})
+        })
+    });
+    if (!response.ok) throw new Error(`RESEND_${response.status}`);
+};
+
+const waitAtLeast = async (startedAt: number, minimumMs: number): Promise<void> => {
+    const remaining = minimumMs - (Date.now() - startedAt);
+    if (remaining > 0) await new Promise(resolve => setTimeout(resolve, remaining));
+};
+
+// 學生忘記密碼：寄一次性重設連結到「已驗證的家長 Email」。
+// 不論帳號是否存在、有沒有家長信箱，回應內容與時間都一致，避免被拿來試探帳號。
+const requestGuardianPasswordReset = async (
+    req: Request,
+    admin: SupabaseClient,
+    body: JsonObject
+): Promise<Response> => {
+    const startedAt = Date.now();
+    const username = normalizeLoginUsername(body.username);
+    const generic = () => json(req, 200, { success: true, message: GUARDIAN_RESET_GENERIC_MESSAGE });
+
+    if (!/^[a-z][a-z0-9]{2,31}$/.test(username)) {
+        await waitAtLeast(startedAt, GUARDIAN_RESET_MIN_RESPONSE_MS);
+        return generic();
+    }
+
+    const forwardedIp = cleanText(
+        (req.headers.get("x-forwarded-for") || req.headers.get("cf-connecting-ip") || "").split(",")[0],
+        64
+    );
+    const [usernameHash, sourceHash, rawToken] = await Promise.all([
+        hashInvitationToken(`guardian-reset:${username}`),
+        forwardedIp ? hashInvitationToken(`guardian-reset-ip:${forwardedIp}`) : Promise.resolve(null),
+        Promise.resolve(createStudentActivationToken())
+    ]);
+    const tokenHash = await hashInvitationToken(rawToken);
+
+    const { data, error } = await admin.rpc("request_academy_guardian_password_reset", {
+        p_username: username,
+        p_username_hash: usernameHash,
+        p_source_hash: sourceHash,
+        p_token_hash: tokenHash
+    });
+    if (error) {
+        console.error("Guardian password reset request failed", { code: error.code, message: error.message });
+        await waitAtLeast(startedAt, GUARDIAN_RESET_MIN_RESPONSE_MS);
+        return generic();
+    }
+
+    if (data?.status === "rate_limited") {
+        await waitAtLeast(startedAt, GUARDIAN_RESET_MIN_RESPONSE_MS);
+        throw new HttpError(429, "GUARDIAN_RESET_RATE_LIMITED", "寄送次數過多，請稍後再試，或改用登入卡復原碼、聯絡老師");
+    }
+
+    if (data?.status === "send" && isValidEmail(cleanText(data.email, 320))) {
+        const origin = requestOrigin(req);
+        const base = origin && ALLOWED_ORIGINS.has(origin) ? origin : "https://alanenglish.com.tw";
+        const link = `${base}/academy/reset-password?token=${encodeURIComponent(rawToken)}`;
+        try {
+            await sendGuardianPasswordResetEmail(
+                admin,
+                cleanText(data.email, 320),
+                cleanText(data.student_name, 100),
+                link,
+                `guardian-reset-${tokenHash.slice(0, 32)}`
+            );
+        } catch (sendError) {
+            // 寄不出去時作廢剛建立的 token；對外仍回同樣訊息。
+            console.error("Guardian password reset email failed", {
+                message: sendError instanceof Error ? sendError.message : "UNKNOWN"
+            });
+            await admin
+                .from("academy_password_reset_tokens")
+                .update({ revoked_at: new Date().toISOString() })
+                .eq("token_hash", tokenHash);
+        }
+    }
+
+    await waitAtLeast(startedAt, GUARDIAN_RESET_MIN_RESPONSE_MS);
+    return generic();
+};
+
+const resetLinkInvalid = (): HttpError => new HttpError(
+    404,
+    "RESET_LINK_INVALID",
+    "重設連結無效或已過期。請重新要求，或改用登入卡上的復原碼。"
+);
+
+// 打開連結的人才看得到帳號與遮罩後的信箱。
+const previewGuardianPasswordReset = async (
+    req: Request,
+    admin: SupabaseClient,
+    body: JsonObject
+): Promise<Response> => {
+    const token = cleanText(body.token, 200);
+    if (!token) throw resetLinkInvalid();
+    const tokenHash = await hashInvitationToken(token);
+    const { data, error } = await admin.rpc("preview_academy_password_reset", { p_token_hash: tokenHash });
+    if (error) {
+        console.error("Guardian password reset preview failed", { code: error.code, message: error.message });
+        throw new HttpError(500, "RESET_PREVIEW_FAILED", "目前無法確認重設連結，請稍後再試");
+    }
+    if (data?.status !== "valid") throw resetLinkInvalid();
+    return json(req, 200, {
+        success: true,
+        username: cleanText(data.username, 64),
+        sent_to_masked: cleanText(data.sent_to_masked, 120)
+    });
+};
+
+const completeGuardianPasswordReset = async (
+    req: Request,
+    admin: SupabaseClient,
+    body: JsonObject
+): Promise<Response> => {
+    const token = cleanText(body.token, 200);
+    const password = validateStudentPassword(body.password ?? body.pin);
+    if (!token) throw resetLinkInvalid();
+    const tokenHash = await hashInvitationToken(token);
+    const reservation = createStudentActivationToken();
+    const reservationHash = await hashInvitationToken(reservation);
+
+    const { data, error } = await admin.rpc("reserve_academy_password_reset", {
+        p_token_hash: tokenHash,
+        p_reservation_hash: reservationHash
+    });
+    if (error) {
+        console.error("Guardian password reset reservation failed", { code: error.code, message: error.message });
+        throw new HttpError(500, "RESET_RESERVATION_FAILED", "目前無法確認重設連結，請稍後再試");
+    }
+    if (
+        data?.status !== "reserved"
+        || !Number.isSafeInteger(Number(data.token_id))
+        || !cleanText(data.firebase_uid, 200)
+    ) {
+        throw resetLinkInvalid();
+    }
+
+    await updateFirebasePasswordByUid(cleanText(data.firebase_uid, 200), password);
+    const { data: consumed, error: completeError } = await admin.rpc("complete_academy_password_reset", {
+        p_token_id: Number(data.token_id),
+        p_reservation_hash: reservationHash
+    });
+    if (completeError || !consumed) {
+        console.error("Guardian password reset completion failed", {
+            code: completeError?.code || null
+        });
+        throw new HttpError(500, "RESET_SAVE_FAILED", "密碼已更新，但重設狀態寫入失敗，請聯絡老師");
+    }
+    return json(req, 200, {
+        success: true,
+        username: cleanText(data.username, 64),
+        message: "新的登入密碼已設定"
+    });
+};
+
 const markPasswordChanged = async (
     req: Request,
     admin: SupabaseClient,
@@ -2245,6 +2455,15 @@ Deno.serve(async (req: Request): Promise<Response> => {
         }
         if (action === "recover_student_login") {
             return await recoverStudentLogin(req, admin, body);
+        }
+        if (action === "request_guardian_password_reset") {
+            return await requestGuardianPasswordReset(req, admin, body);
+        }
+        if (action === "preview_guardian_password_reset") {
+            return await previewGuardianPasswordReset(req, admin, body);
+        }
+        if (action === "complete_guardian_password_reset") {
+            return await completeGuardianPasswordReset(req, admin, body);
         }
 
         const token = extractFirebaseToken(req);

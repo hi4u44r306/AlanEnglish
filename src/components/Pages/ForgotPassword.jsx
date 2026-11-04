@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { sendBrandedPasswordResetEmail } from "../../services/authEmailService";
+import { requestGuardianPasswordReset } from "../../services/academyStudentService";
 import { isReceivableEmail, RECEIVABLE_EMAIL_HELP } from "../../utils/emailValidation";
 import BackButton from "../fragment/BackButton";
 import RecoveryCodeCardHint from "../fragment/RecoveryCodeCardHint";
 import "./css/Platform.scss";
 
-// 目前沒有對外開放購買，學生都是英文班帳號，所以預設只顯示登入卡的復原碼。
+// 目前沒有對外開放購買，學生都是英文班帳號：預設提供「寄重設連結到家長 Email」與「登入卡復原碼」兩條路。
 // 老師／管理員若用 Email 登入，仍可從頁面底部的小連結寄送重設信，不然會被鎖在外面。
 function ForgotPassword() {
     const [staffMode, setStaffMode] = useState(false);
@@ -14,6 +15,11 @@ function ForgotPassword() {
     const [submitting, setSubmitting] = useState(false);
     const [sent, setSent] = useState(false);
     const [error, setError] = useState("");
+
+    const [guardianUsername, setGuardianUsername] = useState("");
+    const [guardianSubmitting, setGuardianSubmitting] = useState(false);
+    const [guardianMessage, setGuardianMessage] = useState("");
+    const [guardianError, setGuardianError] = useState("");
 
     const submit = async event => {
         event.preventDefault();
@@ -34,6 +40,25 @@ function ForgotPassword() {
         }
     };
 
+    const submitGuardian = async event => {
+        event.preventDefault();
+        setGuardianError("");
+        setGuardianMessage("");
+        const username = guardianUsername.trim().toLowerCase();
+        if (!/^[a-z][a-z0-9]{2,31}$/.test(username)) {
+            return setGuardianError("請輸入登入卡上的帳號（英文字母和數字）。");
+        }
+        setGuardianSubmitting(true);
+        try {
+            const result = await requestGuardianPasswordReset(username);
+            setGuardianMessage(result?.message || "如果這個帳號已設定並驗證家長 Email，重設連結已寄出。");
+        } catch (requestError) {
+            setGuardianError(requestError?.message || "目前無法寄送，請稍後再試，或改用登入卡復原碼。");
+        } finally {
+            setGuardianSubmitting(false);
+        }
+    };
+
     const backToStudent = () => { setStaffMode(false); setSent(false); setError(""); };
 
     return (
@@ -45,12 +70,28 @@ function ForgotPassword() {
                 <h1>忘記密碼</h1>
                 {!staffMode ? (
                     <>
-                        <p>不用收 Email。請用<strong>登入卡上的復原碼</strong>，設定一個新的密碼。</p>
-                        <RecoveryCodeCardHint />
-                        <div className="platform-verification-actions">
-                            <Link className="platform-primary" to="/academy/recover">使用復原碼</Link>
-                        </div>
-                        <p className="platform-footnote">復原碼用完或不見了，請聯絡老師。</p>
+                        <section className="platform-reset-option" aria-labelledby="reset-guardian-title">
+                            <h2 id="reset-guardian-title">方法一：寄重設連結到家長 Email</h2>
+                            {guardianMessage ? (
+                                <div className="platform-verification-notice" role="status">{guardianMessage}<br />信件在垃圾郵件匣的話，也請看一下。連結 30 分鐘內有效。</div>
+                            ) : (
+                                <form className="platform-form" onSubmit={submitGuardian}>
+                                    <p>輸入登入卡上的帳號，我們會寄一封信到你第一次登入時驗證過的家長 Email。</p>
+                                    <label className="platform-center-left"><span>登入帳號</span><input value={guardianUsername} onChange={event => { setGuardianUsername(event.target.value); setGuardianError(""); }} autoCapitalize="none" autoCorrect="off" spellCheck={false} autoComplete="username" placeholder="例如 xiaoming" required /></label>
+                                    {guardianError && <div className="platform-form-error" role="alert"><strong>無法寄送</strong><span>{guardianError}</span></div>}
+                                    <button className="platform-primary platform-wide" type="submit" disabled={guardianSubmitting}>{guardianSubmitting ? "寄送中…" : "寄送到家長 Email"}</button>
+                                </form>
+                            )}
+                        </section>
+                        <section className="platform-reset-option" aria-labelledby="reset-code-title">
+                            <h2 id="reset-code-title">方法二：用登入卡上的復原碼</h2>
+                            <p>不用收 Email，請用<strong>登入卡上的復原碼</strong>設定新的密碼。</p>
+                            <RecoveryCodeCardHint />
+                            <div className="platform-verification-actions">
+                                <Link className="platform-primary" to="/academy/recover">使用復原碼</Link>
+                            </div>
+                        </section>
+                        <p className="platform-footnote">兩個方法都用不了，請聯絡老師。</p>
                         <button type="button" className="platform-link-button" onClick={() => setStaffMode(true)}>老師／管理員（Email 帳號）</button>
                     </>
                 ) : sent ? (
@@ -66,7 +107,7 @@ function ForgotPassword() {
                             {error && <div className="platform-form-error" role="alert"><strong>無法寄送</strong><span>{error}</span></div>}
                             <button className="platform-primary platform-wide" type="submit" disabled={submitting}>{submitting ? "寄送中…" : "寄送密碼重設信"}</button>
                         </form>
-                        <button type="button" className="platform-link-button" onClick={backToStudent}>回到學生的復原碼</button>
+                        <button type="button" className="platform-link-button" onClick={backToStudent}>回到學生的忘記密碼</button>
                     </>
                 )}
                 <p className="platform-footnote"><Link to="/login">回到登入</Link>　·　<Link to="/support">聯絡客服</Link></p>

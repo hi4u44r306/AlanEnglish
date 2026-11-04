@@ -359,6 +359,31 @@ export const recoverStudentLogin = async (username, recoveryCode, password) => c
     { allowAnonymous: true }
 );
 
+export const requestGuardianPasswordReset = async username => callAcademyStudentManager(
+    null,
+    {
+        action: "request_guardian_password_reset",
+        username: String(username || "").trim().toLowerCase()
+    },
+    { allowAnonymous: true }
+);
+
+export const previewGuardianPasswordReset = async token => callAcademyStudentManager(
+    null,
+    { action: "preview_guardian_password_reset", token: String(token || "").trim() },
+    { allowAnonymous: true }
+);
+
+export const completeGuardianPasswordReset = async (token, password) => callAcademyStudentManager(
+    null,
+    {
+        action: "complete_guardian_password_reset",
+        token: String(token || "").trim(),
+        password: String(password || "")
+    },
+    { allowAnonymous: true }
+);
+
 export const deleteAcademyInvitation = async (
     firebaseUser,
     invitationId,
@@ -401,6 +426,9 @@ const academyStudentService = {
     previewStudentActivation,
     activateStudentLogin,
     recoverStudentLogin,
+    requestGuardianPasswordReset,
+    previewGuardianPasswordReset,
+    completeGuardianPasswordReset,
     previewAcademyStudents,
     createAcademyStudentsBatch,
     listAcademyInvitations,

@@ -1,5 +1,14 @@
 # Alan English 專案狀態
 
+### 學生忘記密碼寄重設連結到家長 Email（2026-11-04，分支 `feat/guardian-password-reset`；尚未合併、**資料庫修改與後端尚未套用／部署**）
+
+- 來源：擁有者要求（英文班學生復原碼用完或不見時，可請家長用 Email 收重設連結）；沿用 deep-reasoner 的設計（自己產生 token，不用 Firebase 重設連結，因為英文班帳號在 Firebase 的信箱是內部假信箱）。
+- 資料庫（新 migration `20261104100000_guardian_password_reset.sql`，只新增、不碰既有資料）：新增 `academy_password_reset_tokens`（只存 SHA-256 雜湊、30 分鐘、一次性、可保留 5 分鐘）與 `academy_password_reset_requests`（以帳號雜湊與來源雜湊限流）兩張表，RLS 開啟、對 public／anon／authenticated 全部 revoke；四個函式（要求／預覽／保留／完成）只有 service_role 能執行。資格：已啟用的英文班學生、家長 Email 已驗證，且來源可信——`guardian_email_verification_requests` 有 status='verified' 同信箱的紀錄，或由管理員親自設定（新增 `guardian_contacts.email_set_by_admin_id／email_set_by_admin_at`）；排除 2026-09-16 被直接標成已驗證的舊信箱。
+- 後端（`academy-student-manager`）：三個免登入 action——`request_guardian_password_reset`（所有情況回同一句話、補齊至少 1.2 秒、限流超過回 429；寄信失敗會作廢 token）、`preview_guardian_password_reset`（打開連結後才回遮蔽信箱）、`complete_guardian_password_reset`（先保留→改 Firebase 密碼並使舊登入失效→完成，並清除必須改密碼旗標）。用 Resend 寄信，沿用 `guardian_email_settings` 的寄件設定。不需要新的密鑰（`RESEND_API_KEY` 已存在）。
+- 前端：`ForgotPassword.jsx` 新增「方法一：寄重設連結到家長 Email」；新頁面 `AcademyPasswordReset.jsx`（`/academy/reset-password`，讀到 token 後立刻從網址移除）；`academyStudentService.js` 三個函式。
+- 驗證：`FlowGuidance`、`AcademyPasswordReset`、`AcademyStudentSetup` 測試 17 項通過；新增 `scripts/guardian-password-reset-contract.test.mjs`（檢查資料表權限、只存雜湊、資格條件、限流、動作順序、回應不洩漏）；`academy-student-manager` 的 `deno check` 無錯誤；用真實樣式在 1280／768／412／360 看版面無溢出。
+- 部署順序（不可反）：先套用 migration → 部署 `academy-student-manager` → 再合併前端。回復：移除兩張表與四個函式、重新部署舊版後端。
+- 未驗證：**後端與資料庫從未實際執行**（沒有測試環境，只做了程式與契約檢查）；實際寄信到真實信箱、Resend 送達、連結點開與設定密碼的完整流程都還沒走過，需要部署後用測試帳號驗證。正式資料庫目前只有 1 位已啟用的英文班學生，且其家長信箱確實驗證過。
 ### 忘記密碼頁預設只顯示登入卡復原碼，加卡片位置示意圖（2026-11-04，分支 `fix/forgot-password-student-first`；尚未合併）
 
 - 來源：擁有者提供英文班登入卡 PDF 並要求：不對外開放購買，所以隱藏「Email 帳號」選項，學生只看到復原碼，並在畫面上標出復原碼在登入卡的位置。
