@@ -1,5 +1,10 @@
 # Alan English 專案狀態
 
+### 帳號管理拿掉「更正生日」按鈕（2026-11-04，分支 `fix/remove-admin-birthday-button`；尚未合併）
+
+- 來源：擁有者要求（首次登入已不填生日，沒有地方需要更正）。
+- 改動：`AccountManagement.jsx` 移除「更正生日」按鈕、對話框掛載與相關狀態；測試改為「管理員與老師都看不到這個按鈕，也不會去讀生日紀錄」。**只拿掉畫面入口**：`AdminBirthDateDialog.jsx`、`membership-manager` 的 `admin_correct_birth_date` 與資料庫函式都保留，已填過的生日資料不動。手冊 v4.82。
+- 驗證：`AccountManagement` 測試 20 項通過。尚未看正式站畫面。
 ### 管理員直接更換學生的家長 Email（2026-11-04，分支 `feat/admin-change-guardian-email`，接在 `feat/admin-reset-student-password` 之上；尚未合併、**資料庫修改與後端尚未套用／部署**）
 
 - 來源：批次 1 補洞後，老師與管理員都不能在「學習概況」直接改家長 Email。擁有者決定：管理員要能**直接換、不用驗證碼**（離婚家庭要把信箱從爸爸改掛媽媽，不可能叫爸爸收驗證碼）。
