@@ -675,3 +675,28 @@ textarea { resize: vertical; }
 .platform-code-dialog .platform-code-warning { margin: 0; padding: 10px 12px; border-radius: 12px; background: var(--ae-warning-bg, #fff8df); color: var(--ae-warning, #7a5410); font-weight: 800; }
 .platform-code-dialog small { color: var(--ae-text-muted, #64728a); }
 .platform-code-dialog .platform-modal-actions button { min-height: 44px; }
+
+/* 忘記密碼：登入卡示意圖與小連結 */
+.platform-card-hint { margin: 18px 0 0; text-align: left; }
+.platform-card-hint__card { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px; border: 1.5px solid #c9d6e8; border-radius: 14px; background: #fff; box-shadow: 0 6px 16px rgba(22, 53, 93, .08); }
+.platform-card-hint__info { min-width: 0; flex: 1; }
+.platform-card-hint__info small { display: block; color: #2a5fa8; font-size: 11px; font-weight: 800; letter-spacing: .3px; }
+.platform-card-hint__info > strong { display: block; margin: 2px 0 8px; font-size: 18px; color: #16355d; }
+.platform-card-hint dl { margin: 0; display: grid; gap: 4px; }
+.platform-card-hint dl > div { display: flex; gap: 10px; align-items: baseline; padding: 3px 6px; border-radius: 8px; font-size: 14px; }
+.platform-card-hint dt { flex: 0 0 56px; color: #8795ab; font-size: 12px; font-weight: 700; }
+.platform-card-hint dd { margin: 0; color: #16355d; font-weight: 700; }
+.platform-card-hint dl > div.is-target { background: #fff4e0; outline: 2px solid #f08a1a; }
+.platform-card-hint dl > div.is-target dd { display: flex; gap: 12px; }
+.platform-card-hint dl > div.is-target b { color: #d9680b; font-size: 17px; letter-spacing: 1px; }
+.platform-card-hint__pointer { display: inline-block; margin-top: 6px; color: #d9680b; font-size: 13px; font-weight: 900; }
+.platform-card-hint__qr { flex: 0 0 auto; display: grid; justify-items: center; gap: 4px; }
+.platform-card-hint__qr span { display: grid; place-items: center; width: 64px; height: 64px; border: 2px dashed #b8c6dc; border-radius: 8px; color: #8795ab; font-weight: 900; }
+.platform-card-hint__qr small { color: #8795ab; font-size: 10px; }
+.platform-card-hint figcaption { margin-top: 12px; color: var(--ae-text-muted, #53627a); font-size: 14px; line-height: 1.7; }
+.platform-card-hint figcaption strong { color: #d9680b; }
+.platform-card-hint__sample { color: #8795ab; font-size: 12px; }
+.platform-link-button { display: block; margin: 14px auto 0; padding: 8px 12px; border: 0; background: none; color: var(--ae-text-muted, #6a7a92); font-size: 13px; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; min-height: 36px; }
+.platform-link-button:focus-visible { outline: 2px solid #2a5fa8; outline-offset: 2px; border-radius: 6px; }
+.platform-card-hint { min-width: 0; }
+@media (max-width: 420px) { .platform-card-hint__qr { display: none; } .platform-card-hint dl > div.is-target { flex-wrap: wrap; } }

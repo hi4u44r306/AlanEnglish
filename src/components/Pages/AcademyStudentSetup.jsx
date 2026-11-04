@@ -6,6 +6,7 @@ import {
     recoverStudentLogin
 } from "../../services/academyStudentService";
 import BackButton from "../fragment/BackButton";
+import RecoveryCodeCardHint from "../fragment/RecoveryCodeCardHint";
 import "./css/Platform.scss";
 
 const passwordHelp = "密碼至少 6 個字元，可使用小寫英文、數字或符號。";
@@ -101,6 +102,7 @@ function AcademyStudentSetup({ recoveryOnly = false }) {
                 <p>{recoveryOnly
                     ? "輸入登入卡上的帳號與其中一組未使用的復原碼。每組復原碼只能使用一次。"
                     : `${preview?.student?.name || "同學"}，第一次登入前請先設定自己的密碼。`}</p>
+                {recoveryOnly && <RecoveryCodeCardHint />}
                 <form className="platform-form" onSubmit={submit}>
                     <label>
                         <span>登入帳號</span>
@@ -108,7 +110,7 @@ function AcademyStudentSetup({ recoveryOnly = false }) {
                     </label>
                     {recoveryOnly && <label>
                         <span>一次性復原碼</span>
-                        <input name="recoveryCode" value={form.recoveryCode} onChange={update} placeholder="AE-XXXX-XXXX-XXXX" autoCapitalize="characters" autoComplete="off" required />
+                        <input name="recoveryCode" value={form.recoveryCode} onChange={update} placeholder="6 位數字，例如 123456" autoCapitalize="characters" autoComplete="off" required />
                     </label>}
                     {!recoveryOnly && <div className="platform-form-grid">
                         <label><span>中文姓名</span><input name="chineseName" value={form.chineseName} onChange={update} maxLength="100" autoComplete="name" required /></label>
