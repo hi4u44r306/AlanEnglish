@@ -647,6 +647,18 @@ const createTemporaryPassword = (): string => {
     return `Ae-${compact.slice(0, 4)}-${compact.slice(4, 8)}`;
 };
 
+// 管理員重設密碼用：隨機 8 位數字（10000000～99999999），沒有前綴。用拒絕抽樣避免取餘數造成的偏差。
+// 比登入卡上的「Ae-XXXX-XXXX」好猜，所以學生登入後必須立刻自己改掉。
+const createNumericTemporaryPassword = (): string => {
+    const range = 90_000_000;
+    const limit = Math.floor(0x1_0000_0000 / range) * range;
+    const values = new Uint32Array(1);
+    do {
+        crypto.getRandomValues(values);
+    } while (values[0] >= limit);
+    return String(10_000_000 + (values[0] % range));
+};
+
 const createFirebaseAccount = async (
     input: StudentInput,
     temporaryPassword: string
@@ -1550,6 +1562,81 @@ const manageTeacherClasses = async (
         success: true,
         teacher_id: teacherId,
         class_codes: [...new Set(rows.map(row => row.code))].sort()
+    });
+};
+
+// 管理員重設已啟用的英文班學生密碼：產生新的臨時密碼（只回給管理員一次），學生下次登入必須自己再設定一次。
+// 順序很重要：先改 Firebase 密碼，再把「發放時間」記成 Firebase 改密碼時間 + 2 秒。
+// 否則 mark_academy_student_password_changed 會把「管理員設定臨時密碼」誤判成學生已改密碼。
+const adminResetStudentPassword = async (
+    req: Request,
+    admin: SupabaseClient,
+    caller: CallerProfile,
+    body: JsonObject
+): Promise<Response> => {
+    requireAdmin(caller);
+    const studentId = Number(body.student_id);
+    if (!Number.isSafeInteger(studentId) || studentId <= 0) {
+        throw new HttpError(400, "STUDENT_ID_REQUIRED", "缺少要重設密碼的學生帳號");
+    }
+    const reason = cleanText(body.reason, 300);
+    if (reason.length < 2) {
+        throw new HttpError(400, "RESET_REASON_REQUIRED", "請寫下重設密碼的原因（至少 2 個字）");
+    }
+
+    const { data: student, error: studentError } = await admin
+        .from("students")
+        .select("id,name,login_username,firebase_uid,role,authentication_method,account_status,activated_at")
+        .eq("id", studentId)
+        .maybeSingle();
+    if (studentError) throw new HttpError(500, "STUDENT_LOOKUP_FAILED", "目前無法確認學生帳號");
+    if (
+        !student?.id
+        || student.role !== "student"
+        || student.authentication_method !== "academy_username"
+        || !cleanText(student.firebase_uid, 200)
+    ) {
+        throw new HttpError(404, "ACADEMY_LOGIN_NOT_FOUND", "找不到可重設密碼的英文班學生帳號");
+    }
+    if (student.account_status !== "active") {
+        throw new HttpError(409, "ACCOUNT_NOT_ACTIVE", "這個帳號已停用，請先恢復帳號");
+    }
+    if (!student.activated_at) {
+        throw new HttpError(409, "ACCOUNT_NOT_ACTIVATED", "這個帳號還沒有啟用，請改用「重新發登入卡」");
+    }
+    if (normalizeLoginUsername(body.confirmation_username) !== normalizeLoginUsername(student.login_username)) {
+        throw new HttpError(400, "CONFIRMATION_MISMATCH", "請輸入這位學生的登入帳號來確認");
+    }
+
+    const temporaryPassword = createNumericTemporaryPassword();
+    await updateFirebasePasswordByUid(cleanText(student.firebase_uid, 200), temporaryPassword);
+
+    const { data, error } = await admin.rpc("admin_record_student_password_reset_v1", {
+        p_admin_id: caller.id,
+        p_student_id: student.id,
+        p_reason: reason,
+        p_issued_at: new Date(Date.now() + 2000).toISOString()
+    });
+    if (error || data?.status !== "recorded") {
+        console.error("Admin student password reset record failed", {
+            code: error?.code || null,
+            status: data?.status || null
+        });
+        throw new HttpError(
+            500,
+            "PASSWORD_RESET_RECORD_FAILED",
+            "密碼已更新，但重設紀錄寫入失敗。請再按一次「重設密碼」取得新的臨時密碼。"
+        );
+    }
+
+    return json(req, 200, {
+        success: true,
+        account: { id: student.id, name: student.name, username: student.login_username },
+        credentials: {
+            username: student.login_username,
+            temporary_password: temporaryPassword,
+            shown_once: true
+        }
     });
 };
 
@@ -2507,6 +2594,9 @@ Deno.serve(async (req: Request): Promise<Response> => {
         }
         if (action === "reissue_student_login_card") {
             return await reissueStudentLoginCard(req, admin, caller, body);
+        }
+        if (action === "admin_reset_student_password") {
+            return await adminResetStudentPassword(req, admin, caller, body);
         }
         if (action === "batch_create_students") {
             return await batchCreateStudents(req, admin, caller, body);

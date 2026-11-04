@@ -2,7 +2,7 @@ import { clearStaffPageCache } from "../../services/staffPageCache";
 beforeEach(() => clearStaffPageCache());
 import React from "react";
 import "@testing-library/jest-dom";
-import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import {
@@ -13,6 +13,7 @@ import {
     restoreManagedAccount
 } from "../../services/membershipService";
 import {
+    adminResetAcademyStudentPassword,
     deleteAcademyInvitation,
     deleteAcademyStudentAccount,
     listAcademyInvitations,
@@ -41,6 +42,7 @@ jest.mock("../../services/membershipService", () => ({
 }));
 
 jest.mock("../../services/academyStudentService", () => ({
+    adminResetAcademyStudentPassword: jest.fn(),
     deleteAcademyInvitation: jest.fn(),
     deleteAcademyStudentAccount: jest.fn(),
     listAcademyInvitations: jest.fn(),
@@ -275,6 +277,46 @@ describe("AccountManagement", () => {
         });
         expect(await screen.findByText("新的學生登入卡")).toBeInTheDocument();
         expect(screen.getByText(/AE-AAAA-BBBB-CCCC/)).toBeInTheDocument();
+    });
+
+    test("lets an admin reset an activated student's password and shows the temporary password only once", async () => {
+        getManagedAccounts.mockResolvedValue({ accounts: [{ ...academyStudent, activated_at: "2026-10-01T00:00:00Z" }] });
+        adminResetAcademyStudentPassword.mockResolvedValue({
+            success: true,
+            account: { id: 67, name: "E3 測試學生", username: "e3teststudent" },
+            credentials: { username: "e3teststudent", temporary_password: "48291357", shown_once: true }
+        });
+        renderPage();
+
+        fireEvent.click(await screen.findByRole("button", { name: "重設密碼" }));
+        const submit = screen.getByRole("button", { name: "產生新的臨時密碼" });
+        expect(submit).toBeDisabled();
+        fireEvent.change(screen.getByLabelText(/輸入這位學生的登入帳號/), { target: { value: "E3TestStudent" } });
+        fireEvent.change(screen.getByLabelText(/重設原因/), { target: { value: "家長說孩子忘記密碼" } });
+        fireEvent.click(submit);
+
+        await waitFor(() => expect(adminResetAcademyStudentPassword).toHaveBeenCalledWith(
+            firebaseUser, 67, "E3TestStudent", "家長說孩子忘記密碼"
+        ));
+        expect(await screen.findByText("48291357")).toBeInTheDocument();
+        expect(screen.getByText(/只在目前畫面顯示一次/)).toBeInTheDocument();
+
+        fireEvent.click(screen.getByRole("button", { name: "已抄下，關閉" }));
+        expect(screen.queryByText("48291357")).not.toBeInTheDocument();
+    });
+
+    test("does not offer a password reset for an unactivated student or to a teacher", async () => {
+        renderPage();
+        await screen.findByText("E3 測試學生");
+        expect(screen.queryByRole("button", { name: "重設密碼" })).not.toBeInTheDocument();
+
+        useAuth.mockReturnValue({ firebaseUser, role: "teacher", studentProfile: { firebase_uid: firebaseUser.uid } });
+        getManagedAccounts.mockResolvedValue({ accounts: [{ ...academyStudent, activated_at: "2026-10-01T00:00:00Z" }] });
+        cleanup();
+        renderPage();
+        await screen.findByText("E3 測試學生");
+        expect(screen.queryByRole("button", { name: "重設密碼" })).not.toBeInTheDocument();
+        expect(adminResetAcademyStudentPassword).not.toHaveBeenCalled();
     });
 
     test("lets an admin open one student's nickname change history", async () => {

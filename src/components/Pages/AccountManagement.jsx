@@ -19,6 +19,7 @@ import {
 } from "../../services/membershipService";
 import {
     deleteAcademyInvitation,
+    adminResetAcademyStudentPassword,
     deleteAcademyStudentAccount,
     listAcademyInvitations,
     reissueAcademyStudentLoginCard,
@@ -97,6 +98,10 @@ function AccountManagement() {
     const [reissuingStudentId, setReissuingStudentId] = useState(null);
     const [reissuedLoginCard, setReissuedLoginCard] = useState(null);
     const [reissuedLoginCardQr, setReissuedLoginCardQr] = useState("");
+    const [passwordResetTarget, setPasswordResetTarget] = useState(null);
+    const [passwordResetForm, setPasswordResetForm] = useState({ username: "", reason: "" });
+    const [passwordResetting, setPasswordResetting] = useState(false);
+    const [resetPasswordResult, setResetPasswordResult] = useState(null);
     const [changingStatusId, setChangingStatusId] = useState(null);
     const [deleteTarget, setDeleteTarget] = useState(null);
     const [deleteConfirmation, setDeleteConfirmation] = useState("");
@@ -394,6 +399,39 @@ function AccountManagement() {
             toast.error(error?.message || "重新發登入卡失敗");
         } finally {
             setReissuingStudentId(null);
+        }
+    };
+
+    const openPasswordReset = account => {
+        if (!isAdmin || !account?.id) return;
+        setResetPasswordResult(null);
+        setPasswordResetForm({ username: "", reason: "" });
+        setPasswordResetTarget(account);
+    };
+
+    const closePasswordReset = () => {
+        setPasswordResetTarget(null);
+        setPasswordResetForm({ username: "", reason: "" });
+    };
+
+    const submitPasswordReset = async event => {
+        event.preventDefault();
+        if (!isAdmin || !firebaseUser || !passwordResetTarget?.id || passwordResetting) return;
+        setPasswordResetting(true);
+        try {
+            const result = await adminResetAcademyStudentPassword(
+                firebaseUser,
+                passwordResetTarget.id,
+                passwordResetForm.username,
+                passwordResetForm.reason
+            );
+            setResetPasswordResult(result);
+            closePasswordReset();
+            toast.success("新的臨時密碼已產生，請立即抄給學生");
+        } catch (error) {
+            toast.error(error?.message || "重設密碼失敗");
+        } finally {
+            setPasswordResetting(false);
         }
     };
 
@@ -721,6 +759,9 @@ function AccountManagement() {
                                                                 {reissuingStudentId === account.id ? "發卡中…" : "重新發登入卡"}
                                                             </button>
                                                         )}
+                                                        {isAdmin && account.authentication_method === "academy_username" && account.activated_at && account.account_status !== "archived" && (
+                                                            <button type="button" className="management-reset-button" onClick={() => openPasswordReset(account)}>重設密碼</button>
+                                                        )}
                                                         {isAdmin && account.role === "student" && account.account_status === "archived" && (
                                                             <button
                                                                 type="button"
@@ -856,6 +897,60 @@ function AccountManagement() {
                     </>
                 )}
             </section>
+
+            {passwordResetTarget && (
+                <section className="management-panel" aria-labelledby="password-reset-title">
+                    <div className="management-pending-heading">
+                        <div>
+                            <span className="management-eyebrow">Reset password</span>
+                            <h2 id="password-reset-title">重設 {passwordResetTarget.name || passwordResetTarget.login_username} 的密碼</h2>
+                            <p>系統會產生一組新的臨時密碼，<strong>只顯示一次</strong>；舊密碼和舊的登入狀態會立刻失效，學生下次登入必須自己再設定新密碼。你看不到學生自己設定的密碼。</p>
+                        </div>
+                    </div>
+                    <form className="management-form" onSubmit={submitPasswordReset}>
+                        <label>
+                            <span>輸入這位學生的登入帳號（{passwordResetTarget.login_username}）來確認</span>
+                            <input value={passwordResetForm.username} onChange={event => setPasswordResetForm(current => ({ ...current, username: event.target.value }))} autoCapitalize="none" autoCorrect="off" spellCheck={false} autoComplete="off" required />
+                        </label>
+                        <label>
+                            <span>重設原因（會留下紀錄）</span>
+                            <textarea value={passwordResetForm.reason} onChange={event => setPasswordResetForm(current => ({ ...current, reason: event.target.value }))} maxLength={300} rows={2} required />
+                        </label>
+                        <div className="management-form-actions">
+                            <button type="button" className="management-edit-button" onClick={closePasswordReset} disabled={passwordResetting}>取消</button>
+                            <button type="submit" className="management-reset-button" disabled={passwordResetting || passwordResetForm.username.trim().length < 3 || passwordResetForm.reason.trim().length < 2}>{passwordResetting ? "重設中…" : "產生新的臨時密碼"}</button>
+                        </div>
+                    </form>
+                </section>
+            )}
+
+            {resetPasswordResult?.credentials && (
+                <section className="management-panel management-login-card-panel" aria-live="polite">
+                    <div className="management-pending-heading">
+                        <div>
+                            <span className="management-eyebrow">Temporary password</span>
+                            <h2>新的臨時密碼</h2>
+                            <p>此密碼只在目前畫面顯示一次，關閉後就看不到。請立即抄給學生；學生用登入帳號加這組臨時密碼登入後，要自己設定新密碼。</p>
+                        </div>
+                    </div>
+                    <div className="management-login-card">
+                        <div>
+                            <span>學生</span>
+                            <strong>{resetPasswordResult.account?.name || "-"}</strong>
+                            <span>登入帳號</span>
+                            <strong>{resetPasswordResult.credentials.username || "-"}</strong>
+                        </div>
+                        <div className="management-login-card-recovery">
+                            <span>臨時密碼</span>
+                            <strong>{resetPasswordResult.credentials.temporary_password}</strong>
+                            <small>舊密碼已失效。登入卡上的復原碼不受影響。</small>
+                        </div>
+                    </div>
+                    <div className="management-form-actions">
+                        <button type="button" className="management-edit-button" onClick={() => setResetPasswordResult(null)}>已抄下，關閉</button>
+                    </div>
+                </section>
+            )}
 
             {reissuedLoginCard?.credentials && (
                 <section className="management-panel management-login-card-panel" aria-live="polite">

@@ -89,6 +89,12 @@ function Login() {
                         ...(requestedLocation ? { from: requestedLocation } : {})
                     }
                 });
+            } else if (student?.authentication_method === "academy_username" && student?.must_change_password === true) {
+                // 管理員重設過密碼：只需要重新設定自己的密碼，不再走完整的首次登入。
+                navigate("/student/onboarding", {
+                    replace: true,
+                    state: { passwordReset: true, ...(requestedLocation ? { from: requestedLocation } : {}) }
+                });
             } else {
                 navigate(destination, { replace: true });
             }
