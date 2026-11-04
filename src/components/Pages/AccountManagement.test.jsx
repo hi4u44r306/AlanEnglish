@@ -7,13 +7,12 @@ import { MemoryRouter } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import {
     archiveManagedAccount,
-    confirmGuardianEmailChange,
     getGuardianEmailStatus,
     getManagedAccounts,
     getManagedBirthDateHistory,
     getManagedNicknameHistory,
-    requestGuardianEmailChange,
-    restoreManagedAccount
+    restoreManagedAccount,
+    setGuardianEmail
 } from "../../services/membershipService";
 import {
     adminResetAcademyStudentPassword,
@@ -36,9 +35,8 @@ jest.mock("../../auth/AuthContext", () => ({
 
 jest.mock("../../services/membershipService", () => ({
     archiveManagedAccount: jest.fn(),
-    confirmGuardianEmailChange: jest.fn(),
     getGuardianEmailStatus: jest.fn(),
-    requestGuardianEmailChange: jest.fn(),
+    setGuardianEmail: jest.fn(),
     getManagedAccounts: jest.fn(),
     getManagedNicknameHistory: jest.fn(),
     restoreManagedAccount: jest.fn(),
@@ -325,37 +323,57 @@ describe("AccountManagement", () => {
         expect(adminResetAcademyStudentPassword).not.toHaveBeenCalled();
     });
 
-    test("lets an admin change a guardian email: sends a code to the new address, then confirms with the code from the parent", async () => {
+    test("lets an admin change a guardian email directly, without a code, after confirming the address", async () => {
         getGuardianEmailStatus.mockResolvedValue({
             success: true,
-            current_email_masked: "pa**@old.com",
+            current_email_masked: "d**@old.com",
             current_email_verified: true,
-            pending: null
+            set_by_admin: false
         });
-        requestGuardianEmailChange.mockResolvedValue({ success: true, request_id: 91, masked_email: "ne**@new.com" });
-        confirmGuardianEmailChange.mockResolvedValue({ success: true, new_email_masked: "ne**@new.com" });
+        setGuardianEmail.mockResolvedValue({ success: true, new_email_masked: "m***@new.com" });
         renderPage();
 
         fireEvent.click(await screen.findByRole("button", { name: "更換家長 Email" }));
-        expect(await screen.findByText("pa**@old.com")).toBeInTheDocument();
+        expect(await screen.findByText("d**@old.com")).toBeInTheDocument();
         expect(getGuardianEmailStatus).toHaveBeenCalledWith(firebaseUser, 67);
-        expect(screen.getByText(/舊的家長 Email 維持有效/)).toBeInTheDocument();
+        expect(screen.getByText(/不需要驗證碼/)).toBeInTheDocument();
+        expect(screen.queryByLabelText(/驗證碼/)).not.toBeInTheDocument();
 
-        fireEvent.change(screen.getByLabelText("新的家長 Email"), { target: { value: "new@new.com" } });
-        fireEvent.change(screen.getByLabelText("再輸入一次新的家長 Email"), { target: { value: "new@new.com" } });
-        fireEvent.click(screen.getByRole("button", { name: "寄送驗證碼到新信箱" }));
-        await waitFor(() => expect(requestGuardianEmailChange).toHaveBeenCalledWith(firebaseUser, {
-            studentId: 67, newEmail: "new@new.com", confirmEmail: "new@new.com"
+        const panel = within(await screen.findByRole("region", { name: /更換 .* 的家長 Email/ }));
+        const submit = panel.getByRole("button", { name: "更換家長 Email" });
+        expect(submit).toBeDisabled();
+        fireEvent.change(screen.getByLabelText("新的家長 Email"), { target: { value: "Mom@New.com" } });
+        fireEvent.change(screen.getByLabelText("再輸入一次新的家長 Email"), { target: { value: "mom@new.com" } });
+        fireEvent.change(screen.getByLabelText(/更換原因/), { target: { value: "父母離婚，改掛媽媽" } });
+        fireEvent.click(submit);
+
+        expect(window.confirm).toHaveBeenCalledWith(expect.stringContaining("mom@new.com"));
+        await waitFor(() => expect(setGuardianEmail).toHaveBeenCalledWith(firebaseUser, {
+            studentId: 67,
+            newEmail: "mom@new.com",
+            confirmEmail: "mom@new.com",
+            reason: "父母離婚，改掛媽媽"
         }));
+        await waitFor(() => expect(screen.queryByText(/的家長 Email$/)).not.toBeInTheDocument());
+    });
 
-        const code = await screen.findByLabelText("家長告訴你的 6 位數驗證碼");
-        const confirm = screen.getByRole("button", { name: "確認更換" });
-        expect(confirm).toBeDisabled();
-        fireEvent.change(code, { target: { value: "12a3456" } });
-        expect(code).toHaveValue("123456");
-        fireEvent.click(confirm);
-        await waitFor(() => expect(confirmGuardianEmailChange).toHaveBeenCalledWith(firebaseUser, 91, "123456"));
-        await waitFor(() => expect(screen.queryByText(/更換 .* 的家長 Email/)).not.toBeInTheDocument());
+    test("does not change the guardian email when the two addresses differ or the admin cancels the confirmation", async () => {
+        getGuardianEmailStatus.mockResolvedValue({ success: true, current_email_masked: null, current_email_verified: false });
+        renderPage();
+
+        fireEvent.click(await screen.findByRole("button", { name: "更換家長 Email" }));
+        const panel = within(await screen.findByRole("region", { name: /更換 .* 的家長 Email/ }));
+        fireEvent.change(await screen.findByLabelText("新的家長 Email"), { target: { value: "mom@new.com" } });
+        fireEvent.change(screen.getByLabelText("再輸入一次新的家長 Email"), { target: { value: "mon@new.com" } });
+        fireEvent.change(screen.getByLabelText(/更換原因/), { target: { value: "改掛媽媽" } });
+        fireEvent.click(panel.getByRole("button", { name: "更換家長 Email" }));
+        expect(window.confirm).not.toHaveBeenCalled();
+        expect(setGuardianEmail).not.toHaveBeenCalled();
+
+        fireEvent.change(screen.getByLabelText("再輸入一次新的家長 Email"), { target: { value: "mom@new.com" } });
+        window.confirm.mockReturnValueOnce(false);
+        fireEvent.click(panel.getByRole("button", { name: "更換家長 Email" }));
+        expect(setGuardianEmail).not.toHaveBeenCalled();
     });
 
     test("does not offer the guardian email change to a teacher", async () => {

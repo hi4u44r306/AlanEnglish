@@ -1,14 +1,16 @@
 # Alan English 專案狀態
 
-### 管理員更換學生的家長 Email（2026-11-04，分支 `feat/admin-change-guardian-email`，接在 `feat/admin-reset-student-password` 之上；尚未合併、**資料庫修改與後端尚未套用／部署**）
+### 管理員直接更換學生的家長 Email（2026-11-04，分支 `feat/admin-change-guardian-email`，接在 `feat/admin-reset-student-password` 之上；尚未合併、**資料庫修改與後端尚未套用／部署**）
 
-- 來源：批次 1 補洞後，老師與管理員都不能在「學習概況」直接改家長 Email；這一批補上管理員專用、要驗證的更換流程。
-- 資料庫（新 migration `20261104120000_admin_guardian_email_change.sql`，只新增）：`guardian_email_verification_requests` 新增可為 null 的 `requested_by_admin_id`；稽核表 `guardian_email_change_audit`（RLS、全部 revoke、只存遮蔽後信箱）；函式 `admin_confirm_guardian_email_verification_v1`（只有 service_role 能執行；再次確認管理員有效；只有「管理員發起」的要求能確認；驗證成功才換信箱，只改信箱與驗證時間，不蓋掉通知設定）。
-- 後端（`membership-manager`）：三個 action——`admin_guardian_email_status`、`admin_request_guardian_email_change`（兩次輸入一致、沿用既有的 60 秒冷卻與每小時 5 次、寄驗證碼到新信箱、寫稽核）、`admin_confirm_guardian_email_change`；全部只有管理員。既有的 `requestGuardianEmailVerification` 加上可選的 `requestedByAdminId`，學生自己的流程不變。
-- 前端：`AccountManagement.jsx`「更換家長 Email」面板（兩步驟）；`membershipService.js` 三個函式。
-- 驗證：`AccountManagement` 測試 19 項通過（新增 2 項）；新增 `scripts/admin-guardian-email-change-contract.test.mjs`；`membership-manager` 的 `deno check` 無錯誤。
-- 部署順序（不可反）：先套用 migration → 部署 `membership-manager` → 再合併前端。回復：移除稽核表與函式；新欄位可保留。
-- 未驗證：後端與資料庫從未實際執行；用測試帳號真的寄驗證碼、輸入驗證碼換信箱的流程，部署後需驗證。驗證碼信件裡會寫出學生姓名（沿用既有信件），若管理員打錯成別人的信箱，陌生人會看到學生姓名與驗證碼，所以介面要求輸入兩次。
+- 來源：批次 1 補洞後，老師與管理員都不能在「學習概況」直接改家長 Email。擁有者決定：管理員要能**直接換、不用驗證碼**（離婚家庭要把信箱從爸爸改掛媽媽，不可能叫爸爸收驗證碼）。
+- 資料庫（新 migration `20261104120000_admin_guardian_email_change.sql`，只新增）：稽核表 `guardian_email_change_audit`（RLS、全部 revoke、只存遮蔽後信箱與原因）；函式 `admin_set_guardian_email_v1`（只有 service_role 能執行；再次確認管理員有效；只改信箱與驗證／設定記號，不蓋掉通知設定、姓名、電話；作廢學生自己進行中的舊驗證；寫稽核；呼叫 `complete_student_onboarding_if_ready`）。管理員親自設定的信箱視為已驗證，並寫入 `email_set_by_admin_id／email_set_by_admin_at`（欄位在 #648 的 migration），讓「寄重設連結」認得它。
+- 後端（`membership-manager`）：兩個 action——`admin_guardian_email_status`、`admin_set_guardian_email`（兩次輸入一致、要寫原因、只能透過資料庫函式寫入）；全部只有管理員。檔案其餘部分維持 main 的版本。
+- 前端：`AccountManagement.jsx`「更換家長 Email」面板（新信箱兩次＋原因，送出前用完整地址再確認一次）；`membershipService.js` 兩個函式。
+- 驗證：`AccountManagement` 測試 20 項通過；`scripts/admin-guardian-email-change-contract.test.mjs` 通過；`membership-manager` 的 `deno check` 無錯誤。
+- 部署順序（不可反）：先套用 migration（#648 的 migration 要先套用，因為它新增欄位）→ 部署 `membership-manager` → 再合併前端。回復：移除稽核表與函式。
+- 取捨：不經驗證碼，**打錯成別人的信箱時，週報（學習資料）會寄給陌生人，而且對方能替孩子重設密碼**；管理員帳號被盜用時也能被拿來換信箱。因此介面要求輸入兩次＋完整地址再確認＋原因留紀錄。
+- 未驗證：後端與資料庫從未實際執行；用測試帳號真的換一次信箱的流程，部署後需驗證。
+
 ### 管理員重設已啟用英文班學生的密碼（2026-11-04，分支 `feat/admin-reset-student-password`，接在 `feat/guardian-password-reset` 之上；尚未合併、**資料庫修改與後端尚未套用／部署**）
 
 - 來源：重度調查結論——既有「重新發登入卡」只能用在尚未啟用的帳號；學生復原碼也用完時，管理員沒有任何自助辦法。

@@ -624,8 +624,7 @@ const loadCompleteProfile = async (
 const requestGuardianEmailVerification = async (
     admin: any,
     student: any,
-    emailValue: unknown,
-    options: { requestedByAdminId?: number | null } = {}
+    emailValue: unknown
 ) => {
     if (student.role !== "student") {
         return { status: 403, body: { error: "只有學生可以設定家長 Email" } };
@@ -708,8 +707,7 @@ const requestGuardianEmailVerification = async (
             pending_email: email,
             code_hash: codeHash,
             expires_at: expiresAt,
-            status: "pending",
-            ...(options.requestedByAdminId ? { requested_by_admin_id: options.requestedByAdminId } : {})
+            status: "pending"
         })
         .select("id")
         .single();
@@ -844,7 +842,7 @@ const loadStudentForGuardianAdmin = async (admin: any, studentIdValue: unknown) 
     return { student: data };
 };
 
-// 管理員：看這位學生目前的家長 Email（遮蔽後）與有沒有進行中的更換。
+// 管理員：看這位學生目前的家長 Email（遮蔽後）、有沒有驗證、是不是管理員設定的。
 const adminGuardianEmailStatus = async (admin: any, caller: any, studentIdValue: unknown) => {
     const denied = requireAdminCaller(caller);
     if (denied) return denied;
@@ -852,42 +850,28 @@ const adminGuardianEmailStatus = async (admin: any, caller: any, studentIdValue:
     if (loaded.error) return loaded.error;
     const student = loaded.student;
 
-    const [guardianResult, pendingResult] = await Promise.all([
-        admin.from("guardian_contacts").select("email,email_verified_at").eq("student_id", student.id).maybeSingle(),
-        admin
-            .from("guardian_email_verification_requests")
-            .select("id,pending_email,expires_at")
-            .eq("student_id", student.id)
-            .not("requested_by_admin_id", "is", null)
-            .in("status", ["pending", "sent"])
-            .gt("expires_at", new Date().toISOString())
-            .order("requested_at", { ascending: false })
-            .limit(1)
-            .maybeSingle()
-    ]);
-    if (guardianResult.error) throw guardianResult.error;
-    if (pendingResult.error) throw pendingResult.error;
-    const current = normalizeEmail(guardianResult.data?.email);
+    const { data, error } = await admin
+        .from("guardian_contacts")
+        .select("email,email_verified_at,email_set_by_admin_at")
+        .eq("student_id", student.id)
+        .maybeSingle();
+    if (error) throw error;
+    const current = normalizeEmail(data?.email);
     return {
         status: 200,
         body: {
             success: true,
             student: { id: student.id, name: student.chinese_name || student.name },
             current_email_masked: current ? maskedEmail(current) : null,
-            current_email_verified: Boolean(guardianResult.data?.email_verified_at),
-            pending: pendingResult.data
-                ? {
-                    request_id: pendingResult.data.id,
-                    new_email_masked: maskedEmail(normalizeEmail(pendingResult.data.pending_email)),
-                    expires_at: pendingResult.data.expires_at
-                }
-                : null
+            current_email_verified: Boolean(data?.email_verified_at),
+            set_by_admin: Boolean(data?.email_set_by_admin_at)
         }
     };
 };
 
-// 管理員：發起更換。新信箱收到驗證碼；驗證成功前，舊的家長 Email 維持有效。
-const adminRequestGuardianEmailChange = async (admin: any, caller: any, body: any) => {
+// 管理員：直接更換家長 Email，不需要驗證碼（例如離婚的家庭要把信箱從爸爸改掛媽媽）。
+// 要輸入兩次、寫下原因；資料庫會留下稽核紀錄（只存遮蔽後的信箱）。
+const adminSetGuardianEmail = async (admin: any, caller: any, body: any) => {
     const denied = requireAdminCaller(caller);
     if (denied) return denied;
     const loaded = await loadStudentForGuardianAdmin(admin, body?.student_id);
@@ -901,94 +885,30 @@ const adminRequestGuardianEmailChange = async (admin: any, caller: any, body: an
     if (!isReceivableEmail(newEmail)) {
         return { status: 400, body: { error: "請輸入可正常收信的家長 Email" } };
     }
-
-    const { data: current, error: currentError } = await admin
-        .from("guardian_contacts")
-        .select("email")
-        .eq("student_id", student.id)
-        .maybeSingle();
-    if (currentError) throw currentError;
-    const previous = normalizeEmail(current?.email);
-
-    const result = await requestGuardianEmailVerification(admin, student, newEmail, {
-        requestedByAdminId: Number(caller.id)
-    });
-    if (result.status === 200 && result.body?.request_id) {
-        const { error: auditError } = await admin.from("guardian_email_change_audit").insert({
-            student_id: student.id,
-            admin_id: caller.id,
-            event: "requested",
-            previous_email_masked: previous ? maskedEmail(previous) : null,
-            new_email_masked: maskedEmail(newEmail),
-            request_id: result.body.request_id
-        });
-        if (auditError) {
-            console.error("Guardian email change audit failed", { code: auditError.code });
-        }
-    }
-    return result;
-};
-
-// 管理員：輸入家長用電話告知的 6 位數驗證碼，確認後才換成新信箱。
-const adminConfirmGuardianEmailChange = async (admin: any, caller: any, body: any) => {
-    const denied = requireAdminCaller(caller);
-    if (denied) return denied;
-    const requestId = positiveInteger(body?.request_id);
-    const code = cleanText(body?.code, 6);
-    if (!requestId || !/^\d{6}$/.test(code)) {
-        return { status: 400, body: { error: "請輸入 6 位數驗證碼" } };
-    }
-    const otpSecret = cleanText(Deno.env.get("GUARDIAN_EMAIL_OTP_SECRET"), 500);
-    if (otpSecret.length < 32) {
-        return { status: 503, body: { error: "家長 Email 驗證服務尚未完成設定" } };
+    const reason = cleanText(body?.reason, 300);
+    if (reason.length < 2) {
+        return { status: 400, body: { error: "請寫下更換原因（至少 2 個字），會留下紀錄" } };
     }
 
-    const { data: requestRow, error: requestError } = await admin
-        .from("guardian_email_verification_requests")
-        .select("id,student_id,pending_email,requested_by_admin_id")
-        .eq("id", requestId)
-        .maybeSingle();
-    if (requestError) throw requestError;
-    if (!requestRow?.id || !requestRow.requested_by_admin_id) {
-        return { status: 404, body: { error: "找不到這次更換要求，請重新寄送驗證碼" } };
-    }
-
-    const codeHash = await guardianCodeHash(
-        otpSecret,
-        Number(requestRow.student_id),
-        normalizeEmail(requestRow.pending_email),
-        code
-    );
-    const { data, error } = await admin.rpc("admin_confirm_guardian_email_verification_v1", {
+    const { data, error } = await admin.rpc("admin_set_guardian_email_v1", {
         p_admin_id: caller.id,
-        p_student_id: requestRow.student_id,
-        p_request_id: requestId,
-        p_code_hash: codeHash
+        p_student_id: student.id,
+        p_new_email: newEmail,
+        p_reason: reason
     });
     if (error) throw error;
-    if (data?.verified !== true) {
-        const messages: Record<string, string> = {
-            INVALID_CODE: "驗證碼不正確，請向家長再確認",
-            CODE_EXPIRED: "驗證碼已過期，請重新寄送",
-            TOO_MANY_ATTEMPTS: "驗證失敗次數過多，請重新寄送驗證碼",
-            REQUEST_NOT_FOUND: "找不到這次更換要求，請重新寄送驗證碼"
-        };
-        return {
-            status: data?.code === "INVALID_CODE" ? 400 : 409,
-            body: {
-                error: messages[data?.code] || "目前無法完成家長 Email 更換",
-                code: data?.code || "VERIFICATION_FAILED",
-                attempts_remaining: data?.attempts_remaining ?? null
-            }
-        };
+    if (data?.status === "unchanged") {
+        return { status: 409, body: { error: "這個 Email 和目前的家長 Email 相同，不需要更換" } };
     }
-    return {
-        status: 200,
-        body: {
-            success: true,
-            new_email_masked: maskedEmail(normalizeEmail(data?.guardian_email || requestRow.pending_email))
-        }
-    };
+    if (data?.status !== "changed") {
+        const messages: Record<string, string> = {
+            invalid_email: "請輸入可正常收信的家長 Email",
+            invalid_reason: "請寫下更換原因（至少 2 個字），會留下紀錄",
+            student_not_found: "找不到這位學生"
+        };
+        return { status: 400, body: { error: messages[data?.status] || "目前無法更換家長 Email" } };
+    }
+    return { status: 200, body: { success: true, new_email_masked: data.new_email_masked } };
 };
 
 Deno.serve(async (req: Request) => {
@@ -1190,13 +1110,8 @@ Deno.serve(async (req: Request) => {
             return json(result.status, result.body);
         }
 
-        if (action === "admin_request_guardian_email_change") {
-            const result = await adminRequestGuardianEmailChange(admin, caller, body);
-            return json(result.status, result.body);
-        }
-
-        if (action === "admin_confirm_guardian_email_change") {
-            const result = await adminConfirmGuardianEmailChange(admin, caller, body);
+        if (action === "admin_set_guardian_email") {
+            const result = await adminSetGuardianEmail(admin, caller, body);
             return json(result.status, result.body);
         }
 
