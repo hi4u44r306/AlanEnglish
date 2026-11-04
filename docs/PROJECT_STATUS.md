@@ -1,5 +1,11 @@
 # Alan English 專案狀態
 
+### 忘記密碼頁預設只顯示登入卡復原碼，加卡片位置示意圖（2026-11-04，分支 `fix/forgot-password-student-first`；尚未合併）
+
+- 來源：擁有者提供英文班登入卡 PDF 並要求：不對外開放購買，所以隱藏「Email 帳號」選項，學生只看到復原碼，並在畫面上標出復原碼在登入卡的位置。
+- 改動：①`ForgotPassword.jsx`：移除「學生帳號／Email 帳號」選擇，預設顯示復原碼說明與「使用復原碼」按鈕；Email 重設留在最下方小連結「老師／管理員（Email 帳號）」，避免用 Email 登入的老師與管理員被鎖在外面。②新元件 `RecoveryCodeCardHint.jsx`（登入卡示意圖，假資料）用於忘記密碼頁與 `/academy/recover`。③復原碼輸入欄提示改為「6 位數字，例如 123456」（舊的 `AE-XXXX-XXXX-XXXX` 是舊格式）。④`Platform.scss` 新增樣式。⑤手冊 v4.78。
+- 驗證：`FlowGuidance` 與 `AcademyStudentSetup` 測試 11 項通過（改寫 2 項：預設只顯示復原碼且沒有 Email 帳號選項；小連結可進入 Email 重設並返回）；用真實樣式在 1280／768／412／360 四個寬度畫出頁面，無橫向溢出（360 原本會被撐寬，已改為窄螢幕藏起 QR 示意框）。
+- 未驗證：正式站實際畫面、iPhone 實機。後端與寄信規則未改。
 ### 首次登入拿掉生日、家長 Email 加紅字提示與寄信前確認（2026-11-04，分支 `feat/onboarding-no-birthday`；資料庫修改已於 2026-11-04 套用到正式資料庫，前端隨合併部署）
 
 - 來源：擁有者決定（家長 Email 同時收週報與找回密碼，生日不再需要）；deep-reasoner 調查確認其他功能未依賴生日（生日月活動 2026-10-11 已停用、`guardian-email` 與 `weekly-report` 未使用生日）。
