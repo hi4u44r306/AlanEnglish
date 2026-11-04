@@ -908,18 +908,29 @@ Deno.serve(async (req: Request) => {
                 student = renamed;
             }
 
+            // 只在還沒有家長信箱時才寫入（一律未驗證）。已有信箱的帳號不覆蓋，
+            // 否則新信箱會沿用舊信箱的「已驗證」標記；變更須走管理員驗證流程。
             if (guardianEmail) {
-                const { error: guardianError } = await admin
+                const { data: existingGuardian, error: existingGuardianError } = await admin
                     .from("guardian_contacts")
-                    .upsert({
-                        student_id: student.id,
-                        guardian_name: cleanText(body?.guardian_name, 80) || null,
-                        email: guardianEmail,
-                        preferred_channel: "email",
-                        notification_enabled: true,
-                        updated_at: new Date().toISOString()
-                    }, { onConflict: "student_id" });
-                if (guardianError) throw guardianError;
+                    .select("email")
+                    .eq("student_id", student.id)
+                    .maybeSingle();
+                if (existingGuardianError) throw existingGuardianError;
+                if (!String(existingGuardian?.email || "").trim()) {
+                    const { error: guardianError } = await admin
+                        .from("guardian_contacts")
+                        .upsert({
+                            student_id: student.id,
+                            guardian_name: cleanText(body?.guardian_name, 80) || null,
+                            email: guardianEmail,
+                            email_verified_at: null,
+                            preferred_channel: "email",
+                            notification_enabled: true,
+                            updated_at: new Date().toISOString()
+                        }, { onConflict: "student_id" });
+                    if (guardianError) throw guardianError;
+                }
             }
 
             // A paid physical-store order uses a separate Supabase Auth account.

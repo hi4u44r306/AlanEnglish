@@ -392,7 +392,7 @@ Deno.serve(async (req: Request) => {
           .eq("scenario_key", "meet-a-foreigner"),
         admin
           .from("guardian_contacts")
-          .select("id, student_id, guardian_name, email, phone, preferred_channel, notification_enabled, updated_at"),
+          .select("id, student_id, guardian_name, email, email_verified_at, phone, preferred_channel, notification_enabled, updated_at"),
         admin
           .from("student_track_progress")
           .select("student_id, completed, last_played_at")
@@ -442,7 +442,7 @@ Deno.serve(async (req: Request) => {
         .maybeSingle();
       if (!student || student.role !== "student") return json(404, { error: "找不到學生" });
 
-      const email = String(body?.email || "").trim().toLowerCase() || null;
+      const requestedEmail = String(body?.email || "").trim().toLowerCase() || null;
       const guardianName = String(body?.guardian_name || "").trim() || null;
       const phone = String(body?.phone || "").trim() || null;
       const preferredChannel = ["email", "line", "none"].includes(String(body?.preferred_channel))
@@ -450,18 +450,36 @@ Deno.serve(async (req: Request) => {
         : "email";
       const notificationEnabled = body?.notification_enabled !== false;
 
+      // 家長 Email 同時是收週報與找回密碼的信箱：已有信箱時，老師與管理員都不能在這裡直接換，
+      // 否則新信箱會沿用舊信箱的「已驗證」標記而沒收過驗證碼。
+      const { data: existingGuardian } = await admin
+        .from("guardian_contacts")
+        .select("email")
+        .eq("student_id", studentId)
+        .maybeSingle();
+      const existingEmail = String(existingGuardian?.email || "").trim().toLowerCase() || null;
+      if (existingEmail && requestedEmail !== existingEmail) {
+        return json(409, { error: "家長 Email 變更須由管理員於帳號管理驗證，這裡只能修改姓名、電話與通知設定" });
+      }
+
+      const guardianPayload: Record<string, unknown> = {
+        student_id: studentId,
+        guardian_name: guardianName,
+        phone,
+        preferred_channel: preferredChannel,
+        notification_enabled: notificationEnabled,
+        updated_at: now
+      };
+      // 原本沒有信箱時才能第一次填入，且一律是未驗證。
+      if (!existingEmail && requestedEmail) {
+        guardianPayload.email = requestedEmail;
+        guardianPayload.email_verified_at = null;
+      }
+
       const { data: guardian, error } = await admin
         .from("guardian_contacts")
-        .upsert({
-          student_id: studentId,
-          guardian_name: guardianName,
-          email,
-          phone,
-          preferred_channel: preferredChannel,
-          notification_enabled: notificationEnabled,
-          updated_at: now
-        }, { onConflict: "student_id" })
-        .select("id, student_id, guardian_name, email, phone, preferred_channel, notification_enabled, updated_at")
+        .upsert(guardianPayload, { onConflict: "student_id" })
+        .select("id, student_id, guardian_name, email, email_verified_at, phone, preferred_channel, notification_enabled, updated_at")
         .single();
 
       if (error) return json(500, { error: "儲存家長資料失敗" });

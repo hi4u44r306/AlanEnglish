@@ -78,4 +78,23 @@ describe("ManagementDashboard", () => {
         expect(openMail).toHaveClass("primary");
         expect(screen.getByRole("button", { name: "我已寄出" })).toBeDisabled();
     });
+
+    test("已有家長 Email 時唯讀並顯示驗證狀態，老師不能在這裡換信箱", async () => {
+        const { students } = await getTeacherStudentActivity();
+        getTeacherStudentActivity.mockResolvedValue({ students: [{ ...students[0], guardian: { email: "parent@example.invalid", email_verified_at: null, notification_enabled: true } }] });
+        render(<MemoryRouter><ManagementDashboard /></MemoryRouter>);
+
+        fireEvent.click(await screen.findByRole("button", { name: /已設定/ }));
+        const emailInput = await screen.findByLabelText(/家長 Email（尚未驗證）/);
+        expect(emailInput).toHaveAttribute("readonly");
+        expect(screen.getByText(/變更須由管理員驗證/)).toBeInTheDocument();
+    });
+
+    test("還沒有家長 Email 時可以第一次填入", async () => {
+        render(<MemoryRouter><ManagementDashboard /></MemoryRouter>);
+
+        fireEvent.click(await screen.findByRole("button", { name: /設定家長/ }));
+        const emailInput = await screen.findByLabelText("家長 Email");
+        expect(emailInput).not.toHaveAttribute("readonly");
+    });
 });
