@@ -44,6 +44,8 @@ const requestFn = sliceBetween(migration, "create or replace function public.req
 assert.match(requestFn, /email_verified_at is not null/);
 assert.match(requestFn, /r\.status = 'verified'/, "必須確認真的收過驗證碼");
 assert.match(requestFn, /r\.pending_email = lower\(btrim\(g\.email\)\)/);
+assert.match(requestFn, /g\.email_set_by_admin_at is not null/, "管理員親自設定的信箱也算可信來源");
+assert.match(migration, /add column if not exists email_set_by_admin_at timestamptz/);
 assert.match(requestFn, /authentication_method = 'academy_username'/);
 assert.match(requestFn, /activated_at is not null/);
 assert.match(requestFn, /interval '30 minutes'/, "token 30 分鐘有效");
