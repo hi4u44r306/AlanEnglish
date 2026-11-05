@@ -66,7 +66,7 @@ const buildSystemTour = role => {
             },
             {
                 selector: "[data-tour='adventure']",
-                title: "冒險",
+                title: "口說大挑戰",
                 body: "口說大挑戰在這裡。看著句子開口說，說對了就過關。"
             },
             {

@@ -1,5 +1,13 @@
 # Alan English 專案狀態
 
+### 我的進度三張進度卡、名稱統一與幾處提示（2026-11-06，分支 `feature/student-progress-page-and-copy`，接在 `feature/speaking-entry-after-mastery`（#653）之上；尚未合併）
+
+- 來源：擁有者走完學生流程後挑出的 5 個體驗問題（名稱、我的進度、10/10 說明、作業空狀態、已登入首頁），並確認預覽圖。
+- 改動：①`StudentProgressOverview.jsx`／`StudentSettings.scss`：列表列改成作業、口說、聽力三張進度卡（`ProgressCard`），每週報告與排行榜縮成小連結；口說卡只放一本（做到一半 → 第一本未完成）並依地圖順序（入門準備 → 教材 → 主題）算下一關，頁碼用 `source_pages`、沒有就用標題（去掉開頭編號）；聽力卡用既有 `get-dashboard-stats` 的 `total_count`（`students.total_time_played`，每次有效聆聽 +1，已部署，**不需要改後端或資料庫**）。②`StudentNavbar.jsx`、`GuidedTour.jsx`、`MainNavbar.test.jsx`：導覽「冒險」→「口說大挑戰」。③`TextbookSpeakingChallenge.jsx`：右上角顯示「今天 N / M 輪」。④`StudentAssignments.jsx`：空狀態文字與按鈕（去聽教材，連到 `/student/books`）。⑤新檔 `ShowcaseSignedInBar.jsx`＋`Showcase.jsx`／`Showcase.scss`：已登入者看公開首頁時頂端提示條；沒有導向，公開首頁對未登入者完全不變。
+- 驗證：`StudentProgressOverview` 14 項（改寫 6、新增 4）、`ShowcaseSignedInBar` 3 項、`MainNavbar` 32 項、`StudentAssignments`／`FlowGuidance` 通過；ESLint 無錯；用測試帳號（學生 35）在桌機看過進度頁、作業頁、口說頁、公開首頁。
+- 取捨：①聽力卡只放累計次數，「熟練 N 首」需要跨書統計（要改後端），先不做。②作業卡與上方「接下來：作業」大卡資訊有部分重複，保留是因為大卡是「下一步動作」、卡片是「整體進度」。③公開首頁選擇加提示條而不是自動導向，因為首頁同時是招生頁，老師與管理員也需要看。
+- 已知：`Showcase.test.jsx` 有 2 項（找不到標題「AI 口說大挑戰」）在這次改動之前就失敗，與本次無關，未處理。`MainNavbar` 測試在電腦忙時會超過 5 秒預設時限（放寬時限後全過）。
+- 未驗證：手機寬度（約 360–412px）的進度卡與提示條實際畫面；iPhone 實機；有未完成作業的帳號看到的作業卡（測試帳號目前沒有作業，只有單元測試）；導覽列「口說大挑戰」五個字在最窄手機寬度是否會擠；已解鎖口說關卡時的對準（沿用 #653）。
 ### 聽滿 30 次後的「去挑戰口說」入口（2026-11-05，分支 `feature/speaking-entry-after-mastery`；尚未合併）
 
 - 來源：擁有者要求「聽力次數達到之後，旁邊跳出可以去挑戰口說大挑戰的按鈕」。

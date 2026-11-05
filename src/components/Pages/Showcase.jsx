@@ -15,6 +15,7 @@ import ShowcaseNavbar from "../fragment/ShowcaseNavbar";
 import SeoHead from "../fragment/SeoHead";
 import InstallEntry from "../fragment/InstallEntry";
 import "./css/Showcase.scss";
+import ShowcaseSignedInBar from "../fragment/ShowcaseSignedInBar";
 
 const features = [
 {
@@ -57,6 +58,7 @@ const Showcase = () => {
     return (
         <div className="showcase">
             <SeoHead path="/" />
+            <ShowcaseSignedInBar />
 
             <ShowcaseNavbar
                 nav1="#features"

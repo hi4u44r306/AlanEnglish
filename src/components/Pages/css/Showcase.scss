@@ -2206,3 +2206,12 @@
   --ae-blue: var(--ae-surface-muted);
   --ae-dark: var(--ae-text);
 }
+
+// 已登入的人看到公開首頁時的提示條。
+.showcase-signed-in { margin-top: 72px; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 4px 14px; padding: 8px 16px; background: #153b70; color: #fff; font-size: 14px; text-align: center; }
+.showcase-signed-in a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border-radius: 999px; background: #ffd769; color: #153b70; font-weight: 800; text-decoration: none; }
+.showcase-signed-in a:hover { background: #ffcb3d; color: #153b70; }
+.showcase-signed-in a:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+// 導覽列是固定在最上面的：提示條自己讓出導覽列的高度，並拿掉主內容原本為導覽列留的上方空間，避免多空一塊。
+.showcase-signed-in + .showcase-navbar + main { padding-top: 0; }
+@media (max-width: 1199.98px) { .showcase-signed-in { margin-top: 66px; } }

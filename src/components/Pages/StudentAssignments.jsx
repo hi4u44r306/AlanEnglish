@@ -369,8 +369,8 @@ const StudentAssignments = () => {
                                     <BookOpenCheck aria-hidden="true" size={30} />
                                 </span>
                                 <strong>{taskFilter === "all" ? "目前沒有作業" : `目前沒有${assignmentStateLabel[taskFilter]}的任務`}</strong>
-                                <p>可以切換上方分類，或回到首頁選一本教材。</p>
-                                <Link to="/student/dashboard">回到首頁</Link>
+                                <p>{taskFilter === "all" ? "老師有新作業時，會出現在這裡。先去教材多聽幾次吧！" : "這個分類現在是空的，可以切換上方分類看看。"}</p>
+                                <Link to="/student/books">去聽教材</Link>
                             </div>
                         ) : visibleAssignments.map((item, itemIndex) => {
                             const listening = getListeningMeta(item);

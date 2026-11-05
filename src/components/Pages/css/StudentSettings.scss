@@ -352,6 +352,17 @@ a.student-settings-row:focus-visible, summary.student-settings-row:focus-visible
 .student-progress__list > .student-settings-row:first-child { border-top: 0; }
 .student-progress__list progress { display: block; appearance: none; width: 100%; max-width: 220px; height: 6px; margin-top: 4px; border: 0; border-radius: 6px; overflow: hidden; background: var(--ae-surface-muted, #e8f1eb); &::-webkit-progress-bar { background: var(--ae-surface-muted, #e8f1eb); } &::-webkit-progress-value { background: #247a56; border-radius: 6px; } &::-moz-progress-bar { background: #247a56; border-radius: 6px; } }
 .student-progress__value { flex-shrink: 0; max-width: 46%; font-size: 15px; color: var(--ae-text-muted, #526780); text-align: right; overflow-wrap: anywhere; }
+// 進度卡：作業、口說、聽力各一張，一個大數字加一條進度條；每週報告與排行榜縮成下方小連結。
+.student-progress__cards { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.student-progress__card { box-sizing: border-box; display: grid; align-content: start; gap: 8px; width: 100%; min-height: 44px; padding: 14px 16px; border: 1px solid var(--ae-border, #d5e3f0); border-radius: 16px; background: var(--ae-surface, #fff); color: var(--ae-text, #17365d); font: inherit; text-align: left; text-decoration: none; cursor: pointer; }
+.student-progress__card:hover { background: var(--ae-surface-muted, #f5f8fc); color: inherit; }
+.student-progress__card:focus-visible { outline: 3px solid #245fc5; outline-offset: 2px; }
+.student-progress__card-head { display: flex; align-items: center; gap: 10px; strong { font-size: 16px; font-weight: 800; } > svg:last-child { flex-shrink: 0; margin-left: auto; color: var(--ae-text-muted, #526780); } .student-progress__tile { width: 32px; height: 32px; border-radius: 10px; > svg { width: 18px; height: 18px; } } }
+.student-progress__card-big { font-size: 22px; font-weight: 800; line-height: 1.25; overflow-wrap: anywhere; }
+.student-progress__card progress { display: block; appearance: none; width: 100%; height: 8px; border: 0; border-radius: 6px; overflow: hidden; background: var(--ae-surface-muted, #e3eaf5); &::-webkit-progress-bar { background: var(--ae-surface-muted, #e3eaf5); } &::-webkit-progress-value { background: #247a56; border-radius: 6px; } &::-moz-progress-bar { background: #247a56; border-radius: 6px; } }
+.student-progress__card-sub { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 8px; font-size: 13px; color: var(--ae-text-muted, #526780); .is-alert { color: #b3261e; font-weight: 700; } }
+.student-progress__links { display: flex; flex-wrap: wrap; gap: 4px 20px; }
+.student-progress__links a { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; color: var(--ae-text-muted, #526780); font-size: 15px; font-weight: 700; text-decoration: none; svg { width: 18px; height: 18px; } small { margin-left: 4px; font-size: 13px; font-weight: 400; } &:hover { color: var(--ae-text, #17365d); } &:focus-visible { outline: 3px solid #245fc5; outline-offset: 2px; } }
 
 // The page title repeats the navigation label, so it is kept for assistive technology only.
 .student-settings-hero { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }

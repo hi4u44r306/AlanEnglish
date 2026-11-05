@@ -5,6 +5,7 @@ import { MemoryRouter } from "react-router-dom";
 import Showcase from "./Showcase";
 
 jest.mock("../fragment/ShowcaseNavbar", () => () => <nav aria-label="公開網站導覽" />);
+jest.mock("../../auth/AuthContext", () => ({ useAuth: () => ({ isAuthenticated: false, role: null }) }));
 
 describe("Showcase", () => {
     it("presents the core learning features and recorded learning journey", () => {

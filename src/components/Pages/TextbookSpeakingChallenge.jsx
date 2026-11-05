@@ -514,7 +514,7 @@ export default function TextbookSpeakingChallenge() {
                     <p>{staffPreview ? "選擇 Workbook 預覽已發布關卡。" : "把課本裡的英文說出來，練習發音與完整回答。"}</p>
                 </span>
                 {!staffPreview && <details className="speaking-catalog-help">
-                    <summary aria-label={quotaReady ? `今天還能練 ${challengePolicy.daily_remaining} 輪，共 ${challengePolicy.daily_limit} 輪。點一下看規則` : "今日額度與規則"}><FiMic aria-hidden="true" /><b>{quotaReady ? `${challengePolicy.daily_remaining} / ${challengePolicy.daily_limit}` : "…"}</b><span>規則</span><FiChevronDown className="speaking-catalog-help__chevron" aria-hidden="true" /></summary>
+                    <summary aria-label={quotaReady ? `今天還能練 ${challengePolicy.daily_remaining} 輪，共 ${challengePolicy.daily_limit} 輪。點一下看規則` : "今日額度與規則"}><FiMic aria-hidden="true" /><b>{quotaReady ? `今天 ${challengePolicy.daily_remaining} / ${challengePolicy.daily_limit} 輪` : "…"}</b><span>規則</span><FiChevronDown className="speaking-catalog-help__chevron" aria-hidden="true" /></summary>
                     <SpeakingChallengeRules policy={challengePolicy} loading={catalogLoading} />
                 </details>}
             </header>}
