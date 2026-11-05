@@ -294,10 +294,16 @@ export default function TextbookSpeakingChallenge() {
         // map opens on the level in play, not at the top (= the last level). The position is re-applied for
         // a short while because page changes, data refreshes and layout shifts can scroll it away again.
         if (!bookKey || questionSetId || catalogLoading || !catalog.length || process.env.NODE_ENV === "test") return undefined;
-        const returnedId = Number(location.state?.speakingReturn?.questionSetId);
+        const focusPage = location.state?.speakingFocusPage;
+        // 只有「同一頁的關卡已解鎖」才對準它；還鎖著就不帶孩子去死路，改對準真正的下一個目標。
+        const pageLevel = focusPage ? catalogGroups.flatMap(group => group.sections.flatMap(section => section.items)).find(item => item.is_unlocked
+            && Number((item.book || item.books || {}).id) === Number(focusPage.bookId)
+            && ((item.source_pages || []).map(Number).includes(Number(focusPage.page))
+                || String(item.title || "").trim().split(/\s/)[0].replace(/^P\.?/i, "") === String(focusPage.page))) : null;
+        const returnedId = Number(location.state?.speakingReturn?.questionSetId) || Number(pageLevel?.id) || NaN;
         if (mapGestureRef.current.key !== location.key) mapGestureRef.current = { key: location.key, moved: false };
         return centerOnLevel(() => findLevelToFocus(document, returnedId), { state: mapGestureRef.current });
-    }, [bookKey, questionSetId, catalog, catalogLoading, location.state, location.key]);
+    }, [bookKey, questionSetId, catalog, catalogGroups, catalogLoading, location.state, location.key]);
 
     useEffect(() => {
         if (!selectedLesson) return undefined;

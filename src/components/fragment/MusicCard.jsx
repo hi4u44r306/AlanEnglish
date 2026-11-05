@@ -1,4 +1,5 @@
 import React, { Suspense, lazy, useState } from "react";
+import { Link, useInRouterContext } from "react-router-dom";
 import "../assets/scss/MusicCard.scss";
 import { AiFillPlayCircle } from "react-icons/ai";
 import { FiHeadphones, FiCheck, FiYoutube } from "react-icons/fi";
@@ -128,6 +129,7 @@ function MusicCard({
             className={[
                 "music-card",
                 assignmentProgress ? "music-card--assignment" : "",
+                completed && !assignmentProgress ? "music-card--speaking-ready" : "",
                 isCurrentTrack
                     ? "music-card--active"
                     : "",
@@ -178,6 +180,8 @@ function MusicCard({
                     <span><small>{assignmentProgress ? "長期熟練累積" : "熟練進度"}</small><strong>{progressStatus === "ready" ? `${Math.min(playCount, LISTENING_MASTERY_REQUIRED_PLAYS)} / ${LISTENING_MASTERY_REQUIRED_PLAYS}` : progressStatus === "loading" ? "讀取中" : "紀錄未載入"}</strong></span>
                 </div>
 
+                {completed && !assignmentProgress && <SpeakingChallengeLink bookId={music?.book_id} page={page} />}
+
                 {completed && (
                     <div
                         className="music-card__check"
@@ -189,6 +193,23 @@ function MusicCard({
                 )}
             </div>
         </div>
+    );
+}
+
+// 聽滿熟練次數後，在這一列旁邊出現「去挑戰口說」入口；只是連結，不影響任何計次。
+function SpeakingChallengeLink({ bookId, page }) {
+    const inRouter = useInRouterContext();
+    if (!inRouter) return null;
+    const pageNumber = Number(String(page || "").match(/\d+/)?.[0]) || null;
+    // 帶書本與頁碼去口說地圖，地圖會自己對準同一頁的關卡（沒有對應關卡就留在地圖上）。
+    const to = bookId
+        ? `/student/speaking-challenges/book/${encodeURIComponent(`book-${bookId}`)}`
+        : "/student/speaking-challenges";
+    return (
+        <Link to={to} state={bookId && pageNumber ? { speakingFocusPage: { bookId: Number(bookId), page: pageNumber } } : undefined} className="music-card__speaking" aria-label="聽熟了，去挑戰口說大挑戰">
+            <span aria-hidden="true">🎤</span>
+            <span className="music-card__speaking-text">去挑戰口說</span>
+        </Link>
     );
 }
 

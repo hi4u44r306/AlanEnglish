@@ -43,6 +43,7 @@ import {
     mergeCoverageRange
 } from "../../utils/listeningCoverage";
 import ListeningRewardFeedback from "./ListeningRewardFeedback";
+import SpeakingChallengeNudge from "./SpeakingChallengeNudge";
 import PlaybackPausedDialog from "./PlaybackPausedDialog";
 import { listeningRewardText } from "../../utils/listeningRewardText";
 
@@ -1505,6 +1506,9 @@ function MusicPlayer({
                 </div>
             )}
             <ListeningRewardFeedback reward={rewardFeedback} onDismiss={() => setRewardFeedback(null)} />
+            {role === "student" && rewardStatus?.source !== "assignment" && (rewardStatus?.mastery_rewarded || Number(rewardStatus?.mastery_count || 0) >= LISTENING_MASTERY_REQUIRED_PLAYS) && (
+                <SpeakingChallengeNudge trackKey={trackId} lifted={Boolean(rewardFeedback)} />
+            )}
             {visibilityPauseOpen && !attentionCheckOpen && (
                 <PlaybackPausedDialog onResume={continueAfterVisibilityPause} />
             )}

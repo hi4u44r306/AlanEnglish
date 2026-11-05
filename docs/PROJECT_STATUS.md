@@ -1,5 +1,13 @@
 # Alan English 專案狀態
 
+### 聽滿 30 次後的「去挑戰口說」入口（2026-11-05，分支 `feature/speaking-entry-after-mastery`；尚未合併）
+
+- 來源：擁有者要求「聽力次數達到之後，旁邊跳出可以去挑戰口說大挑戰的按鈕」。
+- 改動：①`MusicCard.jsx`／`MusicCard.scss`：自主聽力列達熟練（`hasReachedListeningMastery`）且非作業音檔時，顯示黃色連結「去挑戰口說」；手機（≤520px）改成第二行全寬。連結帶 `speakingFocusPage`（書本 id＋頁碼）進 `/student/speaking-challenges/book/book-{id}`。②`TextbookSpeakingChallenge.jsx`：地圖依 `speakingFocusPage` 對準同一頁關卡，**只在該關已解鎖時**；未解鎖就維持原本對準「下一個目標」（避免把孩子帶進鎖住的關卡）。③`MusicPlayer.jsx`＋新檔 `SpeakingChallengeNudge.jsx`＋`FooterPlayer.scss`：播放器聽完一次且熟練後，左上方跳出同樣提示（可關閉）。
+- 驗證：`MusicCard` 測試 15 項通過（新增 5 項：滿 30 才出現與連結位置、29 次不出現、讀取中不出現、作業音檔不出現、無 Router 不壞）；口說流程與列表相關測試共 86 項通過；用測試帳號（學生 35）在桌機實測：口說未解鎖時按鈕改帶到下一個目標。
+- 取捨：連結只到「那一本書的地圖」並對準關卡，不直接開始遊戲，以保留簡單／挑戰模式選擇與解鎖規則。
+- 未驗證：該頁關卡已解鎖時的對準（沒有可解鎖的帳號可實測）；播放器旁的提示畫面；360px 以下手機寬度；iPhone 實機。
+- 資料：為了看畫面，已把測試帳號（學生 35）的 Workbook 1 P22 次數手動改為 30（`student_track_progress`、`student_track_mastery`），原值 3 與 1。
 ### 重設密碼面板自動捲動、用臨時密碼登入後直接改密碼（2026-11-04，分支 `fix/autoscroll-and-direct-password-change`；尚未合併）
 
 - 來源：擁有者試用時發現面板在列表下方看不到；並要求「用臨時密碼登入後，不用再輸入一次臨時密碼，直接改密碼」。
