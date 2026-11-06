@@ -1,5 +1,23 @@
 # Alan English 專案狀態
 
+### 點選音檔不計次、防掛機失效修正（2026-11-06，分支 `fix/listening-session-start`；尚未合併）
+
+- 來源：
+  - 用測試學生帳號在正式站實測。點 P22 有建立聆聽工作階段，P24 自動接下一首也有；但從清單點選的 P23、P26、P27 都沒有送出 record-play start。P23 完整聽完卻沒有算到。
+  - function logs 與 `listening_coverage_sessions` 都確認了這個現象。
+- 根因：
+  - react-h5-audio-player 換 src 時，會在 componentDidUpdate 呼叫 `play()`。
+  - 新曲目的 play 事件可能比 MusicPlayer `[trackId]` 的 reset effect 早到，reset 又把 `hasPlaybackStartedRef` 改回 false，之後不會再有 play 事件。
+  - jsdom 測試已重現；真實瀏覽器裡兩者的先後順序沒有量測。
+- 改動（`MusicPlayer.jsx`）：
+  - ①`handleListen` 在真的播放中，且通過分頁可見、注意力檢查等與 `handlePlay` 相同的條件時，標記已開始播放，讓 session 能建立。
+  - ②單曲重複時標記為自動播放。
+  - ③自然結束先觸發的 pause（`audio.ended`）不清空 noInteraction 計數。
+  - ④播放器上的點擊、按鍵、觸控都算真人操作，會重設計數。
+  - 後端、80% 門檻、加速檢查都沒有改。
+- 測試：MusicPlayer 與 listeningCoverage 共 4 個 suite、28 項通過。新增 `MusicPlayer.sessionStart.test.jsx`（7 項），在舊程式上有 3 項失敗。防掛機測試原本的 helper 把 pause 和 ended 放在同一個 act，沒有真的重現 bug，已改成分兩個 act。
+- 未驗證：真實瀏覽器（含 iOS Safari）的事件順序。上線後要用測試學生點 2～3 首，查 `listening_coverage_sessions`。
+
 ### 學生開放前的安全修正、補測試與手冊校正（2026-11-06，PR #655 已合併 main `889cf30a`；資料庫與後端已部署）
 
 - 部署紀錄（2026-11-06，擁有者同意）：
