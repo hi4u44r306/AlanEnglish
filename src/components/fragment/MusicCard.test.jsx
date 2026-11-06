@@ -2,6 +2,7 @@ import React from "react";
 import "@testing-library/jest-dom";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { useDispatch, useSelector } from "react-redux";
+import { MemoryRouter } from "react-router-dom";
 import MusicCard from "./MusicCard";
 
 jest.mock("./LessonVideoDialog", () => function LessonVideo({ segment, context }) {
@@ -160,5 +161,36 @@ describe("MusicCard", () => {
         expect(dispatch).not.toHaveBeenCalled();
         view.rerender(<MusicCard music={{ ...music, type: "Workbook_1", page: "P23" }} />);
         expect(screen.queryByRole("button", { name: /教學影片/ })).not.toBeInTheDocument();
+    });
+
+    describe("聽滿熟練次數後的口說入口", () => {
+        const link = () => screen.queryByRole("link", { name: /口說大挑戰/ });
+        const mount = props => render(<MemoryRouter><MusicCard music={{ ...music, book_id: 1 }} {...props} /></MemoryRouter>);
+        beforeEach(() => useSelector.mockImplementation(selector => selector({ musicReducer: { playing: null, playingStatus: false } })));
+
+        it("聽滿 30 次才出現，並帶著書本與頁碼進口說地圖", () => {
+            mount({ progress: { playCount: 30 } });
+            expect(link()).toHaveAttribute("href", "/student/speaking-challenges/book/book-1");
+        });
+
+        it("未滿 30 次不會出現", () => {
+            mount({ progress: { playCount: 29 } });
+            expect(link()).toBeNull();
+        });
+
+        it("紀錄還沒載入完成時不會出現", () => {
+            mount({ progress: { playCount: 30 }, progressStatus: "loading" });
+            expect(link()).toBeNull();
+        });
+
+        it("老師指定的作業音檔不會出現", () => {
+            mount({ progress: { playCount: 30 }, assignmentProgress: { playCount: 3, requiredListens: 3, completed: true } });
+            expect(link()).toBeNull();
+        });
+
+        it("沒有 Router 時不會壞掉也不顯示", () => {
+            render(<MusicCard music={{ ...music, book_id: 1 }} progress={{ playCount: 30 }} />);
+            expect(link()).toBeNull();
+        });
     });
 });
