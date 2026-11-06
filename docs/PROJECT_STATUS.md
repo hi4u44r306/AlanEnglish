@@ -1,6 +1,34 @@
 # Alan English 專案狀態
 
-### 學生開放前的安全修正、補測試與手冊校正（2026-11-06，分支 `fix/security-before-launch`；尚未合併、**後端與資料庫修改尚未部署／套用**）
+### 學生開放前的安全修正、補測試與手冊校正（2026-11-06，PR #655 已合併 main `889cf30a`；資料庫與後端已部署）
+
+- 部署紀錄（2026-11-06，擁有者同意）：
+  - 部署前：下載正式站 10 個函式，與合併前 main 逐檔比對，19 檔全部相同。
+  - 資料庫：用 Supabase CLI `db query --linked -f` 依序執行 5 個 migration，並寫入 `schema_migrations`。核對結果：
+    - 時間下限已換成新判斷式。
+    - 復原碼只限學生。
+    - `get_student_effective_access` 會檢查 `account_status`；49 位在學學生仍是有效狀態。
+    - 重設連結作廢 trigger 已存在。
+    - 限流 advisory lock 已加上。
+    - 沒有新增可由 anon／authenticated 執行的函式。
+  - 後端：用 Supabase CLI `functions deploy --no-verify-jwt --use-api`，從 main 部署 10 個函式，部署後版本如下：
+    - record-play v61
+    - assignment-manager v60
+    - link-manager v40
+    - membership-manager v76
+    - learning-activity v54
+    - weekly-report v53
+    - guardian-email v58
+    - academy-student-manager v61
+    - music-admin v48
+    - gamification v45
+  - 部署後：重新下載逐檔比對，19 檔全部和 main 相同。未登入請求都回 401，`verify_jwt` 維持 false，後端日誌沒有錯誤。
+- 部署工具：本機沒有安裝 Supabase CLI，改用 npx 快取裡的 2.122.0（已登入）。之後部署請用 CLI，不要再用 MCP 手抄檔案內容。
+- 部署後未驗證：還沒用真實學生、老師、管理員帳號實際操作。需要人工驗收的項目：
+  - 老師名單只顯示自己的班。
+  - 排行榜只顯示暱稱。
+  - 聆聽次數正常累計。
+  - 復原碼、家長重設連結。
 
 - 來源：擁有者要求全站檢查；Claude 與 Codex 各做一次唯讀資安審查，主對話核對程式碼與正式庫唯讀查詢。擁有者要求在 2026-11-09 開放學生前修好。AI 教材將拿掉，所以 AI 價格與額度競態不處理。
 - 正式庫唯讀查到的事實：154 個 public 資料表與檢視全部開 RLS，anon／authenticated 讀不到敏感表；963 首啟用音檔中有 950 首沒有 `duration_seconds`；2 筆已付款未認領訂單（擁有者說應該是測試單，未刪）；1 位老師有 4 班權限；49 位英文班學生 enrollment 全為 active；沒有大小寫不一致或未綁定 uid 的帳號。
