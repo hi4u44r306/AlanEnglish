@@ -26,8 +26,6 @@ jest.mock("react-h5-audio-player", () => {
     };
 });
 
-// Opt-in switch to execute the KNOWN BUG cases: RUN_KNOWN_BUGS=1
-const knownBugTest = process.env.RUN_KNOWN_BUGS === "1" ? test : test.skip;
 const queue = [1, 2, 3, 4, 5, 6, 7].map(id => ({ id, page: `P${id}`, bookname: "Workbook 2", audioURL: `local-${id}.wav` }));
 const attentionDialog = () => screen.queryByRole("dialog", { name: "確認仍在學習" });
 
@@ -41,6 +39,7 @@ beforeEach(() => {
     jest.spyOn(window, "cancelAnimationFrame").mockImplementation(() => {});
     jest.spyOn(HTMLMediaElement.prototype, "play").mockImplementation(function () {
         Object.defineProperty(this, "paused", { configurable: true, value: false });
+        Object.defineProperty(this, "ended", { configurable: true, value: false });
         fireEvent.play(this);
         return Promise.resolve();
     });
@@ -62,14 +61,22 @@ const begin = async () => {
 };
 
 // What a browser does when a non-looping track reaches its end (HTML spec "reaches the end":
-// paused becomes true and `pause` fires, then `ended` fires).
+// the position is at the end so `ended` is true, paused becomes true and `pause` fires, then
+// `ended` fires). The two events are separate tasks, so React re-renders in between; firing
+// them in one act() would let handleEnd read a stale count and hide a reset done by handlePause.
 const naturalEnd = async (audio, { withPauseEvent }) => {
-    await act(async () => {
-        if (withPauseEvent) {
+    audio.currentTime = audio.duration;
+    Object.defineProperty(audio, "ended", { configurable: true, value: true });
+    if (withPauseEvent) {
+        await act(async () => {
             Object.defineProperty(audio, "paused", { configurable: true, value: true });
             fireEvent.pause(audio);
-        }
+        });
+    }
+    await act(async () => {
         fireEvent.ended(audio);
+        // handleEnd awaits the session and record-play promises; let that chain settle.
+        await new Promise(resolve => setTimeout(resolve, 0));
     });
 };
 const finishTracks = async (audio, count, options) => {
@@ -103,27 +110,23 @@ test("a manual pause and play by the student resets the idle count", async () =>
     expect(localStorage.getItem("ae-no-interaction")).toBe("1");
 });
 
-// KNOWN BUG: in a real browser every natural track end fires `pause` before `ended`.
-// handlePause (L1191-1210) cannot tell that apart from a manual pause and calls
-// resetNoInteraction(), so the count goes 0 -> 1 on every track and never reaches 5.
-// Confirmed with RUN_KNOWN_BUGS=1: no attention dialog after 5 tracks.
-knownBugTest("five natural track ends (pause then ended) open the attention check", async () => {
+// In a real browser every natural track end fires `pause` before `ended`; handlePause must not
+// treat that as a manual pause (which resets the count).
+test("five natural track ends (pause then ended) open the attention check", async () => {
     const audio = await begin();
     await finishTracks(audio, 5, { withPauseEvent: true });
     expect(attentionDialog()).toBeInTheDocument();
 });
 
-// KNOWN BUG: in repeat mode handleEnd (L1079-1094) replays with audio.play() without marking the
-// play as automatic, so handlePlay (L1184) calls resetNoInteraction() after every repeat and the
-// idle check can never fire, even without any pause event. Confirmed with RUN_KNOWN_BUGS=1.
-knownBugTest("five repeats of one track in repeat mode open the attention check", async () => {
+// In repeat mode the automatic replay must not count as a student's own Play.
+test("five repeats of one track in repeat mode open the attention check", async () => {
     const audio = await begin();
     turnOnRepeat();
     await finishTracks(audio, 5, { withPauseEvent: false });
     expect(attentionDialog()).toBeInTheDocument();
 });
 
-knownBugTest("five natural repeats in repeat mode (pause then ended) open the attention check", async () => {
+test("five natural repeats in repeat mode (pause then ended) open the attention check", async () => {
     const audio = await begin();
     turnOnRepeat();
     await finishTracks(audio, 5, { withPauseEvent: true });
@@ -139,4 +142,17 @@ test("repeat mode replays the same track from the start", async () => {
     expect(audio.getAttribute("src")).toBe(src);
     expect(audio.currentTime).toBe(0);
     expect(audio.paused).toBe(false);
+});
+
+test("any genuine tap or key press on the player resets the idle count", async () => {
+    const audio = await begin();
+    await finishTracks(audio, 4, { withPauseEvent: true });
+    expect(localStorage.getItem("ae-no-interaction")).toBe("4");
+    fireEvent.pointerDown(screen.getByRole("button", { name: "展開播放器" }));
+    expect(localStorage.getItem("ae-no-interaction")).toBe("0");
+    await finishTracks(audio, 4, { withPauseEvent: true });
+    fireEvent.keyDown(screen.getByRole("button", { name: "展開播放器" }), { key: "Tab" });
+    expect(localStorage.getItem("ae-no-interaction")).toBe("0");
+    await finishTracks(audio, 5, { withPauseEvent: true });
+    expect(attentionDialog()).toBeInTheDocument();
 });
