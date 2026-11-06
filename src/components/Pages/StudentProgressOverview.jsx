@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { Link } from "react-router-dom";
-import { FiArrowRight, FiCheckSquare, FiChevronRight, FiMail, FiMic, FiPlay } from "react-icons/fi";
+import { FiArrowRight, FiCheckSquare, FiChevronRight, FiHeadphones, FiMail, FiMic, FiPlay } from "react-icons/fi";
 import { PiTrophyFill } from "react-icons/pi";
 import { useAuth } from "../../auth/AuthContext";
 import useStudentPageQuery from "../../hooks/useStudentPageQuery";
@@ -11,15 +11,32 @@ import { getSpeakingChallengeCatalog } from "../../services/speakingChallengeSer
 import { getWeeklyReport } from "../../services/weeklyReportService";
 import { roundFocusRate } from "../../utils/focusRate";
 import { findResumeBook, learningResumePath, mergeLearningHistory } from "../../services/studentLearningResume";
-import { getRecentListening } from "../../services/listeningService";
+import { getDashboardStats, getRecentListening } from "../../services/listeningService";
 import { getLearningTasks, getStudentMaterialCategories } from "../../utils/studentLearning";
 import { assignmentDisplayTitle, assignmentProgressLabel } from "../../utils/assignmentListening";
 import forestScene from "../assets/speaking-map/unified-forest-a-v1.webp";
 
 const formatDay = value => new Intl.DateTimeFormat("zh-TW", { timeZone: "Asia/Taipei", month: "numeric", day: "numeric" }).format(new Date(value));
 const taskPath = task => `/student/assignments?task=${encodeURIComponent(task.taskKey)}`;
-const MAX_ROWS = 3;
+const SECTION_ORDER = { preparation: 0, textbook: 1, topic: 2 };
+// 關卡在地圖上的名字：有頁碼就寫頁碼（P.11、P.18～20），沒有就用關卡標題。
+const levelLabel = item => {
+    const pages = (item.source_pages || []).map(Number).filter(Number.isInteger).sort((a, b) => a - b);
+    if (!pages.length) return String(item.title || "").trim().replace(/^\d{1,2}\s+/, "");
+    return pages.length > 1 ? `P.${pages[0]}～${pages[pages.length - 1]}` : `P.${pages[0]}`;
+};
 const Tile = ({ tone, children }) => <span className={`student-progress__tile student-progress__tile--${tone}`} aria-hidden="true">{children}</span>;
+
+// 一張進度卡：標題、一個大數字、一條進度條（有才顯示）、兩小行說明。整張都可以點。
+function ProgressCard({ to, onClick, tone, icon, title, big, max = 0, value = 0, barLabel, left, right, alert = false }) {
+    const body = <>
+        <span className="student-progress__card-head"><Tile tone={tone}>{icon}</Tile><strong>{title}</strong><FiChevronRight aria-hidden="true" /></span>
+        <span className="student-progress__card-big">{big}</span>
+        {max > 0 && <progress max={max} value={value} aria-label={barLabel} />}
+        {(left || right) && <span className="student-progress__card-sub"><span>{left}</span><span className={alert ? "is-alert" : ""}>{right}</span></span>}
+    </>;
+    return to ? <Link className="student-progress__card" to={to}>{body}</Link> : <button type="button" className="student-progress__card" onClick={onClick}>{body}</button>;
+}
 
 // The page answers one question first: "what do I do next?" — the assignment, then the track
 // the student stopped at, then a short list of everything else.
@@ -36,6 +53,7 @@ function StudentProgressOverview() {
     const assignmentsQuery = useStudentPageQuery("assignments:v1", () => getStudentAssignments(firebaseUser), { enabled: assignmentAccess });
     const assignmentsV2Query = useStudentPageQuery("assignments:v2", () => getStudentAssignmentsV2(firebaseUser), { enabled: assignmentAccess });
     const speakingQuery = useStudentPageQuery("speaking:catalog", () => getSpeakingChallengeCatalog(firebaseUser), { enabled: speakingAccess });
+    const statsQuery = useStudentPageQuery("listening:stats", () => getDashboardStats(firebaseUser), { enabled: active });
     const weeklyQuery = useStudentPageQuery(`weekly:${Math.floor((Date.now() + 8 * 3600000 + 3 * 86400000) / (7 * 86400000))}:self`, () => getWeeklyReport(firebaseUser, { weekOffset: 0 }), { enabled: active, persist: true });
     // 與每週報告頁共用同一份快取（同一週、自己）。
     const weeklyAttention = weeklyQuery.data?.report?.attention;
@@ -54,15 +72,23 @@ function StudentProgressOverview() {
         (speakingQuery.data?.challenges || []).forEach(item => {
             const book = item.book || item.books || {};
             const key = String(book.id || book.code || book.name || "other");
-            const group = groups.get(key) || { key, name: book.name || "其他教材", total: 0, completed: 0 };
+            const group = groups.get(key) || { key, name: book.name || "其他教材", total: 0, completed: 0, items: [] };
             group.total += 1;
             if (item.is_completed === true) group.completed += 1;
+            group.items.push(item);
             groups.set(key, group);
         });
-        return [...groups.values()];
+        // 「下一關」和地圖一樣的順序：入門準備 → 教材 → 主題，同一段依關卡順序。
+        return [...groups.values()].map(group => ({
+            ...group,
+            next: [...group.items].sort((a, b) => (SECTION_ORDER[a.catalog_section] ?? 1) - (SECTION_ORDER[b.catalog_section] ?? 1)
+                || Number(a.sequence_order || 0) - Number(b.sequence_order || 0) || Number(a.id) - Number(b.id)).find(item => item.is_completed !== true) || null
+        }));
     }, [speakingQuery.data]);
 
-    const tasks = getLearningTasks(assignmentsQuery.data?.assignments, assignmentsV2Query.data?.assignments).filter(task => task.state !== "completed");
+    const allTasks = getLearningTasks(assignmentsQuery.data?.assignments, assignmentsV2Query.data?.assignments);
+    const tasks = allTasks.filter(task => task.state !== "completed");
+    const doneTasks = allTasks.length - tasks.length;
     const nextTask = tasks[0];
     const tasksLoading = assignmentsQuery.loading || assignmentsV2Query.loading;
     const taskError = assignmentsQuery.error || assignmentsV2Query.error;
@@ -73,10 +99,12 @@ function StudentProgressOverview() {
 
     const resume = listening[0];
     const where = item => item.bookmark.page || item.bookmark.trackTitle || "教材音檔";
-    // Books in progress come first; untouched books would only add noise.
-    const speakingStarted = speaking.filter(group => group.completed > 0 && group.completed < group.total);
-    // The top card already is the first assignment, so a row is only worth showing for the rest.
-    const otherTasks = Math.max(0, tasks.length - 1);
+    // 口說卡只放一本：先放做到一半的，其次是還沒做完的第一本。
+    const speakingBook = speaking.find(group => group.completed > 0 && group.completed < group.total)
+        || speaking.find(group => group.completed < group.total) || speaking[0];
+    const totalListens = Number.isFinite(Number(statsQuery.data?.total_count)) ? Number(statsQuery.data.total_count) : null;
+    const nextDue = nextTask && Number.isFinite(Date.parse(nextTask.due_at)) ? `${formatDay(nextTask.due_at)} 到期` : "";
+    const overdueTasks = tasks.filter(task => task.state === "overdue").length;
 
     return <section className="student-progress" aria-label="學習進度">
         {nextTask ? <Link className={`student-progress__next${nextTask.state === "overdue" ? " is-overdue" : ""}`} to={taskPath(nextTask)}>
@@ -100,24 +128,23 @@ function StudentProgressOverview() {
         </Link>}
         {taskError && <p className="student-progress__notice" role="status">部分作業未能讀取，這裡可能不完整。<button type="button" onClick={refreshTasks}>重新讀取</button></p>}
 
-        <div className="student-settings-list student-progress__list">
-            {assignmentAccess && tasks.length !== 1 && <Link className="student-settings-row" to="/student/assignments">
-                <Tile tone="blue"><FiCheckSquare /></Tile><div><strong>作業</strong></div>
-                <span className="student-progress__value">{tasksLoading && !tasks.length ? "讀取中" : taskError && !tasks.length ? "無法讀取" : otherTasks ? `還有 ${otherTasks} 份` : "都完成了"}</span>
-                <FiChevronRight aria-hidden="true" />
-            </Link>}
-            {speakingAccess && (speakingStarted.length ? speakingStarted.slice(0, MAX_ROWS).map(group => <Link className="student-settings-row" to="/student/speaking-challenges" key={group.key}>
-                <Tile tone="orange"><FiMic /></Tile>
-                <div><strong>{group.name}</strong><progress max={group.total} value={group.completed} aria-label={`${group.name} 口說進度`} /></div>
-                <span className="student-progress__value">{group.completed} / {group.total} 關</span>
-                <FiChevronRight aria-hidden="true" />
-            </Link>) : <Link className="student-settings-row" to="/student/speaking-challenges">
-                <Tile tone="orange"><FiMic /></Tile><div><strong>口說大挑戰</strong></div>
-                <span className="student-progress__value">{speakingQuery.loading ? "讀取中" : speakingQuery.error ? "無法讀取" : speaking.some(group => group.completed > 0) ? "全部完成" : "還沒開始"}</span>
-                <FiChevronRight aria-hidden="true" />
-            </Link>)}
-            <Link className="student-settings-row" to="/student/weekly-report"><Tile tone="green"><FiMail /></Tile><div><strong>每週報告</strong></div>{focusRate !== null && <span className="student-progress__value">本週專注度 {focusRate}%</span>}<FiChevronRight aria-hidden="true" /></Link>
-            <Link className="student-settings-row" to="/student/leaderboard"><Tile tone="yellow"><PiTrophyFill /></Tile><div><strong>排行榜</strong></div><FiChevronRight aria-hidden="true" /></Link>
+        <div className="student-progress__cards">
+            {assignmentAccess && <ProgressCard to="/student/assignments" tone="blue" icon={<FiCheckSquare />} title="作業"
+                big={tasksLoading && !allTasks.length ? "讀取中" : taskError && !allTasks.length ? "無法讀取" : tasks.length ? `進行中 ${tasks.length} 份` : allTasks.length ? "都完成了" : "目前沒有作業"}
+                max={allTasks.length} value={doneTasks} barLabel="作業完成進度"
+                left={allTasks.length ? `已完成 ${doneTasks} / ${allTasks.length}` : ""}
+                right={overdueTasks ? `${overdueTasks} 份遲交` : nextDue} alert={overdueTasks > 0} />}
+            {speakingAccess && <ProgressCard to={speakingBook ? `/student/speaking-challenges/book/${encodeURIComponent(`book-${speakingBook.key}`)}` : "/student/speaking-challenges"} tone="orange" icon={<FiMic />} title="口說大挑戰"
+                big={speakingBook ? `${speakingBook.completed} / ${speakingBook.total} 關` : speakingQuery.loading ? "讀取中" : speakingQuery.error ? "無法讀取" : "還沒開始"}
+                max={speakingBook?.total || 0} value={speakingBook?.completed || 0} barLabel={`${speakingBook?.name || ""} 口說進度`}
+                left={speakingBook?.name} right={speakingBook ? (speakingBook.next ? `下一關：${levelLabel(speakingBook.next)}` : "全部完成") : ""} />}
+            <ProgressCard {...(resume ? { to: learningResumePath(resume.book, resume.bookmark) } : { onClick: openMaterials })} tone="green" icon={<FiHeadphones />} title="聽力"
+                big={totalListens !== null ? `累計聽了 ${totalListens.toLocaleString("zh-TW")} 次` : statsQuery.loading ? "讀取中" : statsQuery.error ? "無法讀取" : "—"}
+                left="聽滿 80% 才算一次" />
+        </div>
+        <div className="student-progress__links">
+            <Link to="/student/weekly-report"><FiMail aria-hidden="true" />每週報告{focusRate !== null && <small>本週專注度 {focusRate}%</small>}</Link>
+            <Link to="/student/leaderboard"><PiTrophyFill aria-hidden="true" />排行榜</Link>
         </div>
     </section>;
 }

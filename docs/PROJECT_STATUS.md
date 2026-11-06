@@ -1,5 +1,16 @@
 # Alan English 專案狀態
 
+### 我的進度三張進度卡、名稱統一與幾處提示（2026-11-06，分支 `feature/student-progress-page-and-copy`，PR #654）
+
+- 來源：擁有者走完學生流程後挑出的 5 個體驗問題（名稱、我的進度、10/10 說明、作業空狀態、已登入首頁），並確認預覽圖。
+- 改動：①`StudentProgressOverview.jsx`／`StudentSettings.scss`：列表列改成作業、口說、聽力三張進度卡（`ProgressCard`），每週報告與排行榜縮成小連結；口說卡只放一本（做到一半 → 第一本未完成）並依地圖順序（入門準備 → 教材 → 主題）算下一關，頁碼用 `source_pages`、沒有就用標題（去掉開頭編號）；聽力卡用既有 `get-dashboard-stats` 的 `total_count`（`students.total_time_played`，每次有效聆聽 +1，已部署，**不需要改後端或資料庫**）。②`StudentNavbar.jsx`、`GuidedTour.jsx`、`MainNavbar.test.jsx`：導覽「冒險」→「口說大挑戰」。③`TextbookSpeakingChallenge.jsx`：右上角顯示「今天 N / M 輪」。④`StudentAssignments.jsx`：空狀態文字與按鈕（去聽教材，連到 `/student/books`）。⑤新檔 `ShowcaseSignedInBar.jsx`＋`Showcase.jsx`／`Showcase.scss`：已登入者看公開首頁時頂端提示條；沒有導向，公開首頁對未登入者完全不變。
+- 驗證：`StudentProgressOverview` 14 項（改寫 6、新增 4）、`ShowcaseSignedInBar` 3 項、`MainNavbar` 32 項、`StudentAssignments`／`FlowGuidance` 通過；ESLint 無錯；用測試帳號（學生 35）在桌機看過進度頁、作業頁、口說頁、公開首頁。
+- 取捨：①聽力卡只放累計次數，「熟練 N 首」需要跨書統計（要改後端），先不做。②作業卡與上方「接下來：作業」大卡資訊有部分重複，保留是因為大卡是「下一步動作」、卡片是「整體進度」。③公開首頁選擇加提示條而不是自動導向，因為首頁同時是招生頁，老師與管理員也需要看。
+- 已知：`Showcase.test.jsx` 有 2 項（找不到標題「AI 口說大挑戰」）在這次改動之前就失敗，與本次無關，未處理。`MainNavbar` 測試在電腦忙時會超過 5 秒預設時限（放寬時限後全過）。
+- 手機寬度：用測試帳號在 360／390／412px 的框裡看過進度頁、教材列表（口說按鈕全寬）、公開首頁，導覽「口說大挑戰」放得下；首頁提示條原本被手機導覽列（實際高約 93px，logo 與按鈕會換行）蓋住，改成量導覽列實際高度後正常。
+- 作業卡：測試帳號沒有作業，改在 390px 的框裡攔截請求塞入假作業資料（沒有動任何正式資料，快取已清除）看過「進行中 2 份、1/3 進度條、到期日」與「都完成了 1/1」；看的過程發現同時有進行中與遲交時遲交被到期日蓋住，已改成遲交優先（「N 份遲交」標紅）並補測試。
+- 未驗證：iPhone 實機；「目前沒有作業」以外的真實作業資料（只有假資料與單元測試）；
+
 ### 音檔長度補齊（2026-11-06，擁有者同意後寫入正式資料庫）
 
 - 來源：963 首啟用音檔中有 950 首 `duration_seconds` 為 NULL，record-play 只能採用瀏覽器回報的長度。
@@ -18,7 +29,8 @@
 - 改動：①`MusicCard.jsx`／`MusicCard.scss`：自主聽力列達熟練（`hasReachedListeningMastery`）且非作業音檔時，顯示黃色連結「去挑戰口說」；手機（≤520px）改成第二行全寬。連結帶 `speakingFocusPage`（書本 id＋頁碼）進 `/student/speaking-challenges/book/book-{id}`。②`TextbookSpeakingChallenge.jsx`：地圖依 `speakingFocusPage` 對準同一頁關卡，**只在該關已解鎖時**；未解鎖就維持原本對準「下一個目標」（避免把孩子帶進鎖住的關卡）。③`MusicPlayer.jsx`＋新檔 `SpeakingChallengeNudge.jsx`＋`FooterPlayer.scss`：播放器聽完一次且熟練後，左上方跳出同樣提示（可關閉）。
 - 驗證：`MusicCard` 測試 15 項通過（新增 5 項：滿 30 才出現與連結位置、29 次不出現、讀取中不出現、作業音檔不出現、無 Router 不壞）；口說流程與列表相關測試共 86 項通過；用測試帳號（學生 35）在桌機實測：口說未解鎖時按鈕改帶到下一個目標。
 - 取捨：連結只到「那一本書的地圖」並對準關卡，不直接開始遊戲，以保留簡單／挑戰模式選擇與解鎖規則。
-- 未驗證：該頁關卡已解鎖時的對準（沒有可解鎖的帳號可實測）；播放器旁的提示畫面；360px 以下手機寬度；iPhone 實機。
+- 另外實測：測試帳號實際播放 P22（靜音）到 87% 有效聆聽時，播放器左上方出現「聽熟了！去挑戰口說大挑戰」；手機 360／390／412px 看過教材列表的全寬按鈕。播放過程讓測試帳號多了 1 次有效聆聽（P22 已達上限 30，累計 +1）。
+- 未驗證：該頁關卡已解鎖時的對準（沒有可解鎖的帳號可實測）；播放器提示在手機寬度的實際畫面；iPhone 實機。
 - 資料：為了看畫面，已把測試帳號（學生 35）的 Workbook 1 P22 次數手動改為 30（`student_track_progress`、`student_track_mastery`），原值 3 與 1。
 
 ### 後台寄信紀錄、等級設定頁與會員提醒排程錯誤（2026-11-06，PR #658 已合併 `ab553eda`；3 個函式已部署）
