@@ -34,11 +34,14 @@ async function recordEvent(admin: any, event: DueEvent) {
         if (existing.error) throw existing.error;
         eventId = existing.data.id;
     }
-    const { error: inboxError } = await admin.from("student_notifications").upsert({
+    // The (student_id, event_key) unique index is partial (WHERE event_key IS NOT NULL), so
+    // ON CONFLICT (student_id,event_key) cannot use it (Postgres 42P10). Insert and treat a
+    // duplicate (23505) as "already delivered" instead.
+    const { error: inboxError } = await admin.from("student_notifications").insert({
         student_id: event.studentId, notification_type: "membership", event_key: event.key,
         title: event.title, body: event.body, metadata: { event_type: event.type, effective_at: event.effectiveAt, target_path: "/student/membership" }
-    }, { onConflict: "student_id,event_key", ignoreDuplicates: true });
-    if (inboxError) throw inboxError;
+    });
+    if (inboxError && inboxError.code !== "23505") throw inboxError;
     const guardian = await admin.from("guardian_contacts").select("email,notification_enabled").eq("student_id", event.studentId).maybeSingle();
     if (guardian.error) throw guardian.error;
     if (guardian.data?.notification_enabled !== false && validEmail(guardian.data?.email)) {
@@ -170,7 +173,14 @@ Deno.serve(async (req: Request) => {
         return json(400, { error: "不支援的通知操作" });
     } catch (error) {
         const status = Number((error as any)?.status || 500);
-        if (status >= 500) console.error("notification-manager unexpected error", error instanceof Error ? error.message : "unknown");
+        // Database errors are plain objects, not Error instances; log their code and message
+        // (no row data) so a failing scheduled run can be diagnosed.
+        if (status >= 500) {
+            const detail = error instanceof Error
+                ? error.message
+                : `${String((error as any)?.code || "no_code")} ${String((error as any)?.message || "unknown").slice(0, 300)}`;
+            console.error("notification-manager unexpected error", detail);
+        }
         return json(status, { error: error instanceof Error ? error.message : "通知服務暫時無法使用" });
     }
 });

@@ -19,6 +19,82 @@
 - 另外實測：測試帳號實際播放 P22（靜音）到 87% 有效聆聽時，播放器左上方出現「聽熟了！去挑戰口說大挑戰」；手機 360／390／412px 看過教材列表的全寬按鈕。播放過程讓測試帳號多了 1 次有效聆聽（P22 已達上限 30，累計 +1）。
 - 未驗證：該頁關卡已解鎖時的對準（沒有可解鎖的帳號可實測）；播放器提示在手機寬度的實際畫面；iPhone 實機。
 - 資料：為了看畫面，已把測試帳號（學生 35）的 Workbook 1 P22 次數手動改為 30（`student_track_progress`、`student_track_mastery`），原值 3 與 1。
+### 後台寄信紀錄、等級設定頁與會員提醒排程錯誤（2026-11-06，分支 `fix/backend-embed-and-reminder`；尚未合併、尚未部署）
+
+- 來源：正式站完整測試時，從 function logs 找到下列錯誤，都是原本就有的。
+- `guardian-email`：讀取寄信狀態時，`notification_logs → students` 有兩條外鍵（`student_id`、`created_by_account_id`），PostgREST 回 PGRST201。修法：指定 `students!notification_logs_student_id_fkey`。
+- `learning-progress`：等級設定頁顯示「學習等級服務暫時無法使用」。原因是 `students → student_level_progress` 有兩條外鍵（`student_id`、`updated_by`），同樣回 PGRST201。修法：指定 `student_level_progress!student_level_progress_student_id_fkey`。
+- `notification-manager`：會員到期提醒排程至少從 2026-11-05 起每小時都回 500。
+  - 日誌只寫 unknown，因為資料庫錯誤不是 Error 物件。
+  - 已確認一個會發生的錯誤：`student_notifications` 的唯一索引有條件（`WHERE event_key IS NOT NULL`），`upsert(onConflict: "student_id,event_key")` 會回 42P10。已用 EXPLAIN 在正式庫重現。改成 insert，並把重複（23505）視為已送達。
+  - 但目前沒有到期事件，所以這不是每小時失敗的原因。真正原因要等部署後，看新日誌的錯誤代碼。
+- 驗證：三個函式的 `deno check` 都沒有錯誤；`git diff --check` 通過。
+- 未處理：`stripe-webhook/index.ts:149` 也有同樣的 onConflict 寫法。付款目前暫停販售，屬於付款高風險範圍，沒有改。
+
+### 點選音檔不計次、防掛機失效修正（2026-11-06，分支 `fix/listening-session-start`；尚未合併）
+
+- 來源：
+  - 用測試學生帳號在正式站實測。點 P22 有建立聆聽工作階段，P24 自動接下一首也有；但從清單點選的 P23、P26、P27 都沒有送出 record-play start。P23 完整聽完卻沒有算到。
+  - function logs 與 `listening_coverage_sessions` 都確認了這個現象。
+- 根因：
+  - react-h5-audio-player 換 src 時，會在 componentDidUpdate 呼叫 `play()`。
+  - 新曲目的 play 事件可能比 MusicPlayer `[trackId]` 的 reset effect 早到，reset 又把 `hasPlaybackStartedRef` 改回 false，之後不會再有 play 事件。
+  - jsdom 測試已重現；真實瀏覽器裡兩者的先後順序沒有量測。
+- 改動（`MusicPlayer.jsx`）：
+  - ①`handleListen` 在真的播放中，且通過分頁可見、注意力檢查等與 `handlePlay` 相同的條件時，標記已開始播放，讓 session 能建立。
+  - ②單曲重複時標記為自動播放。
+  - ③自然結束先觸發的 pause（`audio.ended`）不清空 noInteraction 計數。
+  - ④播放器上的點擊、按鍵、觸控都算真人操作，會重設計數。
+  - 後端、80% 門檻、加速檢查都沒有改。
+- 測試：MusicPlayer 與 listeningCoverage 共 4 個 suite、28 項通過。新增 `MusicPlayer.sessionStart.test.jsx`（7 項），在舊程式上有 3 項失敗。防掛機測試原本的 helper 把 pause 和 ended 放在同一個 act，沒有真的重現 bug，已改成分兩個 act。
+- 未驗證：真實瀏覽器（含 iOS Safari）的事件順序。上線後要用測試學生點 2～3 首，查 `listening_coverage_sessions`。
+
+### 學生開放前的安全修正、補測試與手冊校正（2026-11-06，PR #655 已合併 main `889cf30a`；資料庫與後端已部署）
+
+- 部署紀錄（2026-11-06，擁有者同意）：
+  - 部署前：下載正式站 10 個函式，與合併前 main 逐檔比對，19 檔全部相同。
+  - 資料庫：用 Supabase CLI `db query --linked -f` 依序執行 5 個 migration，並寫入 `schema_migrations`。核對結果：
+    - 時間下限已換成新判斷式。
+    - 復原碼只限學生。
+    - `get_student_effective_access` 會檢查 `account_status`；49 位在學學生仍是有效狀態。
+    - 重設連結作廢 trigger 已存在。
+    - 限流 advisory lock 已加上。
+    - 沒有新增可由 anon／authenticated 執行的函式。
+  - 後端：用 Supabase CLI `functions deploy --no-verify-jwt --use-api`，從 main 部署 10 個函式，部署後版本如下：
+    - record-play v61
+    - assignment-manager v60
+    - link-manager v40
+    - membership-manager v76
+    - learning-activity v54
+    - weekly-report v53
+    - guardian-email v58
+    - academy-student-manager v61
+    - music-admin v48
+    - gamification v45
+  - 部署後：重新下載逐檔比對，19 檔全部和 main 相同。未登入請求都回 401，`verify_jwt` 維持 false，後端日誌沒有錯誤。
+- 部署工具：本機沒有安裝 Supabase CLI，改用 npx 快取裡的 2.122.0（已登入）。之後部署請用 CLI，不要再用 MCP 手抄檔案內容。
+- 部署後未驗證：還沒用真實學生、老師、管理員帳號實際操作。需要人工驗收的項目：
+  - 老師名單只顯示自己的班。
+  - 排行榜只顯示暱稱。
+  - 聆聽次數正常累計。
+  - 復原碼、家長重設連結。
+
+- 來源：擁有者要求全站檢查；Claude 與 Codex 各做一次唯讀資安審查，主對話核對程式碼與正式庫唯讀查詢。擁有者要求在 2026-11-09 開放學生前修好。AI 教材將拿掉，所以 AI 價格與額度競態不處理。
+- 正式庫唯讀查到的事實：154 個 public 資料表與檢視全部開 RLS，anon／authenticated 讀不到敏感表；963 首啟用音檔中有 950 首沒有 `duration_seconds`；2 筆已付款未認領訂單（擁有者說應該是測試單，未刪）；1 位老師有 4 班權限；49 位英文班學生 enrollment 全為 active；沒有大小寫不一致或未綁定 uid 的帳號。
+- Edge 修正（不需資料庫）：
+  - `link-manager`：拿掉用信箱 `ilike` 找身分的備援。
+  - `membership-manager`：信箱備援只接受已驗證信箱並精確比對；已付款訂單只在信箱已驗證時認領，之後 profile 會補認領；老師帳號清單與編輯只限自己班、不能改班級；保留既有 `learner_type`。
+  - `learning-activity`、`weekly-report`、`guardian-email`、`academy-student-manager`：老師只處理自己班的學生（共用 `_shared/teacher-scope.ts`）。
+  - `music-admin`：不能覆蓋既有音檔路徑；刪除只限管理員。
+  - `gamification`：排行榜不給非職員其他學生的真名、班級、頭像。
+  - `record-play`：沒有存長度的音檔，瀏覽器回報長度低於 15 秒拒絕；經過時間下限改為 `max(聽到秒數×0.75, 聽到秒數×0.9−5)`。
+  - `assignment-manager`：已停用帳號回 403；未到發布日的新版作業不能提交。
+- 資料庫修改（5 個新 migration `20261106090100`～`090500`，只新增函式定義與 trigger、不改資料）：時間下限、復原碼只限學生並加 30 天累計鎖定、已停用帳號 `get_student_effective_access` 視為不啟用、家長信箱變更時作廢重設連結、重設請求限流加 advisory lock。
+- 測試：新增 handler 與 SQL 測試（假冒、訂單、老師班級、排行榜、聆聽、復原碼、作業隔離、開通碼、口說關卡、登入、路由角色、播放器防掛機）。安全測試 35 項、SQL 測試在 PGlite 實際執行，作業／開通碼／口說 79 項、前端新測試 86 項通過。`academy-assignment-v2-contract` 第 8、12 項，`Showcase`、`StudentNotifications` 測試在本分支修改前就失敗（只比對文字或與本次無關，`src` 原始碼未改）。
+- 已知問題（測試已標記，未修）：開通碼先扣掉才寫教材權限，寫入失敗時學生拿不到書；播放器連續播 5 首與重複播放模式都不會跳出「確認仍在學習」（`MusicPlayer.jsx` handlePause／handleEnd），只剩 15 分鐘計時；過期作業仍可提交（是否允許補交待決定）；重做 AI 題分數較低會把已完成改回進行中；答錯一次就會看到全部答案（AI 作業將拿掉）；沒有題目的口說關卡會讓後面的頁一直鎖住；`auth-email` 寄信限流有同樣的競態；老師與管理員忘記密碼只能由管理員到 Firebase 後台重設。
+- 部署順序：5 個 migration 依檔名順序套用（正式資料庫，需擁有者同意）→ 部署 `record-play`、`assignment-manager`、`link-manager`、`membership-manager`、`learning-activity`、`weekly-report`、`guardian-email`、`academy-student-manager`、`music-admin`、`gamification`（含 `_shared` 新檔）→ 部署後逐檔比對 → 用測試帳號驗收。前端沒有改。回復：重新部署 main 版本的函式；migration 檔頭有回復方式。
+- 未驗證：真實 Deno 環境、正式站、平行請求競態、iPhone；老師畫面在權限縮小後的實際樣子。
+
 ### 重設密碼面板自動捲動、用臨時密碼登入後直接改密碼（2026-11-04，分支 `fix/autoscroll-and-direct-password-change`；尚未合併）
 
 - 來源：擁有者試用時發現面板在列表下方看不到；並要求「用臨時密碼登入後，不用再輸入一次臨時密碼，直接改密碼」。

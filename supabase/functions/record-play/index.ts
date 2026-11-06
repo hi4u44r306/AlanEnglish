@@ -19,6 +19,21 @@ const FIREBASE_JWKS = createRemoteJWKSet(
 );
 const MINIMUM_LISTENING_COVERAGE = 80;
 const MAX_TRACK_DURATION_SECONDS = 60 * 60;
+// Tracks without a catalog duration fall back to the browser-reported length.
+// Refuse implausibly short claims so a fake 1-second "track" cannot be counted every second.
+const MIN_CLIENT_DURATION_SECONDS = 15;
+// Elapsed wall time must cover most of the audio actually heard (acceleration is not allowed).
+// Grace absorbs the session-start network delay; never stricter than the earlier 0.75 floor.
+const ELAPSED_COVERAGE_RATIO = 0.9;
+const ELAPSED_GRACE_SECONDS = 5;
+const LEGACY_ELAPSED_RATIO = 0.75;
+
+function minimumElapsedSecondsFor(coveredSeconds: number) {
+  return Math.max(
+    coveredSeconds * LEGACY_ELAPSED_RATIO,
+    coveredSeconds * ELAPSED_COVERAGE_RATIO - ELAPSED_GRACE_SECONDS
+  );
+}
 
 function normalizeCoverageRanges(value: unknown, durationSeconds: number) {
   if (!Array.isArray(value) || value.length > 120) return null;
@@ -207,10 +222,15 @@ Deno.serve(async (req: Request) => {
 
     if (action === "start") {
       const requestedDuration = Number(body?.duration_seconds);
-      const durationSeconds = Number(track.duration_seconds) || requestedDuration;
+      const storedDuration = Number(track.duration_seconds);
+      const hasStoredDuration = Number.isFinite(storedDuration) && storedDuration > 0;
+      const durationSeconds = hasStoredDuration ? storedDuration : requestedDuration;
 
       if (!Number.isFinite(durationSeconds) || durationSeconds <= 0 || durationSeconds > MAX_TRACK_DURATION_SECONDS) {
         return json(400, { error: "音檔長度不正確" });
+      }
+      if (!hasStoredDuration && durationSeconds < MIN_CLIENT_DURATION_SECONDS) {
+        return json(400, { error: "音檔長度不正確", code: "duration_too_short" });
       }
 
       let session: any = null;
@@ -286,7 +306,7 @@ Deno.serve(async (req: Request) => {
     }
 
     const elapsedSeconds = (Date.now() - new Date(storedSession.started_at).getTime()) / 1000;
-    const minimumElapsedSeconds = Number(storedSession.duration_seconds) * (completion.coveragePercent / 100) * 0.75;
+    const minimumElapsedSeconds = minimumElapsedSecondsFor(completion.coveredSeconds);
     if (!Number.isFinite(elapsedSeconds) || elapsedSeconds < minimumElapsedSeconds) {
       await admin
         .from("listening_coverage_sessions")

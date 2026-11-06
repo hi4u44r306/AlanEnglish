@@ -88,3 +88,35 @@ test("A–Z 起始關通過後才開放課本頁，之後依序解鎖；主題�
     const noPreparation = speakingChallengeUnlockState(grouped.slice(1), new Set());
     assert.deepEqual(noPreparation.map(item => [item.id, item.is_unlocked]), [[10, true], [11, false], [3, true], [4, false]]);
 });
+
+// Appended: empty-set behaviour and explicit challenge_order priority.
+test("沒有題目的關卡本身可進入，但永遠不算完成，因此後面的課本頁維持鎖定", () => {
+    const sets = [
+        { id: 1, title: "P4", generation_metadata: { source_pages: [4] }, speaking_questions: [] },
+        { id: 2, title: "P5", generation_metadata: { source_pages: [5] }, speaking_questions: [{ id: 201 }] }
+    ];
+    const state = speakingChallengeUnlockState(sets, new Set([201]));
+    assert.deepEqual(state.map(item => [item.id, item.is_unlocked, item.is_completed]), [[1, true, false], [2, false, true]]);
+    assert.deepEqual(speakingChallengeUnlockState([], new Set()), []);
+    const missingList = speakingChallengeUnlockState([{ id: 9, title: "P9" }], new Set());
+    assert.deepEqual(missingList.map(item => [item.is_unlocked, item.is_completed]), [[true, false]]);
+});
+
+test("challenge_order 優先於頁碼與標題，但不能把課本頁排到 A–Z 起始關之前", () => {
+    const sets = [
+        { id: 1, title: "P4", generation_metadata: { source_pages: [4] } },
+        { id: 2, title: "P30", generation_metadata: { source_pages: [30], challenge_order: 0 } },
+        { id: 3, title: "P10", generation_metadata: { source_pages: [10], challenge_order: 2 } },
+        { id: 4, title: "00 A–Z", generation_metadata: { interaction_type: "alphabet_round", challenge_order: 9999 } }
+    ];
+    assert.deepEqual(sortSpeakingChallengeSets(sets).map(item => item.id), [4, 2, 3, 1]);
+});
+
+test("負數或非整數 challenge_order 會被忽略，改用起始頁排序", () => {
+    const sets = [
+        { id: 1, title: "P8", generation_metadata: { source_pages: [8], challenge_order: -1 } },
+        { id: 2, title: "P6", generation_metadata: { source_pages: [6], challenge_order: 1.5 } },
+        { id: 3, title: "P7", generation_metadata: { source_pages: [7], challenge_order: "x" } }
+    ];
+    assert.deepEqual(sortSpeakingChallengeSets(sets).map(item => item.id), [2, 3, 1]);
+});

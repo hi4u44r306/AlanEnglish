@@ -1,5 +1,6 @@
 import { createClient, SupabaseClient } from "npm:@supabase/supabase-js@2.95.0";
 import { importPKCS8, SignJWT } from "npm:jose@5";
+import { canManageStudent, getManagedClassCodes, getManagedClassIds } from "../_shared/teacher-scope.ts";
 
 type JsonObject = Record<string, unknown>;
 
@@ -538,6 +539,15 @@ const requireStaff = (caller: CallerProfile): void => {
     }
 };
 
+// A teacher may only create invitations or students in a class granted to them (AGENTS §7).
+const requireManagedClass = async (admin: SupabaseClient, caller: CallerProfile, classCode: string): Promise<void> => {
+    if (caller.role === "admin") return;
+    const managed = await getManagedClassCodes(admin, caller);
+    if (!managed.includes(classCode)) {
+        throw new HttpError(403, "CLASS_NOT_MANAGED", "只能在自己負責的班級建立學生");
+    }
+};
+
 const requireAdmin = (caller: CallerProfile): void => {
     if (caller.role !== "admin") {
         throw new HttpError(403, "ADMIN_REQUIRED", "只有管理員可以批次建立學生帳號");
@@ -759,6 +769,7 @@ const createInvitation = async (
 ): Promise<Response> => {
     requireStaff(caller);
     const input = normalizeStudentInput(body, { requireReceivableEmail: true });
+    await requireManagedClass(admin, caller, input.classCode);
 
     const [{ data: existingStudent, error: studentError }, { data: classRow, error: classError }] = await Promise.all([
         admin.from("students").select("id").eq("email", input.loginEmail).maybeSingle(),
@@ -949,9 +960,14 @@ const listInvitations = async (
 ): Promise<Response> => {
     requireStaff(caller);
 
-    const { data, error } = await admin
+    // Teachers only list invitations for their own classes.
+    const managedClassIds = await getManagedClassIds(admin, caller);
+    if (managedClassIds && managedClassIds.length === 0) return json(req, 200, { success: true, invitations: [] });
+    let invitationQuery = admin
         .from("academy_account_invitations")
-        .select("id,status,invited_email,chinese_name,english_name,enrolled_at,access_ends_at,expires_at,claimed_by_student_id,claimed_at,completed_at,created_at,academy_classes(code,name_zh)")
+        .select("id,status,invited_email,chinese_name,english_name,enrolled_at,access_ends_at,expires_at,claimed_by_student_id,claimed_at,completed_at,created_at,academy_classes(code,name_zh)");
+    if (managedClassIds) invitationQuery = invitationQuery.in("class_id", managedClassIds);
+    const { data, error } = await invitationQuery
         .order("created_at", { ascending: false })
         .limit(500);
 
@@ -1211,6 +1227,9 @@ const sendPasswordReset = async (
     const { data: target, error: targetError } = await targetQuery.maybeSingle();
     if (targetError) throw new HttpError(500, "ACCOUNT_LOOKUP_FAILED", "無法確認學生帳號");
     if (!target?.id) throw new HttpError(404, "ACCOUNT_NOT_FOUND", "找不到可管理的學生帳號");
+    if (!await canManageStudent(admin, caller, target.id)) {
+        throw new HttpError(403, "STUDENT_NOT_MANAGED", "只能寄送自己負責班級學生的重設信");
+    }
 
     try {
         await firebaseRequest<JsonObject>("accounts:sendOobCode", {
@@ -1354,11 +1373,13 @@ const createStudent = async (
     body: JsonObject
 ): Promise<Response> => {
     requireStaff(caller);
+    const input = normalizeStudentInput(body);
+    await requireManagedClass(admin, caller, input.classCode);
     const result = await createStudentAccount(
         req,
         admin,
         caller,
-        normalizeStudentInput(body)
+        input
     );
 
     return json(req, 201, {
@@ -1748,9 +1769,11 @@ const listClasses = async (
         throw new HttpError(500, "CLASS_LIST_FAILED", "班級清單讀取失敗");
     }
 
+    // Teachers only get the classes they may create students in.
+    const managedCodes = caller.role === "admin" ? null : new Set(await getManagedClassCodes(admin, caller));
     return json(req, 200, {
         success: true,
-        classes: data || []
+        classes: (data || []).filter(row => !managedCodes || managedCodes.has(row.code))
     });
 };
 

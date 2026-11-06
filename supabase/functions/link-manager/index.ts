@@ -95,16 +95,9 @@ const findCaller = async (admin: any, firebaseUser: VerifiedFirebaseUser) => {
         .eq("firebase_uid", firebaseUser.uid)
         .maybeSingle();
     if (uidError) throw uidError;
-    if (byUid) return byUid;
-
-    if (!firebaseUser.email) return null;
-    const { data: byEmail, error: emailError } = await admin
-        .from("students")
-        .select("id,firebase_uid,email,name,role")
-        .ilike("email", firebaseUser.email)
-        .maybeSingle();
-    if (emailError) throw emailError;
-    return byEmail || null;
+    // Identity is the verified Firebase uid only. Matching by email would let any
+    // Firebase account claim an admin row (and `_` is a wildcard in ilike).
+    return byUid || null;
 };
 
 const loadLinks = async (admin: any) => {

@@ -1,6 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 import { createRemoteJWKSet, jwtVerify } from "npm:jose@5";
-import { resolveLeaderboardScope } from "../_shared/gamification-leaderboard.ts";
+import { resolveLeaderboardScope, shapeLeaderboardRow } from "../_shared/gamification-leaderboard.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -335,13 +335,21 @@ Deno.serve(async (req: Request) => {
                 : { data: [], error: null };
             if (socialProfilesError) throw socialProfilesError;
             const nicknameByStudentId = new Map((socialProfiles || []).map((profile: any) => [Number(profile.student_id), profile.nickname]));
-            const leaderboard = await Promise.all((rows || []).map(async (row: any) => ({
-                ...row,
-                nickname: nicknameByStudentId.get(Number(row.student_id)) || null,
-                avatar_url: await signedImage(admin, AVATAR_BUCKET, row.avatar_path, 3600),
-                level: getLevelInfo(row.total_xp).level,
-                is_current_user: Number(row.student_id) === Number(student.id)
-            })));
+            const isStaff = STAFF_ROLES.has(student.role);
+            const leaderboard = await Promise.all((rows || []).map(async (row: any) => {
+                const isSelf = Number(row.student_id) === Number(student.id);
+                const { _show_avatar: showAvatar, ...shaped } = shapeLeaderboardRow(row, {
+                    isSelf,
+                    isStaff,
+                    nickname: nicknameByStudentId.get(Number(row.student_id)) || null
+                });
+                return {
+                    ...shaped,
+                    avatar_url: showAvatar ? await signedImage(admin, AVATAR_BUCKET, row.avatar_path, 3600) : null,
+                    level: getLevelInfo(row.total_xp).level,
+                    is_current_user: isSelf
+                };
+            }));
             return json(200, { success: true, period, scope, class_code: classCode, leaderboard });
         }
 
