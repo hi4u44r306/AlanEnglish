@@ -3,6 +3,7 @@ import { buildAttention, buildSpeakingAttention, buildVideoSummary, describeAtte
 import { createRemoteJWKSet, jwtVerify } from "npm:jose@5";
 import { summarizeWeeklySpeakingChallenge } from "../_shared/weekly-report-speaking.ts";
 import { describeMakeupForFamily, loadStudentMakeupSummary, type MakeupSummary } from "../_shared/attendance-makeup.ts";
+import { getManagedStudentIds } from "../_shared/teacher-scope.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -647,17 +648,25 @@ Deno.serve(async (req: Request) => {
         let target = caller;
 
         if (isManager) {
-            const { data, error } = await admin
+            // Teachers only get reports for students in their own classes (AGENTS §7).
+            const managedIds = await getManagedStudentIds(admin, caller);
+            if (managedIds && managedIds.size === 0) return json(404, { error: "目前沒有可產生報告的學生" });
+            let studentQuery = admin
                 .from("students")
                 .select("id,name,class,plan")
-                .eq("role", "student")
-                .order("name", { ascending: true });
+                .eq("role", "student");
+            if (managedIds) studentQuery = studentQuery.in("id", [...managedIds]);
+            const { data, error } = await studentQuery.order("name", { ascending: true });
             if (error) throw error;
             students = data || [];
             if (!students.length) return json(404, { error: "目前沒有可產生報告的學生" });
 
             const requestedStudentId = Number(body?.student_id);
-            target = students.find(student => Number(student.id) === requestedStudentId) || students[0];
+            const requested = students.find(student => Number(student.id) === requestedStudentId);
+            if (managedIds && body?.student_id != null && body?.student_id !== "" && !requested) {
+                return json(403, { error: "只能查看自己負責班級的學生週報" });
+            }
+            target = requested || students[0];
         } else if (caller.role !== "student") {
             return json(403, { error: "此帳號無法查看學生週報" });
         }

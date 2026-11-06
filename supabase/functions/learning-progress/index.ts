@@ -404,7 +404,7 @@ Deno.serve(async (req: Request) => {
                 admin.from("promotion_exams").select(examSelect).order("from_level_id", { ascending: true }),
                 admin
                     .from("students")
-                    .select("id,name,email,class,student_level_progress(student_id,current_level_id,unlocked_rank,total_points,last_promoted_at,learning_levels(id,code,name_zh,name_en,rank,badge_color))")
+                    .select("id,name,email,class,student_level_progress!student_level_progress_student_id_fkey(student_id,current_level_id,unlocked_rank,total_points,last_promoted_at,learning_levels(id,code,name_zh,name_en,rank,badge_color))")
                     .eq("role", "student")
                     .order("name", { ascending: true })
             ]);

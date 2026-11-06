@@ -1084,10 +1084,13 @@ function MusicPlayer({
             audio.currentTime = 0;
             lastListenTimeRef.current = 0;
             lastListenWallClockRef.current = getListeningClock();
+            // An automatic replay is not a student action: it must not reset noInteraction.
+            automaticTrackChangeRef.current = true;
             const replayPromise = audio.play();
 
             if (replayPromise && typeof replayPromise.catch === "function") {
                 replayPromise.catch(error => {
+                    automaticTrackChangeRef.current = false;
                     console.warn("重複播放失敗:", error);
                 });
             }
@@ -1204,6 +1207,11 @@ function MusicPlayer({
         );
 
         setIsPlaybackActive(false);
+        // Browsers fire `pause` right before `ended` when a track finishes by itself. That is not
+        // a student action, so keep the noInteraction count; handleEnd still checks the last sample.
+        if (audioElement.current?.audio?.current?.ended) {
+            return;
+        }
         lastListenTimeRef.current = null;
         lastListenWallClockRef.current = null;
 
@@ -1224,6 +1232,18 @@ function MusicPlayer({
 
         setPlaybackPosition(currentTime);
         setAudioDuration(duration);
+        // The new track's `play` event can arrive before the trackId reset effect runs, and that
+        // reset would clear the flag for good. A time update while really playing (same gates as
+        // handlePlay) also proves playback started; it only allows the session to be created.
+        if (
+            !audio.paused &&
+            !pausePlayback &&
+            isDocumentVisibleRef.current &&
+            !pausedForVisibilityRef.current &&
+            !attentionCheckRef.current
+        ) {
+            hasPlaybackStartedRef.current = true;
+        }
         ensureListeningSession(audio);
 
         if (
@@ -1326,7 +1346,12 @@ function MusicPlayer({
     // =====================================
 
     return (
-        <div className="footer-player">
+        <div
+            className="footer-player"
+            onPointerDownCapture={resetNoInteraction}
+            onClickCapture={resetNoInteraction}
+            onKeyDownCapture={resetNoInteraction}
+        >
             <button
                 type="button"
                 className={`player-mobile-expand${sessionIneligible ? " is-ineligible" : ""}`}

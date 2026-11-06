@@ -1,6 +1,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { createRemoteJWKSet, jwtVerify } from "npm:jose@5";
 import { loadEffectiveAccess } from "../_shared/effective-access.ts";
+import { canManageStudent, getManagedStudentIds } from "../_shared/teacher-scope.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -380,22 +381,26 @@ Deno.serve(async (req: Request) => {
         return json(403, { error: "只有 Teacher / Admin 可以查看學生學習後台" });
       }
 
+      // Teachers only see students in their own classes; admins see everyone (AGENTS §7).
+      const managedIds = await getManagedStudentIds(admin, account);
+      if (managedIds && managedIds.size === 0) return json(200, { success: true, students: [] });
+      const scoped = (query: any, column: string) => managedIds ? query.in(column, [...managedIds]) : query;
       const [studentsResult, progressResult, guardiansResult, listeningResult] = await Promise.all([
-        admin
+        scoped(admin
           .from("students")
           .select("id, name, email, class, plan, created_at, last_login_at, last_active_at, last_learning_at")
-          .eq("role", "student")
+          .eq("role", "student"), "id")
           .order("name", { ascending: true }),
-        admin
+        scoped(admin
           .from("conversation_progress")
           .select("student_id, scenario_key, mode, current_step, completed_steps, total_steps, completed, last_practiced_at")
-          .eq("scenario_key", "meet-a-foreigner"),
-        admin
+          .eq("scenario_key", "meet-a-foreigner"), "student_id"),
+        scoped(admin
           .from("guardian_contacts")
-          .select("id, student_id, guardian_name, email, email_verified_at, phone, preferred_channel, notification_enabled, updated_at"),
-        admin
+          .select("id, student_id, guardian_name, email, email_verified_at, phone, preferred_channel, notification_enabled, updated_at"), "student_id"),
+        scoped(admin
           .from("student_track_progress")
-          .select("student_id, completed, last_played_at")
+          .select("student_id, completed, last_played_at"), "student_id")
       ]);
 
       if (studentsResult.error) return json(500, { error: "讀取學生資料失敗" });
@@ -403,8 +408,8 @@ Deno.serve(async (req: Request) => {
       if (guardiansResult.error) return json(500, { error: "讀取家長資料失敗" });
       if (listeningResult.error) return json(500, { error: "讀取聽力進度失敗" });
 
-      const progressMap = new Map((progressResult.data || []).map(item => [item.student_id, item]));
-      const guardianMap = new Map((guardiansResult.data || []).map(item => [item.student_id, item]));
+      const progressMap = new Map((progressResult.data || []).map((item: any) => [item.student_id, item]));
+      const guardianMap = new Map((guardiansResult.data || []).map((item: any) => [item.student_id, item]));
       const listeningMap = new Map<number, { completed: number; last_played_at: string | null }>();
 
       for (const item of listeningResult.data || []) {
@@ -416,7 +421,7 @@ Deno.serve(async (req: Request) => {
         listeningMap.set(item.student_id, current);
       }
 
-      const students = (studentsResult.data || []).map(student => ({
+      const students = (studentsResult.data || []).map((student: any) => ({
         ...student,
         status: getActivityStatus(student.last_active_at, student.last_login_at),
         conversation: progressMap.get(student.id) || null,
@@ -434,6 +439,9 @@ Deno.serve(async (req: Request) => {
 
       const studentId = Number(body?.student_id);
       if (!Number.isFinite(studentId) || studentId <= 0) return json(400, { error: "student_id 不正確" });
+      if (!await canManageStudent(admin, account, studentId)) {
+        return json(403, { error: "只能管理自己負責班級的學生" });
+      }
 
       const { data: student } = await admin
         .from("students")
@@ -493,6 +501,9 @@ Deno.serve(async (req: Request) => {
 
       const studentId = Number(body?.student_id);
       if (!Number.isFinite(studentId) || studentId <= 0) return json(400, { error: "student_id 不正確" });
+      if (!await canManageStudent(admin, account, studentId)) {
+        return json(403, { error: "只能管理自己負責班級的學生" });
+      }
 
       const [{ data: student }, { data: guardian }] = await Promise.all([
         admin.from("students").select("id, name, last_active_at, last_learning_at").eq("id", studentId).maybeSingle(),
@@ -558,6 +569,16 @@ Deno.serve(async (req: Request) => {
 
       const logId = Number(body?.notification_id);
       if (!Number.isFinite(logId) || logId <= 0) return json(400, { error: "notification_id 不正確" });
+      const { data: log, error: logError } = await admin
+        .from("notification_logs")
+        .select("id, student_id")
+        .eq("id", logId)
+        .maybeSingle();
+      if (logError) return json(500, { error: "讀取通知紀錄失敗" });
+      if (!log) return json(404, { error: "找不到通知紀錄" });
+      if (!await canManageStudent(admin, account, log.student_id)) {
+        return json(403, { error: "只能管理自己負責班級的學生" });
+      }
 
       const { error } = await admin
         .from("notification_logs")
