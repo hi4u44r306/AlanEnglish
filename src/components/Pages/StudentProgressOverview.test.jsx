@@ -61,6 +61,8 @@ test("puts the next unfinished assignment on top as the one thing to do", async 
     const card = screen.getByRole("link", { name: /作業.*進行中 2 份/ });
     expect(card).toHaveAttribute("href", "/student/assignments");
     expect(card).toHaveTextContent("已完成 1 / 3");
+    // 同時有進行中與遲交時，遲交優先顯示（不被到期日蓋掉）。
+    expect(card).toHaveTextContent("1 份遲交");
     expect(within(card).getByRole("progressbar", { name: "作業完成進度" })).toHaveAttribute("value", "1");
     expect(screen.queryByText("已完成的作業")).not.toBeInTheDocument();
     // Right under the assignment: the page the student stopped at, as its own card.

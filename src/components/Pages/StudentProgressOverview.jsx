@@ -104,6 +104,7 @@ function StudentProgressOverview() {
         || speaking.find(group => group.completed < group.total) || speaking[0];
     const totalListens = Number.isFinite(Number(statsQuery.data?.total_count)) ? Number(statsQuery.data.total_count) : null;
     const nextDue = nextTask && Number.isFinite(Date.parse(nextTask.due_at)) ? `${formatDay(nextTask.due_at)} 到期` : "";
+    const overdueTasks = tasks.filter(task => task.state === "overdue").length;
 
     return <section className="student-progress" aria-label="學習進度">
         {nextTask ? <Link className={`student-progress__next${nextTask.state === "overdue" ? " is-overdue" : ""}`} to={taskPath(nextTask)}>
@@ -132,7 +133,7 @@ function StudentProgressOverview() {
                 big={tasksLoading && !allTasks.length ? "讀取中" : taskError && !allTasks.length ? "無法讀取" : tasks.length ? `進行中 ${tasks.length} 份` : allTasks.length ? "都完成了" : "目前沒有作業"}
                 max={allTasks.length} value={doneTasks} barLabel="作業完成進度"
                 left={allTasks.length ? `已完成 ${doneTasks} / ${allTasks.length}` : ""}
-                right={nextTask?.state === "overdue" ? "有遲交" : nextDue} alert={nextTask?.state === "overdue"} />}
+                right={overdueTasks ? `${overdueTasks} 份遲交` : nextDue} alert={overdueTasks > 0} />}
             {speakingAccess && <ProgressCard to={speakingBook ? `/student/speaking-challenges/book/${encodeURIComponent(`book-${speakingBook.key}`)}` : "/student/speaking-challenges"} tone="orange" icon={<FiMic />} title="口說大挑戰"
                 big={speakingBook ? `${speakingBook.completed} / ${speakingBook.total} 關` : speakingQuery.loading ? "讀取中" : speakingQuery.error ? "無法讀取" : "還沒開始"}
                 max={speakingBook?.total || 0} value={speakingBook?.completed || 0} barLabel={`${speakingBook?.name || ""} 口說進度`}
