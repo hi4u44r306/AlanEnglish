@@ -1149,3 +1149,45 @@
 //     align-items: center;
 //   }
 // }
+
+.speaking-challenge-nudge {
+  position: absolute;
+  z-index: 23;
+  left: 18px;
+  bottom: calc(100% + 12px);
+  display: flex;
+  align-items: center;
+  max-width: calc(100vw - 28px);
+  border-radius: 16px;
+  color: #173866;
+  background: #ffd769;
+  box-shadow: 0 12px 32px rgba(4, 18, 39, 0.28);
+  animation: listening-reward-enter 260ms ease-out both;
+  transition: bottom 200ms ease;
+}
+.speaking-challenge-nudge.is-lifted { bottom: calc(100% + 84px); }
+.speaking-challenge-nudge__link {
+  display: flex;
+  min-height: 44px;
+  padding: 8px 6px 8px 14px;
+  align-items: center;
+  gap: 10px;
+  color: inherit;
+  text-decoration: none;
+}
+.speaking-challenge-nudge__link strong { display: block; font-size: 0.88rem; }
+.speaking-challenge-nudge__link small { display: block; font-size: 0.73rem; opacity: 0.8; }
+.speaking-challenge-nudge button {
+  width: 44px;
+  height: 44px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+@media (max-width: 600px) {
+  .speaking-challenge-nudge { left: 14px; right: 14px; }
+  .speaking-challenge-nudge__link { flex: 1; min-width: 0; }
+  .speaking-challenge-nudge.is-lifted { bottom: calc(100% + 96px); }
+}

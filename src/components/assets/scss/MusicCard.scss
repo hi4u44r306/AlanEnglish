@@ -183,3 +183,20 @@
 .playlist-page .music-card--assignment .music-card__assignment span { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .music-card__count { display: none; }
 .playlist-page .music-card--assignment .music-card__count { display: inline; }
+
+// 聽滿熟練次數後出現的「去挑戰口說」入口。
+.music-card__speaking { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-width: 44px; min-height: 44px; padding: 8px 12px; border: 0; border-radius: 15px; background: #ffd769; color: #173866; font-size: 13px; font-weight: 800; text-decoration: none; white-space: nowrap; box-shadow: 0 4px 12px rgba(23, 56, 102, 0.18); animation: music-card-speaking-pop 320ms ease-out both; }
+.music-card__speaking:hover { background: #ffcb3d; color: #173866; }
+.music-card__speaking:focus-visible { outline: 3px solid #17365d; outline-offset: 3px; }
+@keyframes music-card-speaking-pop { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .music-card__speaking { animation: none; } }
+// 手機：第一行維持「播放、頁碼、看影片、次數」，口說按鈕獨立一整條（全寬）放第二行。
+@media (max-width: 520px) {
+  .playlist-page .music-card.music-card.music-card--speaking-ready { grid-template-columns: auto minmax(0, 1fr) auto auto !important; row-gap: 10px !important; }
+  .playlist-page .music-card.music-card.music-card--speaking-ready .music-card__title { white-space: nowrap; }
+  .playlist-page .music-card.music-card.music-card--speaking-ready .music-card__status { display: contents !important; }
+  .playlist-page .music-card.music-card.music-card--speaking-ready .music-card__video { grid-column: 3; grid-row: 1; }
+  .playlist-page .music-card.music-card.music-card--speaking-ready .music-card__plays { grid-column: 4; grid-row: 1; }
+  .playlist-page .music-card.music-card.music-card--speaking-ready .music-card__check { display: none !important; }
+  .playlist-page .music-card.music-card.music-card--speaking-ready .music-card__speaking { grid-column: 1 / -1; grid-row: 2; justify-self: stretch; width: 100%; min-height: 48px; font-size: 15px; }
+}
