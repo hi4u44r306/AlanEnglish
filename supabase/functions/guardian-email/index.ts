@@ -1,5 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 import { createRemoteJWKSet, jwtVerify } from "npm:jose@5";
+import { canManageStudent, getManagedStudentIds } from "../_shared/teacher-scope.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -431,13 +432,17 @@ Deno.serve(async (req: Request) => {
         const providerConfigured = Boolean(resendApiKey && settings?.from_email);
 
         if (action === "status") {
+            // Teachers only see the send log of students in their own classes (AGENTS §7).
+            const managedIds = await getManagedStudentIds(admin, caller);
+            let recentQuery = admin
+                .from("notification_logs")
+                .select("id,student_id,channel,reason,subject,status,provider,provider_message_id,error_message,week_start,sent_at,created_at,students(name,email)")
+                .eq("channel", "email");
+            if (managedIds) recentQuery = recentQuery.in("student_id", [...managedIds]);
             const [recentResult, scheduleResult] = await Promise.all([
-                admin
-                    .from("notification_logs")
-                    .select("id,student_id,channel,reason,subject,status,provider,provider_message_id,error_message,week_start,sent_at,created_at,students(name,email)")
-                    .eq("channel", "email")
-                    .order("created_at", { ascending: false })
-                    .limit(100),
+                managedIds && managedIds.size === 0
+                    ? Promise.resolve({ data: [], error: null })
+                    : recentQuery.order("created_at", { ascending: false }).limit(100),
                 admin.rpc("guardian_email_cron_status")
             ]);
             if (recentResult.error) throw recentResult.error;
@@ -510,6 +515,9 @@ Deno.serve(async (req: Request) => {
             const studentId = Number(body?.student_id);
             if (!Number.isInteger(studentId) || studentId <= 0) {
                 return json(400, { error: "學生編號不正確" });
+            }
+            if (!cronAuthorized && !await canManageStudent(admin, caller, studentId)) {
+                return json(403, { error: "只能寄送自己負責班級學生的週報" });
             }
             const { data, error } = await admin
                 .from("students")

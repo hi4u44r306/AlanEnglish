@@ -338,6 +338,10 @@ Deno.serve(async (req: Request) => {
             const { data: existing, error: existingError } = await admin.from("music_tracks").select("id").eq("book_id", bookId).eq("track_key", trackKey).maybeSingle();
             if (existingError) throw existingError;
             if (existing) return json(409, { error: "這個音檔已存在", code: "track_exists" });
+            // A new track_key must never get a write URL for a file another track already plays.
+            const { data: pathOwner, error: pathOwnerError } = await admin.from("music_tracks").select("id").eq("audio_url", storagePath).limit(1).maybeSingle();
+            if (pathOwnerError) throw pathOwnerError;
+            if (pathOwner) return json(409, { error: "這個音檔路徑已被其他音檔使用，不能覆蓋", code: "storage_path_in_use" });
             const { data: settings, error: settingsError } = await admin.from("audio_storage_settings")
                 .select("upload_provider,r2_cors_configured_at")
                 .eq("singleton", true)
@@ -345,6 +349,13 @@ Deno.serve(async (req: Request) => {
             if (settingsError) throw settingsError;
             if (settings.upload_provider === "r2") {
                 if (!settings.r2_cors_configured_at) return json(503, { error: "R2 CORS 尚未設定，請由管理員先完成 R2 連線設定" });
+                // A presigned PUT replaces whatever is there. Only an admin may overwrite a file
+                // already in R2 (for example one left behind by an unfinished upload).
+                const head = await fetchR2(storagePath, { method: "HEAD" });
+                if (head.ok && !isAdmin) {
+                    return json(409, { error: "R2 已有同名音檔，只有管理員可以覆蓋", code: "storage_object_exists" });
+                }
+                if (!head.ok && head.status !== 404) throw new Error(`R2 檢查失敗（HTTP ${head.status}）`);
                 const signedUrl = await createR2PresignedUrl(storagePath, "PUT", 15 * 60, "audio/mpeg");
                 return json(200, {
                     success: true,
@@ -381,6 +392,11 @@ Deno.serve(async (req: Request) => {
             const { data: book, error: bookError } = await admin.from("books").select("id,name,code").eq("id", bookId).eq("enabled", true).maybeSingle();
             if (bookError) throw bookError;
             if (!book || !storagePath.startsWith(`${book.code}/`) || storagePath.includes("..")) return json(400, { error: "教材或儲存路徑不正確" });
+            const { data: pathOwner, error: pathOwnerError } = await admin.from("music_tracks").select("id,track_key").eq("audio_url", storagePath).limit(1).maybeSingle();
+            if (pathOwnerError) throw pathOwnerError;
+            if (pathOwner && pathOwner.track_key !== trackKey) {
+                return json(409, { error: "這個音檔路徑已被其他音檔使用", code: "storage_path_in_use" });
+            }
             let objectSize: number | null = null;
             let objectEtag: string | null = null;
             if (storageProvider === "r2") {
@@ -446,6 +462,8 @@ Deno.serve(async (req: Request) => {
         }
 
         if (action === "delete_track") {
+            // Deleting removes the stored MP3 too, so it is admin-only; teachers can still upload and rename.
+            if (!isAdmin) return json(403, { error: "只有管理員可以刪除音檔" });
             const [progressRes, assignmentRes] = await Promise.all([
                 admin.from("student_track_progress").select("id", { count: "exact", head: true }).eq("track_id", trackId),
                 admin.from("assignments").select("id", { count: "exact", head: true }).eq("track_id", trackId)

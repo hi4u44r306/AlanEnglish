@@ -1,6 +1,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 import { createRemoteJWKSet, jwtVerify, type JWTPayload } from "npm:jose@5";
 import { loadEffectiveAccess } from "../_shared/effective-access.ts";
+import { getManagedStudentIds } from "../_shared/teacher-scope.ts";
 import {
     ACADEMY_AI_ADDON_PLAN_CODE,
     BASIC_MEMBERSHIP_PLAN_CODE,
@@ -563,11 +564,14 @@ const findCaller = async (admin: any, firebaseUser: VerifiedFirebaseUser) => {
     if (uidError) throw uidError;
     if (byUid) return byUid;
 
-    if (!firebaseUser.email) return null;
+    // Email fallback only for a Firebase-verified email, matched exactly (no ilike
+    // wildcards). An unverified token can never bind or read another row.
+    const email = normalizeEmail(firebaseUser.email);
+    if (!email || !firebaseUser.emailVerified) return null;
     const { data: byEmail, error: emailError } = await admin
         .from("students")
         .select("*")
-        .ilike("email", firebaseUser.email)
+        .eq("email", email)
         .maybeSingle();
     if (emailError) throw emailError;
     if (!byEmail) return null;
@@ -586,6 +590,25 @@ const findCaller = async (admin: any, firebaseUser: VerifiedFirebaseUser) => {
         return bound;
     }
     return byEmail;
+};
+
+// A paid physical-store order uses a separate Supabase Auth account. Its books and
+// 90-day access are claimed only for a Firebase-verified email, so nobody can take a
+// buyer's order by signing up with that address unverified. The RPC only touches
+// unclaimed paid orders, so calling it again is a cheap no-op. Returns the student
+// row, reloaded when an order was claimed (learner_type may have changed).
+const claimPaidStoreOrders = async (admin: any, student: any, firebaseUser: VerifiedFirebaseUser) => {
+    if (!firebaseUser.emailVerified || !firebaseUser.email || student?.role !== "student") return student;
+    const { data, error } = await admin.rpc("claim_paid_store_orders_for_student", {
+        p_student_id: student.id,
+        p_email: firebaseUser.email
+    });
+    if (error) throw error;
+    if (!(Number(data?.claimed_orders) > 0)) return student;
+    const { data: reloaded, error: reloadError } = await admin
+        .from("students").select("*").eq("id", student.id).maybeSingle();
+    if (reloadError) throw reloadError;
+    return reloaded || student;
 };
 
 const loadCompleteProfile = async (
@@ -967,6 +990,14 @@ Deno.serve(async (req: Request) => {
                     })
                     .select("*")
                     .single();
+                if (createError?.code === "23505") {
+                    // The email already belongs to an account and this token is not verified
+                    // (or is bound to another uid), so it is not linked.
+                    return json(409, {
+                        error: "這個 Email 已有 Alan English 帳號，請完成 Email 驗證後再登入，或使用忘記密碼",
+                        code: "EMAIL_ALREADY_REGISTERED"
+                    });
+                }
                 if (createError) throw createError;
                 student = created;
 
@@ -1023,14 +1054,9 @@ Deno.serve(async (req: Request) => {
                 }
             }
 
-            // A paid physical-store order uses a separate Supabase Auth account.
-            // Once the buyer creates the learning account with the same verified
-            // email, atomically claim the paid order's package books and 90-day access.
-            const { error: storeClaimError } = await admin.rpc("claim_paid_store_orders_for_student", {
-                p_student_id: student.id,
-                p_email: firebaseUser.email
-            });
-            if (storeClaimError) throw storeClaimError;
+            // A paid physical-store order is claimed only for a verified email; an unverified
+            // signup gets it on a later profile load once the email is verified.
+            student = await claimPaidStoreOrders(admin, student, firebaseUser);
 
             const profile = await loadCompleteProfile(admin, student, firebaseUser, true);
             return json(200, {
@@ -1080,6 +1106,15 @@ Deno.serve(async (req: Request) => {
         }
 
         if (action === "profile" || action === "status") {
+            // A buyer who signed up before verifying gets the order once the email is verified.
+            // A claim failure must not block login; the next profile load retries it.
+            if (action === "profile") {
+                try {
+                    caller = await claimPaidStoreOrders(admin, caller, firebaseUser);
+                } catch (claimError) {
+                    console.error("store order claim on profile load failed", claimError);
+                }
+            }
             const profile = await loadCompleteProfile(
                 admin,
                 caller,
@@ -1340,7 +1375,12 @@ Deno.serve(async (req: Request) => {
                     student_level_progress:student_level_progress!student_level_progress_student_id_fkey(student_id,current_level_id,unlocked_rank,total_points,last_promoted_at,learning_levels(id,code,name_zh,name_en,rank,badge_color))
                 `)
                 .order("name", { ascending: true });
-            if (caller.role === "teacher") query = query.eq("role", "student");
+            if (caller.role === "teacher") {
+                // Teachers only see students in their own classes (AGENTS §7).
+                const managedIds = await getManagedStudentIds(admin, caller);
+                if (!managedIds?.size) return json(200, { success: true, accounts: [] });
+                query = query.eq("role", "student").in("id", [...managedIds]);
+            }
             const { data: accounts, error } = await query;
             if (error) throw error;
             const normalizedAccounts = await Promise.all((accounts || []).map(async (account: any) => {
@@ -1434,6 +1474,17 @@ Deno.serve(async (req: Request) => {
             if (caller.role === "teacher" && target.role !== "student") {
                 return json(403, { error: "教師只能編輯學生帳號" });
             }
+            if (caller.role === "teacher") {
+                const managedIds = await getManagedStudentIds(admin, caller);
+                if (!managedIds?.has(Number(target.id))) {
+                    return json(403, { error: "只能編輯自己負責班級的學生" });
+                }
+                // Class moves go through the admin class-change flow, which also updates
+                // academy_enrollments; a teacher can only keep the current class here.
+                if ((classType || null) !== (cleanText(target.class, 20) || null)) {
+                    return json(403, { error: "教師不能在這裡更改學生班級，請由管理員使用轉班功能", code: "CLASS_CHANGE_REQUIRES_ADMIN" });
+                }
+            }
 
             let nextRole = target.role;
             if (caller.role === "admin" && requestedRole) {
@@ -1444,7 +1495,15 @@ Deno.serve(async (req: Request) => {
                 nextRole = requestedRole;
             }
 
-            if (nextRole === "student" && !classType) {
+            // Keep the existing learner_type of a student (AGENTS §5: purchases, trials and
+            // academy enrolment stack and must not be overwritten). Only an account that
+            // becomes a student here starts as academy_student, as before.
+            const nextLearnerType = nextRole !== "student"
+                ? null
+                : target.role === "student"
+                    ? target.learner_type ?? null
+                    : "academy_student";
+            if (nextRole === "student" && !classType && nextLearnerType === "academy_student") {
                 return json(400, { error: "英文班學生必須設定班級" });
             }
             const { data: updated, error: updateError } = await admin
@@ -1453,7 +1512,7 @@ Deno.serve(async (req: Request) => {
                     name,
                     role: nextRole,
                     class: nextRole === "student" ? classType : null,
-                    learner_type: nextRole === "student" ? "academy_student" : null,
+                    learner_type: nextLearnerType,
                     updated_at: new Date().toISOString()
                 })
                 .eq("id", target.id)

@@ -573,12 +573,16 @@ Deno.serve(async (req: Request) => {
         });
         const { data: caller, error: callerError } = await admin
             .from("students")
-            .select("id,name,email,class,role")
+            .select("id,name,email,class,role,account_status")
             .eq("firebase_uid", firebaseUid)
             .maybeSingle();
 
         if (callerError) throw callerError;
         if (!caller) return json(404, { error: "找不到 Alan English 帳號" });
+        // An archived account keeps its records but must not read or submit class work.
+        if (caller.account_status && caller.account_status !== "active") {
+            return json(403, { error: "這個帳號目前已停用", code: "ACCOUNT_ARCHIVED" });
+        }
 
         const body = await req.json().catch(() => ({}));
         const action = String(body?.action || "");
@@ -1390,10 +1394,12 @@ Deno.serve(async (req: Request) => {
                 return json(400, { error: "作業資料不完整或目前沒有有效英文班身分" });
             }
             const { data: assignment, error: assignmentError } = await admin.from("assignments")
-                .select("id,target_class,enabled,source_type,schema_version")
+                .select("id,target_class,enabled,source_type,schema_version,assigned_date")
                 .eq("id", assignmentId).maybeSingle();
             if (assignmentError) throw assignmentError;
-            if (!assignment || !assignment.enabled || assignment.target_class !== enrollmentClass || assignment.source_type !== "multi_activity_v2" || Number(assignment.schema_version) !== 2) {
+            // Same visibility rule as the student list: a future assigned_date is not published yet.
+            const notPublishedYet = !assignment?.assigned_date || String(assignment.assigned_date) > taiwanDate();
+            if (!assignment || !assignment.enabled || notPublishedYet || assignment.target_class !== enrollmentClass || assignment.source_type !== "multi_activity_v2" || Number(assignment.schema_version) !== 2) {
                 return json(403, { error: "這份新版作業目前無法提交" });
             }
             const { data: item, error: itemError } = await admin.from("assignment_items")
