@@ -1,5 +1,17 @@
 # Alan English 專案狀態
 
+### 後台寄信紀錄、等級設定頁與會員提醒排程錯誤（2026-11-06，分支 `fix/backend-embed-and-reminder`；尚未合併、尚未部署）
+
+- 來源：正式站完整測試時，從 function logs 找到下列錯誤，都是原本就有的。
+- `guardian-email`：讀取寄信狀態時，`notification_logs → students` 有兩條外鍵（`student_id`、`created_by_account_id`），PostgREST 回 PGRST201。修法：指定 `students!notification_logs_student_id_fkey`。
+- `learning-progress`：等級設定頁顯示「學習等級服務暫時無法使用」。原因是 `students → student_level_progress` 有兩條外鍵（`student_id`、`updated_by`），同樣回 PGRST201。修法：指定 `student_level_progress!student_level_progress_student_id_fkey`。
+- `notification-manager`：會員到期提醒排程至少從 2026-11-05 起每小時都回 500。
+  - 日誌只寫 unknown，因為資料庫錯誤不是 Error 物件。
+  - 已確認一個會發生的錯誤：`student_notifications` 的唯一索引有條件（`WHERE event_key IS NOT NULL`），`upsert(onConflict: "student_id,event_key")` 會回 42P10。已用 EXPLAIN 在正式庫重現。改成 insert，並把重複（23505）視為已送達。
+  - 但目前沒有到期事件，所以這不是每小時失敗的原因。真正原因要等部署後，看新日誌的錯誤代碼。
+- 驗證：三個函式的 `deno check` 都沒有錯誤；`git diff --check` 通過。
+- 未處理：`stripe-webhook/index.ts:149` 也有同樣的 onConflict 寫法。付款目前暫停販售，屬於付款高風險範圍，沒有改。
+
 ### 點選音檔不計次、防掛機失效修正（2026-11-06，分支 `fix/listening-session-start`；尚未合併）
 
 - 來源：

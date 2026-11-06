@@ -436,7 +436,7 @@ Deno.serve(async (req: Request) => {
             const managedIds = await getManagedStudentIds(admin, caller);
             let recentQuery = admin
                 .from("notification_logs")
-                .select("id,student_id,channel,reason,subject,status,provider,provider_message_id,error_message,week_start,sent_at,created_at,students(name,email)")
+                .select("id,student_id,channel,reason,subject,status,provider,provider_message_id,error_message,week_start,sent_at,created_at,students!notification_logs_student_id_fkey(name,email)")
                 .eq("channel", "email");
             if (managedIds) recentQuery = recentQuery.in("student_id", [...managedIds]);
             const [recentResult, scheduleResult] = await Promise.all([
