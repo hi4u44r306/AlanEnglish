@@ -87,7 +87,7 @@ async function createDueEvents(admin: any) {
 
 async function processQueue(admin: any) {
     const apiKey = Deno.env.get("RESEND_API_KEY");
-    const settings = await admin.from("guardian_email_settings").select("from_email,from_name,reply_to_email").eq("id", 1).maybeSingle();
+    const settings = await admin.from("guardian_email_settings").select("from_email,from_name,reply_to").eq("id", 1).maybeSingle();
     if (settings.error) throw settings.error;
     const fromEmail = cleanText(settings.data?.from_email, 320);
     if (!apiKey || !validEmail(fromEmail)) return { provider_configured: false, sent: 0, pending: null };
@@ -102,7 +102,7 @@ async function processQueue(admin: any) {
             headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json", "Idempotency-Key": `alan-notification-${row.notification_event_id}` },
             body: JSON.stringify({
                 from: `${cleanText(settings.data?.from_name, 80) || "Alan English"} <${fromEmail}>`, to: [row.recipient_email],
-                reply_to: validEmail(settings.data?.reply_to_email) ? settings.data.reply_to_email : undefined,
+                reply_to: validEmail(settings.data?.reply_to) ? settings.data.reply_to : undefined,
                 subject, html: `<div style="font-family:Arial,sans-serif;line-height:1.7;color:#112a4d"><h2>${escapeHtml(subject)}</h2><p>${escapeHtml(row.template_data?.body)}</p><p><a href="https://alanenglish.com.tw/student/membership">查看方案</a></p></div>`
             })
         });
