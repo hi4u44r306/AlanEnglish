@@ -1,6 +1,6 @@
 # Alan English 專案狀態
 
-### 我的進度三張進度卡、名稱統一與幾處提示（2026-11-06，分支 `feature/student-progress-page-and-copy`，接在 `feature/speaking-entry-after-mastery`（#653）之上；尚未合併）
+### 我的進度三張進度卡、名稱統一與幾處提示（2026-11-06，分支 `feature/student-progress-page-and-copy`，PR #654）
 
 - 來源：擁有者走完學生流程後挑出的 5 個體驗問題（名稱、我的進度、10/10 說明、作業空狀態、已登入首頁），並確認預覽圖。
 - 改動：①`StudentProgressOverview.jsx`／`StudentSettings.scss`：列表列改成作業、口說、聽力三張進度卡（`ProgressCard`），每週報告與排行榜縮成小連結；口說卡只放一本（做到一半 → 第一本未完成）並依地圖順序（入門準備 → 教材 → 主題）算下一關，頁碼用 `source_pages`、沒有就用標題（去掉開頭編號）；聽力卡用既有 `get-dashboard-stats` 的 `total_count`（`students.total_time_played`，每次有效聆聽 +1，已部署，**不需要改後端或資料庫**）。②`StudentNavbar.jsx`、`GuidedTour.jsx`、`MainNavbar.test.jsx`：導覽「冒險」→「口說大挑戰」。③`TextbookSpeakingChallenge.jsx`：右上角顯示「今天 N / M 輪」。④`StudentAssignments.jsx`：空狀態文字與按鈕（去聽教材，連到 `/student/books`）。⑤新檔 `ShowcaseSignedInBar.jsx`＋`Showcase.jsx`／`Showcase.scss`：已登入者看公開首頁時頂端提示條；沒有導向，公開首頁對未登入者完全不變。
@@ -10,6 +10,19 @@
 - 手機寬度：用測試帳號在 360／390／412px 的框裡看過進度頁、教材列表（口說按鈕全寬）、公開首頁，導覽「口說大挑戰」放得下；首頁提示條原本被手機導覽列（實際高約 93px，logo 與按鈕會換行）蓋住，改成量導覽列實際高度後正常。
 - 作業卡：測試帳號沒有作業，改在 390px 的框裡攔截請求塞入假作業資料（沒有動任何正式資料，快取已清除）看過「進行中 2 份、1/3 進度條、到期日」與「都完成了 1/1」；看的過程發現同時有進行中與遲交時遲交被到期日蓋住，已改成遲交優先（「N 份遲交」標紅）並補測試。
 - 未驗證：iPhone 實機；「目前沒有作業」以外的真實作業資料（只有假資料與單元測試）；
+
+### 音檔長度補齊（2026-11-06，擁有者同意後寫入正式資料庫）
+
+- 來源：963 首啟用音檔中有 950 首 `duration_seconds` 為 NULL，record-play 只能採用瀏覽器回報的長度。
+- 量測方式：
+  - 以管理員身分透過 `content-access` 取得短效網址，瀏覽器只讀 metadata（`preload=metadata`），不播放、不計次。
+  - 量了兩次，963 筆的 SHA-256 前 16 碼都是 `4c72d0b5ca642826`，總和都是 71021.23 秒。
+  - 原有 13 首的舊值與新量測只差 0.03～0.04 秒。
+- 寫入：只更新 NULL 的列，共 950 列。寫入後啟用音檔沒有 NULL，最短 18.26 秒、最長 442.42 秒，都高於 record-play 的 15 秒下限。
+- 回復：把這 950 個 id 的 `duration_seconds` 設回 null。清單在本機 scratchpad 的 `durations/updated-ids.txt`，不在 repo。
+- 影響：record-play 改用伺服器存的長度。之後新增的音檔仍不會自動寫入長度（music-admin 上傳流程不寫此欄位），需要另外處理。
+- 已驗證：資料庫數值。未驗證：寫入後用學生帳號實際播放計次。
+
 ### 聽滿 30 次後的「去挑戰口說」入口（2026-11-05，分支 `feature/speaking-entry-after-mastery`；尚未合併）
 
 - 來源：擁有者要求「聽力次數達到之後，旁邊跳出可以去挑戰口說大挑戰的按鈕」。
@@ -19,7 +32,11 @@
 - 另外實測：測試帳號實際播放 P22（靜音）到 87% 有效聆聽時，播放器左上方出現「聽熟了！去挑戰口說大挑戰」；手機 360／390／412px 看過教材列表的全寬按鈕。播放過程讓測試帳號多了 1 次有效聆聽（P22 已達上限 30，累計 +1）。
 - 未驗證：該頁關卡已解鎖時的對準（沒有可解鎖的帳號可實測）；播放器提示在手機寬度的實際畫面；iPhone 實機。
 - 資料：為了看畫面，已把測試帳號（學生 35）的 Workbook 1 P22 次數手動改為 30（`student_track_progress`、`student_track_mastery`），原值 3 與 1。
-### 後台寄信紀錄、等級設定頁與會員提醒排程錯誤（2026-11-06，分支 `fix/backend-embed-and-reminder`；尚未合併、尚未部署）
+
+### 後台寄信紀錄、等級設定頁與會員提醒排程錯誤（2026-11-06，PR #658 已合併 `ab553eda`；3 個函式已部署）
+
+- 部署：guardian-email、learning-progress、notification-manager 從 main 用 CLI 部署。部署前後都逐檔比對，與 main 一致；未登入請求回 401。learning-progress 部署前用的是 8 月版 `_shared/effective-access.ts`，這次一併更新為 main 版本。
+- 已驗收：以管理員帳號在正式站開等級設定頁，資料正常顯示、沒有錯誤提示；後台頁面讀取 guardian-email 狀態回 200。
 
 - 來源：正式站完整測試時，從 function logs 找到下列錯誤，都是原本就有的。
 - `guardian-email`：讀取寄信狀態時，`notification_logs → students` 有兩條外鍵（`student_id`、`created_by_account_id`），PostgREST 回 PGRST201。修法：指定 `students!notification_logs_student_id_fkey`。
@@ -29,6 +46,7 @@
   - 已確認一個會發生的錯誤：`student_notifications` 的唯一索引有條件（`WHERE event_key IS NOT NULL`），`upsert(onConflict: "student_id,event_key")` 會回 42P10。已用 EXPLAIN 在正式庫重現。改成 insert，並把重複（23505）視為已送達。
   - 但目前沒有到期事件，所以這不是每小時失敗的原因。真正原因要等部署後，看新日誌的錯誤代碼。
 - 驗證：三個函式的 `deno check` 都沒有錯誤；`git diff --check` 通過。
+- 會員提醒排程：部署後的新日誌（2026-11-06 07:05Z）顯示真正原因是 `42703 column guardian_email_settings.reply_to_email does not exist`。資料庫欄位叫 `reply_to`，其他 5 個寄信程式都寫對，只有 notification-manager 寫錯。修正在分支 `docs/backfill-and-embed-deploy`。
 - 未處理：`stripe-webhook/index.ts:149` 也有同樣的 onConflict 寫法。付款目前暫停販售，屬於付款高風險範圍，沒有改。
 
 ### 點選音檔不計次、防掛機失效修正（2026-11-06，分支 `fix/listening-session-start`；尚未合併）
