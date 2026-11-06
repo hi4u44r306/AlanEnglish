@@ -1,5 +1,23 @@
 # Alan English 專案狀態
 
+### 學生開放前的安全修正、補測試與手冊校正（2026-11-06，分支 `fix/security-before-launch`；尚未合併、**後端與資料庫修改尚未部署／套用**）
+
+- 來源：擁有者要求全站檢查；Claude 與 Codex 各做一次唯讀資安審查，主對話核對程式碼與正式庫唯讀查詢。擁有者要求在 2026-11-09 開放學生前修好。AI 教材將拿掉，所以 AI 價格與額度競態不處理。
+- 正式庫唯讀查到的事實：154 個 public 資料表與檢視全部開 RLS，anon／authenticated 讀不到敏感表；963 首啟用音檔中有 950 首沒有 `duration_seconds`；2 筆已付款未認領訂單（擁有者說應該是測試單，未刪）；1 位老師有 4 班權限；49 位英文班學生 enrollment 全為 active；沒有大小寫不一致或未綁定 uid 的帳號。
+- Edge 修正（不需資料庫）：
+  - `link-manager`：拿掉用信箱 `ilike` 找身分的備援。
+  - `membership-manager`：信箱備援只接受已驗證信箱並精確比對；已付款訂單只在信箱已驗證時認領，之後 profile 會補認領；老師帳號清單與編輯只限自己班、不能改班級；保留既有 `learner_type`。
+  - `learning-activity`、`weekly-report`、`guardian-email`、`academy-student-manager`：老師只處理自己班的學生（共用 `_shared/teacher-scope.ts`）。
+  - `music-admin`：不能覆蓋既有音檔路徑；刪除只限管理員。
+  - `gamification`：排行榜不給非職員其他學生的真名、班級、頭像。
+  - `record-play`：沒有存長度的音檔，瀏覽器回報長度低於 15 秒拒絕；經過時間下限改為 `max(聽到秒數×0.75, 聽到秒數×0.9−5)`。
+  - `assignment-manager`：已停用帳號回 403；未到發布日的新版作業不能提交。
+- 資料庫修改（5 個新 migration `20261106090100`～`090500`，只新增函式定義與 trigger、不改資料）：時間下限、復原碼只限學生並加 30 天累計鎖定、已停用帳號 `get_student_effective_access` 視為不啟用、家長信箱變更時作廢重設連結、重設請求限流加 advisory lock。
+- 測試：新增 handler 與 SQL 測試（假冒、訂單、老師班級、排行榜、聆聽、復原碼、作業隔離、開通碼、口說關卡、登入、路由角色、播放器防掛機）。安全測試 35 項、SQL 測試在 PGlite 實際執行，作業／開通碼／口說 79 項、前端新測試 86 項通過。`academy-assignment-v2-contract` 第 8、12 項，`Showcase`、`StudentNotifications` 測試在本分支修改前就失敗（只比對文字或與本次無關，`src` 原始碼未改）。
+- 已知問題（測試已標記，未修）：開通碼先扣掉才寫教材權限，寫入失敗時學生拿不到書；播放器連續播 5 首與重複播放模式都不會跳出「確認仍在學習」（`MusicPlayer.jsx` handlePause／handleEnd），只剩 15 分鐘計時；過期作業仍可提交（是否允許補交待決定）；重做 AI 題分數較低會把已完成改回進行中；答錯一次就會看到全部答案（AI 作業將拿掉）；沒有題目的口說關卡會讓後面的頁一直鎖住；`auth-email` 寄信限流有同樣的競態；老師與管理員忘記密碼只能由管理員到 Firebase 後台重設。
+- 部署順序：5 個 migration 依檔名順序套用（正式資料庫，需擁有者同意）→ 部署 `record-play`、`assignment-manager`、`link-manager`、`membership-manager`、`learning-activity`、`weekly-report`、`guardian-email`、`academy-student-manager`、`music-admin`、`gamification`（含 `_shared` 新檔）→ 部署後逐檔比對 → 用測試帳號驗收。前端沒有改。回復：重新部署 main 版本的函式；migration 檔頭有回復方式。
+- 未驗證：真實 Deno 環境、正式站、平行請求競態、iPhone；老師畫面在權限縮小後的實際樣子。
+
 ### 重設密碼面板自動捲動、用臨時密碼登入後直接改密碼（2026-11-04，分支 `fix/autoscroll-and-direct-password-change`；尚未合併）
 
 - 來源：擁有者試用時發現面板在列表下方看不到；並要求「用臨時密碼登入後，不用再輸入一次臨時密碼，直接改密碼」。
