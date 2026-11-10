@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { downloadAcademyStudentLoginCardsDocx } from "../../utils/academyStudentLoginCardsDocx";
 import { downloadAcademyStudentLoginCardsPdf } from "../../utils/academyStudentLoginCardsPdf";
 import { LOGIN_CARDS_PER_PAGE, normalizeStartSlot } from "../../utils/academyStudentLoginCards";
+import "./css/StudentLoginCardDownloads.scss";
 
 const SLOT_STORAGE_KEY = "ae-login-card-next-slot";
 
@@ -23,7 +24,7 @@ const saveSlot = slot => {
 
 // 單一學生建立成功後，把這張登入卡下載成和「批次匯入」一樣的 A4 貼紙檔（每頁 12 格）。
 // 可以選「放在第幾格」，這樣已經用過幾格的貼紙紙可以接著用；下載後會自動指向下一格。
-function StudentLoginCardDownloads({ credentials, chineseName, englishName, onDownloaded }) {
+function StudentLoginCardDownloads({ credentials, chineseName, englishName, onDownloaded, buttonClassName = "academy-account-secondary-button" }) {
     const [startSlot, setStartSlot] = useState(readSavedSlot);
     const [busy, setBusy] = useState("");
     const [error, setError] = useState("");
@@ -73,10 +74,10 @@ function StudentLoginCardDownloads({ credentials, chineseName, englishName, onDo
                         ))}
                     </select>
                 </label>
-                <button type="button" className="academy-account-secondary-button" onClick={() => download("pdf")} disabled={Boolean(busy)}>
+                <button type="button" className={buttonClassName} onClick={() => download("pdf")} disabled={Boolean(busy)}>
                     {busy === "pdf" ? "產生 PDF 中…" : "下載 PDF 登入卡"}
                 </button>
-                <button type="button" className="academy-account-secondary-button" onClick={() => download("docx")} disabled={Boolean(busy)}>
+                <button type="button" className={buttonClassName} onClick={() => download("docx")} disabled={Boolean(busy)}>
                     {busy === "docx" ? "產生 Word 中…" : "下載 Word 登入卡"}
                 </button>
             </div>

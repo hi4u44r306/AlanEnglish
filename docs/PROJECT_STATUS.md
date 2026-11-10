@@ -1,5 +1,13 @@
 # Alan English 專案狀態
 
+### 「重新發登入卡」附新的臨時密碼，並可下載貼紙（2026-11-10，分支 `feat/reissue-card-sticker-temp-password`；尚未合併、**後端尚未部署**）
+
+- 來源：擁有者問「已經產生的學生帳號怎麼匯出成單張貼紙」。原本的開通碼與復原碼只存雜湊、無法再取回，只能重新發卡；擁有者選擇「連臨時密碼一起補上」，讓貼紙和批次的一模一樣。
+- 後端（`academy-student-manager` 的 `reissueStudentLoginCard`，只限尚未開通的帳號）：建立新卡後產生新的臨時密碼（`Ae-XXXX-XXXX`，同批次格式），**先改 Firebase 密碼（舊臨時密碼與舊登入失效），再把 `temporary_password_issued_at` 記成改密碼時間＋2 秒**並設 `must_change_password=true`（避免把這次設定誤判成學生已改密碼）；回傳 `temporary_password` 與中英文姓名。臨時密碼不寫 log。無資料庫結構變更。
+- 前端：`AccountManagement.jsx` 新卡畫面顯示臨時密碼，並放入共用的 `StudentLoginCardDownloads`（按鈕沿用 `management-edit-button`）；元件樣式從 `Signup.scss` 搬到 `fragment/css/StudentLoginCardDownloads.scss`，兩頁共用；列印時隱藏下載區塊。手冊 v4.85。
+- 驗證：新增 `scripts/reissue-login-card-temp-password-contract.test.mjs`（已確認舊程式會失敗）；`AccountManagement`、`StudentLoginCardDownloads` 測試 26 項通過；`deno check` 無錯誤；新卡畫面在 1280／768／412／360 無溢出。
+- 部署順序：先部署 `academy-student-manager`，再合併前端（前端在舊後端下只是沒有臨時密碼那一行，不會壞）。回復：重新部署前一版後端。
+- 未驗證：後端未在正式環境執行；實際按一次重新發卡、用新的臨時密碼或 QR Code 開通，需部署後用測試帳號確認。
 ### 單一學生建立頁可下載貼紙登入卡，並可選起始格（2026-11-10，分支 `feat/single-student-login-card-sticker`；尚未合併）
 
 - 來源：擁有者想把單一學生建立成功的畫面（`/teacher/accounts/create`，`Signup.jsx`）也變成和批次匯入一樣的貼紙。
