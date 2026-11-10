@@ -1,5 +1,5 @@
 import QRCode from "qrcode";
-import { getSuccessfulStudentLoginCards } from "./academyStudentLoginCards";
+import { getSuccessfulStudentLoginCards, normalizeStartSlot } from "./academyStudentLoginCards";
 
 const PAGE_WIDTH = 1240;
 const PAGE_HEIGHT = 1754;
@@ -25,7 +25,10 @@ const chunk = (items, size) => {
     return chunks;
 };
 
-export const paginateAcademyStudentLoginCards = cards => chunk(cards, CARDS_PER_PAGE);
+// startSlot > 1 時，前面先留下空格（用 null 佔位），讓已經用過幾格的貼紙紙可以接著印。
+export const paginateAcademyStudentLoginCards = (cards, startSlot = 1) => (
+    chunk([...Array(normalizeStartSlot(startSlot) - 1).fill(null), ...cards], CARDS_PER_PAGE)
+);
 
 const loadImage = source => new Promise((resolve, reject) => {
     const image = new Image();
@@ -114,6 +117,7 @@ const renderPagePng = async cards => {
 
     for (let index = 0; index < cards.length; index += 1) {
         const card = cards[index];
+        if (!card) continue;
         const row = Math.floor(index / COLUMNS);
         const column = index % COLUMNS;
         const x = PAGE_MARGIN + (column * (CARD_WIDTH + COLUMN_GAP));
@@ -144,19 +148,19 @@ export const buildAcademyStudentLoginCardsPdfBytesFromPagePngs = async pagePngs 
     return pdf.save();
 };
 
-export const buildAcademyStudentLoginCardsPdf = async (results, rows) => {
+export const buildAcademyStudentLoginCardsPdf = async (results, rows, options = {}) => {
     const cards = getSuccessfulStudentLoginCards(results, rows);
     if (cards.length === 0) throw new Error("沒有可輸出的學生登入卡");
     const pagePngs = [];
-    for (const pageCards of paginateAcademyStudentLoginCards(cards)) {
+    for (const pageCards of paginateAcademyStudentLoginCards(cards, options.startSlot)) {
         pagePngs.push(await renderPagePng(pageCards));
     }
     const bytes = await buildAcademyStudentLoginCardsPdfBytesFromPagePngs(pagePngs);
     return new Blob([bytes], { type: "application/pdf" });
 };
 
-export const downloadAcademyStudentLoginCardsPdf = async (results, rows) => {
-    const blob = await buildAcademyStudentLoginCardsPdf(results, rows);
+export const downloadAcademyStudentLoginCardsPdf = async (results, rows, options = {}) => {
+    const blob = await buildAcademyStudentLoginCardsPdf(results, rows, options);
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;

@@ -1,5 +1,11 @@
 # Alan English 專案狀態
 
+### 單一學生建立頁可下載貼紙登入卡，並可選起始格（2026-11-10，分支 `feat/single-student-login-card-sticker`；尚未合併）
+
+- 來源：擁有者想把單一學生建立成功的畫面（`/teacher/accounts/create`，`Signup.jsx`）也變成和批次匯入一樣的貼紙。
+- 改動：①新元件 `StudentLoginCardDownloads.jsx`：把單一學生的建立結果包成和批次相同的資料，呼叫既有的 PDF／Word 貼紙產生器；「放在第幾格」下拉（1～12），下載後自動指向下一格並存在 sessionStorage（讀寫都包 try/catch，存不了就從第 1 格）。②`academyStudentLoginCards.js` 新增 `LOGIN_CARDS_PER_PAGE`、`normalizeStartSlot`。③PDF／Word 產生器加可選參數 `{ startSlot }`，前面用空格佔位；不傳時行為與原本完全相同（批次匯入不受影響）。④`Signup.jsx` 在成功畫面放入新元件，下載成功即視為已保存。⑤`Signup.scss` 樣式（手機寬度改成整排滿寬，列印時隱藏）。⑥手冊 v4.84。
+- 驗證：新增元件測試 4 項、PDF 起始格 2 項、Word 起始格 1 項，加上批次匯入頁共 14 項通過；用真實 PDF 產生器在 Chrome 實際產生第 1／5／12 格的 PDF 並轉成圖片，位置正確（第 5 格在第 3 排左邊、第 12 格在右下）；新區塊在 1280／768／412／360 無橫向溢出。
+- 未驗證：正式站實際畫面；Word 檔沒有在 Word 裡打開看（只檢查檔案內容與頁數）；實際列印到貼紙紙上的對位。
 ### 我的進度三張進度卡、名稱統一與幾處提示（2026-11-06，分支 `feature/student-progress-page-and-copy`，PR #654）
 
 - 來源：擁有者走完學生流程後挑出的 5 個體驗問題（名稱、我的進度、10/10 說明、作業空狀態、已登入首頁），並確認預覽圖。

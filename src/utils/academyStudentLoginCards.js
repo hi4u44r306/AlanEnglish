@@ -13,3 +13,13 @@ export const getSuccessfulStudentLoginCards = (results, rows) => (
             recoveryCodes: result.credentials.recovery_codes || []
         }))
 );
+
+// A4 貼紙紙每頁 12 格（2 欄 × 6 列）。
+export const LOGIN_CARDS_PER_PAGE = 12;
+
+// 「放在第幾格」：只接受 1～12，其他（空白、文字、超出範圍）一律修正成合理的值。
+export const normalizeStartSlot = value => {
+    const slot = Math.floor(Number(value));
+    if (!Number.isFinite(slot)) return 1;
+    return Math.min(LOGIN_CARDS_PER_PAGE, Math.max(1, slot));
+};

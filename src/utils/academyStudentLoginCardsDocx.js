@@ -1,5 +1,5 @@
 import QRCode from "qrcode";
-import { getSuccessfulStudentLoginCards } from "./academyStudentLoginCards";
+import { getSuccessfulStudentLoginCards, normalizeStartSlot } from "./academyStudentLoginCards";
 export { getSuccessfulStudentLoginCards } from "./academyStudentLoginCards";
 
 // docx 的套件版本放進網站打包後會壞掉（TextRun 取不到，下載 Word 時出現 "_h is not a constructor"），
@@ -244,7 +244,7 @@ const buildPageTable = cards => {
     });
 };
 
-export const buildAcademyStudentLoginCardsDocx = async (results, rows) => {
+export const buildAcademyStudentLoginCardsDocx = async (results, rows, options = {}) => {
     const cards = getSuccessfulStudentLoginCards(results, rows);
     if (cards.length === 0) throw new Error("沒有可輸出的學生登入卡");
     ({ Document, ImageRun, Packer, Paragraph, Table, TableCell, TableRow, TextRun } = await loadDocx());
@@ -258,7 +258,9 @@ export const buildAcademyStudentLoginCardsDocx = async (results, rows) => {
         });
         return { ...card, cell: buildCardCell(card, qrCodeDataUrl) };
     }));
-    const pages = chunk(renderedCards, CARDS_PER_PAGE);
+    // startSlot > 1 時，前面先留下空格，讓已經用過幾格的貼紙紙可以接著印。
+    const slots = [...Array(normalizeStartSlot(options.startSlot) - 1).fill(null), ...renderedCards];
+    const pages = chunk(slots, CARDS_PER_PAGE);
     const document = new Document({
         creator: "Alan English",
         title: "英文班學生帳號密碼登入卡",
@@ -292,8 +294,8 @@ export const buildAcademyStudentLoginCardsDocx = async (results, rows) => {
     return Packer.toBlob(document);
 };
 
-export const downloadAcademyStudentLoginCardsDocx = async (results, rows) => {
-    const blob = await buildAcademyStudentLoginCardsDocx(results, rows);
+export const downloadAcademyStudentLoginCardsDocx = async (results, rows, options = {}) => {
+    const blob = await buildAcademyStudentLoginCardsDocx(results, rows, options);
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;

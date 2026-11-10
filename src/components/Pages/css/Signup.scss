@@ -594,6 +594,14 @@
       width: 100%;
     }
   }
+
+  .academy-sticker-download-row {
+    display: grid;
+
+    label, select, button {
+      width: 100%;
+    }
+  }
 }
 
 // 按「列印登入卡」時只印出帳號與 QR Code，不印按鈕和其他頁面內容。
@@ -622,4 +630,34 @@
   body.academy-printing-card .academy-account-security-note {
     display: none;
   }
+}
+
+.academy-sticker-download {
+  margin-top: 22px;
+  padding: 16px 18px;
+  border: 1px solid var(--ae-border, #d6e0ef);
+  border-radius: 15px;
+  background: var(--ae-surface, #fff);
+
+  strong { display: block; margin-bottom: 4px; }
+  p { margin: 0 0 10px; color: var(--ae-text-muted, #53627a); line-height: 1.7; }
+  small { display: block; margin-top: 8px; color: var(--ae-text-muted, #69778d); }
+}
+
+.academy-sticker-download-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+
+  label { display: grid; gap: 4px; font-weight: 700; }
+  label > span { font-size: 13px; }
+  select { min-height: 44px; padding: 0 12px; border: 1px solid var(--ae-border, #cbd6e5); border-radius: 10px; font: inherit; background: #fff; }
+}
+
+.academy-sticker-download .academy-sticker-download-notice { margin: 10px 0 0; color: var(--ae-success, #176542); font-weight: 700; }
+.academy-sticker-download .academy-sticker-download-error { margin: 10px 0 0; color: var(--ae-danger, #96352f); font-weight: 700; }
+
+@media print {
+  body.academy-printing-card .academy-sticker-download { display: none !important; }
 }
