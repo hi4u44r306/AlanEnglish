@@ -29,6 +29,7 @@ import {
 import { sendBrandedPasswordResetEmail } from "../../services/authEmailService";
 import { sendGuardianReportBatch } from "../../services/guardianEmailService";
 import { getPrimaryAccessPlanCode, getPrimaryAccessPlanLabel } from "../../constants/membershipPlans";
+import StudentLoginCardDownloads from "../fragment/StudentLoginCardDownloads";
 import "./css/ManagementDashboard.scss";
 
 const ROLE_LABELS = {
@@ -1060,6 +1061,10 @@ function AccountManagement() {
                             <strong>{reissuedLoginCard.account?.name || "-"}</strong>
                             <span>登入帳號</span>
                             <strong>{reissuedLoginCard.credentials.username || "-"}</strong>
+                            {reissuedLoginCard.credentials.temporary_password && <>
+                                <span>臨時密碼</span>
+                                <strong>{reissuedLoginCard.credentials.temporary_password}</strong>
+                            </>}
                             <small>首次使用請掃 QR Code，並設定至少 6 個字元的密碼。</small>
                         </div>
                         <div className="management-login-card-qr">
@@ -1070,9 +1075,16 @@ function AccountManagement() {
                         <div className="management-login-card-recovery">
                             <span>一次性復原碼</span>
                             <strong>{reissuedLoginCard.credentials.recovery_codes?.join("　")}</strong>
-                            <small>每組只能使用一次；新卡建立後，舊卡已立即失效。</small>
+                            <small>每組只能使用一次；新卡建立後，舊卡（QR Code、臨時密碼、復原碼）已立即失效。</small>
                         </div>
                     </div>
+                    <StudentLoginCardDownloads
+                        key={reissuedLoginCard.credentials.activation_url}
+                        credentials={reissuedLoginCard.credentials}
+                        chineseName={reissuedLoginCard.account?.chinese_name || reissuedLoginCard.account?.name || "學生"}
+                        englishName={reissuedLoginCard.account?.english_name || ""}
+                        buttonClassName="management-edit-button"
+                    />
                 </section>
             )}
 

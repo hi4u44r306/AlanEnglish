@@ -1675,7 +1675,7 @@ const reissueStudentLoginCard = async (
 
     const { data: student, error: studentError } = await admin
         .from("students")
-        .select("id,name,login_username,authentication_method,account_status,activated_at")
+        .select("id,name,chinese_name,english_name,login_username,firebase_uid,authentication_method,account_status,activated_at")
         .eq("id", studentId)
         .maybeSingle();
     if (studentError) throw new HttpError(500, "STUDENT_LOOKUP_FAILED", "目前無法確認學生帳號");
@@ -1687,6 +1687,9 @@ const reissueStudentLoginCard = async (
     }
     if (student.activated_at) {
         throw new HttpError(409, "ACCOUNT_ALREADY_ACTIVATED", "這個學生帳號已啟用，請改用登入卡復原碼重設密碼");
+    }
+    if (!cleanText(student.firebase_uid, 200)) {
+        throw new HttpError(409, "ACADEMY_LOGIN_INCOMPLETE", "這個學生帳號缺少登入資料，請聯絡管理員");
     }
 
     const activationToken = createStudentActivationToken();
@@ -1736,14 +1739,44 @@ const reissueStudentLoginCard = async (
         throw new HttpError(500, "RECOVERY_CARD_CREATE_FAILED", "新的復原碼建立失敗，請稍後再試");
     }
 
+    // 新卡也要有新的臨時密碼，貼紙才會和批次建立的一模一樣（舊卡上的臨時密碼一起作廢）。
+    // 先改 Firebase 密碼，再把「發放時間」記成改密碼時間 + 2 秒：
+    // 否則 mark_academy_student_password_changed 會把這次設定臨時密碼誤判成學生已經自己改過密碼。
+    const temporaryPassword = createTemporaryPassword();
+    await updateFirebasePasswordByUid(cleanText(student.firebase_uid, 200), temporaryPassword);
+    const { error: passwordStateError } = await admin
+        .from("students")
+        .update({
+            must_change_password: true,
+            temporary_password_issued_at: new Date(Date.now() + 2000).toISOString(),
+            updated_at: new Date().toISOString()
+        })
+        .eq("id", student.id)
+        .is("activated_at", null);
+    if (passwordStateError) {
+        console.error("Reissue temporary password state update failed", { code: passwordStateError.code });
+        throw new HttpError(
+            500,
+            "TEMPORARY_PASSWORD_SAVE_FAILED",
+            "新的登入卡已建立，但臨時密碼狀態沒有存好。請再按一次「重新發登入卡」。"
+        );
+    }
+
     const origin = requestOrigin(req) && ALLOWED_ORIGINS.has(requestOrigin(req)!)
         ? requestOrigin(req)!
         : "https://alanenglish.com.tw";
     return json(req, 200, {
         success: true,
-        account: { id: student.id, name: student.name, username: student.login_username },
+        account: {
+            id: student.id,
+            name: student.name,
+            chinese_name: student.chinese_name || student.name,
+            english_name: student.english_name || "",
+            username: student.login_username
+        },
         credentials: {
             username: student.login_username,
+            temporary_password: temporaryPassword,
             activation_url: `${origin}/academy/student-setup?token=${encodeURIComponent(activationToken)}`,
             activation_expires_at: activationExpiresAt,
             recovery_codes: recoveryCodes,

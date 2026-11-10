@@ -24,6 +24,7 @@ import {
 } from "../../services/academyStudentService";
 import { sendGuardianReportBatch } from "../../services/guardianEmailService";
 import AccountManagement from "./AccountManagement";
+import { downloadAcademyStudentLoginCardsPdf } from "../../utils/academyStudentLoginCardsPdf";
 
 jest.mock("../../services/guardianEmailService", () => ({
     sendGuardianReportBatch: jest.fn()
@@ -53,6 +54,9 @@ jest.mock("../../services/academyStudentService", () => ({
     reissueAcademyStudentLoginCard: jest.fn(),
     sendAcademyPasswordReset: jest.fn()
 }));
+
+jest.mock("../../utils/academyStudentLoginCardsPdf", () => ({ downloadAcademyStudentLoginCardsPdf: jest.fn() }));
+jest.mock("../../utils/academyStudentLoginCardsDocx", () => ({ downloadAcademyStudentLoginCardsDocx: jest.fn() }));
 
 jest.mock("qrcode", () => ({
     __esModule: true,
@@ -270,6 +274,33 @@ describe("AccountManagement", () => {
         await waitFor(() => {
             expect(screen.queryByText("E3 測試學生")).not.toBeInTheDocument();
         });
+    });
+
+    test("a reissued card shows the new temporary password and can be downloaded as a sticker with names", async () => {
+        window.sessionStorage.clear();
+        downloadAcademyStudentLoginCardsPdf.mockResolvedValue();
+        reissueAcademyStudentLoginCard.mockResolvedValue({
+            success: true,
+            account: { id: 67, name: "E3 測試學生", chinese_name: "黃小明", english_name: "Lucia", username: "e3teststudent" },
+            credentials: {
+                username: "e3teststudent",
+                temporary_password: "Ae-K7M2-P9RX",
+                activation_url: "https://alanenglish.com.tw/academy/student-setup?token=new-card",
+                recovery_codes: ["997800", "976145"]
+            }
+        });
+        renderPage();
+
+        fireEvent.click(await screen.findByRole("button", { name: "重新發登入卡" }));
+        expect(await screen.findByText("Ae-K7M2-P9RX")).toBeInTheDocument();
+        const block = screen.getByRole("group", { name: "印在貼紙紙上" });
+        fireEvent.click(within(block).getByRole("button", { name: "下載 PDF 登入卡" }));
+
+        await waitFor(() => expect(downloadAcademyStudentLoginCardsPdf).toHaveBeenCalledTimes(1));
+        const [results, rows, options] = downloadAcademyStudentLoginCardsPdf.mock.calls[0];
+        expect(results[0].credentials.temporary_password).toBe("Ae-K7M2-P9RX");
+        expect(rows).toEqual([{ source_row: 1, chinese_name: "黃小明", english_name: "Lucia" }]);
+        expect(options).toEqual({ startSlot: 1 });
     });
 
     test("allows an admin to reissue a login card for an unactivated academy student", async () => {
