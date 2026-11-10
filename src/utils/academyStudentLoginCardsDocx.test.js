@@ -71,6 +71,36 @@ describe("academyStudentLoginCardsDocx", () => {
         expect(blob.size).toBeGreaterThan(1000);
     });
 
+    test("從第 12 格開始印 2 張：第一張在第 1 頁最後一格，第二張換到第 2 頁", async () => {
+        QRCode.toDataURL.mockResolvedValue(ONE_PIXEL_PNG);
+        const twoRows = [1, 2].map(n => ({ source_row: n, chinese_name: `學生${n}`, english_name: `Student${n}` }));
+        const twoResults = twoRows.map(row => ({
+            source_row: row.source_row,
+            status: "success",
+            credentials: {
+                username: `student${row.source_row}`,
+                temporary_password: "Ae-K7M2-P9RX",
+                activation_url: `https://alanenglish.com.tw/academy/student-setup?token=${row.source_row}`,
+                recovery_codes: ["123456", "654321"]
+            }
+        }));
+
+        const blob = await buildAcademyStudentLoginCardsDocx(twoResults, twoRows, { startSlot: 12 });
+        const buffer = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = () => reject(reader.error);
+            reader.readAsArrayBuffer(blob);
+        });
+        const zip = await JSZip.loadAsync(buffer);
+        const xml = await zip.file("word/document.xml").async("string");
+
+        expect(xml.match(/<w:sectPr/g)).toHaveLength(2);
+        expect(xml).toContain("學生1");
+        expect(xml).toContain("學生2");
+        expect(xml.indexOf("學生1")).toBeLessThan(xml.indexOf("學生2"));
+    });
+
     test("每頁 12 格：13 位學生分成 2 頁，每頁 6 列、每列高 2800 twips", async () => {
         QRCode.toDataURL.mockResolvedValue(ONE_PIXEL_PNG);
         const manyRows = Array.from({ length: 13 }, (_, index) => ({

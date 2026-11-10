@@ -7,6 +7,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import { authentication } from "./firebase-config";
 import QRCode from "qrcode";
+import StudentLoginCardDownloads from "../fragment/StudentLoginCardDownloads";
 import {
     createAcademyStudent,
     listAcademyClasses
@@ -461,6 +462,13 @@ function Signup() {
                                 建立下一位學生
                             </button>
                         </div>
+
+                        <StudentLoginCardDownloads
+                            credentials={createdAccount.credentials}
+                            chineseName={form.chineseName.trim()}
+                            englishName={form.englishName.trim()}
+                            onDownloaded={() => setCardSaved(true)}
+                        />
 
                         <div className="academy-account-security-note">
                             <strong>安全提醒</strong>
