@@ -10,7 +10,9 @@
 - 前端：`WordChallenge.jsx`（`variant` = public／app）、`css/WordChallenge.scss`、`utils/wordChallengeAnswer.js`（判斷規則；audio 模式保留但畫面不用）、`services/wordChallengeBank.js`、`services/wordChallengeLocalProgress.js`（localStorage，讀寫包 try/catch）。路由 `/word-challenge`（公開）與 `/student/word-challenge`（student／teacher／admin，不需有效會員）；`Containerfull` 在該頁暫停並隱藏教材播放器；作答時手機隱藏底部導覽；`StudentProgressOverview` 最下面加入口連結。手冊 v4.90、`PROJECT_LOGIC.md` 新增一節。
 - 驗證：`npm run test:word-challenge`（node 8 項）；`wordChallengeAnswer.test.js`＋`WordChallenge.test.jsx` 14 項通過（含「裝置有語音也絕不念出」）；`StudentProgressOverview` 測試通過；本機 3000 實際玩過答對／答錯／看答案／成績頁；1280／768／412／360 無橫向溢出，360px 下 junior high school、department store 等長字字母格一行放得下。
 - 改版外觀（擁有者看過預覽後同意，不要星星）：深藍標題區＋字母方塊裝飾；等級卡顏色編號、「已會 x/y 字」進度條與最佳分；作答 10 顆對錯圓點、題目卡＋方塊字母格（超過 12 格的片語以單字換行，最小 14px）；答對／答錯彈出卡片；成績圓環。只改 `WordChallenge.jsx`／`.scss`，判斷規則與存檔格式不變。1280／768／412／360 無橫向溢出，Console 無錯誤；31 項相關 jest 通過。
-- 未驗證：登入後 `/student/word-challenge` 的實際畫面（本機沒有登入測試帳號，只有元件測試）；iPhone Safari 鍵盤實機。
+- 大挑戰入口（擁有者 2026-11-11 要求「把大挑戰整合在一起」，看過兩種做法後選「新的大挑戰頁」）：學生導覽的「口說大挑戰」改成不上鎖的「大挑戰」（`StudentNavbar.jsx`），連到新頁 `/student/challenges`（`StudentChallenges.jsx`／`.scss`，student／teacher／admin，不加 `requiresActiveMembership`）。頁面兩張卡：口說（沒有口說方案顯示鎖頭說明＋會員與功能連結，原本導覽上的鎖住視窗移除；進度沿用「我的進度」同一份 `speaking:catalog` 快取，只顯示正在練的那本）、單字（localStorage 已會字數）。「大挑戰」在 `/student/challenges`、`/student/speaking-challenges`、`/student/word-challenge` 都會亮。老師／管理員教材選單加「單字大挑戰預覽」；使用教學「大挑戰」一步改寫。後端權限不變：口說路由與 Edge Function 仍檢查方案。
+- 驗證（大挑戰入口）：`MainNavbar.test.jsx`、`StudentChallenges.test.jsx`（4 項）等 7 個測試檔 70 項通過；本機用登入的學生測試帳號實測 360／412／768／1280：無橫向溢出、下方 4 顆一行、上方「大挑戰」亮、兩張卡片都點得進去。
+- 未驗證：iPhone Safari 鍵盤實機；沒有口說方案的真實學生帳號（只有元件測試）。
 - 下一步（各需擁有者同意）：公開首頁入口；additive migration 存成績與 XP。Leda 音檔計畫已取消。
 
 ### 「重新發登入卡」附新的臨時密碼，並可下載貼紙（2026-11-10，分支 `feat/reissue-card-sticker-temp-password`；尚未合併、**後端尚未部署**）

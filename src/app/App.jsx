@@ -83,6 +83,7 @@ const StudentMaterials = lazy(() => import("../components/Pages/StudentMaterials
 const ParentGuide = lazy(() => import("../components/Pages/ParentGuide"));
 const TeamBossSpeakingPreview = lazy(() => import("../components/Pages/TeamBossSpeakingPreview/Preview"));
 const WordChallenge = lazy(() => import("../components/Pages/WordChallenge"));
+const StudentChallenges = lazy(() => import("../components/Pages/StudentChallenges"));
 
 const LegacyPlaylistRedirect = () => {
     const { playlistId } = useParams();
@@ -210,6 +211,7 @@ const App = () => {
                         <Route path="/student/speaking-challenges" element={<ProtectedRoute allowedRoles={["student", "teacher", "admin"]} requiresActiveMembership><TextbookSpeakingChallenge /></ProtectedRoute>} />
                         <Route path="/student/speaking-challenges/book/:bookKey" element={<ProtectedRoute allowedRoles={["student", "teacher", "admin"]} requiresActiveMembership><TextbookSpeakingChallenge /></ProtectedRoute>} />
                         <Route path="/student/speaking-challenges/:questionSetId" element={<ProtectedRoute allowedRoles={["student", "teacher", "admin"]} requiresActiveMembership><TextbookSpeakingChallenge /></ProtectedRoute>} />
+                        <Route path="/student/challenges" element={<ProtectedRoute allowedRoles={["student", "teacher", "admin"]}><StudentChallenges /></ProtectedRoute>} />
                         <Route path="/student/word-challenge" element={<ProtectedRoute allowedRoles={["student", "teacher", "admin"]}><WordChallenge variant="app" /></ProtectedRoute>} />
                         <Route path="/student/ai-generator" element={<ProtectedRoute allowedRoles={["student", "teacher", "admin"]} requiresActiveMembership><AIMaterialGenerator /></ProtectedRoute>} />
                         <Route path="/student/books" element={<ProtectedRoute allowedRoles={["student"]} requiresActiveMembership><StudentMaterials /></ProtectedRoute>} />
