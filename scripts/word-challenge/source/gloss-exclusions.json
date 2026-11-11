@@ -1,0 +1,13 @@
+{
+ "note": "自動比對通過、但不適合出「看中文拼英文」題的字。這份清單只會「拿掉」題目，不會新增或改寫任何中文意思，所以不會產生新的錯誤。被拿掉的字仍然會出「聽發音拼字」題。",
+ "groups": [
+  {
+   "reason": "多義字：辭典的主要意思不是國小常用的意思，孩子看中文會想到別的英文",
+   "words": ["the", "of", "up", "down", "will", "once", "so", "not", "great", "work", "right", "fat", "ring", "cross", "ruler", "officer", "shower", "lead", "open", "fine", "safe", "feed", "wave", "fry", "check", "party", "matter", "power", "level", "copy", "sign", "player", "band", "belt", "earth", "row", "practice", "cook", "kind", "grow", "race", "mark", "order", "error", "topic", "love", "sweet", "dish", "couch", "dress", "pool", "number", "radio", "piece", "grade", "paint", "circle", "pipe", "god", "throw", "public", "common", "trick", "national", "prize", "excuse", "seat", "lesson", "season"]
+  },
+  {
+   "reason": "中文是中國大陸或較少用的說法，和台灣國小常用說法不同",
+   "words": ["salad", "butter", "scooter", "centimeter", "kilogram", "pizza", "robot", "bus", "junior high school", "mailman", "guava", "hello", "comb", "eraser", "juice"]
+  }
+ ]
+}
