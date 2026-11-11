@@ -40,7 +40,7 @@ const shuffle = (items, random) => {
 // 選題：先出還沒答對過的字（含之前答錯的），不夠再從已答對的字補。
 export function pickQuestions(level, mode, { masteredKeys = [], onlyKeys = null, count = WORD_CHALLENGE_QUESTION_COUNT, random = Math.random } = {}) {
     const pool = onlyKeys
-        ? onlyKeys.map(findWordByKey).filter(Boolean)
+        ? onlyKeys.map(findWordByKey).filter(word => word && (mode !== WORD_CHALLENGE_MODES.meaning || Boolean(word.gloss)))
         : wordsForLevel(level, mode);
     const mastered = new Set(masteredKeys);
     const fresh = shuffle(pool.filter(word => !mastered.has(word.key)), random);

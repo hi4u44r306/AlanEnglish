@@ -25,15 +25,15 @@ afterEach(() => {
     document.body.classList.remove("word-challenge-playing");
 });
 
-test("menu shows six levels with suggested grades; without speech it starts on the Chinese mode", () => {
+test("menu shows six levels with suggested grades and only the Chinese mode", () => {
     renderPage();
-    expect(screen.getByRole("heading", { name: "聽發音或看中文，把單字拼出來" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "看中文，把英文單字拼出來" })).toBeInTheDocument();
     const levels = screen.getByRole("region", { name: "選擇等級" });
     expect(within(levels).getAllByRole("button")).toHaveLength(6);
     expect(within(levels).getByText("建議一年級")).toBeInTheDocument();
     expect(within(levels).getByText("建議六年級")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /聽發音拼字/ })).toBeDisabled();
-    expect(screen.getByRole("button", { name: /看中文拼字/ })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.queryByRole("button", { name: /聽發音/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("group", { name: "選擇題型" })).not.toBeInTheDocument();
     expect(screen.getByText(/不是教育部官方分級/)).toBeInTheDocument();
     expect(screen.getByText(/不用登入也能玩/)).toBeInTheDocument();
 });
@@ -98,19 +98,19 @@ test("hint reveals letters and leaving a round returns to the menu", () => {
     expect(document.body).not.toHaveClass("word-challenge-playing");
 });
 
-test("with device speech the listening mode is the default and reads the word aloud", () => {
+test("never reads words aloud, even when the device has speech", () => {
     const speak = jest.fn();
     window.speechSynthesis = { speak, cancel: jest.fn(), getVoices: () => [] };
     window.SpeechSynthesisUtterance = function Utterance(text) { this.text = text; };
     renderPage({ variant: "app" });
-    expect(screen.getByRole("button", { name: /聽發音拼字/ })).toHaveAttribute("aria-pressed", "true");
     expect(screen.queryByText(/不用登入也能玩/)).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: /第 3 級/ }));
-    expect(speak).toHaveBeenCalled();
-    const spoken = speak.mock.calls.at(-1)[0].text;
-    const word = wordBank.words.find(item => item.display === spoken);
+    const word = currentGlossWord();
     expect(word.level).toBe(3);
-    fireEvent.change(answerInput(), { target: { value: spoken.toUpperCase() } });
+    expect(screen.queryByRole("button", { name: /再聽一次|慢速|聽發音/ })).not.toBeInTheDocument();
+    fireEvent.change(answerInput(), { target: { value: word.display.toUpperCase() } });
     fireEvent.click(screen.getByRole("button", { name: "確定" }));
     expect(screen.getByText("答對了！")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /聽發音/ })).not.toBeInTheDocument();
+    expect(speak).not.toHaveBeenCalled();
 });

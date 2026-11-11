@@ -124,55 +124,6 @@
   font-weight: 800;
 }
 
-.word-challenge__modes {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
-  margin-bottom: 14px;
-  padding: 5px;
-  border: 1px solid var(--wc-line);
-  border-radius: 16px;
-  background: var(--ae-surface-muted, #eef2f9);
-
-  button {
-    display: inline-flex;
-    min-height: 46px;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    padding: 0 8px;
-    border: 0;
-    border-radius: 12px;
-    background: transparent;
-    color: var(--wc-muted);
-    font-size: 15px;
-    font-weight: 800;
-    cursor: pointer;
-
-    &.is-active {
-      background: var(--wc-card);
-      color: var(--wc-blue-dark);
-      box-shadow: 0 4px 12px rgba(16, 24, 40, 0.1);
-    }
-
-    &:disabled {
-      cursor: not-allowed;
-      opacity: 0.5;
-    }
-
-    &:focus-visible {
-      outline: 3px solid var(--wc-blue);
-      outline-offset: 2px;
-    }
-  }
-}
-
-.word-challenge__notice {
-  margin: -6px 0 12px;
-  color: #8a5a00;
-  font-size: 14px;
-}
-
 .word-challenge__levels {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -361,43 +312,6 @@
   overflow-wrap: anywhere;
 }
 
-.word-challenge__listen {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 10px;
-}
-
-.word-challenge__speak {
-  display: inline-flex;
-  min-height: 56px;
-  align-items: center;
-  gap: 8px;
-  padding: 0 22px;
-  border: 0;
-  border-radius: 999px;
-  background: var(--wc-yellow);
-  color: var(--wc-navy);
-  font-size: 17px;
-  font-weight: 900;
-  box-shadow: 0 5px 0 #c9971f;
-  cursor: pointer;
-
-  svg {
-    font-size: 24px;
-  }
-
-  &:active {
-    transform: translateY(2px);
-    box-shadow: 0 3px 0 #c9971f;
-  }
-
-  &:focus-visible {
-    outline: 3px solid var(--wc-navy);
-    outline-offset: 3px;
-  }
-}
-
 .word-challenge__slots {
   // 依字母格數量縮放，長片語（junior high school）在 360px 手機也排成一行。
   --wc-slot-size: clamp(12px, calc((100cqw - var(--wc-slot-count, 8) * 4px) / var(--wc-slot-count, 8)), 34px);
@@ -540,8 +454,7 @@
   overflow-wrap: anywhere;
 }
 
-.word-challenge__typed,
-.word-challenge__meaning {
+.word-challenge__typed {
   color: var(--wc-muted);
   font-size: 15px;
 }
@@ -596,28 +509,9 @@
     min-height: 52px;
     align-items: center;
     gap: 10px;
-    padding: 4px 12px 4px 4px;
+    padding: 8px 12px;
     border-radius: 14px;
     background: var(--ae-surface, #f6f8fc);
-  }
-
-  button {
-    display: inline-flex;
-    width: 44px;
-    height: 44px;
-    flex: 0 0 auto;
-    align-items: center;
-    justify-content: center;
-    border: 0;
-    border-radius: 12px;
-    background: var(--wc-card);
-    color: var(--wc-blue-dark);
-    font-size: 20px;
-    cursor: pointer;
-
-    &:focus-visible {
-      outline: 3px solid var(--wc-blue);
-    }
   }
 
   strong {
