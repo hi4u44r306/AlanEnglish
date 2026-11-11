@@ -205,6 +205,8 @@ const StudentNavbar = ({
                             <span className="ae-student-account-chip"><span>{profileAvatar}</span><strong>{profileName}</strong></span>
                         </button>
                         <button type="button" className="ae-student-desktop-logout" onClick={onLogout} disabled={loggingOut}><FiLogOut aria-hidden="true" />{loggingOut ? "登出中..." : "登出"}</button>
+                        {/* 電腦版也有漢堡：和手機同一個設定選單，點名字一樣可以開。 */}
+                        <button type="button" className="ae-student-desktop-menu-button" onClick={() => openDrawer("menu")} aria-label="開啟設定選單" aria-expanded={drawerOpen && drawer === "menu"} aria-controls="student-navigation-drawer"><FiMenu aria-hidden="true" /></button>
                     </div>
                     <div className="ae-student-mobile-account">
                         <Link to="/student/notifications" aria-label={unreadCount > 0 ? `查看通知，目前有 ${unreadCount} 則未讀` : "查看通知"}><FiBell />{unreadCount > 0 && <b>{unreadCount > 99 ? "99+" : unreadCount}</b>}</Link>

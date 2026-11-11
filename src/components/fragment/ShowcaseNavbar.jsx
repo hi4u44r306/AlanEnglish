@@ -30,7 +30,8 @@ function ShowcaseNavbar({ nav1, nav2, nav4 }) {
         { label: "功能特色", hint: "孩子每天會使用的核心功能", href: nav1 },
         { label: "學習方式", hint: "英文班與課後自主練習", href: nav2 },
         { label: "常見問題", hint: "年齡與裝置使用說明", href: nav4 },
-        { label: "給家長", hint: "家長怎麼陪孩子一起使用", to: "/parents" }
+        { label: "給家長", hint: "家長怎麼陪孩子一起使用", to: "/parents" },
+        { label: "單字大挑戰", hint: "免費玩，看中文拼英文", to: "/word-challenge" }
     ];
 
     const closeMobileMenu = () => setMobileOpen(false);

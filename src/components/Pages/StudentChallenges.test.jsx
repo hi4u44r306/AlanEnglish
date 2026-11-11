@@ -64,6 +64,14 @@ test("the word card counts words already spelled correctly on this device", () =
     expect(within(screen.getByRole("link", { name: /單字大挑戰/ })).getByText(`已會 3 / ${WORD_TOTAL} 字`)).toBeInTheDocument();
 });
 
+test("the word card reminds how many missed words are waiting for review", () => {
+    useAuth.mockReturnValue(student({}));
+    const words = wordBank.words.filter(word => word.gloss);
+    window.localStorage.setItem(`ae-word-challenge:${WORD_BANK_VERSION}:meaning`, JSON.stringify({ best: {}, mastered: [], missed: [words[0].key, words[1].key, "not-a-word"] }));
+    renderPage();
+    expect(within(screen.getByRole("link", { name: /單字大挑戰/ })).getByText("有 2 個字要複習")).toBeInTheDocument();
+});
+
 test("teachers preview both challenges without loading a student's progress", () => {
     useAuth.mockReturnValue({ firebaseUser: { uid: "teacher" }, role: "teacher", studentProfile: {} });
     renderPage();

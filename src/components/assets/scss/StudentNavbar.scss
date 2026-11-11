@@ -321,7 +321,22 @@
 .ae-student-desktop-logout:hover { background: var(--ae-surface-muted, #edf4ff); }
 .ae-student-desktop-logout:focus-visible { outline: 3px solid #245fc5; outline-offset: 2px; }
 .ae-student-desktop-logout:disabled { opacity: .6; cursor: default; }
-@media (max-width: 1279px) { .ae-student-desktop-logout { display: none; } }
+.ae-student-desktop-menu-button {
+  width: 44px;
+  height: 44px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--ae-border, #d5e3f0);
+  border-radius: 14px;
+  background: var(--ae-surface, #fff);
+  color: var(--ae-text, #243553);
+  cursor: pointer;
+  svg { width: 22px; height: 22px; stroke-width: 2.6; }
+}
+.ae-student-desktop-menu-button:hover { background: var(--ae-surface-muted, #edf4ff); }
+.ae-student-desktop-menu-button:focus-visible { outline: 3px solid #245fc5; outline-offset: 2px; }
+@media (max-width: 1279px) { .ae-student-desktop-logout, .ae-student-desktop-menu-button { display: none; } }
 
 .ae-student-account-chip {
   display: inline-flex;
