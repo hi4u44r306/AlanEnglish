@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { Link } from "react-router-dom";
-import { FiArrowRight, FiCheckSquare, FiChevronRight, FiHeadphones, FiMail, FiMic, FiPlay } from "react-icons/fi";
+import { FiArrowRight, FiCheckSquare, FiChevronRight, FiHeadphones, FiMail, FiMic, FiPlay, FiType } from "react-icons/fi";
 import { PiTrophyFill } from "react-icons/pi";
 import { useAuth } from "../../auth/AuthContext";
 import useStudentPageQuery from "../../hooks/useStudentPageQuery";
@@ -145,6 +145,7 @@ function StudentProgressOverview() {
         <div className="student-progress__links">
             <Link to="/student/weekly-report"><FiMail aria-hidden="true" />每週報告{focusRate !== null && <small>本週專注度 {focusRate}%</small>}</Link>
             <Link to="/student/leaderboard"><PiTrophyFill aria-hidden="true" />排行榜</Link>
+            <Link to="/student/word-challenge"><FiType aria-hidden="true" />單字大挑戰</Link>
         </div>
     </section>;
 }

@@ -1,5 +1,20 @@
 # Alan English 專案狀態
 
+### 單字大挑戰第一階段（2026-11-11，分支 `feature/word-challenge`；尚未合併、只改前端）
+
+- 來源：擁有者想把國小會用到的單字做成「單字大挑戰」，依年級分難度、每個人都能挑戰，題型是聽發音或看中文拼出英文。之前文件裡沒有這個計畫（只有 Workbook 1 口說 Boss 關的想法，與此無關）。
+- 擁有者決定（2026-11-11）：①教育部基本 1,200 字、自動分一～六年級；②訪客可以玩、不存紀錄；③學生之後要存紀錄＋給少量 XP（需 migration，屆時再問）；④中文意思用兩本辭典自動比對，不逐字審；⑤**不用發音**：拿掉聽發音題型，只留看中文拼字，也不做 Leda 單字音檔（因此只出有可靠中文的 672 字）。
+- 字庫：`scripts/word-challenge/build-word-bank.mjs`＋`word-bank-lib.mjs`，來源檔放 `scripts/word-challenge/source/`（課綱表一字表、表三第 1–33 類主題、中文排除清單）。辭典檔（ECDICT MIT、CC-CEDICT CC BY-SA 4.0、CMUdict BSD）不進 repo，用參數指定路徑。產出 `src/data/wordChallenge/wordBank.v1.json`（約 150 KB，每字一行），兩次產生完全相同。結果：1,200 字、每級 200 字；可出看中文題 672 字（各級 112／117／125／123／106／89）；同音字 14 組（29 個字）。
+- 分級調整過程：只用常見度會把 tiger、orange、hungry 排到第 6 級，改加入課綱表三「生活主題」分類（不在主題的字較難）。年齡習得資料（Kuperman AoA）因授權為 CC BY-NC 不能商用，沒有採用。
+- 中文調整過程：第一版自動比對 1,042 字，但有「蝦米（what）」「囝仔（child）」「罐頭（can）」這類用語或非主要意思；改為只取兩邊主要意思、拿掉台灣方言標記詞，再用排除清單拿掉 69 個多義字與 15 個大陸用語，剩 672 字。
+- 前端：`WordChallenge.jsx`（`variant` = public／app）、`css/WordChallenge.scss`、`utils/wordChallengeAnswer.js`（判斷規則；audio 模式保留但畫面不用）、`services/wordChallengeBank.js`、`services/wordChallengeLocalProgress.js`（localStorage，讀寫包 try/catch）。路由 `/word-challenge`（公開）與 `/student/word-challenge`（student／teacher／admin，不需有效會員）；`Containerfull` 在該頁暫停並隱藏教材播放器；作答時手機隱藏底部導覽；`StudentProgressOverview` 最下面加入口連結。手冊 v4.90、`PROJECT_LOGIC.md` 新增一節。
+- 驗證：`npm run test:word-challenge`（node 8 項）；`wordChallengeAnswer.test.js`＋`WordChallenge.test.jsx` 14 項通過（含「裝置有語音也絕不念出」）；`StudentProgressOverview` 測試通過；本機 3000 實際玩過答對／答錯／看答案／成績頁；1280／768／412／360 無橫向溢出，360px 下 junior high school、department store 等長字字母格一行放得下。
+- 改版外觀（擁有者看過預覽後同意，不要星星）：深藍標題區＋字母方塊裝飾；等級卡顏色編號、「已會 x/y 字」進度條與最佳分；作答 10 顆對錯圓點、題目卡＋方塊字母格（超過 12 格的片語以單字換行，最小 14px）；答對／答錯彈出卡片；成績圓環。只改 `WordChallenge.jsx`／`.scss`，判斷規則與存檔格式不變。1280／768／412／360 無橫向溢出，Console 無錯誤；31 項相關 jest 通過。
+- 大挑戰入口（擁有者 2026-11-11 要求「把大挑戰整合在一起」，看過兩種做法後選「新的大挑戰頁」）：學生導覽的「口說大挑戰」改成不上鎖的「大挑戰」（`StudentNavbar.jsx`），連到新頁 `/student/challenges`（`StudentChallenges.jsx`／`.scss`，student／teacher／admin，不加 `requiresActiveMembership`）。頁面兩張卡：口說（沒有口說方案顯示鎖頭說明＋會員與功能連結，原本導覽上的鎖住視窗移除；進度沿用「我的進度」同一份 `speaking:catalog` 快取，只顯示正在練的那本）、單字（localStorage 已會字數）。「大挑戰」在 `/student/challenges`、`/student/speaking-challenges`、`/student/word-challenge` 都會亮。老師／管理員教材選單加「單字大挑戰預覽」；使用教學「大挑戰」一步改寫。後端權限不變：口說路由與 Edge Function 仍檢查方案。
+- 驗證（大挑戰入口）：`MainNavbar.test.jsx`、`StudentChallenges.test.jsx`（4 項）等 7 個測試檔 70 項通過；本機用登入的學生測試帳號實測 360／412／768／1280：無橫向溢出、下方 4 顆一行、上方「大挑戰」亮、兩張卡片都點得進去。
+- 未驗證：iPhone Safari 鍵盤實機；沒有口說方案的真實學生帳號（只有元件測試）。
+- 下一步（各需擁有者同意）：公開首頁入口；additive migration 存成績與 XP。Leda 音檔計畫已取消。
+
 ### 「重新發登入卡」附新的臨時密碼，並可下載貼紙（2026-11-10，分支 `feat/reissue-card-sticker-temp-password`；尚未合併、**後端尚未部署**）
 
 - 來源：擁有者問「已經產生的學生帳號怎麼匯出成單張貼紙」。原本的開通碼與復原碼只存雜湊、無法再取回，只能重新發卡；擁有者選擇「連臨時密碼一起補上」，讓貼紙和批次的一模一樣。

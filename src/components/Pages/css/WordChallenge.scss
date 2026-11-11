@@ -1,0 +1,898 @@
+.word-challenge {
+  --wc-navy: var(--ae-accent, #17366f);
+  --wc-hero: #17366f;
+  --wc-blue: #315bc8;
+  --wc-blue-dark: #2449a9;
+  --wc-blue-soft: #e7eefc;
+  --wc-yellow: #ffcc41;
+  --wc-yellow-soft: #fff6dc;
+  --wc-yellow-ink: #8a5a00;
+  --wc-ink: var(--ae-text, #172033);
+  --wc-muted: var(--ae-text-muted, #667085);
+  --wc-line: var(--ae-border, #dfe5f0);
+  --wc-card: var(--ae-surface-card, #ffffff);
+  --wc-track: #e8edf7;
+  --wc-green: #16a34a;
+  --wc-red: #d92d20;
+  color: var(--wc-ink);
+  font-family: "Inter", "Noto Sans TC", sans-serif;
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  button {
+    font: inherit;
+  }
+}
+
+.word-challenge--public {
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding-bottom: calc(32px + env(safe-area-inset-bottom));
+  background:
+    radial-gradient(circle at 90% 6%, rgba(49, 91, 200, 0.1), transparent 30%),
+    var(--ae-surface, #f4f7fd);
+}
+
+.word-challenge__header {
+  display: flex;
+  width: min(720px, calc(100% - 32px));
+  min-height: 64px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: max(12px, env(safe-area-inset-top)) auto 0;
+  padding: 0 14px;
+  border: 1px solid var(--wc-line);
+  border-radius: 18px;
+  background: var(--ae-surface-glass, rgba(255, 255, 255, 0.95));
+  box-shadow: 0 12px 30px rgba(16, 24, 40, 0.08);
+
+  nav {
+    display: flex;
+    gap: 4px;
+  }
+
+  nav a {
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
+    gap: 4px;
+    padding: 0 10px;
+    border-radius: 12px;
+    color: var(--wc-muted);
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+
+    &:hover,
+    &:focus-visible {
+      background: var(--ae-surface-muted, #eef3ff);
+      color: var(--wc-blue-dark);
+    }
+  }
+
+  svg {
+    flex: 0 0 auto;
+    font-size: 20px;
+  }
+}
+
+.word-challenge__brand {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  color: inherit;
+  text-decoration: none;
+}
+
+.word-challenge__main {
+  width: min(720px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 20px 0 8px;
+}
+
+.word-challenge--app .word-challenge__main {
+  width: min(720px, 100%);
+  padding-top: 8px;
+}
+
+// 選單：深藍標題區，右上角放字母方塊裝飾。
+.word-challenge__intro {
+  position: relative;
+  margin-bottom: 16px;
+  padding: 20px 18px;
+  overflow: hidden;
+  border-radius: 22px;
+  background: var(--wc-hero);
+  color: #fff;
+  box-shadow: 0 14px 30px rgba(23, 54, 111, 0.22);
+
+  h1 {
+    max-width: calc(100% - 96px);
+    margin: 8px 0 6px;
+    color: #fff;
+    font-size: clamp(22px, 5.6vw, 30px);
+    line-height: 1.3;
+
+    span {
+      display: inline-block;
+    }
+  }
+
+  p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.82);
+    font-size: 15px;
+    line-height: 1.6;
+  }
+}
+
+.word-challenge__intro-tiles {
+  position: absolute;
+  top: 16px;
+  right: 14px;
+  display: flex;
+  gap: 5px;
+
+  span {
+    display: inline-flex;
+    width: 30px;
+    height: 34px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9px;
+    background: #fff;
+    color: var(--wc-blue);
+    font-size: 18px;
+    font-weight: 900;
+    box-shadow: 0 3px 0 rgba(0, 0, 0, 0.18);
+  }
+
+  span:nth-child(1) {
+    background: var(--wc-yellow);
+    color: var(--wc-hero);
+    transform: rotate(-8deg);
+  }
+
+  span:nth-child(2) {
+    transform: translateY(6px) rotate(5deg);
+  }
+
+  span:nth-child(3) {
+    background: #7fb0ff;
+    color: var(--wc-hero);
+    transform: rotate(-4deg);
+  }
+}
+
+.word-challenge__kicker {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--wc-yellow);
+  color: var(--wc-hero);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.word-challenge__chip {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--wc-blue-soft);
+  color: var(--wc-blue-dark);
+  font-size: 14px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.word-challenge__levels {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+// 每一級一個代表色：綠、青、藍、紫、橘、玫瑰。
+.word-challenge__level {
+  --wc-level-color: var(--wc-blue);
+  display: grid;
+  min-height: 128px;
+  align-content: start;
+  gap: 6px;
+  padding: 14px;
+  border: 1px solid var(--wc-line);
+  border-radius: 18px;
+  background: var(--wc-card);
+  color: var(--wc-ink);
+  text-align: left;
+  box-shadow: 0 8px 20px rgba(16, 24, 40, 0.06);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+
+  &:hover {
+    border-color: var(--wc-level-color);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 26px rgba(16, 24, 40, 0.1);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--wc-blue);
+    outline-offset: 2px;
+  }
+}
+
+.word-challenge__level--1 { --wc-level-color: #16a34a; }
+.word-challenge__level--2 { --wc-level-color: #0d9488; }
+.word-challenge__level--3 { --wc-level-color: #315bc8; }
+.word-challenge__level--4 { --wc-level-color: #7c3aed; }
+.word-challenge__level--5 { --wc-level-color: #ea580c; }
+.word-challenge__level--6 { --wc-level-color: #e11d48; }
+
+.word-challenge__level-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.word-challenge__level-badge {
+  display: inline-flex;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--wc-level-color);
+  color: #fff;
+  font-size: 17px;
+  font-weight: 900;
+}
+
+.word-challenge__level-name {
+  color: var(--wc-muted);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.word-challenge__level-grade {
+  color: var(--wc-navy);
+  font-size: 17px;
+  font-weight: 900;
+}
+
+.word-challenge__level-progress {
+  display: block;
+  height: 7px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--wc-track);
+
+  span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--wc-level-color);
+    transition: width 0.3s ease;
+  }
+}
+
+.word-challenge__level-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 8px;
+  color: var(--wc-muted);
+  font-size: 13px;
+  line-height: 1.4;
+
+  span {
+    white-space: nowrap;
+  }
+}
+
+.word-challenge__practice-missed {
+  display: flex;
+  width: 100%;
+  min-height: 52px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 0 16px;
+  border: 1px solid #ffe08a;
+  border-radius: 16px;
+  background: var(--wc-yellow-soft);
+  color: var(--wc-yellow-ink);
+  font-size: 16px;
+  font-weight: 800;
+  text-align: left;
+  cursor: pointer;
+
+  svg {
+    flex: 0 0 auto;
+    font-size: 20px;
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--wc-navy);
+    outline-offset: 3px;
+  }
+}
+
+.word-challenge__fineprint {
+  margin: 18px 0 0;
+  padding-left: 18px;
+  color: var(--wc-muted);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.word-challenge__primary,
+.word-challenge__secondary {
+  display: inline-flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 18px;
+  border-radius: 14px;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 3px solid var(--wc-navy);
+    outline-offset: 3px;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+  }
+}
+
+.word-challenge__primary {
+  border: 0;
+  background: var(--wc-blue);
+  color: #fff;
+  box-shadow: 0 5px 0 var(--wc-blue-dark);
+
+  &:active {
+    transform: translateY(2px);
+    box-shadow: 0 3px 0 var(--wc-blue-dark);
+  }
+}
+
+.word-challenge__secondary {
+  border: 1px solid var(--wc-line);
+  background: var(--wc-card);
+  color: var(--wc-navy);
+}
+
+.word-challenge__play {
+  padding: 14px;
+  border: 1px solid var(--wc-line);
+  border-radius: 22px;
+  background: var(--wc-card);
+  box-shadow: 0 12px 30px rgba(16, 24, 40, 0.08);
+}
+
+.word-challenge__play-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  .word-challenge__chip {
+    margin-right: auto;
+  }
+
+  strong {
+    color: var(--wc-navy);
+    font-size: 16px;
+  }
+}
+
+.word-challenge__leave {
+  display: inline-flex;
+  min-width: 44px;
+  min-height: 44px;
+  align-items: center;
+  gap: 4px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--wc-muted);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+
+  svg {
+    font-size: 18px;
+  }
+
+  &:hover {
+    background: var(--ae-surface-muted, #eef3ff);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--wc-blue);
+  }
+}
+
+.word-challenge__dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin: 8px 0 22px;
+  padding: 0;
+  list-style: none;
+}
+
+.word-challenge__dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--wc-track);
+  transition: background-color 0.2s ease, transform 0.2s ease;
+
+  &.is-correct {
+    background: var(--wc-green);
+  }
+
+  &.is-wrong {
+    background: var(--wc-red);
+  }
+
+  &.is-current {
+    background: var(--wc-card);
+    box-shadow: inset 0 0 0 3px var(--wc-blue);
+    transform: scale(1.15);
+  }
+}
+
+// 題目卡：上緣黃色「中文」標籤，中文與字母格放在卡片裡。
+.word-challenge__card {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  margin-bottom: 14px;
+  padding: 24px 12px 18px;
+  border: 1px solid var(--wc-line);
+  border-radius: 20px;
+  background: var(--ae-surface, #f8faff);
+  text-align: center;
+  container-type: inline-size;
+}
+
+.word-challenge__card-tab {
+  position: absolute;
+  top: -11px;
+  left: 50%;
+  padding: 2px 14px;
+  border-radius: 999px;
+  background: var(--wc-yellow);
+  color: var(--wc-hero);
+  font-size: 13px;
+  font-weight: 900;
+  transform: translateX(-50%);
+}
+
+.word-challenge__gloss {
+  color: var(--wc-navy);
+  font-size: clamp(30px, 9vw, 44px);
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.word-challenge__slots {
+  // 依題目卡寬度與格數縮放；超過 12 格的片語以單字為單位換行（見 LetterSlots）。
+  --wc-slot-size: clamp(14px, calc(100cqw / (var(--wc-slot-count, 8) * 1.15)), 38px);
+  display: flex;
+  width: 100%;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px calc(var(--wc-slot-size) * 0.5);
+}
+
+.word-challenge__slot-word {
+  display: inline-flex;
+  gap: calc(var(--wc-slot-size) * 0.15);
+}
+
+.word-challenge__slot {
+  display: inline-flex;
+  width: var(--wc-slot-size);
+  height: calc(var(--wc-slot-size) * 1.25);
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #c7d2e6;
+  border-radius: clamp(4px, calc(var(--wc-slot-size) * 0.24), 9px);
+  background: var(--wc-card);
+  color: var(--wc-navy);
+  font-size: calc(var(--wc-slot-size) * 0.66);
+  font-weight: 800;
+  text-transform: lowercase;
+  transition: background-color 0.12s ease, border-color 0.12s ease;
+
+  &.is-filled {
+    border-color: var(--wc-blue);
+    background: var(--wc-blue);
+    color: #fff;
+  }
+
+  &.is-hint {
+    border-color: var(--wc-yellow);
+    background: var(--wc-yellow-soft);
+    color: #b07a00;
+  }
+
+  &.is-current {
+    border-color: var(--wc-blue);
+    box-shadow: 0 0 0 3px rgba(49, 91, 200, 0.18);
+  }
+}
+
+.word-challenge__slot-symbol {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  color: var(--wc-muted);
+  font-size: calc(var(--wc-slot-size) * 0.72);
+  font-weight: 800;
+}
+
+.word-challenge__form {
+  display: grid;
+  gap: 12px;
+}
+
+.word-challenge__input {
+  width: 100%;
+  min-height: 56px;
+  padding: 0 16px;
+  border: 2px solid var(--wc-line);
+  border-radius: 16px;
+  background: var(--wc-card);
+  color: var(--wc-ink);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-align: center;
+
+  &::placeholder {
+    color: #a3adbf;
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 0;
+  }
+
+  &:focus {
+    border-color: var(--wc-blue);
+    outline: none;
+    box-shadow: 0 0 0 4px rgba(49, 91, 200, 0.15);
+  }
+}
+
+.word-challenge__actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+
+  .word-challenge__primary {
+    grid-column: 1 / -1;
+  }
+}
+
+.word-challenge__actions--stack {
+  grid-template-columns: 1fr;
+  margin-top: 18px;
+}
+
+@keyframes word-challenge-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+
+  60% {
+    opacity: 1;
+    transform: scale(1.02);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+.word-challenge__feedback {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 18px 14px 14px;
+  border: 2px solid transparent;
+  border-radius: 20px;
+  text-align: center;
+  animation: word-challenge-pop 0.28s ease-out;
+
+  &.is-correct {
+    border-color: rgba(22, 163, 74, 0.25);
+    background: #e9f7ee;
+  }
+
+  &.is-wrong {
+    border-color: rgba(217, 45, 32, 0.2);
+    background: #fdeeec;
+  }
+
+  p {
+    margin: 0;
+  }
+
+  .word-challenge__actions {
+    width: 100%;
+    grid-template-columns: 1fr;
+    margin-top: 6px;
+  }
+}
+
+.word-challenge__feedback-icon {
+  display: inline-flex;
+  width: 44px;
+  height: 44px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 26px;
+
+  .is-correct & {
+    background: var(--wc-green);
+  }
+
+  .is-wrong & {
+    background: var(--wc-red);
+  }
+}
+
+.word-challenge__feedback-title {
+  font-size: 18px;
+  font-weight: 900;
+
+  .is-correct & {
+    color: #15803d;
+  }
+
+  .is-wrong & {
+    color: #b42318;
+  }
+}
+
+.word-challenge__answer {
+  color: var(--wc-navy);
+  font-size: clamp(30px, 8vw, 40px);
+  font-weight: 900;
+  overflow-wrap: anywhere;
+}
+
+.word-challenge__typed {
+  color: var(--wc-muted);
+  font-size: 15px;
+}
+
+.word-challenge__typed span {
+  color: var(--wc-red);
+  font-weight: 800;
+  text-decoration: line-through;
+}
+
+.word-challenge__note {
+  color: var(--wc-yellow-ink);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.word-challenge__result {
+  padding: 20px 16px;
+  border: 1px solid var(--wc-line);
+  border-radius: 22px;
+  background: var(--wc-card);
+  text-align: center;
+  box-shadow: 0 12px 30px rgba(16, 24, 40, 0.08);
+}
+
+// 成績圓環：黃色弧線長度＝答對比例，中間是分數。
+.word-challenge__score {
+  position: relative;
+  display: grid;
+  width: 150px;
+  height: 150px;
+  place-items: center;
+  margin: 12px auto 6px;
+
+  svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+  }
+
+  h1 {
+    position: relative;
+    margin: 0;
+    color: var(--wc-navy);
+    font-size: 24px;
+    line-height: 1;
+
+    strong {
+      font-size: 48px;
+    }
+  }
+}
+
+.word-challenge__score-track,
+.word-challenge__score-value {
+  fill: none;
+  stroke-width: 12;
+}
+
+.word-challenge__score-track {
+  stroke: var(--wc-track);
+}
+
+.word-challenge__score-value {
+  stroke: var(--wc-yellow);
+  stroke-linecap: round;
+  transition: stroke-dasharray 0.6s ease-out;
+}
+
+.word-challenge__result-message {
+  margin: 0;
+  color: var(--wc-navy);
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.word-challenge__missed {
+  display: grid;
+  gap: 8px;
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+  text-align: left;
+
+  li {
+    display: flex;
+    min-height: 52px;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 14px;
+    border: 1px solid var(--wc-line);
+    border-left: 4px solid var(--wc-red);
+    border-radius: 0 14px 14px 0;
+    background: var(--wc-card);
+  }
+
+  strong {
+    color: var(--wc-navy);
+    font-size: 18px;
+    overflow-wrap: anywhere;
+  }
+
+  span {
+    margin-left: auto;
+    color: var(--wc-muted);
+    font-size: 14px;
+    text-align: right;
+  }
+}
+
+.word-challenge__sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+@media (min-width: 640px) {
+  .word-challenge__intro {
+    padding: 26px 28px;
+  }
+
+  .word-challenge__intro-tiles {
+    top: 24px;
+    right: 26px;
+
+    span {
+      width: 40px;
+      height: 46px;
+      font-size: 24px;
+    }
+  }
+
+  .word-challenge__intro h1 {
+    max-width: calc(100% - 150px);
+  }
+
+  .word-challenge__levels {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .word-challenge__play,
+  .word-challenge__result {
+    padding: 24px;
+  }
+
+  .word-challenge__actions {
+    grid-template-columns: 2fr 1fr 1fr;
+
+    .word-challenge__primary {
+      grid-column: auto;
+    }
+  }
+
+  .word-challenge__actions--stack {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .word-challenge__feedback .word-challenge__actions {
+    width: min(360px, 100%);
+  }
+
+  .word-challenge__actions--stack .word-challenge__primary {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 380px) {
+  .word-challenge__header nav a span {
+    display: none;
+  }
+
+  .word-challenge__intro-tiles span:nth-child(3) {
+    display: none;
+  }
+
+  .word-challenge__intro h1 {
+    max-width: calc(100% - 66px);
+  }
+
+  .word-challenge__dots {
+    gap: 5px;
+  }
+}
+
+// 作答中（登入後的頁面）隱藏手機底部導覽，讓鍵盤上方留給輸入框。
+@media (max-width: 760px) {
+  body.word-challenge-playing .ae-student-bottom-nav {
+    display: none;
+  }
+
+  body.word-challenge-playing:has(.ae-student-bottom-nav) .app-content,
+  body.word-challenge-playing:has(.ae-student-bottom-nav) .app-content.has-player {
+    padding-bottom: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .word-challenge__level,
+  .word-challenge__level-progress span,
+  .word-challenge__dot,
+  .word-challenge__slot,
+  .word-challenge__score-value {
+    transition: none;
+  }
+
+  .word-challenge__feedback {
+    animation: none;
+  }
+}

@@ -1,0 +1,149 @@
+// 大挑戰：口說與單字兩張大卡片，手機一欄、平板以上兩欄。
+.student-challenges-page {
+  box-sizing: border-box;
+  width: min(720px, calc(100% - 32px));
+  margin: 0 auto;
+  padding-top: 20px;
+  color: var(--ae-text, #17365d);
+
+  > h1 {
+    margin: 0 0 16px;
+    font-size: 28px;
+    font-weight: 800;
+  }
+}
+
+.student-challenges__cards {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+}
+
+.student-challenges__card {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 112px;
+  padding: 18px 16px;
+  border: 1px solid var(--ae-border, #d5e3f0);
+  border-radius: 18px;
+  background: var(--ae-surface, #fff);
+  box-shadow: 0 6px 18px rgba(22, 47, 82, 0.06);
+  color: var(--ae-text, #17365d);
+  text-decoration: none;
+  transition: border-color 0.15s ease, transform 0.15s ease;
+}
+
+a.student-challenges__card:hover {
+  border-color: #91add2;
+  color: var(--ae-text, #17365d);
+  transform: translateY(-1px);
+}
+
+a.student-challenges__card:focus-visible {
+  outline: 3px solid var(--ae-accent, #245fc5);
+  outline-offset: 2px;
+}
+
+.student-challenges__tile {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+
+  > svg {
+    width: 26px;
+    height: 26px;
+    stroke-width: 2.4;
+  }
+}
+
+.student-challenges__card.is-speaking .student-challenges__tile {
+  background: var(--ae-warning-bg, #ffe1cc);
+  color: var(--ae-warning, #b54708);
+}
+
+.student-challenges__card.is-word .student-challenges__tile {
+  background: var(--ae-success-bg, #d6f2e1);
+  color: var(--ae-success, #17694a);
+}
+
+.student-challenges__card.is-locked {
+  background: var(--ae-surface-muted, #f5f8fc);
+
+  .student-challenges__tile {
+    background: var(--ae-surface-muted, #e7edf5);
+    color: var(--ae-text-muted, #526780);
+  }
+}
+
+.student-challenges__body {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+
+  > strong {
+    font-size: 19px;
+    font-weight: 800;
+    line-height: 1.3;
+  }
+
+  > span {
+    color: var(--ae-text-muted, #526780);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  > small {
+    justify-self: start;
+    margin-top: 4px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: var(--ae-surface-muted, #eef4fb);
+    color: var(--ae-text, #17365d);
+    font-size: 13px;
+    font-weight: 700;
+  }
+}
+
+.student-challenges__locked-link {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--ae-accent, #245fc5);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.student-challenges__arrow {
+  flex-shrink: 0;
+  width: 22px;
+  height: 22px;
+  color: var(--ae-text-muted, #526780);
+}
+
+@media (min-width: 640px) {
+  .student-challenges__cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .student-challenges__card {
+    align-items: flex-start;
+    min-height: 150px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .student-challenges__card {
+    transition: none;
+  }
+
+  a.student-challenges__card:hover {
+    transform: none;
+  }
+}
