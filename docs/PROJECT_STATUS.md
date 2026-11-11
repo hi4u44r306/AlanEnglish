@@ -9,6 +9,7 @@
 - 中文調整過程：第一版自動比對 1,042 字，但有「蝦米（what）」「囝仔（child）」「罐頭（can）」這類用語或非主要意思；改為只取兩邊主要意思、拿掉台灣方言標記詞，再用排除清單拿掉 69 個多義字與 15 個大陸用語，剩 672 字。
 - 前端：`WordChallenge.jsx`（`variant` = public／app）、`css/WordChallenge.scss`、`utils/wordChallengeAnswer.js`（判斷規則；audio 模式保留但畫面不用）、`services/wordChallengeBank.js`、`services/wordChallengeLocalProgress.js`（localStorage，讀寫包 try/catch）。路由 `/word-challenge`（公開）與 `/student/word-challenge`（student／teacher／admin，不需有效會員）；`Containerfull` 在該頁暫停並隱藏教材播放器；作答時手機隱藏底部導覽；`StudentProgressOverview` 最下面加入口連結。手冊 v4.90、`PROJECT_LOGIC.md` 新增一節。
 - 驗證：`npm run test:word-challenge`（node 8 項）；`wordChallengeAnswer.test.js`＋`WordChallenge.test.jsx` 14 項通過（含「裝置有語音也絕不念出」）；`StudentProgressOverview` 測試通過；本機 3000 實際玩過答對／答錯／看答案／成績頁；1280／768／412／360 無橫向溢出，360px 下 junior high school、department store 等長字字母格一行放得下。
+- 改版外觀（擁有者看過預覽後同意，不要星星）：深藍標題區＋字母方塊裝飾；等級卡顏色編號、「已會 x/y 字」進度條與最佳分；作答 10 顆對錯圓點、題目卡＋方塊字母格（超過 12 格的片語以單字換行，最小 14px）；答對／答錯彈出卡片；成績圓環。只改 `WordChallenge.jsx`／`.scss`，判斷規則與存檔格式不變。1280／768／412／360 無橫向溢出，Console 無錯誤；31 項相關 jest 通過。
 - 未驗證：登入後 `/student/word-challenge` 的實際畫面（本機沒有登入測試帳號，只有元件測試）；iPhone Safari 鍵盤實機。
 - 下一步（各需擁有者同意）：公開首頁入口；additive migration 存成績與 XP。Leda 音檔計畫已取消。
 

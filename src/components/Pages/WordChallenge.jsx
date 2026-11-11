@@ -1,12 +1,13 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { BiHomeAlt2, BiLogIn } from "react-icons/bi";
-import { FiCheckCircle, FiXCircle } from "react-icons/fi";
+import { FiArrowRight, FiCheck, FiX } from "react-icons/fi";
 import Brand from "../fragment/Brand";
 import {
     WORD_BANK_VERSION,
     WORD_CHALLENGE_LEVELS,
     WORD_CHALLENGE_QUESTION_COUNT,
+    findWordByKey,
     meaningPeersOf,
     pickQuestions
 } from "../../services/wordChallengeBank";
@@ -28,20 +29,54 @@ const resultMessage = (correct, total) => {
     return "先練錯的字，再回來挑戰。";
 };
 
+const SCORE_RING_RADIUS = 52;
+const SCORE_RING_LENGTH = 2 * Math.PI * SCORE_RING_RADIUS;
+
+// 片語超過這個格數就以單字為單位換行，字母格才不會在手機上縮得太小。
+const SINGLE_LINE_SLOT_LIMIT = 12;
+const WRAPPED_MIN_SLOT_COUNT = 8;
+
 function LetterSlots({ word, typed, revealed }) {
     const slots = buildLetterSlots(word.display, typed, revealed);
+    const currentKey = slots.find(slot => slot.kind === "letter" && !slot.value)?.key;
+    const groups = slots.reduce((list, slot) => {
+        if (slot.kind === "gap") list.push([]);
+        else list[list.length - 1].push(slot);
+        return list;
+    }, [[]]);
+    const sizeCount = slots.length <= SINGLE_LINE_SLOT_LIMIT
+        ? slots.length
+        : Math.max(WRAPPED_MIN_SLOT_COUNT, ...groups.map(group => group.length));
     return (
-        <div className="word-challenge__slots" aria-hidden="true" style={{ "--wc-slot-count": slots.length }}>
-            {slots.map(slot => {
-                if (slot.kind === "gap") return <span className="word-challenge__slot-gap" key={slot.key} />;
-                if (slot.kind === "symbol") return <span className="word-challenge__slot-symbol" key={slot.key}>{slot.value}</span>;
-                return (
-                    <span className={`word-challenge__slot${slot.value ? " is-filled" : ""}${!slot.value && slot.hint ? " is-hint" : ""}`} key={slot.key}>
-                        {slot.value || slot.hint}
-                    </span>
-                );
-            })}
+        <div className="word-challenge__slots" aria-hidden="true" style={{ "--wc-slot-count": sizeCount }}>
+            {groups.map(group => (
+                <span className="word-challenge__slot-word" key={group[0]?.key || "empty"}>
+                    {group.map(slot => {
+                        if (slot.kind === "symbol") return <span className="word-challenge__slot-symbol" key={slot.key}>{slot.value}</span>;
+                        const classes = ["word-challenge__slot"];
+                        if (slot.value) classes.push("is-filled");
+                        else if (slot.hint) classes.push("is-hint");
+                        if (slot.key === currentKey) classes.push("is-current");
+                        return <span className={classes.join(" ")} key={slot.key}>{slot.value || slot.hint}</span>;
+                    })}
+                </span>
+            ))}
         </div>
+    );
+}
+
+// 作答進度：每題一顆圓點，答對綠、答錯紅、目前這題藍框。
+function ProgressDots({ total, results, index, answered }) {
+    return (
+        <ol className="word-challenge__dots" aria-hidden="true">
+            {Array.from({ length: total }, (_, position) => {
+                const result = results[position];
+                let state = "";
+                if (result) state = result.correct ? " is-correct" : " is-wrong";
+                else if (position === index && !answered) state = " is-current";
+                return <li className={`word-challenge__dot${state}`} key={position} />;
+            })}
+        </ol>
     );
 }
 
@@ -139,6 +174,16 @@ function WordChallenge({ variant = "public" }) {
     const missedResults = results.filter(result => !result.correct);
     const missedKeys = progress.missed || [];
 
+    // 每一級「已會」的字數：這台裝置上答對過（沒用提示）的字。
+    const masteredByLevel = useMemo(() => {
+        const counts = {};
+        for (const key of progress.mastered || []) {
+            const word = findWordByKey(key);
+            if (word?.gloss) counts[word.level] = (counts[word.level] || 0) + 1;
+        }
+        return counts;
+    }, [progress.mastered]);
+
     const header = variant === "public" ? (
         <header className="word-challenge__header">
             <Link className="word-challenge__brand" to="/" aria-label="前往 Alan English 首頁"><Brand /></Link>
@@ -156,8 +201,11 @@ function WordChallenge({ variant = "public" }) {
                 {phase === "menu" && (
                     <>
                         <section className="word-challenge__intro">
+                            <div className="word-challenge__intro-tiles" aria-hidden="true">
+                                <span>A</span><span>B</span><span>C</span>
+                            </div>
                             <span className="word-challenge__kicker">單字大挑戰</span>
-                            <h1>看中文，把英文單字拼出來</h1>
+                            <h1><span>看中文，</span><span>把英文單字拼出來</span></h1>
                             <p>教育部國中小基本 1,200 字，依難度分成 6 級，一輪 {WORD_CHALLENGE_QUESTION_COUNT} 題。</p>
                         </section>
 
@@ -166,19 +214,29 @@ function WordChallenge({ variant = "public" }) {
                             {WORD_CHALLENGE_LEVELS.map(item => {
                                 const best = progress.best?.[String(item.level)];
                                 const count = item.meaningReady;
+                                const known = Math.min(masteredByLevel[item.level] || 0, count);
+                                const played = Number.isFinite(best) || known > 0;
                                 return (
-                                    <button type="button" className="word-challenge__level" key={item.level} onClick={() => startRound(item.level)}>
-                                        <span className="word-challenge__level-name">第 {item.level} 級</span>
+                                    <button type="button" className={`word-challenge__level word-challenge__level--${item.level}`} key={item.level} onClick={() => startRound(item.level)}>
+                                        <span className="word-challenge__level-top">
+                                            <span className="word-challenge__level-badge" aria-hidden="true">{item.level}</span>
+                                            <span className="word-challenge__level-name">第 {item.level} 級</span>
+                                        </span>
                                         <span className="word-challenge__level-grade">建議{item.grade}年級</span>
-                                        <span className="word-challenge__level-meta">{count} 字{Number.isFinite(best) ? ` · 最佳 ${best}/${WORD_CHALLENGE_QUESTION_COUNT}` : ""}</span>
+                                        <span className="word-challenge__level-progress" aria-hidden="true"><span style={{ width: `${count ? (known / count) * 100 : 0}%` }} /></span>
+                                        <span className="word-challenge__level-meta">
+                                            <span>{played ? `已會 ${known}/${count} 字` : `${count} 字 · 還沒挑戰`}</span>
+                                            {Number.isFinite(best) && <span>最佳 {best}/{WORD_CHALLENGE_QUESTION_COUNT}</span>}
+                                        </span>
                                     </button>
                                 );
                             })}
                         </section>
 
                         {missedKeys.length > 0 && (
-                            <button type="button" className="word-challenge__secondary word-challenge__practice-missed" onClick={() => startRound(0, missedKeys.slice(-WORD_CHALLENGE_QUESTION_COUNT))}>
-                                練習之前錯的字（{missedKeys.length} 個）
+                            <button type="button" className="word-challenge__practice-missed" onClick={() => startRound(0, missedKeys.slice(-WORD_CHALLENGE_QUESTION_COUNT))}>
+                                <span>練習之前錯的字（{missedKeys.length} 個）</span>
+                                <FiArrowRight aria-hidden="true" />
                             </button>
                         )}
 
@@ -193,18 +251,18 @@ function WordChallenge({ variant = "public" }) {
                 {phase === "play" && current && (
                     <section className="word-challenge__play" aria-label="作答">
                         <div className="word-challenge__play-top">
-                            <span>{level ? `第 ${level} 級` : "錯的字"}</span>
+                            <span className="word-challenge__chip">{level ? `第 ${level} 級` : "錯的字"}</span>
                             <strong aria-label={`第 ${index + 1} 題，共 ${questions.length} 題`}>{index + 1} / {questions.length}</strong>
-                            <button type="button" className="word-challenge__leave" onClick={leaveRound}>離開</button>
+                            <button type="button" className="word-challenge__leave" onClick={leaveRound}><FiX aria-hidden="true" />離開</button>
                         </div>
-                        <div className="word-challenge__bar" aria-hidden="true"><span style={{ width: `${((index + (feedback ? 1 : 0)) / questions.length) * 100}%` }} /></div>
+                        <ProgressDots total={questions.length} results={results} index={index} answered={Boolean(feedback)} />
 
-                        <div className="word-challenge__prompt">
-                            <span className="word-challenge__prompt-label">這個中文的英文是？</span>
+                        <div className="word-challenge__card">
+                            <span className="word-challenge__card-tab">中文</span>
+                            <span className="word-challenge__sr">這個中文的英文是？</span>
                             <strong className="word-challenge__gloss" lang="zh-Hant">{current.gloss}</strong>
+                            {!feedback && <LetterSlots word={current} typed={typed} revealed={BASE_REVEALED + hints} />}
                         </div>
-
-                        {!feedback && <LetterSlots word={current} typed={typed} revealed={BASE_REVEALED + hints} />}
 
                         {!feedback ? (
                             <form className="word-challenge__form" onSubmit={submitAnswer}>
@@ -234,8 +292,8 @@ function WordChallenge({ variant = "public" }) {
                             </form>
                         ) : (
                             <div className={`word-challenge__feedback ${feedback.correct ? "is-correct" : "is-wrong"}`} role="status" aria-live="polite">
+                                <span className="word-challenge__feedback-icon" aria-hidden="true">{feedback.correct ? <FiCheck /> : <FiX />}</span>
                                 <p className="word-challenge__feedback-title">
-                                    {feedback.correct ? <FiCheckCircle aria-hidden="true" /> : <FiXCircle aria-hidden="true" />}
                                     {feedback.correct ? "答對了！" : feedback.skipped ? "答案是" : "差一點！正確拼法"}
                                 </p>
                                 <p className="word-challenge__answer" lang="en">{current.display}</p>
@@ -251,9 +309,23 @@ function WordChallenge({ variant = "public" }) {
 
                 {phase === "result" && (
                     <section className="word-challenge__result" aria-label="這一輪的成績">
-                        <span className="word-challenge__kicker">{level ? `第 ${level} 級` : "錯的字"}</span>
-                        <h1><strong>{correctCount}</strong> / {results.length}</h1>
-                        <p>{resultMessage(correctCount, results.length)}</p>
+                        <span className="word-challenge__chip">{level ? `第 ${level} 級` : "錯的字"}</span>
+                        <div className="word-challenge__score">
+                            <svg viewBox="0 0 120 120" aria-hidden="true">
+                                <circle className="word-challenge__score-track" cx="60" cy="60" r={SCORE_RING_RADIUS} />
+                                {correctCount > 0 && (
+                                    <circle
+                                        className="word-challenge__score-value"
+                                        cx="60"
+                                        cy="60"
+                                        r={SCORE_RING_RADIUS}
+                                        strokeDasharray={`${(correctCount / results.length) * SCORE_RING_LENGTH} ${SCORE_RING_LENGTH}`}
+                                    />
+                                )}
+                            </svg>
+                            <h1><strong>{correctCount}</strong> / {results.length}</h1>
+                        </div>
+                        <p className="word-challenge__result-message">{resultMessage(correctCount, results.length)}</p>
                         {missedResults.length > 0 && (
                             <ul className="word-challenge__missed" aria-label="這一輪錯的字">
                                 {missedResults.map(result => (

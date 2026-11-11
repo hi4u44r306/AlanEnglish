@@ -27,7 +27,7 @@ afterEach(() => {
 
 test("menu shows six levels with suggested grades and only the Chinese mode", () => {
     renderPage();
-    expect(screen.getByRole("heading", { name: "看中文，把英文單字拼出來" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /^看中文，\s?把英文單字拼出來$/ })).toBeInTheDocument();
     const levels = screen.getByRole("region", { name: "選擇等級" });
     expect(within(levels).getAllByRole("button")).toHaveLength(6);
     expect(within(levels).getByText("建議一年級")).toBeInTheDocument();
