@@ -1,5 +1,14 @@
 # Alan English 專案狀態
 
+### 連續學習天數與徽章（2026-11-12，分支 `feature/streak-badges`；尚未合併、未部署）
+
+- 來源：擁有者想做連續天數徽章；之前網站只有「連續答對幾次」，沒有連續學習天數。擁有者決定：聽力／口說（單字大挑戰等其後端上線再加）任一個算一天、每週 1 次免死金牌、徽章只當榮譽（不送 AE Points）、徽章數字固定為里程碑 3、7、14、30、60、100、180、365。
+- 後端：`supabase/functions/_shared/learning-streak.ts`（純計算）＋ `get-dashboard-stats` 多回傳 `streak`（`current`、`longest`、`today_done`、本週 7 天狀態）；讀 `student_listening_daily` 與 `speaking_daily_question_completions`，最多回看約 430 天；讀取失敗只記 log，不影響原本統計。沒有 migration。
+- 前端：`LearningStreakCard.jsx`＋`css/LearningStreakCard.scss`＋`utils/learningStreakBadges.js`，放在「我的進度」最上方的進度卡之前；8 枚徽章圖在 `components/assets/streak-badges/`。
+- 驗證：`node --experimental-strip-types --test scripts/learning-streak.test.mjs`（12 項）；`LearningStreakCard.test.jsx`＋`StudentProgressOverview.test.jsx` 24 項；1280／768／412／360 靜態版面無橫向溢出。
+- 尚未驗證：正式後端部署與實際學生資料；老師／管理員不顯示（後端只允許 student）；iPhone 實機。
+- 已知限制：歷史最長只看近約 14 個月；單字大挑戰尚未計入連續天數；徽章不另存資料庫，因此靠歷史資料重算。
+
 ### 單字大挑戰第一階段（2026-11-11，分支 `feature/word-challenge`；尚未合併、只改前端）
 
 - 來源：擁有者想把國小會用到的單字做成「單字大挑戰」，依年級分難度、每個人都能挑戰，題型是聽發音或看中文拼出英文。之前文件裡沒有這個計畫（只有 Workbook 1 口說 Boss 關的想法，與此無關）。

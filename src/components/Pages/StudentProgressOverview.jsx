@@ -14,6 +14,7 @@ import { findResumeBook, learningResumePath, mergeLearningHistory } from "../../
 import { getDashboardStats, getRecentListening } from "../../services/listeningService";
 import { getLearningTasks, getStudentMaterialCategories } from "../../utils/studentLearning";
 import { assignmentDisplayTitle, assignmentProgressLabel } from "../../utils/assignmentListening";
+import LearningStreakCard from "../fragment/LearningStreakCard";
 import forestScene from "../assets/speaking-map/unified-forest-a-v1.webp";
 
 const formatDay = value => new Intl.DateTimeFormat("zh-TW", { timeZone: "Asia/Taipei", month: "numeric", day: "numeric" }).format(new Date(value));
@@ -127,6 +128,8 @@ function StudentProgressOverview() {
             <span className="student-progress__listen-play" aria-hidden="true"><FiPlay /></span>
         </Link>}
         {taskError && <p className="student-progress__notice" role="status">部分作業未能讀取，這裡可能不完整。<button type="button" onClick={refreshTasks}>重新讀取</button></p>}
+
+        <LearningStreakCard streak={statsQuery.data?.streak} />
 
         <div className="student-progress__cards">
             {assignmentAccess && <ProgressCard to="/student/assignments" tone="blue" icon={<FiCheckSquare />} title="作業"
