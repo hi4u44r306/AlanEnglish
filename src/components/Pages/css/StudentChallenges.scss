@@ -110,6 +110,12 @@ a.student-challenges__card:focus-visible {
   }
 }
 
+.student-challenges__body > small.student-challenges__review {
+  margin-top: 0;
+  background: var(--ae-warning-bg, #fff0bd);
+  color: var(--ae-text, #17365d);
+}
+
 .student-challenges__locked-link {
   justify-self: start;
   display: inline-flex;

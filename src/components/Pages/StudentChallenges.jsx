@@ -39,9 +39,10 @@ export default function StudentChallenges() {
     }, [speakingQuery.data]);
 
     // 單字成績目前只存在這台裝置。
-    const wordKnown = useMemo(() => {
-        const { mastered } = loadLocalProgress(WORD_BANK_VERSION, WORD_CHALLENGE_MODES.meaning);
-        return mastered.filter(key => findWordByKey(key)?.gloss).length;
+    const { wordKnown, wordReview } = useMemo(() => {
+        const { mastered, missed } = loadLocalProgress(WORD_BANK_VERSION, WORD_CHALLENGE_MODES.meaning);
+        const countable = keys => keys.filter(key => findWordByKey(key)?.gloss).length;
+        return { wordKnown: countable(mastered), wordReview: countable(missed) };
     }, []);
 
     const speakingMeta = role !== "student" ? "老師預覽"
@@ -76,6 +77,7 @@ export default function StudentChallenges() {
                     <strong>單字大挑戰</strong>
                     <span>看中文，把英文單字拼出來。分 6 級，每輪 10 題。</span>
                     <small>{wordKnown > 0 ? `已會 ${wordKnown} / ${WORD_TOTAL} 字` : `${WORD_TOTAL} 字 · 還沒挑戰`}</small>
+                    {wordReview > 0 && <small className="student-challenges__review">有 {wordReview} 個字要複習</small>}
                 </span>
                 <FiChevronRight className="student-challenges__arrow" aria-hidden="true" />
             </Link>

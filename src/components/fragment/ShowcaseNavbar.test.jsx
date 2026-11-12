@@ -30,6 +30,7 @@ describe("ShowcaseNavbar navigation", () => {
         expect(screen.queryByRole("link", { name: /免費試用/ })).not.toBeInTheDocument();
         expect(screen.getByRole("link", { name: /常見問題/ })).toHaveAttribute("href", "#faq");
         expect(screen.getByRole("link", { name: /給家長/ })).toHaveAttribute("href", "/parents");
+        expect(screen.getByRole("link", { name: /單字大挑戰/ })).toHaveAttribute("href", "/word-challenge");
         expect(screen.getByRole("link", { name: "免費試一課" })).toHaveAttribute("href", "/try");
     });
 
