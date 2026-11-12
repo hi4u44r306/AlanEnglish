@@ -1,5 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { createRemoteJWKSet, jwtVerify } from "npm:jose@5";
+import { computeLearningStreak } from "../_shared/learning-streak.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -48,6 +49,47 @@ const getTaipeiDateParts = () => {
     monthStart: `${year}-${month}-01`
   };
 };
+
+// 連續學習天數：聽力播放與口說題目完成都算「學習一天」。
+// 只讀取最近約 14 個月、只取日期欄位；讀取失敗時不影響原本的今日／本月統計。
+const STREAK_LOOKBACK_DAYS = 430;
+const STREAK_PAGE_SIZE = 1000;
+const STREAK_MAX_PAGES = 6;
+
+const addDaysToDate = (date: string, days: number) => new Date(Date.parse(`${date}T00:00:00Z`) + days * 86_400_000).toISOString().slice(0, 10);
+
+async function loadStreak(admin: ReturnType<typeof createClient>, studentId: number, today: string) {
+  const since = addDaysToDate(today, -STREAK_LOOKBACK_DAYS);
+  const dates = new Set<string>();
+
+  const listening = await admin
+    .from("student_listening_daily")
+    .select("activity_date")
+    .eq("student_id", studentId)
+    .gt("play_count", 0)
+    .gte("activity_date", since)
+    .lte("activity_date", today)
+    .order("activity_date", { ascending: false })
+    .limit(STREAK_LOOKBACK_DAYS + 5);
+  if (listening.error) throw listening.error;
+  for (const row of listening.data || []) dates.add(String(row.activity_date));
+
+  for (let page = 0; page < STREAK_MAX_PAGES; page += 1) {
+    const speaking = await admin
+      .from("speaking_daily_question_completions")
+      .select("activity_date")
+      .eq("student_id", studentId)
+      .gte("activity_date", since)
+      .lte("activity_date", today)
+      .order("activity_date", { ascending: false })
+      .range(page * STREAK_PAGE_SIZE, (page + 1) * STREAK_PAGE_SIZE - 1);
+    if (speaking.error) throw speaking.error;
+    for (const row of speaking.data || []) dates.add(String(row.activity_date));
+    if ((speaking.data || []).length < STREAK_PAGE_SIZE) break;
+  }
+
+  return computeLearningStreak(dates, today);
+}
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -115,11 +157,19 @@ Deno.serve(async (req: Request) => {
       return json(500, { error: "無法讀取本月播放統計" });
     }
 
+    let streak = null;
+    try {
+      streak = await loadStreak(admin, account.id, today);
+    } catch (streakError) {
+      console.error("get-dashboard-stats streak error", streakError);
+    }
+
     return json(200, {
       success: true,
       daily_count: Number(dailyResult.data?.play_count || 0),
       monthly_count: Number(monthlyResult.data?.play_count || 0),
-      total_count: Number(account.total_time_played || 0)
+      total_count: Number(account.total_time_played || 0),
+      streak
     });
   } catch (error) {
     console.error("get-dashboard-stats unexpected error", error);
