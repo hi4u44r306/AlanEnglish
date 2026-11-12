@@ -424,6 +424,9 @@ verify_jwt = false
 [functions.record-play]
 verify_jwt = false
 
+[functions.word-challenge]
+verify_jwt = false
+
 [functions.review-center]
 verify_jwt = false
 

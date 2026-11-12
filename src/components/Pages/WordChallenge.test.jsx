@@ -3,6 +3,17 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import wordBank from "../../data/wordChallenge/wordBank.v1.json";
 import WordChallenge from "./WordChallenge";
+import { useAuth } from "../../auth/AuthContext";
+import * as service from "../../services/wordChallengeService";
+
+jest.mock("../../auth/AuthContext", () => ({ useAuth: jest.fn() }));
+jest.mock("../../services/wordChallengeService", () => ({
+    getWordChallengeSummary: jest.fn(),
+    startWordChallengeRound: jest.fn(),
+    revealWordChallengeHint: jest.fn(),
+    answerWordChallenge: jest.fn(),
+    finishWordChallengeRound: jest.fn()
+}));
 
 const renderPage = (props = {}) => render(<MemoryRouter><WordChallenge {...props} /></MemoryRouter>);
 
@@ -14,6 +25,8 @@ const currentGlossWord = () => {
 const answerInput = () => screen.getByLabelText(/輸入英文拼字/);
 
 beforeEach(() => {
+    useAuth.mockReturnValue({ role: null, firebaseUser: null });
+    Object.values(service).filter(item => typeof item === "function").forEach(mock => mock.mockReset());
     window.localStorage.clear();
     window.scrollTo = jest.fn();
     Element.prototype.scrollIntoView = jest.fn();
