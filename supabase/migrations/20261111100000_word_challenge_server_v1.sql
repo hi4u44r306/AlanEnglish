@@ -372,7 +372,7 @@ begin
                 0,
                 'word_challenge',
                 concat('round:', p_round_id),
-                '單字大挑戰答對 8 題以上',
+                '單字大挑戰：學會 8 個新字',
                 jsonb_build_object('round_id', p_round_id, 'level', v_round.level, 'unhinted_correct', v_unhinted, 'new_mastered', v_new_mastered)
             );
             if not v_granted then v_xp := 0; end if;
