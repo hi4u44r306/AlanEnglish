@@ -42,9 +42,7 @@ test("the web rules this test copies have not drifted", () => {
 
 test("the generated server bank is exactly what the generator produces (no hand edits, not stale)", () => {
     // Windows 的 Git 可能把換行轉成 CRLF，內容相同就好。
-    assert.equal(readFileSync(SERVER_BANK_PATH, "utf8").replace(/
-/g, "
-"), buildServerBankSource(bank));
+    assert.equal(readFileSync(SERVER_BANK_PATH, "utf8").split("\r").join(""), buildServerBankSource(bank));
     assert.equal(WORD_BANK_VERSION, bank.meta.bankVersion);
     assert.equal(WORD_BANK.length, 672);
     assert.deepEqual(WORD_BANK, serverWords(bank));
