@@ -1,0 +1,18 @@
+{
+  "reportCards": 34,
+  "chapters": [
+    "a",
+    "b",
+    "c",
+    "d",
+    "issues"
+  ],
+  "findings": 5,
+  "passed": 43,
+  "failed": 0,
+  "networkAttempts": 0,
+  "sourceFilesUnchanged": 13,
+  "standaloneResourceCheck": true,
+  "mobileCssCheck": true,
+  "physicalDeviceAcceptance": false
+}
