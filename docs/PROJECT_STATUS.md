@@ -1,5 +1,14 @@
 # Alan English 專案狀態
 
+### 週報顯示單字累計（2026-11-13，分支 `weekly-word-card`；程式完成、尚未合併、**後端尚未部署**）
+
+- 來源：擁有者要求週報顯示「會拼幾個字」，但不要出現「本週 0」讓家長誤會；改成「累計會拼 N 個字，比上週多 M 個／和上週一樣」，沒學會過任何字就不顯示。
+- 檔案：新增 `supabase/functions/_shared/weekly-report-words.ts`、`scripts/weekly-report-words.test.mjs`；修改 `weekly-report/index.ts`（回傳 `word_challenge`、家長文字多一行）、`guardian-email/index.ts`（`metrics.word_mastery` 與信件一列）、`WeeklyReportStudent.jsx`（一行 `<p>`，不是 `<li>`，三格數字測試不受影響）。不需要 migration。
+- 驗證：`test:weekly-report-contracts`＋`test:weekly-attention`＋`guardian-email-teacher-lock` 共 26 項；畫面 `WeeklyReport*` 24 項；ESLint。
+- 部署前必須取得擁有者同意：`weekly-report` 與 `guardian-email`（含 `_shared/weekly-report-words.ts` 等相依檔），部署後立刻把線上檔案抓回來逐檔比對。回復：重新部署上一版。
+- 已知：`guardian-email` 的 `sendGuardianReport` 前端傳 `week_offset`，後端只讀 `week_start`（既有問題，不在本批）。
+- 下一步（PR B，另開）：家長在信裡一鍵取消每週報告。設計已定：不改 `guardian_contacts.notification_enabled`（它還管付款失敗與到期提醒信，且學生重新驗證信箱會把它改回 true），改用專用欄位 `weekly_report_opted_out_at`；token 用可重算的 HMAC；新 Edge Function `guardian-weekly-unsubscribe`；公開頁按確認才取消；管理頁可重新開啟。需要 migration、新 secret `GUARDIAN_UNSUBSCRIBE_SECRET`、數次部署，皆需擁有者同意。
+
 ### 連續學習天數與徽章（2026-11-12，分支 `feature/streak-badges`、PR #665；前端尚未合併，後端 get-dashboard-stats 已部署）
 
 - 來源：擁有者想做連續天數徽章；之前網站只有「連續答對幾次」，沒有連續學習天數。擁有者決定：聽力／口說（單字大挑戰等其後端上線再加）任一個算一天、每週 1 次免死金牌、徽章只當榮譽（不送 AE Points）、徽章數字固定為里程碑 3、7、14、30、60、100、180、365。

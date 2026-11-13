@@ -1,5 +1,5 @@
 import React from "react";
-import { FiActivity, FiCalendar, FiCheckSquare, FiHeadphones, FiMic, FiYoutube } from "react-icons/fi";
+import { FiActivity, FiCalendar, FiCheckSquare, FiHeadphones, FiMic, FiType, FiYoutube } from "react-icons/fi";
 import { focusLevel, roundFocusRate } from "../../utils/focusRate";
 
 const count = value => (typeof value === "number" && Number.isFinite(value) && value >= 0 ? value : null);
@@ -23,6 +23,9 @@ export default function WeeklyReportStudent({ report, showAttention = true }) {
     const assigned = count(report.assignments?.assigned);
     const completed = count(report.assignments?.completed);
     const videos = count(report.video?.watched);
+    // 單字：只顯示「累計」和「比上週」，不顯示「本週拼了幾個」（沒玩的那週會變成 0，看起來像退步）。沒有學會任何字時整行不出現。
+    const wordsTotal = count(report.word_challenge?.total_mastered);
+    const wordsAdded = count(report.word_challenge?.added);
     const tiles = [
         { key: "days", icon: FiCalendar, tone: "blue", verb: "學了", value: activeDays, unit: "天" },
         { key: "plays", icon: FiHeadphones, tone: "yellow", verb: "聽了", value: plays, unit: "次" },
@@ -50,6 +53,7 @@ export default function WeeklyReportStudent({ report, showAttention = true }) {
         {assigned > 0 && completed != null && <p className="weekly-student__homework"><FiCheckSquare aria-hidden="true" />作業完成 <strong>{completed} / {assigned}</strong></p>}
         {assigned === 0 && <p className="weekly-student__homework is-none"><FiCheckSquare aria-hidden="true" />這週沒有作業</p>}
         {videos > 0 && <p className="weekly-student__homework"><FiYoutube aria-hidden="true" />看完教學影片 <strong>{videos}</strong> 段</p>}
+        {wordsTotal > 0 && <p className="weekly-student__homework"><FiType aria-hidden="true" />累計會拼 <strong>{wordsTotal}</strong> 個字<span>{wordsAdded > 0 ? `，比上週多 ${wordsAdded} 個` : "，和上週一樣"}</span></p>}
         {showAttention && focusRate !== null && <p className={`weekly-student__focus is-${focusLevel(focusRate)}`}><FiActivity aria-hidden="true" />聽力專注度 <strong>{focusRate}%</strong><span>{KID_FOCUS[focusLevel(focusRate)]}</span></p>}
         {showAttention && speakingFocusRate !== null && <p className={`weekly-student__focus is-${focusLevel(speakingFocusRate)}`}><FiMic aria-hidden="true" />口說專注度 <strong>{speakingFocusRate}%</strong><span>{KID_SPEAKING_FOCUS[focusLevel(speakingFocusRate)]}</span></p>}
     </section>;
