@@ -896,3 +896,39 @@
     animation: none;
   }
 }
+
+// 伺服器模式的提示：連不上時的說明、成績頁的 XP 說明。
+.word-challenge__notice {
+  margin: 0 0 12px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #fff5ce;
+  color: #17365d;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.word-challenge__xp {
+  margin: 0;
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: #eef4fb;
+  color: #17365d;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: center;
+
+  &.is-earned {
+    background: #fff0bd;
+    font-size: 16px;
+  }
+}
+
+.word-challenge__level:disabled,
+.word-challenge__practice-missed:disabled,
+.word-challenge__primary:disabled,
+.word-challenge__secondary:disabled {
+  cursor: progress;
+  opacity: 0.6;
+}

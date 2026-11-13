@@ -10,7 +10,7 @@
 - 尚未驗證：實際學生資料（沒有用學生帳號登入實測）；老師／管理員不顯示（後端只允許 student）；iPhone 實機。
 - 已知限制：歷史最長只看近約 14 個月；單字大挑戰尚未計入連續天數；徽章不另存資料庫，因此靠歷史資料重算。
 
-### 單字大挑戰第一階段（2026-11-11，分支 `feature/word-challenge`；尚未合併、只改前端）
+### 單字大挑戰第一階段（2026-11-11，PR #662 已合併上線；2026-11-12 PR #663 入口與快捷按鈕已合併上線；伺服器版 PR #664 見下方）
 
 - 來源：擁有者想把國小會用到的單字做成「單字大挑戰」，依年級分難度、每個人都能挑戰，題型是聽發音或看中文拼出英文。之前文件裡沒有這個計畫（只有 Workbook 1 口說 Boss 關的想法，與此無關）。
 - 擁有者決定（2026-11-11）：①教育部基本 1,200 字、自動分一～六年級；②訪客可以玩、不存紀錄；③學生之後要存紀錄＋給少量 XP（需 migration，屆時再問）；④中文意思用兩本辭典自動比對，不逐字審；⑤**不用發音**：拿掉聽發音題型，只留看中文拼字，也不做 Leda 單字音檔（因此只出有可靠中文的 672 字）。
@@ -23,6 +23,14 @@
 - 大挑戰入口（擁有者 2026-11-11 要求「把大挑戰整合在一起」，看過兩種做法後選「新的大挑戰頁」）：學生導覽的「口說大挑戰」改成不上鎖的「大挑戰」（`StudentNavbar.jsx`），連到新頁 `/student/challenges`（`StudentChallenges.jsx`／`.scss`，student／teacher／admin，不加 `requiresActiveMembership`）。頁面兩張卡：口說（沒有口說方案顯示鎖頭說明＋會員與功能連結，原本導覽上的鎖住視窗移除；進度沿用「我的進度」同一份 `speaking:catalog` 快取，只顯示正在練的那本）、單字（localStorage 已會字數）。「大挑戰」在 `/student/challenges`、`/student/speaking-challenges`、`/student/word-challenge` 都會亮。老師／管理員教材選單加「單字大挑戰預覽」；使用教學「大挑戰」一步改寫。後端權限不變：口說路由與 Edge Function 仍檢查方案。
 - 驗證（大挑戰入口）：`MainNavbar.test.jsx`、`StudentChallenges.test.jsx`（4 項）等 7 個測試檔 70 項通過；本機用登入的學生測試帳號實測 360／412／768／1280：無橫向溢出、下方 4 顆一行、上方「大挑戰」亮、兩張卡片都點得進去。
 - 未驗證：iPhone Safari 鍵盤實機；沒有口說方案的真實學生帳號（只有元件測試）。
+- 第二批（2026-11-12，PR #663 開著、建置通過、未合併）：公開首頁導覽與頁尾加「單字大挑戰」、大挑戰頁「有 N 個字要複習」、電腦版漢堡、我的進度三個圓角快捷按鈕。
+- 第三批（PR #664；資料庫與後端已部署、只對 Test 2 開放，畫面程式合併前其他學生看不到）：單字成績存到帳號＋XP。新檔：`supabase/migrations/20261111100000_word_challenge_server_v1.sql`、`supabase/functions/word-challenge/index.ts`、`_shared/word-challenge-{handler,answer,round}.ts`＋產生的 `word-challenge-bank.generated.ts`（由 `scripts/word-challenge/generate-server-bank.mjs` 產生）、`src/services/wordChallengeService.js`、`WordChallenge.jsx` 伺服器模式。測試：`npm run test:word-challenge`（含 answer-parity 10 項）、`scripts/word-challenge-sql.test.mjs`（PGlite，14 項，需 `PGLITE_MODULE`）、`scripts/word-challenge-handler.test.mjs`（PGlite 端到端，6 項）、`WordChallenge.test.jsx`＋`WordChallengeServer.test.jsx` 共 11 項。
+- 資安審查（2026-11-12，子代理唯讀）：資料庫與 Edge 沒有權限漏洞；已修：前端 12 秒逾時、結算失敗重試與「再結算一次」、連點鎖、migration 包 begin／commit 與 lock_timeout 5s、XP 期限改看最後作答時間、XP 只給「第一次學會」的新字（答案在前端 bundle 的防刷對策，擁有者決定）。審查沒能在其環境跑 PGlite 測試，SQL 以讀碼驗證；我方測試用 PGlite 跑過。
+- **2026-11-12 擁有者同意後已套用 migration 到正式資料庫**（專案只有這一個資料庫，沒有隔離測試專案）：先在正式資料庫以「整份執行後故意丟錯誤還原」試跑（Postgres 17，3 表／6 函式／RLS／權限都通過，還原後確認無殘留），再用 `apply_migration` 套用（名稱 `word_challenge_server_v1`）。套用後驗證：3 張新表皆 RLS 開啟且空、6 個函式存在、anon／authenticated 無權限只有 service_role、`student_feature_rollouts_key_check` 名單多了 `word_challenge_server_v1`、既有 51 筆開關資料不變、XP 帳本無 `word_challenge` 紀錄。學生端無任何變化。**尚未部署 Edge Function、尚未開放。**
+- **2026-11-13 擁有者同意後已部署 Edge Function `word-challenge`**（版本 1、`verify_jwt=false`、8 檔：index.ts＋`_shared` 的 effective-access／membership-pricing／firebase-auth／word-challenge-handler／-answer／-round／-bank.generated），部署後立刻把線上檔案抓回來與原始碼逐字比對，8 檔完全一致；外部測試：無登入 401、假 token 401、OPTIONS 200、GET 405。
+- **2026-11-13 擁有者指定 Test 2（students.id=35，academy_student）後，已新增 `student_feature_rollouts(35, 'word_challenge_server_v1', enabled=true)`**；全站此開關只有這一筆。關閉方式：把該列 `enabled` 改 false（或刪除），該帳號立刻退回本機模式。`WORD_CHALLENGE_SERVER_ALL` 尚未設定，是否全面開放由擁有者之後決定。
+- 仍需擁有者同意：合併 PR #664（畫面）、之後是否全面開放。（以下為部署前的原始待辦說明：）①套用 migration（含 rollout key 清單多一項）；②部署 `word-challenge` Edge Function，部署後立刻比對雲端與本機檔案；③先只對測試學生逐一開放，再決定是否設定 `WORD_CHALLENGE_SERVER_ALL`。回復：關掉 rollout／secret 即回本機模式，表與函式留著不影響既有功能。
+- 已知待辦：週報會拼字數；`npm run test:edge-syntax` 在 Node 24 上連既有第一個檔案都無法通過（`--check` 不處理 TypeScript），與本批無關；公開首頁 `Showcase.test.jsx` 有 2 項舊失敗（找不到「AI 口說大挑戰」標題）。
 - 下一步（各需擁有者同意）：公開首頁入口；additive migration 存成績與 XP。Leda 音檔計畫已取消。
 
 ### 「重新發登入卡」附新的臨時密碼，並可下載貼紙（2026-11-10，分支 `feat/reissue-card-sticker-temp-password`；尚未合併、**後端尚未部署**）
