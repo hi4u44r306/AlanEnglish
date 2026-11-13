@@ -1,6 +1,6 @@
 # Alan English 專案邏輯
 
-## 單字大挑戰（2026-11-11，擁有者決定；第一階段本機完成／尚未部署）
+## 單字大挑戰（2026-11-11，擁有者決定；第一階段已於 2026-11-11 上線，伺服器版見下方）
 
 - 定位：所有人都能玩的拼字挑戰。題型只有「看中文拼字」：擁有者 2026-11-11 決定不用發音，拿掉聽發音題型，也不做 Leda 單字音檔。不是作業、不綁教材 entitlement，也不是口說 Boss 關。
 - 字庫：教育部十二年國教英語文課綱附錄五表一「基本 1,200 字」（排除縮寫、斜線條目與單一字母後剛好 1,200 字）。字庫是產生好的固定檔 `src/data/wordChallenge/wordBank.v1.json`，由 `scripts/word-challenge/build-word-bank.mjs` 依固定規則產生，不進資料庫、不需要後台審核。
@@ -10,7 +10,7 @@
 - 身分（擁有者決定）：未登入訪客可玩，成績只存裝置；學生（含試用、網購、習作本方案、離校生、會員過期）都可玩，路由不加 `requiresActiveMembership`；老師／管理員可試玩。
 - 第一階段：成績只存 localStorage（每級最佳分、答對過、答錯的字），不呼叫後端、不給 XP；不播放任何發音。
 - 入口（擁有者決定「大挑戰整合在一起」）：學生導覽只有一顆「大挑戰」，不上鎖，進入 `/student/challenges` 再選口說或單字。口說大挑戰仍需口說方案（`features.pronunciation`），沒有方案時只在大挑戰頁的口說卡片顯示鎖頭說明；單字大挑戰不需方案。
-- 伺服器版（2026-11-12，程式已寫好；migration 已套用到正式資料庫；**尚未部署 Edge Function、尚未開放**）：新增 `word_challenge_rounds`／`word_challenge_round_items`／`student_word_progress` 三張表（RLS 開啟、只有 service_role 可用）與 5 個 RPC；新 Edge Function `word-challenge`（動作 summary／start_round／hint／answer／finish）。伺服器選題、用 `_shared/word-challenge-answer.ts` 批改（與前端 `wordChallengeAnswer.js` 同一套規則，`scripts/word-challenge/answer-parity.test.mjs` 逐字比對 672 字）、答案作答後才回傳。身分只看 Firebase token 對照 students，role／student_id／分數不採用前端傳來的值。
+- 伺服器版（2026-11-13：migration 已套用、Edge Function `word-challenge` 已部署並逐檔比對一致；**目前只對 Test 2（students.id=35）開放，畫面程式合併前其他學生仍用本機模式**）：新增 `word_challenge_rounds`／`word_challenge_round_items`／`student_word_progress` 三張表（RLS 開啟、只有 service_role 可用）與 5 個 RPC；新 Edge Function `word-challenge`（動作 summary／start_round／hint／answer／finish）。伺服器選題、用 `_shared/word-challenge-answer.ts` 批改（與前端 `wordChallengeAnswer.js` 同一套規則，`scripts/word-challenge/answer-parity.test.mjs` 逐字比對 672 字）、答案作答後才回傳。身分只看 Firebase token 對照 students，role／student_id／分數不採用前端傳來的值。
 - XP 規則（擁有者決定；2026-11-12 資安審查後改為只給學會新字）：一輪要有 ≥ 8 個「第一次學會」的新字（沒用提示答對、`student_word_progress.first_mastered_at` 以前為空）才給 10 XP，已經學會過的字不算；單字每日最多 30 XP（台北日、鎖住同一學生的並發）；用了提示的題目不算學會；練錯的字（level 0）不給 XP；七天試用者在會員有效期間可拿 XP（與聽力相同）；AE Points 0；`source_type = 'word_challenge'`，不在生日加倍清單，同一輪 `round:<id>` 只發一次。一輪 30 分鐘過期（以最後一題答完的時間為準，按「看成績」晚了不影響）、每人每天最多開 60 輪。已知限制：字庫答案本來就在前端 bundle，查原始碼的人能答對，所以 XP 只給新學會的字、並有每日上限，把影響壓到最小。
 - 開放方式：`student_feature_rollouts.feature_key = 'word_challenge_server_v1'` 逐一開放（migration 把這個 key 加進允許清單，做法同 assignment_v2），或 Edge secret `WORD_CHALLENGE_SERVER_ALL=true` 全面開放；會員過期、老師、管理員、訪客一律本機模式。前端任何失敗都退回本機模式。
 - 離線／重送（CAP）：選一致性（CP）——離線玩的輪次永遠不補發 XP；作答「第一次送出就定案」，重送只拿回原結果；結算靠 ledger 唯一鍵與 round 狀態，最多發一次。同一台裝置共用的舊本機成績不匯入帳號。
