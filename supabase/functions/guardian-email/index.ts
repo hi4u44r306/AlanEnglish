@@ -1,6 +1,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 import { createRemoteJWKSet, jwtVerify } from "npm:jose@5";
 import { canManageStudent, getManagedStudentIds } from "../_shared/teacher-scope.ts";
+import { loadWordMastery, summarizeWordMastery } from "../_shared/weekly-report-words.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -221,11 +222,20 @@ const buildReport = async (admin: any, student: any, weekStart: string) => {
     const listeningFocus = tracking ? roundedFocus(listening, countKey("pause-idle") + countKey("pause-hidden")) : null;
     const speakingFocus = tracking ? roundedFocus(Number(speakingCompletedResult.count || 0), countKey("speaking-pause-idle") + countKey("speaking-pause-hidden") + countKey("speaking-pause-left_prep")) : null;
 
+    // 單字大挑戰：累計會拼幾個字、比上週有沒有增加。讀不到、或學生從沒學會過任何字就不出現這一行，整封信照常寄出。
+    let wordMasteryText: string | null = null;
+    try {
+        wordMasteryText = summarizeWordMastery(await loadWordMastery(admin, Number(student.id), range.startAt, range.endAt))?.text ?? null;
+    } catch (error) {
+        console.error("guardian-email word mastery error", (error as { code?: string })?.code || (error as Error)?.name);
+    }
+
     return {
         student,
         guardian: guardianResult.data || null,
         range,
         metrics: {
+            word_mastery: wordMasteryText,
             active_days: activeDateKeys.size,
             listening_count: listening,
             completed_assignments: completedAssignments,
@@ -265,6 +275,7 @@ const buildEmail = (report: any) => {
     const extras = [
         focusText ? ["專注度", focusText] : null,
         m.videos_watched ? ["教學影片", `看完 ${m.videos_watched} 段`] : null,
+        m.word_mastery ? ["單字大挑戰", m.word_mastery] : null,
         m.ai_passed ? ["AI 教材", `通過 ${m.ai_passed} 份`] : null,
         m.review_count ? ["智慧複習", `${m.review_count} 題${m.accuracy === null ? "" : `，正確率 ${m.accuracy}%`}`] : null
     ].filter(Boolean) as string[][];

@@ -4,6 +4,7 @@ import { createRemoteJWKSet, jwtVerify } from "npm:jose@5";
 import { summarizeWeeklySpeakingChallenge } from "../_shared/weekly-report-speaking.ts";
 import { describeMakeupForFamily, loadStudentMakeupSummary, type MakeupSummary } from "../_shared/attendance-makeup.ts";
 import { getManagedStudentIds } from "../_shared/teacher-scope.ts";
+import { loadWordMastery, summarizeWordMastery, type WordMasterySummary } from "../_shared/weekly-report-words.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -498,6 +499,13 @@ const buildWeeklyReport = async (
     } catch (error) {
         console.error("weekly-report makeup summary error", error);
     }
+    // 單字大挑戰：累計會拼幾個字、比上週有沒有增加。這一行是額外的區塊：讀不到、或學生從沒學會過任何字就不顯示，其餘報告照常。
+    let wordChallenge: WordMasterySummary | null = null;
+    try {
+        wordChallenge = summarizeWordMastery(await loadWordMastery(admin, Number(target.id), week.start_at, week.end_at));
+    } catch (error) {
+        console.error("weekly-report word mastery error", (error as { code?: string })?.code || (error as Error)?.name);
+    }
     const makeupLines = describeMakeupForFamily(makeup);
     const makeupMessage = makeupLines.length ? `\n\n請假與補課：\n${makeupLines.join("\n")}` : "";
 
@@ -508,7 +516,7 @@ const buildWeeklyReport = async (
     const attentionLine = [describeAttention(attention), describeSpeakingAttention(speakingAttention), describeVideoSummary(video)].filter(Boolean).join("\n");
 
     const guardianName = guardian?.guardian_name ? `${guardian.guardian_name}您好：` : "家長您好：";
-    const familyMessage = `${guardianName}\n\n這是 ${target.name} 的 Alan English 每週學習報告（${week.start_date}～${week.end_date}）。\n\n本週學習 ${activeDays} 天，共完成 ${totalActions} 次學習活動，${comparisonText}。${answerAccuracy === null ? "" : `答題正確率 ${answerAccuracy}%。`}${attentionLine ? `\n${attentionLine}` : ""}\n\n本週亮點：${highlights.slice(0, 3).join("；")}。\n下週建議：${nextFocus.slice(0, 2).join("；")}。${makeupMessage}\n\n鼓勵孩子保持短時間、固定頻率的練習，比一次學很久更容易持續。\n\n— Alan English`;
+    const familyMessage = `${guardianName}\n\n這是 ${target.name} 的 Alan English 每週學習報告（${week.start_date}～${week.end_date}）。\n\n本週學習 ${activeDays} 天，共完成 ${totalActions} 次學習活動，${comparisonText}。${answerAccuracy === null ? "" : `答題正確率 ${answerAccuracy}%。`}${attentionLine ? `\n${attentionLine}` : ""}${wordChallenge ? `\n單字大挑戰：${wordChallenge.text}。` : ""}\n\n本週亮點：${highlights.slice(0, 3).join("；")}。\n下週建議：${nextFocus.slice(0, 2).join("；")}。${makeupMessage}\n\n鼓勵孩子保持短時間、固定頻率的練習，比一次學很久更容易持續。\n\n— Alan English`;
 
     return {
         student: {
@@ -598,6 +606,7 @@ const buildWeeklyReport = async (
         highlights: highlights.slice(0, 4),
         next_focus: nextFocus.slice(0, 3),
         makeup,
+        word_challenge: wordChallenge,
         family_message: familyMessage,
         generated_at: new Date().toISOString()
     };

@@ -14,7 +14,7 @@
 - XP 規則（擁有者決定；2026-11-12 資安審查後改為只給學會新字）：一輪要有 ≥ 8 個「第一次學會」的新字（沒用提示答對、`student_word_progress.first_mastered_at` 以前為空）才給 10 XP，已經學會過的字不算；單字每日最多 30 XP（台北日、鎖住同一學生的並發）；用了提示的題目不算學會；練錯的字（level 0）不給 XP；七天試用者在會員有效期間可拿 XP（與聽力相同）；AE Points 0；`source_type = 'word_challenge'`，不在生日加倍清單，同一輪 `round:<id>` 只發一次。一輪 30 分鐘過期（以最後一題答完的時間為準，按「看成績」晚了不影響）、每人每天最多開 60 輪。已知限制：字庫答案本來就在前端 bundle，查原始碼的人能答對，所以 XP 只給新學會的字、並有每日上限，把影響壓到最小。
 - 開放方式：`student_feature_rollouts.feature_key = 'word_challenge_server_v1'` 逐一開放（migration 把這個 key 加進允許清單，做法同 assignment_v2），或 Edge secret `WORD_CHALLENGE_SERVER_ALL=true` 全面開放；會員過期、老師、管理員、訪客一律本機模式。前端任何失敗都退回本機模式。
 - 離線／重送（CAP）：選一致性（CP）——離線玩的輪次永遠不補發 XP；作答「第一次送出就定案」，重送只拿回原結果；結算靠 ledger 唯一鍵與 round 狀態，最多發一次。同一台裝置共用的舊本機成績不匯入帳號。
-- 還沒做（需擁有者同意）：週報顯示會拼字數（要再部署 weekly-report）。
+- 週報單字（2026-11-13，PR 待合併、後端待部署）：`_shared/weekly-report-words.ts` 用 `student_word_progress.first_mastered_at` 數「曾學會」的字（不用 status，避免答錯後累計變少）：累計＝到本週結束（下週一 00:00 台北，不含）為止，上週＝到本週開始為止；週報頁、老師文字摘要、家長 Email 都只顯示「累計會拼 N 個字，比上週多 M 個／和上週一樣」，不顯示「本週拼了幾個」；沒學會任何字或讀取失敗就整行不顯示。不需要 migration。伺服器模式開放前的本機成績不匯入，累計從開放日起算。
 
 ### 學生作業與錄音流程改善（2026-10-10，已發布／正式帳號實機待驗）
 

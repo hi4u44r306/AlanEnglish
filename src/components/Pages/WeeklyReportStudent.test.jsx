@@ -18,6 +18,25 @@ test("shows the week as three numbers: days, listens and sentences spoken", () =
     expect(screen.getByText("作業完成")).toHaveTextContent("作業完成 1 / 2");
 });
 
+test("shows the cumulative word count with the change from last week, never a made-up zero", () => {
+    const { rerender } = render(<WeeklyReportStudent report={report({ word_challenge: { total_mastered: 112, previous_mastered: 100, added: 12 } })} />);
+    expect(screen.getByText(/累計會拼/)).toHaveTextContent("累計會拼 112 個字，比上週多 12 個");
+    // 這週完全沒玩，但累計還在：顯示「和上週一樣」，不是 0。
+    rerender(<WeeklyReportStudent report={report({ word_challenge: { total_mastered: 100, previous_mastered: 100, added: 0 } })} />);
+    expect(screen.getByText(/累計會拼/)).toHaveTextContent("累計會拼 100 個字，和上週一樣");
+    expect(screen.queryByText(/本週/)).not.toBeInTheDocument();
+    // 還沒學會任何字、舊的快照沒有這個欄位、資料不合理：整行不出現。
+    for (const word_challenge of [null, undefined, { total_mastered: 0, added: 0 }, { total_mastered: -3, added: 1 }, { total_mastered: "abc" }]) {
+        rerender(<WeeklyReportStudent report={report({ word_challenge })} />);
+        expect(screen.queryByText(/累計會拼/)).not.toBeInTheDocument();
+    }
+});
+
+test("the word line is a paragraph, so the three tiles stay the first three list items", () => {
+    render(<WeeklyReportStudent report={report({ word_challenge: { total_mastered: 8, added: 8 } })} />);
+    expect(screen.getAllByRole("listitem").slice(0, 3).map(item => item.textContent)).toEqual(["學了3天", "聽了12次", "會說9句"]);
+});
+
 test("marks which days had any learning", () => {
     render(<WeeklyReportStudent report={report()} />);
     expect(screen.getByLabelText("週一有學習")).toHaveClass("is-active");
