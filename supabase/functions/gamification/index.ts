@@ -1,5 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 import { createRemoteJWKSet, jwtVerify } from "npm:jose@5";
+import { nicknameHasDisallowedTerm } from "../_shared/nickname-moderation.ts";
 import { resolveLeaderboardScope, shapeLeaderboardRow } from "../_shared/gamification-leaderboard.ts";
 
 const corsHeaders = {
@@ -275,6 +276,7 @@ Deno.serve(async (req: Request) => {
                     id: student.id,
                     name: student.english_name || student.name,
                     nickname: socialProfile?.nickname || null,
+                    nickname_needs_change: Boolean(socialProfile?.nickname) && nicknameHasDisallowedTerm(socialProfile.nickname),
                     class: student.class,
                     avatar_url: await signedImage(admin, AVATAR_BUCKET, student.user_image, 3600)
                 },

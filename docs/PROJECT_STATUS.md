@@ -8,6 +8,7 @@
 - 驗證：`node --experimental-strip-types --test scripts/security-access-handlers.test.mjs scripts/gamification-leaderboard-scope.test.mjs`（含：學生回應全文不含任何完整真名、遮罩規則表、410）；`LearningLeaderboard.test.jsx`＋`useStudentWarmup.test.jsx`。
 - 部署前必須取得擁有者同意：`gamification`（含 `_shared`）與 `learning-progress`；部署前先下載線上版與 main 比對，部署後逐檔比對。回復：revert 後重新部署前一版；沒有寫入任何資料。前後端新舊混用相容。
 - 擁有者追加（2026-11-14）：暱稱保留顯示，但設定時要過濾不雅字。新增 `_shared/nickname-moderation.ts`（`student-social` 改用；原清單加簡體、拼音、注音、「性感」「屎」「尿」等，並檢查「數字剝除」「數字轉字母」變體，白名單避免誤擋「體操王」）；排行榜對他人隱藏不過關的舊暱稱。測試 `scripts/nickname-moderation.test.mjs`（已加進 `test:security-handlers`）。**`student-social` 也需一併部署**（共三支：`gamification`、`learning-progress`、`student-social`）。
+- 舊暱稱提醒（擁有者選擇「頁面頂端提示」，不送通知、不動正式資料）：`gamification` summary 與 `student-social` nickname_settings 回傳 `nickname_needs_change`；該狀態下 `update_nickname` 略過 7 天限制；新元件 `NicknameChangeNotice` 顯示在排行榜與設定頁；前端 `utils/nicknameValidation.js` 改為與共用過濾同一份詞表（測試比對兩份清單一致）。
 - 既有失敗（與本批無關、main 上就失敗）：`scripts/student-social-contract.test.mjs`「verifies Firebase and rechecks active platform access」。
 - 已知（不在本批）：①暱稱過濾仍是詞表，無法保證擋住所有創意拼法；②網購／試用者註冊的姓名沒有用字檢查且可重複 `complete_signup` 改名，頭貼已不受影響但遮罩名首尾字仍可被填成不雅字；③老師可指定任何班級的排行榜、後端 leaderboard 未檢查會員資格。
 

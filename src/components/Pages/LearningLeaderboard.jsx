@@ -8,6 +8,7 @@ import { cacheStudentAvatarDisplayUrl } from "../../constants/studentAvatarCache
 import { getStudentAvatarDisplayUrl } from "../../constants/defaultStudentAvatars";
 import { useCachedStudentAvatarUrl } from "../../hooks/useCachedStudentAvatarUrl";
 import StudentAvatarImage from "../fragment/StudentAvatarImage";
+import NicknameChangeNotice from "../fragment/NicknameChangeNotice";
 import {
     getGamificationClasses,
     getGamificationLeaderboard,
@@ -157,6 +158,8 @@ function LearningLeaderboard() {
                     </button>
                 </div>
             </section>
+
+            {isStudent && summary?.profile?.nickname_needs_change && <NicknameChangeNotice linkToSettings />}
 
             {isStudent && summary && (
                 <section className="gamification-me-card">

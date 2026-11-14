@@ -1,6 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 import { cleanText, verifyFirebaseRequest } from "../_shared/firebase-auth.ts";
-import { validNicknameText } from "../_shared/nickname-moderation.ts";
+import { nicknameHasDisallowedTerm, validNicknameText } from "../_shared/nickname-moderation.ts";
 
 const ALLOWED_ORIGINS = new Set([
     "https://alanenglish.com.tw",
@@ -248,10 +248,13 @@ Deno.serve(async (req: Request) => {
                 nicknameHistory(admin, caller.id)
             ]);
             if (profileError) throw profileError;
-            const availableAt = nicknameChangeCooldown(history);
+            // A nickname that no longer passes moderation must be changeable right away.
+            const needsChange = Boolean(profile?.nickname) && nicknameHasDisallowedTerm(profile.nickname);
+            const availableAt = needsChange ? null : nicknameChangeCooldown(history);
             return json(req, 200, {
                 success: true,
                 profile: profile || null,
+                nickname_needs_change: needsChange,
                 nickname_history: history,
                 nickname_change_available_at: availableAt ? new Date(availableAt).toISOString() : null
             });
@@ -269,7 +272,8 @@ Deno.serve(async (req: Request) => {
             ]);
             if (existingError) throw existingError;
             const unchanged = existing?.nickname?.toLocaleLowerCase("en-US") === nickname.toLocaleLowerCase("en-US");
-            const availableAt = unchanged ? null : nicknameChangeCooldown(history);
+            const needsChange = Boolean(existing?.nickname) && nicknameHasDisallowedTerm(existing.nickname);
+            const availableAt = unchanged || needsChange ? null : nicknameChangeCooldown(history);
             if (availableAt) {
                 return json(req, 429, {
                     success: false,

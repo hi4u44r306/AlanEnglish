@@ -80,3 +80,8 @@ test("uploaded avatars are visible in exact friend searches and use short-lived 
     assert.match(edge, /\.\.\.blockedIds/);
     assert.match(edge, /buildPeople\(admin, ids, caller\.id, friendIds, avatarVisibleIds\)/);
 });
+
+test("a nickname that no longer passes moderation is flagged and skips the 7-day wait", () => {
+    assert.match(edge, /nickname_needs_change: needsChange/);
+    assert.match(edge, /unchanged \|\| needsChange \? null : nicknameChangeCooldown\(history\)/);
+});

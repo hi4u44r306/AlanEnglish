@@ -73,6 +73,22 @@ describe("LearningLeaderboard", () => {
         expect(container.querySelector(".gamification-row-avatar").textContent).not.toMatch(/[性陳A]/);
     });
 
+    it("自己的暱稱不過關時，頂端提示更換並連到設定；正常時不顯示", async () => {
+        const { unmount } = render(<MemoryRouter><LearningLeaderboard /></MemoryRouter>);
+        await screen.findByText("陳○倫 · 你");
+        expect(screen.queryByText("你的暱稱需要更換")).not.toBeInTheDocument();
+        unmount();
+
+        window.localStorage.clear();
+        getGamificationSummary.mockResolvedValue({
+            profile: { name: "Alan Chen", nickname: "靠北王", nickname_needs_change: true },
+            balance: { level: 3, total_xp: 320, points_balance: 20 }
+        });
+        render(<MemoryRouter><LearningLeaderboard /></MemoryRouter>);
+        expect(await screen.findByText("你的暱稱需要更換")).toBeInTheDocument();
+        expect(screen.getByRole("link", { name: "去修改暱稱" })).toHaveAttribute("href", "/student/settings");
+    });
+
     it("可從自己的班級切換到綜合排行", async () => {
         render(<MemoryRouter><LearningLeaderboard /></MemoryRouter>);
 
