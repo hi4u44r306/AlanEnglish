@@ -5,7 +5,6 @@ const callLearningProgress = (firebaseUser, action, payload = {}) => (
 );
 
 export const getLearningDashboard = firebaseUser => callLearningProgress(firebaseUser, "dashboard");
-export const getLeaderboard = (firebaseUser, period = "week") => callLearningProgress(firebaseUser, "leaderboard", { period });
 export const getPromotionExam = (firebaseUser, examId) => callLearningProgress(firebaseUser, "exam", { exam_id: examId });
 export const submitPromotionExam = (firebaseUser, examId, answers) => callLearningProgress(firebaseUser, "submit_exam", { exam_id: examId, answers });
 export const getLevelAdminCatalog = firebaseUser => callLearningProgress(firebaseUser, "admin_catalog");

@@ -335,17 +335,26 @@ Deno.serve(async (req: Request) => {
                 : { data: [], error: null };
             if (socialProfilesError) throw socialProfilesError;
             const nicknameByStudentId = new Map((socialProfiles || []).map((profile: any) => [Number(profile.student_id), profile.nickname]));
+            const { data: nameRows, error: nameRowsError } = studentIds.length
+                ? await admin.from("students").select("id,chinese_name,english_name,name").in("id", studentIds)
+                : { data: [], error: null };
+            if (nameRowsError) throw nameRowsError;
+            const namesByStudentId = new Map((nameRows || []).map((item: any) => [Number(item.id), item]));
             const isStaff = STAFF_ROLES.has(student.role);
             const leaderboard = await Promise.all((rows || []).map(async (row: any) => {
                 const isSelf = Number(row.student_id) === Number(student.id);
                 const { _show_avatar: showAvatar, ...shaped } = shapeLeaderboardRow(row, {
                     isSelf,
                     isStaff,
-                    nickname: nicknameByStudentId.get(Number(row.student_id)) || null
+                    nickname: nicknameByStudentId.get(Number(row.student_id)) || null,
+                    names: namesByStudentId.get(Number(row.student_id)) || null
                 });
                 return {
                     ...shaped,
-                    avatar_url: showAvatar ? await signedImage(admin, AVATAR_BUCKET, row.avatar_path, 3600) : null,
+                    // Another student's uploaded photo is never shown; only approved system avatars.
+                    avatar_url: showAvatar
+                        ? await signedImage(admin, AVATAR_BUCKET, row.avatar_path, 3600)
+                        : (DEFAULT_AVATAR_PATHS.has(cleanText(row.avatar_path, 1000)) ? cleanText(row.avatar_path, 1000) : null),
                     level: getLevelInfo(row.total_xp).level,
                     is_current_user: isSelf
                 };
