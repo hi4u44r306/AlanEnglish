@@ -5,6 +5,7 @@ import test from "node:test";
 const migration = readFileSync(new URL("../supabase/migrations/20260908053030_student_social_foundation.sql", import.meta.url), "utf8");
 const nicknameHistoryMigration = readFileSync(new URL("../supabase/migrations/20260918023325_student_nickname_history.sql", import.meta.url), "utf8");
 const edge = readFileSync(new URL("../supabase/functions/student-social/index.ts", import.meta.url), "utf8");
+const moderation = readFileSync(new URL("../supabase/functions/_shared/nickname-moderation.ts", import.meta.url), "utf8");
 const membershipEdge = readFileSync(new URL("../supabase/functions/membership-manager/index.ts", import.meta.url), "utf8");
 
 test("social tables are private and only served by the backend", () => {
@@ -43,10 +44,11 @@ test("the development site is an explicit allowed browser origin", () => {
 test("friendship pairs and public nicknames cannot be duplicated", () => {
     assert.match(migration, /student_social_profiles_nickname_key/);
     assert.match(migration, /least\(requester_id, addressee_id\), greatest\(requester_id, addressee_id\)/);
-    assert.match(edge, /DISALLOWED_NICKNAME_TERMS/);
-    assert.match(edge, /"幹你娘"/);
-    assert.match(edge, /"機掰"/);
-    assert.match(edge, /"靠北"/);
+    assert.match(edge, /validNicknameText/);
+    assert.match(moderation, /DISALLOWED_NICKNAME_TERMS/);
+    assert.match(moderation, /"幹你娘"/);
+    assert.match(moderation, /"機掰"/);
+    assert.match(moderation, /"靠北"/);
     assert.match(edge, /這個暱稱已被使用，請換一個/);
     assert.match(edge, /nickname_normalized/);
 });

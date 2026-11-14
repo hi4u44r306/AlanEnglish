@@ -1,3 +1,5 @@
+import { nicknameHasDisallowedTerm } from "./nickname-moderation.ts";
+
 const cleanClass = (value: unknown) => String(value || "").trim().slice(0, 30) || null;
 
 type NameFields = { chinese_name?: unknown; english_name?: unknown; name?: unknown };
@@ -34,6 +36,9 @@ export const shapeLeaderboardRow = (
     const fullName = leaderboardNameSource(names, row.student_name);
     if (isStaff) return { ...row, student_name: fullName, display_name: fullName, nickname, _show_avatar: true };
     const masked = maskLeaderboardName(fullName);
+    // Classmates never see a nickname that no longer passes moderation (older nicknames
+    // were saved under weaker rules); the owner and staff still see it.
+    const publicNickname = nickname && !nicknameHasDisallowedTerm(nickname) ? nickname : null;
     if (isSelf) return { ...row, student_name: masked, display_name: masked, nickname, _show_avatar: true };
     return {
         rank_position: row.rank_position,
@@ -43,7 +48,7 @@ export const shapeLeaderboardRow = (
         class_name: null,
         period_xp: row.period_xp,
         total_xp: row.total_xp,
-        nickname,
+        nickname: publicNickname,
         _show_avatar: false
     };
 };
