@@ -11,17 +11,17 @@ const clean = (value: unknown) => String(value ?? "").trim().slice(0, 80);
 export const leaderboardNameSource = (names: NameFields | null | undefined, fallback?: unknown) =>
     clean(names?.chinese_name) || clean(names?.english_name) || clean(names?.name) || clean(fallback);
 
-// One "○" in the middle, never revealing how many characters the name has:
-// 王小明 -> 王○明, 王明 -> 王○, Kevin -> K○n. Only Han characters (or only letters when
-// there are none) are kept, so "王小明 Kevin" -> 王○明 and digits/emoji are dropped.
+// One "〇" in the middle, never revealing how many characters the name has:
+// 王小明 -> 王〇明, 王明 -> 王〇, Kevin -> K〇n. Only Han characters (or only letters when
+// there are none) are kept, so "王小明 Kevin" -> 王〇明 and digits/emoji are dropped.
 export const maskLeaderboardName = (value: unknown) => {
     const text = clean(value).normalize("NFKC").replace(/[\p{C}]/gu, "");
     const han = Array.from(text).filter(char => /\p{Script=Han}/u.test(char));
     const chars = han.length ? han : Array.from(text).filter(char => /\p{L}/u.test(char));
     if (!chars.length) return "同學";
     const first = han.length ? chars[0] : chars[0].toLocaleUpperCase("en-US");
-    if (chars.length <= 2) return `${first}○`;
-    return `${first}○${chars[chars.length - 1]}`;
+    if (chars.length <= 2) return `${first}〇`;
+    return `${first}〇${chars[chars.length - 1]}`;
 };
 
 // Students never receive a real name for anyone, themselves included: only the masked

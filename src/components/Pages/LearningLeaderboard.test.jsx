@@ -38,8 +38,8 @@ describe("LearningLeaderboard", () => {
                 rank_position: 1,
                 student_id: 1,
                 nickname: "Alan Fox",
-                display_name: "陳○倫",
-                student_name: "陳○倫",
+                display_name: "陳〇倫",
+                student_name: "陳〇倫",
                 class_name: "E1",
                 level: 3,
                 period_xp: 120,
@@ -49,8 +49,8 @@ describe("LearningLeaderboard", () => {
                 rank_position: 2,
                 student_id: 2,
                 nickname: "性愛",
-                display_name: "李○美",
-                student_name: "李○美",
+                display_name: "李〇美",
+                student_name: "李〇美",
                 avatar_url: null,
                 class_name: null,
                 level: 2,
@@ -64,8 +64,8 @@ describe("LearningLeaderboard", () => {
     it("顯示遮罩後的姓名與暱稱小字；頭貼只用圖示，不取暱稱或姓名的字", async () => {
         const { container } = render(<MemoryRouter><LearningLeaderboard /></MemoryRouter>);
 
-        expect(await screen.findByText("陳○倫 · 你")).toBeInTheDocument();
-        expect(screen.getByText("李○美")).toBeInTheDocument();
+        expect(await screen.findByText("陳〇倫 · 你")).toBeInTheDocument();
+        expect(screen.getByText("李〇美")).toBeInTheDocument();
         expect(screen.getByText("暱稱：性愛")).toBeInTheDocument();
         const fallbacks = container.querySelectorAll(".gamification-row-avatar .gamification-avatar--fallback");
         expect(fallbacks).toHaveLength(2);
@@ -75,7 +75,7 @@ describe("LearningLeaderboard", () => {
 
     it("自己的暱稱不過關時，頂端提示更換並連到設定；正常時不顯示", async () => {
         const { unmount } = render(<MemoryRouter><LearningLeaderboard /></MemoryRouter>);
-        await screen.findByText("陳○倫 · 你");
+        await screen.findByText("陳〇倫 · 你");
         expect(screen.queryByText("你的暱稱需要更換")).not.toBeInTheDocument();
         unmount();
 
@@ -93,7 +93,7 @@ describe("LearningLeaderboard", () => {
         render(<MemoryRouter><LearningLeaderboard /></MemoryRouter>);
 
         expect(await screen.findByRole("heading", { name: "E1 班排行榜" })).toBeInTheDocument();
-        expect(await screen.findByText("陳○倫 · 你")).toBeInTheDocument();
+        expect(await screen.findByText("陳〇倫 · 你")).toBeInTheDocument();
         expect(getGamificationLeaderboard).toHaveBeenCalledWith(firebaseUser, "week", null, "class");
 
         fireEvent.click(screen.getByRole("button", { name: "綜合排行" }));
