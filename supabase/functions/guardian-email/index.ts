@@ -2,6 +2,7 @@ import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 import { createRemoteJWKSet, jwtVerify } from "npm:jose@5";
 import { canManageStudent, getManagedStudentIds } from "../_shared/teacher-scope.ts";
 import { loadWordMastery, summarizeWordMastery } from "../_shared/weekly-report-words.ts";
+import { buildUnsubscribeUrl } from "../_shared/guardian-weekly-unsubscribe-token.ts";
 
 const corsHeaders = {
     "Access-Control-Allow-Origin": "*",
@@ -111,7 +112,7 @@ const buildReport = async (admin: any, student: any, weekStart: string) => {
     ] = await Promise.all([
         admin
             .from("guardian_contacts")
-            .select("id,guardian_name,email,notification_enabled,email_verified_at")
+            .select("id,guardian_name,email,notification_enabled,email_verified_at,weekly_report_opted_out_at,weekly_report_link_version")
             .eq("student_id", student.id)
             .maybeSingle(),
         admin
@@ -254,7 +255,8 @@ const buildReport = async (admin: any, student: any, weekStart: string) => {
     };
 };
 
-const buildEmail = (report: any) => {
+// unsubscribeUrl 只放在寄出的信裡；notification_logs 存的 logText 不含連結，因為連結本身就是取消的憑證。
+const buildEmail = (report: any, unsubscribeUrl: string | null = null) => {
     const m = report.metrics;
     const guardianName = report.guardian?.guardian_name
         ? `${escapeHtml(report.guardian.guardian_name)} 家長您好`
@@ -279,13 +281,19 @@ const buildEmail = (report: any) => {
         m.ai_passed ? ["AI 教材", `通過 ${m.ai_passed} 份`] : null,
         m.review_count ? ["智慧複習", `${m.review_count} 題${m.accuracy === null ? "" : `，正確率 ${m.accuracy}%`}`] : null
     ].filter(Boolean) as string[][];
-    const text = `${guardianName}：\n\n${report.student.name || "孩子"} 在 ${report.range.startDate}～${report.range.endDate} 的學習摘要：\n` +
+    const logText = `${guardianName}：\n\n${report.student.name || "孩子"} 在 ${report.range.startDate}～${report.range.endDate} 的學習摘要：\n` +
         `・練習天數：${m.active_days} / 7 天\n` +
         `・聽力：有效聆聽 ${m.listening_count} 次\n` +
         `・口說大挑戰：${speakingText}\n` +
         `・作業：${assignmentText}\n` +
         extras.map(([label, value]) => `・${label}：${value}\n`).join("") +
         `\n${report.status.label}：${report.status.message}\n\nAlan English`;
+    const text = unsubscribeUrl
+        ? `${logText}\n\n不想再收到每週學習週報？按這裡取消：${unsubscribeUrl}`
+        : logText;
+    const footerNote = unsubscribeUrl
+        ? `這封信由 Alan English 自動寄出。如不想再收到每週學習週報，請<a href="${escapeHtml(unsubscribeUrl)}" style="color:#244680;text-decoration:underline">按這裡取消</a>；如需更換信箱，請聯絡授課老師。`
+        : "這封信由 Alan English 自動寄出；如需停止收信或更換信箱，請聯絡授課老師。";
     // Email 版面只能用 table＋inline style，不依賴外部 CSS／圖片；顏色沿用家長驗證碼信的四色頂條。
     // 標題與頁尾刻意用淺藍底、深色字：Gmail 手機版深色模式會自動反轉顏色且無法關閉，整封信用淺色系才會一起反轉成一致的深色。
     const tile = (value: string | number, unit: string, label: string, background: string, accent: string, numberColor: string) => `
@@ -343,7 +351,7 @@ const buildEmail = (report: any) => {
     </td></tr>
     <tr><td style="background-color:#ffffff;padding:8px 28px 28px">
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
-        <td style="background-color:#f3f6fb;border-radius:10px;padding:14px 16px;font-size:12px;line-height:1.8;color:#667085">「有效聆聽」是孩子實際聽滿八成以上才算一次。這封信由 Alan English 自動寄出；如需停止收信或更換信箱，請聯絡授課老師。</td>
+        <td style="background-color:#f3f6fb;border-radius:10px;padding:14px 16px;font-size:12px;line-height:1.8;color:#667085">「有效聆聽」是孩子實際聽滿八成以上才算一次。${footerNote}</td>
       </tr></table>
     </td></tr>
     <tr><td style="background-color:#dce8fb;border-radius:0 0 22px 22px;padding:18px 28px;text-align:center">
@@ -355,7 +363,7 @@ const buildEmail = (report: any) => {
 </table>
 </body>
 </html>`;
-    return { subject, text, html };
+    return { subject, text, logText, html };
 };
 
 const sendWithResend = async (apiKey: string, payload: any, idempotencyKey: string) => {
@@ -381,6 +389,7 @@ Deno.serve(async (req: Request) => {
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
     const resendApiKey = Deno.env.get("RESEND_API_KEY") || "";
     const environmentCronSecret = Deno.env.get("GUARDIAN_CRON_SECRET") || "";
+    const unsubscribeSecret = Deno.env.get("GUARDIAN_UNSUBSCRIBE_SECRET") || "";
     if (!supabaseUrl || !serviceRoleKey) return json(500, { error: "伺服器設定不完整" });
     const admin = createClient(supabaseUrl, serviceRoleKey, {
         auth: { persistSession: false, autoRefreshToken: false }
@@ -547,6 +556,7 @@ Deno.serve(async (req: Request) => {
                 .eq("guardian_contacts.notification_enabled", true)
                 .not("guardian_contacts.email", "is", null)
                 .not("guardian_contacts.email_verified_at", "is", null)
+                .is("guardian_contacts.weekly_report_opted_out_at", null)
                 .order("id", { ascending: true })
                 .limit(5000);
             if (error) throw error;
@@ -577,7 +587,18 @@ Deno.serve(async (req: Request) => {
                     results.push({ student_id: student.id, status: "skipped", reason: "guardian_email_not_verified" });
                     continue;
                 }
-                const email = buildEmail(report);
+                // 家長自己取消了每週週報（批次本來就排除；單封寄送也要尊重）。
+                if (report.guardian.weekly_report_opted_out_at) {
+                    results.push({ student_id: student.id, status: "skipped", reason: "guardian_opted_out" });
+                    continue;
+                }
+                const unsubscribeUrl = await buildUnsubscribeUrl(unsubscribeSecret, {
+                    studentId: Number(student.id),
+                    contactId: Number(report.guardian.id),
+                    email: String(report.guardian.email),
+                    linkVersion: Number(report.guardian.weekly_report_link_version || 1)
+                }, weekStart);
+                const email = buildEmail(report, unsubscribeUrl);
                 let logId = existing?.id || null;
                 if (!logId) {
                     const { data: log, error: logError } = await admin
@@ -589,7 +610,7 @@ Deno.serve(async (req: Request) => {
                             channel: "email",
                             reason: "weekly_report",
                             subject: email.subject,
-                            message: email.text,
+                            message: email.logText,
                             status: "draft",
                             provider: "resend",
                             week_start: weekStart,

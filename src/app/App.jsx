@@ -34,6 +34,7 @@ import AcademyInviteSignup from "../components/Pages/AcademyInviteSignup";
 import ForgotPassword from "../components/Pages/ForgotPassword";
 import AcademyStudentSetup from "../components/Pages/AcademyStudentSetup";
 import AcademyPasswordReset from "../components/Pages/AcademyPasswordReset";
+import WeeklyReportUnsubscribe from "../components/Pages/WeeklyReportUnsubscribe";
 import AccountSecurity from "../components/Pages/AccountSecurity";
 import StudentSettings from "../components/Pages/StudentSettings";
 import StudentOnboarding from "../components/Pages/StudentOnboarding";
@@ -174,6 +175,7 @@ const App = () => {
                     <Route path="/academy/student-setup" element={<AcademyStudentSetup />} />
                     <Route path="/academy/recover" element={<AcademyStudentSetup recoveryOnly />} />
                     <Route path="/academy/reset-password" element={<AcademyPasswordReset />} />
+                    <Route path="/unsubscribe-weekly" element={<WeeklyReportUnsubscribe />} />
                     <Route path="/support" element={<Support />} />
                     <Route path="/showcase" element={<Navigate to="/" replace />} />
                     <Route path="/freetrial" element={<Navigate to="/" replace />} />

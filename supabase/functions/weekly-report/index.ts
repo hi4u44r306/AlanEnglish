@@ -166,7 +166,7 @@ const buildWeeklyReport = async (
     ] = await Promise.all([
         admin
             .from("guardian_contacts")
-            .select("id,guardian_name,email,preferred_channel,notification_enabled")
+            .select("id,guardian_name,email,preferred_channel,notification_enabled,weekly_report_opted_out_at")
             .eq("student_id", target.id)
             .maybeSingle(),
         admin
@@ -530,7 +530,9 @@ const buildWeeklyReport = async (
             configured: Boolean(guardian?.email && guardian?.notification_enabled),
             name: guardian?.guardian_name || "",
             email: isManager ? guardian?.email || "" : "",
-            notification_enabled: Boolean(guardian?.notification_enabled)
+            notification_enabled: Boolean(guardian?.notification_enabled),
+            // 家長在週報信裡按了「取消每週學習週報」；只給老師與管理員看。
+            weekly_opted_out: isManager ? Boolean(guardian?.weekly_report_opted_out_at) : false
         },
         week: {
             offset: week.offset,
@@ -686,6 +688,9 @@ Deno.serve(async (req: Request) => {
             if (!isManager) return json(403, { error: "只有 Teacher / Admin 可以準備家長 Email" });
             if (!report.guardian.configured || !report.guardian.email) {
                 return json(400, { error: "請先在管理首頁設定家長 Email 並開啟通知" });
+            }
+            if (report.guardian.weekly_opted_out) {
+                return json(409, { error: "家長已取消每週學習週報，請先在管理首頁重新開啟" });
             }
 
             const subject = `Alan English 每週學習報告｜${report.student.name}｜${report.week.start_date}`;

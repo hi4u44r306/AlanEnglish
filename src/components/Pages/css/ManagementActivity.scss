@@ -350,6 +350,30 @@
     font-weight: 600;
 }
 
+.guardian-weekly-optout {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 15px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: #fff6d7;
+    color: #5b4300;
+    font-size: .9rem;
+    font-weight: 600;
+
+    button {
+        min-height: 44px;
+        padding: 0 14px;
+        border: 0;
+        border-radius: 10px;
+        background: #3478db;
+        color: #fff;
+        font-weight: 700;
+    }
+}
+
 .guardian-save-button {
     min-height: 38px;
     padding: 0 15px;
