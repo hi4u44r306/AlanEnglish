@@ -7,6 +7,7 @@ import {
     markGuardianNotificationSent,
     upsertGuardianContact
 } from "../../services/learningActivityService";
+import { listWeeklyOptOuts, reenableWeeklyReport } from "../../services/guardianWeeklyUnsubscribeService";
 import "./css/ManagementDashboard.scss";
 import "./css/ManagementActivity.scss";
 
@@ -82,7 +83,22 @@ function ManagementDashboard() {
 
         try {
             const result = await getTeacherStudentActivity(firebaseUser);
-            setStudents(result?.students || []);
+            const loaded = result?.students || [];
+            setStudents(loaded);
+            // 家長在週報信裡取消的名單另外讀取；讀不到只是不顯示提示，不影響學生列表。
+            try {
+                const optOuts = await listWeeklyOptOuts(firebaseUser);
+                const optedOutAt = new Map((optOuts?.opted_out || []).map(item => [item.student_id, item.opted_out_at]));
+                if (optedOutAt.size > 0) {
+                    setStudents(loaded.map(student => (
+                        optedOutAt.has(student.id) && student.guardian
+                            ? { ...student, guardian: { ...student.guardian, weekly_report_opted_out_at: optedOutAt.get(student.id) } }
+                            : student
+                    )));
+                }
+            } catch (optOutError) {
+                console.error("讀取家長週報取消名單失敗:", optOutError);
+            }
         } catch (error) {
             console.error("讀取學生學習後台失敗:", error);
             setErrorMessage(error.message || "學生學習資料讀取失敗");
@@ -147,6 +163,27 @@ function ManagementDashboard() {
             notification_enabled: guardian.notification_enabled !== false
         });
         setNoticeMessage("");
+    };
+
+    // 家長在週報信裡按了取消後，只有老師／管理員能重新開啟。
+    const reenableWeekly = async studentId => {
+        if (!firebaseUser || guardianSaving) return;
+        setGuardianSaving(true);
+        setNoticeMessage("");
+        try {
+            await reenableWeeklyReport(firebaseUser, studentId);
+            setStudents(previous => previous.map(student => (
+                student.id === studentId && student.guardian
+                    ? { ...student, guardian: { ...student.guardian, weekly_report_opted_out_at: null } }
+                    : student
+            )));
+            setNoticeMessage("已重新開啟每週學習週報");
+        } catch (error) {
+            console.error("重新開啟家長週報失敗:", error);
+            setNoticeMessage(error.message || "重新開啟失敗");
+        } finally {
+            setGuardianSaving(false);
+        }
     };
 
     const saveGuardian = async studentId => {
@@ -382,6 +419,12 @@ function ManagementDashboard() {
                                                                     />
                                                                     <span>允許寄送學習提醒</span>
                                                                 </label>
+                                                                {student.guardian?.weekly_report_opted_out_at && (
+                                                                    <div className="guardian-weekly-optout" role="status">
+                                                                        <span>家長已在週報信裡取消每週學習週報（{formatDateTime(student.guardian.weekly_report_opted_out_at)}）。</span>
+                                                                        <button type="button" disabled={guardianSaving} onClick={() => reenableWeekly(student.id)}>重新開啟每週週報</button>
+                                                                    </div>
+                                                                )}
                                                                 <div className="guardian-editor-actions">
                                                                     <button type="button" onClick={() => setEditingGuardianId(null)}>取消</button>
                                                                     <button type="button" className="primary" disabled={guardianSaving} onClick={() => saveGuardian(student.id)}>
