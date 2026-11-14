@@ -463,15 +463,15 @@ test("gamification leaderboard: students only get masked names; staff still get 
         assert.ok(!othersText.includes(secret), `leaked ${secret}`);
     }
     const [ben, cathy, web, me] = asStudent.leaderboard;
-    assert.equal(ben.display_name, "陳○華");
-    assert.equal(ben.student_name, "陳○華");
+    assert.equal(ben.display_name, "陳〇華");
+    assert.equal(ben.student_name, "陳〇華");
     assert.equal(ben.avatar_url, null, "another student's uploaded photo is never shown");
     assert.equal(ben.class_name, null);
-    assert.equal(cathy.display_name, "李○美");
-    assert.equal(web.display_name, "靠○王");
+    assert.equal(cathy.display_name, "李〇美");
+    assert.equal(web.display_name, "靠〇王");
     assert.equal(web.avatar_url, "/default-avatars/alan-cat.png", "system avatars may be shown");
     assert.equal(me.is_current_user, true);
-    assert.equal(me.display_name, "王○明");
+    assert.equal(me.display_name, "王〇明");
     assert.ok(me.avatar_url);
 
     const asStaff = await (await call({ action: "leaderboard", scope: "overall" }, TEACHER)).json();

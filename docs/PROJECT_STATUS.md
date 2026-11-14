@@ -1,8 +1,13 @@
 # Alan English 專案狀態
 
+### 排行榜列美化（2026-11-14，分支 `feature/leaderboard-row-polish`；程式完成、**尚未合併、`gamification` 尚未重新部署**）
+
+- 擁有者看了手機畫面：名字太小、「Alan English · Lv.1」沒意義、「○」太小。改：名字 19px／17px、Lv 與班級改成垂直置中的標籤、遮罩改全形「〇」（U+3007，只改 `_shared/gamification-leaderboard.ts`，需重新部署 `gamification`）。測試字串同步更新。
+- 前後端混用：新前端搭舊後端只是遮罩符號仍為「○」，無其他影響。
+
 ### 排行榜改顯示遮罩真名（2026-11-14，分支 `feature/leaderboard-masked-names`；程式完成、**尚未合併、後端尚未部署**）
 
-- 來源：擁有者希望排行榜顯示真名但中間遮「○」，且頭貼不能被不雅暱稱操控（如「性愛」→「性」）。擁有者決定：永遠一個○；暱稱留作姓名下小字；頭貼＝系統預設頭像，沒有就通用小人；自己那列也遮罩加「· 你」；老師／管理員看完整真名。
+- 來源：擁有者希望排行榜顯示真名但中間遮「〇」，且頭貼不能被不雅暱稱操控（如「性愛」→「性」）。擁有者決定：永遠一個〇；暱稱留作姓名下小字；頭貼＝系統預設頭像，沒有就通用小人；自己那列也遮罩加「· 你」；老師／管理員看完整真名。
 - 後端：`_shared/gamification-leaderboard.ts` 新增 `leaderboardNameSource`／`maskLeaderboardName`，`shapeLeaderboardRow` 學生一律只回遮罩名；`gamification/index.ts` 另查 `students` 的 `chinese_name,english_name,name`，他人頭像只在系統預設路徑時回傳；`learning-progress` 的 leaderboard action 改回 410（前端早已無人呼叫）並刪除其舊遮罩副本與 `getLeaderboard`。**無 migration。**
 - 前端：`LearningLeaderboard.jsx` 刪除取字頭貼、改通用圖示、名字用 `display_name`、暱稱小字；快取鍵改 `leaderboard-v2:`（舊快取不再被讀到）；`useStudentWarmup.js` 同步。
 - 驗證：`node --experimental-strip-types --test scripts/security-access-handlers.test.mjs scripts/gamification-leaderboard-scope.test.mjs`（含：學生回應全文不含任何完整真名、遮罩規則表、410）；`LearningLeaderboard.test.jsx`＋`useStudentWarmup.test.jsx`。

@@ -218,11 +218,14 @@ function LearningLeaderboard() {
                                             : <div className="gamification-avatar gamification-avatar--fallback"><FiUser aria-hidden="true" /></div>}
                                     </div>
                                     <div className="gamification-student-copy">
-                                        <strong>{row.display_name || row.student_name || "同學"}{row.is_current_user ? " · 你" : ""}</strong>
+                                        <div className="gamification-student-name">
+                                            <strong>{row.display_name || row.student_name || "同學"}{row.is_current_user ? " · 你" : ""}</strong>
+                                            <span className="gamification-pill gamification-pill--level">Lv.{row.level || 1}</span>
+                                            {row.class_name && <span className="gamification-pill gamification-pill--class">{row.class_name} 班</span>}
+                                        </div>
                                         {row.nickname && (
                                             <span className="gamification-student-original">暱稱：{row.nickname}</span>
                                         )}
-                                        <span>{row.class_name ? `${row.class_name} 班` : "Alan English"} · Lv.{row.level || 1}</span>
                                     </div>
                                     <div className="gamification-xp">
                                         <strong>{formatNumber(row.period_xp)} XP</strong>

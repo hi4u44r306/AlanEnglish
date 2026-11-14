@@ -351,9 +351,33 @@
     min-width: 0;
     gap: 3px;
 
-    strong { overflow-wrap: anywhere; font-size: 15px; font-weight: 900; }
+    strong { overflow-wrap: anywhere; font-size: 19px; line-height: 1.3; font-weight: 900; }
     span { overflow-wrap: anywhere; color: var(--ae-text-muted, #8b919d); font-size: 12px; }
     .gamification-student-original { color: var(--ae-text-muted, #596273); font-weight: 800; }
+}
+
+.gamification-student-name {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 4px 8px;
+    min-width: 0;
+}
+
+.gamification-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 26px;
+    padding: 0 10px;
+    border-radius: 999px;
+    font-size: 14px !important;
+    font-weight: 900;
+    line-height: 1;
+    white-space: nowrap;
+
+    &--level { background: #e3edfb; color: #1f3b73 !important; }
+    &--class { background: #fff1cf; color: #5c3b04 !important; }
 }
 
 .gamification-xp {
@@ -862,7 +886,8 @@
     .gamification-ranking-row { grid-template-columns: 28px 42px minmax(0, 1fr); gap: 6px; padding-inline: 3px; }
     .gamification-ranking-row .gamification-avatar,
     .gamification-ranking-row.is-top-1 .gamification-avatar { width: 42px; height: 42px; }
-    .gamification-student-copy strong { font-size: 14px; }
+    .gamification-student-copy strong { font-size: 17px; }
+    .gamification-pill { min-height: 24px; padding: 0 8px; font-size: 13px !important; }
 }
 
 .birthday-settings {
