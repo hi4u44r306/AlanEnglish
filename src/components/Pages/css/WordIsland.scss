@@ -401,3 +401,101 @@ body:has(.word-island) {
     color: var(--wi-green);
   }
 }
+
+.word-island__overview {
+  margin: 14px 0 0;
+}
+
+.word-island__overview-title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0 0 8px;
+  color: var(--wi-navy);
+  font-weight: 800;
+
+  span {
+    color: var(--wi-muted);
+    font-size: 13px;
+    font-weight: 700;
+  }
+}
+
+.word-island__overview-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.word-island__mini {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  width: 52px;
+  min-height: 56px;
+  padding: 4px 2px;
+  border: 1px solid var(--wi-line);
+  border-radius: 14px;
+  background: #fff;
+  color: var(--wi-navy);
+
+  strong {
+    font-size: 16px;
+    line-height: 1.1;
+  }
+
+  small {
+    min-height: 12px;
+    color: var(--wi-muted);
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  &.is-full {
+    border-color: #f5b800;
+    background: var(--wi-yellow);
+    color: #4a3200;
+
+    small {
+      color: #7a5600;
+    }
+  }
+
+  &.is-locked {
+    background: #eef1f6;
+    color: #98a2b3;
+    cursor: not-allowed;
+  }
+
+  &.is-current {
+    outline: 3px solid var(--wi-blue);
+    outline-offset: 1px;
+  }
+}
+
+// 小手機：一排 3 格，格子與文字放大，比較好讀、好點。
+@media (max-width: 400px) {
+  .word-island__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .word-island__tile {
+    min-height: 80px;
+  }
+
+  .word-island__tile-text {
+    font-size: 16px;
+  }
+}

@@ -82,6 +82,23 @@ describe("local mode (guests, teachers, or no server)", () => {
         expect(screen.getByText("第 2 座島")).toBeInTheDocument();
     });
 
+    test("\"我的島嶼\" shows every island: full, in progress and locked, and jumps to an open island", () => {
+        const now = new Date().toISOString();
+        const progress = Object.fromEntries(level1.slice(0, 18).map(word => [word.key, { status: "mastered", firstMasteredAt: now }]));
+        window.localStorage.setItem("ae-word-island:v1", JSON.stringify({ progress }));
+        renderPage();
+        expect(screen.getByText("已拿下 1 / 7 座")).toBeInTheDocument();
+        const full = screen.getByRole("button", { name: "第 1 座島，已全部佔領" });
+        const open = screen.getByRole("button", { name: "第 2 座島，已佔領 2 / 16" });
+        const locked = screen.getByRole("button", { name: "第 3 座島，尚未開放" });
+        expect(full).toHaveClass("is-full");
+        expect(open).toHaveAttribute("aria-current", "true");
+        expect(locked).toBeDisabled();
+        fireEvent.click(full);
+        expect(screen.getByText("第 1 座島", { selector: "strong" })).toBeInTheDocument();
+        expect(screen.getByText("已佔領 16 / 16")).toBeInTheDocument();
+    });
+
     test("the signed-in page without a server says progress stays on this device", () => {
         renderPage({ variant: "app" });
         expect(screen.getByText(/進度只存在這台裝置/)).toBeInTheDocument();

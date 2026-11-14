@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { FiFlag, FiX } from "react-icons/fi";
+import { FiFlag, FiLock, FiX } from "react-icons/fi";
 import Brand from "../fragment/Brand";
 import { useAuth } from "../../auth/AuthContext";
 import { WORD_BANK_VERSION, WORD_CHALLENGE_LEVELS, meaningPeersOf, wordsForLevel } from "../../services/wordChallengeBank";
@@ -267,6 +267,34 @@ function WordIsland({ variant = "public" }) {
             </div>
 
             {!ready ? <p className="word-island__loading" role="status">載入中…</p> : null}
+
+            {ready && islands.length > 0 && (
+                <section className="word-island__overview" aria-label="我的島嶼">
+                    <p className="word-island__overview-title">我的島嶼<span>已拿下 {islands.filter(item => item.claimed_count === item.total).length} / {islands.length} 座</span></p>
+                    <ol className="word-island__overview-list">
+                        {islands.map((item, index) => {
+                            const full = item.claimed_count === item.total;
+                            const state = full ? "is-full" : item.unlocked ? "is-open" : "is-locked";
+                            return (
+                                <li key={item.island}>
+                                    <button
+                                        type="button"
+                                        disabled={!item.unlocked}
+                                        aria-current={index === safeIndex ? "true" : undefined}
+                                        aria-label={`第 ${index + 1} 座島，${full ? "已全部佔領" : item.unlocked ? `已佔領 ${item.claimed_count} / ${item.total}` : "尚未開放"}`}
+                                        className={`word-island__mini ${state}${index === safeIndex ? " is-current" : ""}`}
+                                        onClick={() => setIslandIndex(index)}
+                                    >
+                                        {full ? <FiFlag aria-hidden="true" /> : item.unlocked ? null : <FiLock aria-hidden="true" />}
+                                        <strong>{index + 1}</strong>
+                                        <small>{item.unlocked ? `${item.claimed_count}/${item.total}` : ""}</small>
+                                    </button>
+                                </li>
+                            );
+                        })}
+                    </ol>
+                </section>
+            )}
 
             {ready && island && (
                 <section className="word-island__map" aria-label={`第 ${safeIndex + 1} 座島`}>
