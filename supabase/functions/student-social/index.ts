@@ -1,5 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 import { cleanText, verifyFirebaseRequest } from "../_shared/firebase-auth.ts";
+import { nicknameHasDisallowedTerm, validNicknameText } from "../_shared/nickname-moderation.ts";
 
 const ALLOWED_ORIGINS = new Set([
     "https://alanenglish.com.tw",
@@ -41,13 +42,6 @@ const DEFAULT_AVATAR_PATHS = new Set([
     "/default-avatars/alan-mountaineer.jpg",
     "/default-avatars/alan-sailor.jpg"
 ]);
-const DISALLOWED_NICKNAME_TERMS = [
-    "色情", "性愛", "性交", "裸照", "裸體", "成人片", "援交", "約炮", "性奴", "強姦",
-    "雞巴", "陰莖", "乳房", "屌", "屄", "幹", "肏", "操", "婊", "賤", "白痴", "智障", "低能", "白目", "北七", "87",
-    "幹你", "幹你娘", "幹您娘", "幹拎娘", "幹林娘", "姦恁娘", "姦你娘", "肏你", "肏你媽",
-    "機掰", "雞掰", "機歪", "雞歪", "機八", "雞八", "臭機掰", "臭雞掰", "靠北", "靠邀", "靠夭", "靠母", "靠腰", "靠杯", "g8", "gy",
-    "porn", "sex", "nude", "naked", "fuck", "shit", "bitch", "dick", "pussy", "asshole"
-];
 
 const cors = (req: Request) => {
     const origin = req.headers.get("origin") || "";
@@ -87,16 +81,7 @@ const presenceLabel = (lastActiveAt: unknown, visible: boolean) => {
     if (age <= 15 * 60 * 1000) return "recent";
     return "offline";
 };
-const normalizeNicknameForModeration = (value: string) => value
-    .normalize("NFKC")
-    .toLocaleLowerCase("en-US")
-    .replace(/[\s_-]+/g, "");
-const validNickname = (value: unknown) => {
-    const nickname = cleanText(value, 20).replace(/\s+/g, " ");
-    if (!/^[\p{L}\p{N}][\p{L}\p{N} _-]{1,19}$/u.test(nickname)) return null;
-    if (DISALLOWED_NICKNAME_TERMS.some(term => normalizeNicknameForModeration(nickname).includes(term))) return null;
-    return nickname;
-};
+const validNickname = (value: unknown) => validNicknameText(value, cleanText);
 const makeFriendCode = () => {
     const bytes = crypto.getRandomValues(new Uint8Array(8));
     return `AE-${Array.from(bytes, value => FRIEND_CODE_CHARS[value % FRIEND_CODE_CHARS.length]).join("")}`;
@@ -263,10 +248,13 @@ Deno.serve(async (req: Request) => {
                 nicknameHistory(admin, caller.id)
             ]);
             if (profileError) throw profileError;
-            const availableAt = nicknameChangeCooldown(history);
+            // A nickname that no longer passes moderation must be changeable right away.
+            const needsChange = Boolean(profile?.nickname) && nicknameHasDisallowedTerm(profile.nickname);
+            const availableAt = needsChange ? null : nicknameChangeCooldown(history);
             return json(req, 200, {
                 success: true,
                 profile: profile || null,
+                nickname_needs_change: needsChange,
                 nickname_history: history,
                 nickname_change_available_at: availableAt ? new Date(availableAt).toISOString() : null
             });
@@ -284,7 +272,8 @@ Deno.serve(async (req: Request) => {
             ]);
             if (existingError) throw existingError;
             const unchanged = existing?.nickname?.toLocaleLowerCase("en-US") === nickname.toLocaleLowerCase("en-US");
-            const availableAt = unchanged ? null : nicknameChangeCooldown(history);
+            const needsChange = Boolean(existing?.nickname) && nicknameHasDisallowedTerm(existing.nickname);
+            const availableAt = unchanged || needsChange ? null : nicknameChangeCooldown(history);
             if (availableAt) {
                 return json(req, 429, {
                     success: false,

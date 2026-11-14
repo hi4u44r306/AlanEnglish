@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { resolveLeaderboardScope } from "../supabase/functions/_shared/gamification-leaderboard.ts";
+import { leaderboardNameSource, maskLeaderboardName, resolveLeaderboardScope } from "../supabase/functions/_shared/gamification-leaderboard.ts";
 
 test("學生班級排行永遠使用後端查到的本人班級", () => {
     assert.deepEqual(resolveLeaderboardScope({
@@ -27,4 +27,26 @@ test("教師與管理員的班級排行使用選定班級", () => {
         requestedScope: "class",
         requestedClass: "E5"
     }), { scope: "class", classCode: "E5" });
+});
+
+test("排行榜名字遮罩：永遠只有一個 ○，不洩漏字數", () => {
+    const cases = {
+        "王": "王○", "王明": "王○", "王小明": "王○明", "王小明華": "王○華",
+        "歐陽娜娜": "歐○娜", "愛新覺羅溥儀": "愛○儀",
+        "Kevin": "K○n", "kevin": "K○n", "Al": "A○", "K": "K○",
+        "Kevin Chen": "K○n", "Mary-Jane O'Neil": "M○l",
+        "王小明 Kevin": "王○明", "王小明(Kevin)": "王○明", "Kevin 王小明": "王○明", " 王 小明 ": "王○明",
+        "": "同學", "   ": "同學", "1234": "同學", "😀": "同學", null: "同學", undefined: "同學"
+    };
+    for (const [input, expected] of Object.entries(cases)) {
+        const value = input === "null" ? null : input === "undefined" ? undefined : input;
+        assert.equal(maskLeaderboardName(value), expected, `輸入 ${input}`);
+    }
+});
+
+test("排行榜名字來源：中文名 → 英文名 → name，name 最後", () => {
+    assert.equal(leaderboardNameSource({ chinese_name: "王小明", english_name: "Amy", name: "x" }), "王小明");
+    assert.equal(leaderboardNameSource({ chinese_name: null, english_name: "Amy", name: "x" }), "Amy");
+    assert.equal(leaderboardNameSource({ name: "靠北" }), "靠北");
+    assert.equal(leaderboardNameSource(null, "Fallback"), "Fallback");
 });

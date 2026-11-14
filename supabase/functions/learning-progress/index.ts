@@ -13,7 +13,6 @@ const FIREBASE_JWKS = createRemoteJWKSet(
     new URL("https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com")
 );
 const STAFF_ROLES = new Set(["teacher", "admin"]);
-const PERIODS = new Set(["week", "month", "all"]);
 
 const json = (status: number, body: unknown) => new Response(JSON.stringify(body), {
     status,
@@ -81,19 +80,6 @@ const validateQuestions = (questions: unknown) => {
     return normalized.every(Boolean) ? normalized : null;
 };
 
-const maskStudentName = (name: unknown) => {
-    const value = cleanText(name, 80);
-    if (!value) return "同學";
-    if (/^[\u3400-\u9fff]+$/.test(value)) {
-        return value.length === 1 ? `${value}同學` : `${value[0]}${"○".repeat(Math.min(2, value.length - 1))}`;
-    }
-    const parts = value.split(/\s+/).filter(Boolean);
-    if (parts.length === 1) {
-        return parts[0].length <= 2 ? parts[0] : `${parts[0].slice(0, 2)}${"•".repeat(Math.min(3, parts[0].length - 2))}`;
-    }
-    return `${parts[0]} ${parts.at(-1)?.slice(0, 1) || ""}.`;
-};
-
 const examSelect = `
     id,
     from_level_id,
@@ -144,32 +130,8 @@ Deno.serve(async (req: Request) => {
         const action = cleanText(body?.action || "dashboard", 80);
 
         if (action === "leaderboard") {
-            const requestedPeriod = cleanText(body?.period || "week", 20);
-            const period = PERIODS.has(requestedPeriod) ? requestedPeriod : "week";
-            const { data: rows, error } = await admin.rpc("get_learning_leaderboard", {
-                p_period: period,
-                p_limit: 50,
-                p_student_id: student.role === "student" ? student.id : null
-            });
-            if (error) throw error;
-            return json(200, {
-                success: true,
-                period,
-                scoring: {
-                    listening: 1,
-                    assignment: 10,
-                    ai_pass: 5,
-                    review_correct: 2,
-                    conversation: 2
-                },
-                leaderboard: (rows || []).map((row: any) => ({
-                    ...row,
-                    student_name: row.student_id === student.id
-                        ? student.name
-                        : maskStudentName(row.student_name),
-                    is_current_user: row.student_id === student.id
-                }))
-            });
+            // Retired: the only ranking is the `gamification` leaderboard (masked names).
+            return json(410, { error: "此排行榜已停用", code: "leaderboard_retired" });
         }
 
         const [effectiveAccess, progressResult, levelsResult] = await Promise.all([

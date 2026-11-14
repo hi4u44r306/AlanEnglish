@@ -432,37 +432,57 @@ test("music-admin: only an admin can delete a track; teachers can still rename",
 });
 
 // ---------- 6. leaderboard ----------
-test("gamification leaderboard: other students get no real name, class or avatar; staff still do", async () => {
+test("gamification leaderboard: students only get masked names; staff still get full ones", async () => {
     const tables = academyTables();
     tables.student_social_profiles = [{ student_id: 107, nickname: null }];
-    tables.students.push({ id: 108, firebase_uid: "uid-e7b", email: "kid8@school.tw", name: "李小美", english_name: "Cathy Lee", class: "E7", role: "student", account_status: "active", user_image: "student-108/me.png" });
-    tables.student_social_profiles.push({ student_id: 108, nickname: "Rocket" });
+    tables.students.push({ id: 108, firebase_uid: "uid-e7b", email: "kid8@school.tw", name: "李小美", chinese_name: "李小美", english_name: "Cathy Lee", class: "E7", role: "student", account_status: "active", user_image: "student-108/me.png" });
+    // A web-signup student whose self-typed name is rude, and a student with a rude nickname.
+    tables.students.push({ id: 109, firebase_uid: "uid-web", email: "web@school.tw", name: "靠北王", chinese_name: null, english_name: null, class: null, role: "student", account_status: "active", user_image: "/default-avatars/alan-cat.png" });
+    tables.student_social_profiles.push({ student_id: 108, nickname: "性愛" });
+    for (const row of tables.students) {
+        if (row.id === 107) row.chinese_name = "陳大華";
+        if (row.id === 101) row.chinese_name = "王小明";
+    }
     const rows = [
         { rank_position: 1, student_id: 107, student_name: "Ben Chen", class_name: "E7", avatar_path: "student-107/me.png", period_xp: 90, total_xp: 900, points_balance: 50 },
         { rank_position: 2, student_id: 108, student_name: "Cathy Lee", class_name: "E7", avatar_path: "student-108/me.png", period_xp: 80, total_xp: 800, points_balance: 40 },
-        { rank_position: 3, student_id: 101, student_name: "Amy Wang", class_name: "E1", avatar_path: "student-101/me.png", period_xp: 70, total_xp: 700, points_balance: 30 }
+        { rank_position: 3, student_id: 109, student_name: "靠北王", class_name: null, avatar_path: "/default-avatars/alan-cat.png", period_xp: 75, total_xp: 750, points_balance: 0 },
+        { rank_position: 4, student_id: 101, student_name: "Amy Wang", class_name: "E1", avatar_path: "student-101/me.png", period_xp: 70, total_xp: 700, points_balance: 30 }
     ];
     const db = fakeDb(tables, { rpc: { get_gamification_leaderboard: () => ({ data: rows.map(row => ({ ...row })), error: null }) } });
     const call = await loadHandler("gamification", db);
 
     const asStudent = await (await call({ action: "leaderboard", scope: "overall" }, STUDENT_E1)).json();
-    const text = JSON.stringify(asStudent.leaderboard.filter(row => !row.is_current_user));
-    for (const secret of ["Ben Chen", "Cathy Lee", "陳大華", "李小美", "student-107", "student-108", "\"E7\""]) {
+    // The whole response, including the caller's own row, never carries a full real name.
+    const text = JSON.stringify(asStudent.leaderboard);
+    for (const secret of ["Ben Chen", "Cathy Lee", "Amy Wang", "陳大華", "李小美", "王小明"]) {
         assert.ok(!text.includes(secret), `leaked ${secret}`);
     }
-    const [ben, cathy, me] = asStudent.leaderboard;
-    assert.equal(ben.student_name, "Ben C.");
-    assert.equal(cathy.nickname, "Rocket");
-    assert.equal(cathy.student_name, null);
-    assert.equal(ben.avatar_url, null);
+    const othersText = JSON.stringify(asStudent.leaderboard.filter(row => !row.is_current_user));
+    for (const secret of ["student-107", "student-108", "\"E7\"", "points_balance"]) {
+        assert.ok(!othersText.includes(secret), `leaked ${secret}`);
+    }
+    const [ben, cathy, web, me] = asStudent.leaderboard;
+    assert.equal(ben.display_name, "陳○華");
+    assert.equal(ben.student_name, "陳○華");
+    assert.equal(ben.avatar_url, null, "another student's uploaded photo is never shown");
     assert.equal(ben.class_name, null);
-    assert.equal(ben.points_balance, undefined);
+    assert.equal(cathy.display_name, "李○美");
+    assert.equal(web.display_name, "靠○王");
+    assert.equal(web.avatar_url, "/default-avatars/alan-cat.png", "system avatars may be shown");
     assert.equal(me.is_current_user, true);
-    assert.equal(me.student_name, "Amy Wang");
+    assert.equal(me.display_name, "王○明");
     assert.ok(me.avatar_url);
 
     const asStaff = await (await call({ action: "leaderboard", scope: "overall" }, TEACHER)).json();
-    assert.equal(asStaff.leaderboard[0].student_name, "Ben Chen");
+    assert.equal(asStaff.leaderboard[0].display_name, "陳大華");
+    assert.equal(asStaff.leaderboard[1].nickname, "性愛");
     assert.equal(asStaff.leaderboard[0].class_name, "E7");
     assert.ok(asStaff.leaderboard[0].avatar_url);
+});
+
+test("learning-progress leaderboard is retired (410) so it cannot leak names", async () => {
+    const call = await loadHandler("learning-progress", fakeDb(academyTables(), {}));
+    const response = await call({ action: "leaderboard" }, STUDENT_E1);
+    assert.equal(response.status, 410);
 });

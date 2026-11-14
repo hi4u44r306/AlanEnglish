@@ -20,6 +20,7 @@ import { validatePublicNickname } from "../../utils/nicknameValidation";
 import StudentProgressOverview from "./StudentProgressOverview";
 import StudentAvatarImage from "../fragment/StudentAvatarImage";
 import StudentSettingsGroup from "../fragment/StudentSettingsGroup";
+import NicknameChangeNotice from "../fragment/NicknameChangeNotice";
 import "./css/StudentSettings.scss";
 
 const initial = name => String(name || "A").trim().charAt(0).toUpperCase() || "A";
@@ -27,6 +28,8 @@ const AVATAR_CROP_SIZE = 280;
 const NICKNAME_CHANGE_COOLDOWN_MS = 7 * 24 * 60 * 60 * 1000;
 const clamp = (value, minimum, maximum) => Math.min(Math.max(value, minimum), maximum);
 const nicknameChangeAvailableAt = settings => {
+    // A nickname that no longer passes moderation can always be changed right away.
+    if (settings?.nickname_needs_change) return 0;
     const serverTimestamp = Date.parse(settings?.nickname_change_available_at || "");
     if (Number.isFinite(serverTimestamp)) return serverTimestamp;
 
@@ -103,6 +106,7 @@ function StudentSettings({ view = "progress" }) {
         const result = await getNicknameSettings(firebaseUser);
         return {
             profile: { nickname: result?.profile?.nickname || "" },
+            nickname_needs_change: result?.nickname_needs_change === true,
             nickname_history: result?.nickname_history?.map(({ id, previous_nickname, new_nickname, changed_at }) => ({ id, previous_nickname, new_nickname, changed_at })) || [],
             nickname_change_available_at: result?.nickname_change_available_at || null
         };
@@ -543,6 +547,7 @@ function StudentSettings({ view = "progress" }) {
                     <p>{[profile.english_name, profile.class ? `${profile.class} 班` : ""].filter(Boolean).join("　·　")}</p>
                     {uploading && <small role="status">正在處理頭像…</small>}
                 </div>
+                    {nicknameSettings.nickname_needs_change && <NicknameChangeNotice />}
                     <form className={`student-settings-nickname-form student-settings-profile-nickname-form ${nicknameCooldownActive ? "is-locked" : ""}`} onSubmit={requestNicknameSave}>
                         <label htmlFor="student-settings-nickname">公開暱稱</label>
                         <div>

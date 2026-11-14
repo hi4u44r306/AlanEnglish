@@ -1,0 +1,32 @@
+.nickname-change-notice {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px 12px;
+    margin: 0 0 14px;
+    padding: 12px 14px;
+    border: 1px solid #f0c36d;
+    border-radius: 14px;
+    background: #fff6dc;
+    color: #5c3b04;
+
+    svg { flex: 0 0 auto; width: 22px; height: 22px; }
+
+    div { display: grid; flex: 1 1 200px; min-width: 0; gap: 2px; }
+    strong { font-size: 15px; font-weight: 900; }
+    span { overflow-wrap: anywhere; font-size: 13px; line-height: 1.5; }
+
+    a {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 44px;
+        padding: 0 16px;
+        border-radius: 12px;
+        background: #1f3b73;
+        color: #fff;
+        font-size: 14px;
+        font-weight: 800;
+        text-decoration: none;
+    }
+}

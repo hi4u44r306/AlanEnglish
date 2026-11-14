@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { REWARD_SHOP_ENABLED } from "../../constants/rewardShop";
-import { FiGift, FiRefreshCw, FiSettings, FiStar, FiTrendingUp } from "react-icons/fi";
+import { FiGift, FiRefreshCw, FiSettings, FiStar, FiTrendingUp, FiUser } from "react-icons/fi";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useAuth } from "../../auth/AuthContext";
@@ -8,6 +8,7 @@ import { cacheStudentAvatarDisplayUrl } from "../../constants/studentAvatarCache
 import { getStudentAvatarDisplayUrl } from "../../constants/defaultStudentAvatars";
 import { useCachedStudentAvatarUrl } from "../../hooks/useCachedStudentAvatarUrl";
 import StudentAvatarImage from "../fragment/StudentAvatarImage";
+import NicknameChangeNotice from "../fragment/NicknameChangeNotice";
 import {
     getGamificationClasses,
     getGamificationLeaderboard,
@@ -24,7 +25,6 @@ const PERIODS = [
     { value: "all", label: "總排行" }
 ];
 
-const getInitial = name => String(name || "A").trim().charAt(0).toUpperCase() || "A";
 const formatNumber = value => Number(value || 0).toLocaleString("zh-TW");
 
 function LearningLeaderboard() {
@@ -58,7 +58,7 @@ function LearningLeaderboard() {
         if (!firebaseUser) return;
         // Students see the last ranking they loaded at once, then the fresh one replaces it.
         const cacheScope = isStudent ? studentPageScope(firebaseUser, role, studentProfile) : "";
-        const cacheKey = `leaderboard:${leaderboardScope}:${period}`;
+        const cacheKey = `leaderboard-v2:${leaderboardScope}:${period}`;
         const cached = cacheScope ? readStudentPageCache(cacheScope, cacheKey)?.value : null;
         if (cached) setData(cached);
         silent || cached ? setRefreshing(true) : setLoading(true);
@@ -159,12 +159,14 @@ function LearningLeaderboard() {
                 </div>
             </section>
 
+            {isStudent && summary?.profile?.nickname_needs_change && <NicknameChangeNotice linkToSettings />}
+
             {isStudent && summary && (
                 <section className="gamification-me-card">
                     <div className="gamification-avatar-wrap">
                         {cachedAvatarUrl
                             ? <StudentAvatarImage className="gamification-avatar gamification-avatar--large" src={getStudentAvatarDisplayUrl(cachedAvatarUrl, 240)} alt={`${summary.profile?.nickname || summary.profile?.name || "學生"} 的排行榜照片`} />
-                            : <div className="gamification-avatar gamification-avatar--large gamification-avatar--fallback">{getInitial(summary.profile?.nickname || summary.profile?.name)}</div>}
+                            : <div className="gamification-avatar gamification-avatar--large gamification-avatar--fallback"><FiUser aria-hidden="true" /></div>}
                     </div>
                     <div className="gamification-me-card__identity">
                         <span>我的學習角色</span>
@@ -213,12 +215,12 @@ function LearningLeaderboard() {
                                     <div className="gamification-row-avatar">
                                         {row.avatar_url
                                             ? <StudentAvatarImage className="gamification-avatar" src={getStudentAvatarDisplayUrl(row.avatar_url, 128)} alt="" />
-                                            : <div className="gamification-avatar gamification-avatar--fallback">{getInitial(row.nickname || row.student_name)}</div>}
+                                            : <div className="gamification-avatar gamification-avatar--fallback"><FiUser aria-hidden="true" /></div>}
                                     </div>
                                     <div className="gamification-student-copy">
-                                        <strong>{row.nickname || row.student_name}{row.is_current_user ? " · 你" : ""}</strong>
-                                        {row.nickname && row.student_name && row.nickname !== row.student_name && (
-                                            <span className="gamification-student-original">原名：{row.student_name}</span>
+                                        <strong>{row.display_name || row.student_name || "同學"}{row.is_current_user ? " · 你" : ""}</strong>
+                                        {row.nickname && (
+                                            <span className="gamification-student-original">暱稱：{row.nickname}</span>
                                         )}
                                         <span>{row.class_name ? `${row.class_name} 班` : "Alan English"} · Lv.{row.level || 1}</span>
                                     </div>

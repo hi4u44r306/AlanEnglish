@@ -50,9 +50,9 @@
     "test:listening-rewards-contracts": "node --test scripts/listening-rewards-contract.test.mjs",
     "test:academy-assignment-v2": "node --test scripts/academy-assignment-v2-contract.test.mjs",
     "test:learning-streak": "node --experimental-strip-types --test scripts/learning-streak.test.mjs",
-    "test:security-handlers": "node --experimental-strip-types --test scripts/security-access-handlers.test.mjs scripts/security-listening-handler.test.mjs scripts/assignment-isolation-handler.test.mjs scripts/activation-code-handler.test.mjs scripts/speaking-challenge-gates-handler.test.mjs scripts/speaking-challenge-progression.test.mjs",
+    "test:security-handlers": "node --experimental-strip-types --test scripts/security-access-handlers.test.mjs scripts/security-listening-handler.test.mjs scripts/assignment-isolation-handler.test.mjs scripts/activation-code-handler.test.mjs scripts/speaking-challenge-gates-handler.test.mjs scripts/speaking-challenge-progression.test.mjs scripts/gamification-leaderboard-scope.test.mjs scripts/nickname-moderation.test.mjs",
     "test:textbook-speaking-generator": "node --test scripts/textbook-speaking-generator-contract.test.mjs",
-    "test:student-social": "node --test scripts/student-social-contract.test.mjs",
+    "test:student-social": "node --test",
     "test:academy-class-change": "node --test scripts/academy-class-change-sql.test.mjs",
     "test:weekly-attention": "node --experimental-strip-types --test scripts/weekly-attention.test.mjs",
 

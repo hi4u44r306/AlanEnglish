@@ -44,7 +44,7 @@ export default function useStudentWarmup(catalog) {
             .slice(0, MAX_BOOKS)
             .filter(code => !readStudentPageCache(scope, `book:${code}`));
         const rankingScope = studentProfile?.class ? "class" : "overall";
-        const rankingKey = `leaderboard:${rankingScope}:week`;
+        const rankingKey = `leaderboard-v2:${rankingScope}:week`;
         const needsRanking = !readStudentPageCache(scope, rankingKey);
         if (!codes.length && !needsRanking) return undefined;
         const handle = idle(async () => {
