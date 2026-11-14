@@ -4,6 +4,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import { createGuardianNotificationDraft, getTeacherStudentActivity } from "../../services/learningActivityService";
+import { listWeeklyOptOuts, reenableWeeklyReport } from "../../services/guardianWeeklyUnsubscribeService";
 import ManagementDashboard from "./ManagementDashboard";
 
 jest.mock("../../auth/AuthContext", () => ({
@@ -17,8 +18,14 @@ jest.mock("../../services/learningActivityService", () => ({
     upsertGuardianContact: jest.fn()
 }));
 
+jest.mock("../../services/guardianWeeklyUnsubscribeService", () => ({
+    listWeeklyOptOuts: jest.fn(),
+    reenableWeeklyReport: jest.fn()
+}));
+
 describe("ManagementDashboard", () => {
     beforeEach(() => {
+        listWeeklyOptOuts.mockResolvedValue({ opted_out: [] });
         useAuth.mockReturnValue({
             role: "admin",
             studentProfile: { name: "管理員" },
@@ -88,6 +95,32 @@ describe("ManagementDashboard", () => {
         const emailInput = await screen.findByLabelText(/家長 Email（尚未驗證）/);
         expect(emailInput).toHaveAttribute("readonly");
         expect(screen.getByText(/變更須由管理員驗證/)).toBeInTheDocument();
+    });
+
+    test("家長在週報信裡取消後，編輯畫面顯示提示，老師可以重新開啟", async () => {
+        const { students } = await getTeacherStudentActivity();
+        getTeacherStudentActivity.mockResolvedValue({ students: [{ ...students[0], guardian: { email: "parent@example.invalid", email_verified_at: "2026-10-01T00:00:00Z", notification_enabled: true } }] });
+        listWeeklyOptOuts.mockResolvedValue({ opted_out: [{ student_id: 101, opted_out_at: "2026-11-14T02:00:00Z" }] });
+        reenableWeeklyReport.mockResolvedValue({ status: "re_enabled" });
+        render(<MemoryRouter><ManagementDashboard /></MemoryRouter>);
+
+        fireEvent.click(await screen.findByRole("button", { name: /已設定/ }));
+        expect(await screen.findByText(/家長已在週報信裡取消每週學習週報/)).toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "重新開啟每週週報" }));
+        expect(await screen.findByText("已重新開啟每週學習週報")).toBeInTheDocument();
+        expect(reenableWeeklyReport).toHaveBeenCalledWith({ uid: "admin-test-uid" }, 101);
+        expect(screen.queryByText(/家長已在週報信裡取消每週學習週報/)).not.toBeInTheDocument();
+    });
+
+    test("讀不到取消名單時學生列表照常顯示、不顯示取消提示", async () => {
+        const { students } = await getTeacherStudentActivity();
+        getTeacherStudentActivity.mockResolvedValue({ students: [{ ...students[0], guardian: { email: "parent@example.invalid", notification_enabled: true } }] });
+        listWeeklyOptOuts.mockRejectedValue(new Error("boom"));
+        render(<MemoryRouter><ManagementDashboard /></MemoryRouter>);
+
+        fireEvent.click(await screen.findByRole("button", { name: /已設定/ }));
+        await screen.findByLabelText(/家長 Email/);
+        expect(screen.queryByText(/家長已在週報信裡取消/)).not.toBeInTheDocument();
     });
 
     test("還沒有家長 Email 時可以第一次填入", async () => {

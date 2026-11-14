@@ -397,7 +397,7 @@ Deno.serve(async (req: Request) => {
           .eq("scenario_key", "meet-a-foreigner"), "student_id"),
         scoped(admin
           .from("guardian_contacts")
-          .select("id, student_id, guardian_name, email, email_verified_at, phone, preferred_channel, notification_enabled, weekly_report_opted_out_at, updated_at"), "student_id"),
+          .select("id, student_id, guardian_name, email, email_verified_at, phone, preferred_channel, notification_enabled, updated_at"), "student_id"),
         scoped(admin
           .from("student_track_progress")
           .select("student_id, completed, last_played_at"), "student_id")
@@ -487,29 +487,11 @@ Deno.serve(async (req: Request) => {
       const { data: guardian, error } = await admin
         .from("guardian_contacts")
         .upsert(guardianPayload, { onConflict: "student_id" })
-        .select("id, student_id, guardian_name, email, email_verified_at, phone, preferred_channel, notification_enabled, weekly_report_opted_out_at, updated_at")
+        .select("id, student_id, guardian_name, email, email_verified_at, phone, preferred_channel, notification_enabled, updated_at")
         .single();
 
       if (error) return json(500, { error: "儲存家長資料失敗" });
       return json(200, { success: true, guardian });
-    }
-
-    // 家長在週報信裡取消每週週報後，由老師或管理員（限自己負責的班級）重新開啟。
-    if (action === "guardian_weekly_reenable") {
-      if (!["teacher", "admin"].includes(account.role)) {
-        return json(403, { error: "只有 Teacher / Admin 可以重新開啟家長週報" });
-      }
-      const studentId = Number(body?.student_id);
-      if (!Number.isInteger(studentId) || studentId <= 0) return json(400, { error: "student_id 不正確" });
-      if (!await canManageStudent(admin, account, studentId)) {
-        return json(403, { error: "只能管理自己負責班級的學生" });
-      }
-      const { data, error } = await admin.rpc("guardian_weekly_report_re_enable", {
-        p_student_id: studentId,
-        p_actor_id: account.id
-      });
-      if (error) return json(500, { error: "重新開啟失敗" });
-      return json(200, { success: true, status: data?.status || "not_opted_out" });
     }
 
     if (action === "notification_draft") {

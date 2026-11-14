@@ -1,13 +1,14 @@
 # Alan English 專案狀態
 
-### 家長一鍵取消每週週報（2026-11-14，分支 `feature/guardian-weekly-unsubscribe`；程式與測試完成、**尚未部署**）
+### 家長一鍵取消每週週報（2026-11-14，分支 `feature/guardian-weekly-unsubscribe`、PR #667；資料庫與後端已部署，前端待合併）
 
-- 前一批「週報單字累計」（PR #666）已合併並部署：`weekly-report` v54 逐檔比對相同；`guardian-email` 重新部署為 v61（修正一個註解錯字）。
-- 本批：週報信最下方有取消連結；點開先確認、按按鈕才取消；取消後批次與單封寄送都跳過；老師／管理員在管理首頁可重新開啟。設計細節見 `PROJECT_LOGIC.md`。
-- 檔案：新增 migration `20261113100000_guardian_weekly_unsubscribe.sql`、`supabase/functions/guardian-weekly-unsubscribe/`、`_shared/guardian-weekly-unsubscribe-token.ts`、`WeeklyReportUnsubscribe.jsx`、`guardianWeeklyUnsubscribeService.js`、三個測試檔；修改 `guardian-email`、`weekly-report`、`learning-activity`、`ManagementDashboard.jsx`、`App.jsx`、`config.toml`。
-- 驗證：Node 27 項（簽章、migration 在記憶體 PostgreSQL 實跑、接線）；畫面 32 項；ESLint 乾淨。
-- 部署順序（每一步都要擁有者同意）：① 擁有者在 Supabase 後台建立密鑰 `GUARDIAN_UNSUBSCRIBE_SECRET`（只給名稱、不貼值）② 先試跑 migration（強制回滾）再正式套用 ③ 部署 `guardian-weekly-unsubscribe`、`guardian-email`、`weekly-report`、`learning-activity`（各自部署後逐檔比對）④ 合併前端 PR、等 Cloudflare 建置 ⑤ 用測試學生實測整條流程。回復：重新部署上一版函式；migration 只新增，可保留不動。
-- 已知：未設定密鑰時，信裡不放取消連結、取消頁回「服務暫時無法使用」，其餘照舊。家長自動寄送目前仍是關閉的，請勿開啟。
+- 前一批「週報單字累計」（PR #666）已合併並部署：`weekly-report` v54 逐檔比對相同；`guardian-email` 後續更新為 v63（含本批）。
+- 本批：週報信最下方有取消連結；點開先確認、按按鈕才取消；取消後批次與單封寄送都跳過；管理首頁可看到並重新開啟。設計細節見 `PROJECT_LOGIC.md`。
+- 已部署（擁有者逐步同意）：migration `20261113100000_guardian_weekly_unsubscribe`（先在正式庫強制回滾試跑）；密鑰 `GUARDIAN_UNSUBSCRIBE_SECRET`（擁有者自建）；`guardian-weekly-unsubscribe` v2、`guardian-email` v63。未改 `learning-activity`、`weekly-report`。
+- 驗證：Node 測試 27 項（簽章、migration 在記憶體 PostgreSQL 實跑、接線）；畫面測試；ESLint；部署後黑箱：假連結一律 `invalid`、管理入口無登入 401、偽造 token 401、`guardian-email` 無授權 401／排程 403。
+- 尚未驗證：用真實家長信的簽章連結走完整流程（需要寄出真實信件或取得密鑰，皆未做）；`guardian-email` 這次部署沒有做逐位元比對（手抄；已把原始碼中一行 `!x.includes()` 改成與線上相同的 `x.includes() === false`）。
+- 待做：合併 #667 前端（取消確認頁、管理首頁提示）並等 Cloudflare 建置；之後用測試學生走一次完整流程。
+- 已知：未設定密鑰時信裡不放取消連結；家長自動寄送目前仍是關閉的，請勿開啟。老師手動複製家長文字不會因取消而擋下。
 
 ### 連續學習天數與徽章（2026-11-12，分支 `feature/streak-badges`、PR #665；前端尚未合併，後端 get-dashboard-stats 已部署）
 

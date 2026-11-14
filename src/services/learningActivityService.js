@@ -71,11 +71,6 @@ export const upsertGuardianContact = (firebaseUser, payload) => callLearningActi
     ...payload
 });
 
-export const reenableGuardianWeeklyReport = (firebaseUser, studentId) => callLearningActivity(firebaseUser, {
-    action: "guardian_weekly_reenable",
-    student_id: studentId
-});
-
 export const createGuardianNotificationDraft = (firebaseUser, studentId) => callLearningActivity(firebaseUser, {
     action: "notification_draft",
     student_id: studentId

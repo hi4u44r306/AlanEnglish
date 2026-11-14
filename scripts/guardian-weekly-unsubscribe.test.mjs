@@ -53,7 +53,7 @@ const read = path => readFileSync(new URL(path, import.meta.url), "utf8");
 
 test("the public function only checks on preview, changes data only on confirm, and never returns personal data", () => {
     const src = read("../supabase/functions/guardian-weekly-unsubscribe/index.ts");
-    assert.match(src, /\["preview", "confirm"\]\.includes\(action\)/);
+    assert.match(src, /\["preview", "confirm", "admin_list", "admin_reenable"\]\.includes\(action\)/);
     const beforeRpc = src.slice(0, src.indexOf('.rpc("guardian_weekly_report_opt_out"'));
     assert.match(beforeRpc, /if \(action === "preview"\) \{[\s\S]*return json/);
     assert.match(src, /p_source: "email_link"/);
@@ -72,10 +72,14 @@ test("the weekly email links to the page, skips opted-out parents, and keeps the
     assert.match(src, /guardian-weekly:\$\{student\.id\}:\$\{weekStart\}/);
 });
 
-test("teachers can only re-enable inside their own classes, and the weekly draft respects the opt-out", () => {
-    const src = read("../supabase/functions/learning-activity/index.ts");
-    const block = src.slice(src.indexOf('action === "guardian_weekly_reenable"'), src.indexOf('action === "notification_draft"'));
-    assert.match(block, /canManageStudent\(admin, account, studentId\)/);
-    assert.match(block, /\["teacher", "admin"\]\.includes\(account\.role\)/);
-    assert.match(read("../supabase/functions/weekly-report/index.ts"), /report\.guardian\.weekly_opted_out/);
+test("only a signed-in teacher or admin can list or re-enable, and teachers stay inside their own classes", () => {
+    const src = read("../supabase/functions/guardian-weekly-unsubscribe/index.ts");
+    const block = src.slice(src.indexOf('if (action === "admin_list" || action === "admin_reenable")'), src.indexOf("if (!secret) return json(503"));
+    assert.match(block, /verifyFirebaseIdToken\(idToken\)/);
+    assert.match(block, /\["teacher", "admin"\]\.includes\(caller\.role\)/);
+    assert.match(block, /getManagedStudentIds\(admin, caller\)/);
+    assert.match(block, /canManageStudent\(admin, caller, studentId\)/);
+    assert.match(block, /p_actor_id: caller\.id/);
+    // 管理入口不需要密鑰；公開入口才需要。
+    assert.ok(src.indexOf("if (!secret) return json(503") > src.indexOf("admin_reenable"));
 });

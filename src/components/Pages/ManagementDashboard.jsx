@@ -5,9 +5,9 @@ import {
     createGuardianNotificationDraft,
     getTeacherStudentActivity,
     markGuardianNotificationSent,
-    reenableGuardianWeeklyReport,
     upsertGuardianContact
 } from "../../services/learningActivityService";
+import { listWeeklyOptOuts, reenableWeeklyReport } from "../../services/guardianWeeklyUnsubscribeService";
 import "./css/ManagementDashboard.scss";
 import "./css/ManagementActivity.scss";
 
@@ -83,7 +83,22 @@ function ManagementDashboard() {
 
         try {
             const result = await getTeacherStudentActivity(firebaseUser);
-            setStudents(result?.students || []);
+            const loaded = result?.students || [];
+            setStudents(loaded);
+            // 家長在週報信裡取消的名單另外讀取；讀不到只是不顯示提示，不影響學生列表。
+            try {
+                const optOuts = await listWeeklyOptOuts(firebaseUser);
+                const optedOutAt = new Map((optOuts?.opted_out || []).map(item => [item.student_id, item.opted_out_at]));
+                if (optedOutAt.size > 0) {
+                    setStudents(loaded.map(student => (
+                        optedOutAt.has(student.id) && student.guardian
+                            ? { ...student, guardian: { ...student.guardian, weekly_report_opted_out_at: optedOutAt.get(student.id) } }
+                            : student
+                    )));
+                }
+            } catch (optOutError) {
+                console.error("讀取家長週報取消名單失敗:", optOutError);
+            }
         } catch (error) {
             console.error("讀取學生學習後台失敗:", error);
             setErrorMessage(error.message || "學生學習資料讀取失敗");
@@ -156,7 +171,7 @@ function ManagementDashboard() {
         setGuardianSaving(true);
         setNoticeMessage("");
         try {
-            await reenableGuardianWeeklyReport(firebaseUser, studentId);
+            await reenableWeeklyReport(firebaseUser, studentId);
             setStudents(previous => previous.map(student => (
                 student.id === studentId && student.guardian
                     ? { ...student, guardian: { ...student.guardian, weekly_report_opted_out_at: null } }

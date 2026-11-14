@@ -437,7 +437,7 @@ Deno.serve(async (req: Request) => {
                 .eq("firebase_uid", uid)
                 .maybeSingle();
             if (error) throw error;
-            if (!data || !["teacher", "admin"].includes(data.role)) {
+            if (!data || ["teacher", "admin"].includes(data.role) === false) {
                 return json(403, { error: "只有教師或管理員可以寄送家長週報" });
             }
             caller = data;
