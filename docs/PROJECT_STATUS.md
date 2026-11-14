@@ -1,5 +1,15 @@
 # Alan English 專案狀態
 
+### 單字島（2026-11-14，分支 `feature/word-island`；程式與測試完成、**尚未部署、尚未開 PR**）
+
+- 來源：擁有者想做類似 PaGamO 的佔領地盤遊戲，限縮成最小版：看中文拼英文、答對佔領一格、整座島佔滿解鎖下一座；給所有學生；一次只顯示一座島（不顯示島的清單）。
+- 擁有者決定：冷卻「隔天」（台北時間）；在單字大挑戰學會的字自動佔領對應格子；佔領過的字再答錯不取消、只標「待複習」；每格只答一次；與單字大挑戰共用每天 60 輪；會員過期維持本機模式；部署 Edge Function 前要再取得同意。
+- 後端：只改 `word-challenge` Edge Function（`_shared/word-challenge-handler.ts` 新增 `island_summary`／`island_start`、`answer` 加冷卻檢查；新增 `_shared/word-challenge-island.ts`）。**沒有 migration**。部署時 Function 要多帶 `word-challenge-island.ts`，部署後立刻逐檔比對。回復：把 `word-challenge` 重新部署成 main 上的版本。
+- 前端：`WordIsland.jsx`／`.scss`、`utils/wordIsland.js`、`wordChallengeService.js` 加兩個函式、`WordChallenge.jsx` 顯示「剛看過答案」提示、`App.jsx` 加 `/word-island`（公開、本機）與 `/student/word-island`。
+- 驗證：Edge 處理程式＋真實 PostgreSQL（PGlite）10 項（含舊漏洞回歸、隔天重開、島的解鎖）；前後端一致性 4 項；畫面 25 項（單字島 11、單字挑戰 14）；ESLint 乾淨。
+- 尚未驗證：Edge Function 尚未部署，伺服器模式沒有真實連線測過；正式資料庫是否已有靠舊漏洞產生的「已學會」紀錄沒查（目前只有 Test 2 是伺服器模式，影響應該很小）；在校生 `is_active` 是否一定為 true 沒核對；未用 iPhone 實機測。
+- 待做：取得部署同意後部署並比對；入口（「大挑戰」頁加單字島卡片、導覽）尚未加；單字島 XP、分開計每日輪數、開放全部學生（`WORD_CHALLENGE_SERVER_ALL`）都是之後各自要擁有者同意的後續。
+
 ### 排行榜列美化（2026-11-14，分支 `feature/leaderboard-row-polish`；程式完成、**尚未合併、`gamification` 尚未重新部署**）
 
 - 擁有者看了手機畫面：名字太小、「Alan English · Lv.1」沒意義、「○」太小。改：名字 19px／17px、Lv 與班級改成垂直置中的標籤、遮罩改全形「〇」（U+3007，只改 `_shared/gamification-leaderboard.ts`，需重新部署 `gamification`）。測試字串同步更新。

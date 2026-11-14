@@ -35,6 +35,12 @@ const admin = {
         const builder = {
             select(list) { columns = list; return builder; },
             eq(column, value) { filters.push([column, value]); return builder; },
+            // 不接 maybeSingle，直接 await：回傳符合條件的全部列（單字島讀整份進度）。
+            then(resolve) {
+                const where = filters.map(([column], index) => `${column} = $${index + 1}`).join(" and ");
+                db.query(`select ${columns} from public.${table} where ${where}`, filters.map(([, value]) => value))
+                    .then(result => resolve({ data: result.rows, error: null }), error => resolve({ data: null, error: { message: String(error.message) } }));
+            },
             async maybeSingle() {
                 const where = filters.map(([column], index) => `${column} = $${index + 1}`).join(" and ");
                 try {
@@ -49,7 +55,7 @@ const admin = {
     }
 };
 
-const STUDENTS = { "student-1": { id: 1, role: "student" }, "teacher-2": { id: 2, role: "teacher" }, "student-5": { id: 5, role: "student" }, "student-7": { id: 7, role: "student" } };
+const STUDENTS = { "student-1": { id: 1, role: "student" }, "teacher-2": { id: 2, role: "teacher" }, "student-5": { id: 5, role: "student" }, "student-7": { id: 7, role: "student" }, "student-8": { id: 8, role: "student" }, "student-9": { id: 9, role: "student" } };
 const EXPIRED = new Set([7]);
 const makeDeps = (overrides = {}) => ({
     admin,
@@ -81,7 +87,7 @@ before(async () => {
         create table public.student_feature_rollouts (student_id bigint not null, feature_key text not null, enabled boolean not null default false, primary key (student_id, feature_key),
             constraint student_feature_rollouts_key_check check (feature_key in ('listening_rewards_v2','assignment_v2')));
         create table public.students (id bigint primary key, role text not null, account_status text, archived_at timestamptz);
-        insert into public.students values (1,'student','active',null),(2,'teacher','active',null),(5,'student','active',null),(7,'student','active',null);
+        insert into public.students values (1,'student','active',null),(2,'teacher','active',null),(5,'student','active',null),(7,'student','active',null),(8,'student','active',null),(9,'student','active',null);
         create table public.student_gamification_balances (student_id bigint primary key references public.students(id), total_xp integer not null default 0, points_balance integer not null default 0, updated_at timestamptz default now());
         create table public.student_gamification_ledger (id bigserial primary key, student_id bigint not null, xp_delta integer not null, points_delta integer not null default 0, source_type text not null, source_key text not null, description text, metadata jsonb not null default '{}'::jsonb, created_at timestamptz not null default now(), unique (student_id, source_type, source_key));
         create function private.ae_gamification_grant_v2(p_student_id bigint, p_xp_delta integer, p_points_delta integer, p_source_type text, p_source_key text, p_description text default null, p_metadata jsonb default '{}'::jsonb)
@@ -98,7 +104,7 @@ before(async () => {
     `);
     await db.exec(migration);
     // 學生 1、5、7 被逐一開放；老師 2 也有資料列但不是學生。
-    await db.exec("insert into public.student_feature_rollouts values (1,'word_challenge_server_v1',true),(5,'word_challenge_server_v1',true),(7,'word_challenge_server_v1',true),(2,'word_challenge_server_v1',true)");
+    await db.exec("insert into public.student_feature_rollouts values (1,'word_challenge_server_v1',true),(5,'word_challenge_server_v1',true),(7,'word_challenge_server_v1',true),(8,'word_challenge_server_v1',true),(9,'word_challenge_server_v1',true),(2,'word_challenge_server_v1',true)");
 });
 after(async () => { await db.close(); });
 
@@ -234,4 +240,117 @@ test("database failures become a generic 500 without leaking details", async () 
     const response = await call("student-1", { action: "summary" }, makeDeps({ admin: broken }));
     assert.equal(response.status, 500);
     assert.doesNotMatch(JSON.stringify(response.json), /10\.0\.0\.1|secret|abc/);
+});
+
+// ---------- 單字島 ----------
+const ISLAND_SIZE = 16;
+const level1 = WORD_BANK.filter(word => word.level === 1);
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+test("island_summary shows every island of a level, only the first is open, and never leaks an unclaimed English word", async () => {
+    const summary = await call("student-8", { action: "island_summary", level: 1 });
+    assert.equal(summary.status, 200);
+    assert.equal(summary.json.mode, "server");
+    const islands = summary.json.islands;
+    assert.equal(islands.length, Math.ceil(level1.length / ISLAND_SIZE));
+    assert.equal(islands[0].unlocked, true);
+    assert.ok(islands.slice(1).every(island => island.unlocked === false));
+    assert.equal(islands[0].tiles.length, ISLAND_SIZE);
+    assert.ok(islands[0].tiles.every(tile => tile.state === "open"));
+    assert.ok(islands[1].tiles.every(tile => tile.state === "locked"));
+    const raw = JSON.stringify(summary.json);
+    for (const forbidden of ['"display"', '"key"', '"word_key"']) assert.equal(raw.includes(forbidden), false, forbidden);
+    const values = [];
+    JSON.stringify(summary.json, (key, value) => { if (typeof value === "string") values.push(value.toLowerCase()); return value; });
+    for (const word of level1.filter(item => item.display.length > 3)) assert.equal(values.includes(word.display.toLowerCase()), false, word.key);
+    assert.equal((await call("student-8", { action: "island_summary", level: 0 })).status, 400);
+    assert.equal((await call("student-8", { action: "island_summary", level: 7 })).status, 400);
+});
+
+test("island_start refuses locked, invalid, claimed and local-mode requests; a correct answer claims the tile", async () => {
+    assert.equal((await call("student-8", { action: "island_start", level: 1, island: 1, tile: 0 })).json.code, "island_locked");
+    for (const bad of [{ island: 99, tile: 0 }, { island: 0, tile: 16 }, { island: 0, tile: -1 }, { island: "x", tile: 0 }]) {
+        assert.equal((await call("student-8", { action: "island_start", level: 1, ...bad })).json.code, "invalid_tile", JSON.stringify(bad));
+    }
+    assert.equal((await call("student-8", { action: "island_start", level: 0, island: 0, tile: 0 })).status, 400);
+    assert.equal((await call("teacher-2", { action: "island_start", level: 1, island: 0, tile: 0 })).status, 403);
+    assert.equal((await call("student-7", { action: "island_start", level: 1, island: 0, tile: 0 })).json.code, "server_mode_off");
+    assert.equal((await call("teacher-2", { action: "island_summary", level: 1 })).json.mode, "local");
+    assert.equal((await call("student-7", { action: "island_summary", level: 1 })).json.mode, "local");
+
+    const start = await call("student-8", { action: "island_start", level: 1, island: 0, tile: 0 });
+    assert.equal(start.status, 200);
+    assert.equal(start.json.question.gloss, level1[0].gloss);
+    assert.equal(JSON.stringify(start.json).includes('"display"'), false);
+    const answer = await call("student-8", { action: "answer", round_id: start.json.round_id, position: 0, typed: level1[0].display });
+    assert.deepEqual([answer.json.correct, answer.json.hint_count, answer.json.recently_seen, answer.json.cooldown_until], [true, 0, false, null]);
+
+    const summary = await call("student-8", { action: "island_summary", level: 1 });
+    const claimed = summary.json.islands[0].tiles[0];
+    assert.deepEqual([claimed.state, claimed.display], ["claimed", level1[0].display]);
+    assert.equal(summary.json.islands[0].claimed_count, 1);
+    assert.equal((await call("student-8", { action: "island_start", level: 1, island: 0, tile: 0 })).json.code, "tile_claimed");
+});
+
+test("a wrong answer cools the tile until tomorrow, and seeing the answer then typing it never counts (old loophole closed)", async () => {
+    const target = level1[1];
+    const start = await call("student-8", { action: "island_start", level: 1, island: 0, tile: 1 });
+    const wrong = await call("student-8", { action: "answer", round_id: start.json.round_id, position: 0, typed: "zzzz" });
+    assert.equal(wrong.json.correct, false);
+    assert.equal(wrong.json.expected, target.display);
+    assert.ok(wrong.json.cooldown_until);
+
+    const summary = await call("student-8", { action: "island_summary", level: 1 });
+    const tile = summary.json.islands[0].tiles[1];
+    assert.deepEqual([tile.state, tile.review], ["cooldown", true]);
+    assert.ok(tile.cooldown_until);
+    assert.equal((await call("student-8", { action: "island_start", level: 1, island: 0, tile: 1 })).json.code, "tile_cooldown");
+
+    // 舊漏洞：答錯看到答案後，用「練最近錯的字」馬上打對。現在要被當成「剛看過答案」，不算學會。
+    const practice = await call("student-8", { action: "start_round", level: 0 });
+    const position = practice.json.questions.findIndex(question => question.gloss === target.gloss);
+    assert.ok(position >= 0);
+    const retry = await call("student-8", { action: "answer", round_id: practice.json.round_id, position, typed: target.display });
+    assert.equal(retry.json.correct, true);
+    assert.equal(retry.json.recently_seen, true);
+    assert.equal(retry.json.hint_count, 1);
+    const stillOpen = await call("student-8", { action: "island_summary", level: 1 });
+    assert.equal(stillOpen.json.islands[0].tiles[1].state, "cooldown", "still not claimed the same day");
+    const row = await db.query("select first_mastered_at from public.student_word_progress where student_id = 8 and word_key = $1", [target.key]);
+    assert.equal(row.rows[0].first_mastered_at, null);
+
+    // 隔天（台北時間）：格子重新打開，答對才算佔領，而且不是「剛看過答案」。
+    const tomorrow = makeDeps({ now: () => Date.now() + DAY_MS + 60 * 1000 });
+    const reopened = await call("student-8", { action: "island_summary", level: 1 }, tomorrow);
+    assert.equal(reopened.json.islands[0].tiles[1].state, "open");
+    const again = await call("student-8", { action: "island_start", level: 1, island: 0, tile: 1 }, tomorrow);
+    assert.equal(again.status, 200);
+    const win = await call("student-8", { action: "answer", round_id: again.json.round_id, position: 0, typed: target.display }, tomorrow);
+    assert.deepEqual([win.json.correct, win.json.recently_seen, win.json.hint_count], [true, false, 0]);
+    const claimed = await call("student-8", { action: "island_summary", level: 1 }, tomorrow);
+    assert.equal(claimed.json.islands[0].tiles[1].state, "claimed");
+});
+
+test("the next island opens only after every tile of the previous one is claimed", async () => {
+    const keys = level1.slice(0, ISLAND_SIZE).map(word => word.key);
+    const insert = "insert into public.student_word_progress (student_id, bank_version, word_key, status, first_mastered_at, last_correct_at, correct_count) select 9, 'v1', k, 'mastered', now(), now(), 1 from unnest($1::text[]) as k";
+    await db.query(insert, [toPgArray(keys.slice(0, ISLAND_SIZE - 1))]);
+    let summary = await call("student-9", { action: "island_summary", level: 1 });
+    assert.equal(summary.json.islands[0].claimed_count, ISLAND_SIZE - 1);
+    assert.equal(summary.json.islands[1].unlocked, false);
+    assert.equal((await call("student-9", { action: "island_start", level: 1, island: 1, tile: 0 })).json.code, "island_locked");
+
+    await db.query(insert, [toPgArray([keys[ISLAND_SIZE - 1]])]);
+    summary = await call("student-9", { action: "island_summary", level: 1 });
+    assert.equal(summary.json.islands[1].unlocked, true);
+    assert.equal(summary.json.islands[2].unlocked, false);
+    const open = await call("student-9", { action: "island_start", level: 1, island: 1, tile: 0 });
+    assert.equal(open.status, 200);
+    assert.equal(open.json.question.gloss, level1[ISLAND_SIZE].gloss);
+
+    // 學會過的字之後又答錯：仍然算佔領（只標「待複習」），不會被收回。
+    await db.query("update public.student_word_progress set status = 'missed', last_missed_at = now() where student_id = 9 and word_key = $1", [keys[0]]);
+    summary = await call("student-9", { action: "island_summary", level: 1 });
+    assert.deepEqual([summary.json.islands[0].tiles[0].state, summary.json.islands[0].tiles[0].review], ["claimed", true]);
+    assert.equal(summary.json.islands[1].unlocked, true);
 });

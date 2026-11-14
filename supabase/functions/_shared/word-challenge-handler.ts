@@ -12,6 +12,7 @@ import {
     pickRoundWords,
     toRoundQuestion
 } from "./word-challenge-round.ts";
+import { buildIslandViews, inCooldown, nextTaipeiMidnightIso, tileWord, type ProgressRow } from "./word-challenge-island.ts";
 
 export const ROLLOUT_FEATURE_KEY = "word_challenge_server_v1";
 
@@ -22,6 +23,8 @@ export type WordChallengeDeps = {
     loadAccess: (studentId: number) => Promise<{ is_active: boolean }>;
     serverForAll: boolean;
     random?: () => number;
+    // 現在的時間（毫秒）。測試用；沒給就用真的時間。
+    now?: () => number;
 };
 
 const corsHeaders = {
@@ -60,6 +63,17 @@ const DB_ERRORS: Record<string, [number, string, string]> = {
     WORD_CHALLENGE_INVALID_LEVEL: [400, "invalid_level", "等級不正確"],
     WORD_CHALLENGE_INVALID_WORDS: [400, "invalid_words", "題目不正確"],
     WORD_CHALLENGE_INVALID_NOTE: [400, "invalid_note", "資料不正確"]
+};
+
+// 單字島與冷卻用：讀這位學生每個字的進度（一個字庫最多 672 列，不會超過查詢上限）。
+const readProgress = async (deps: WordChallengeDeps, student: WordChallengeStudent): Promise<ProgressRow[]> => {
+    const { data, error } = await deps.admin
+        .from("student_word_progress")
+        .select("word_key,status,first_mastered_at,last_missed_at")
+        .eq("student_id", student.id)
+        .eq("bank_version", WORD_BANK_VERSION);
+    if (error) throw error;
+    return Array.isArray(data) ? data : [];
 };
 
 const rpc = async (admin: any, name: string, args: Record<string, unknown>) => {
@@ -146,7 +160,49 @@ export async function handleWordChallengeRequest(req: Request, deps: WordChallen
             return respond(200, { mode: "server", bank_version: WORD_BANK_VERSION, ...summary });
         }
 
+        const nowMs = (deps.now ?? Date.now)();
+
+        // 單字島：整個等級的格子狀態。非伺服器模式回 local（前端改用本機進度）。
+        if (action === "island_summary") {
+            const level = Number(body?.level);
+            if (!Number.isInteger(level) || level < 1 || level > 6) throw new HttpError(400, "invalid_level", "等級不正確");
+            if (!await serverModeFor(deps, student)) return respond(200, { mode: "local", bank_version: WORD_BANK_VERSION });
+            const progress = await readProgress(deps, student);
+            return respond(200, { mode: "server", bank_version: WORD_BANK_VERSION, level, islands: buildIslandViews(level, progress, nowMs) });
+        }
+
         await requireServerMode(deps, student);
+
+        // 單字島：點一格＝開一輪只有 1 題的現有回合。已佔領、冷卻中、島還沒開放的格子一律拒絕。
+        if (action === "island_start") {
+            const level = Number(body?.level);
+            const island = Number(body?.island);
+            const tile = Number(body?.tile);
+            if (!Number.isInteger(level) || level < 1 || level > 6) throw new HttpError(400, "invalid_level", "等級不正確");
+            const word = tileWord(level, island, tile);
+            if (!word) throw new HttpError(400, "invalid_tile", "找不到這一格");
+            const progress = await readProgress(deps, student);
+            const view = buildIslandViews(level, progress, nowMs)[island]?.tiles[tile];
+            if (!view) throw new HttpError(400, "invalid_tile", "找不到這一格");
+            if (view.state === "claimed") throw new HttpError(409, "tile_claimed", "這一格已經佔領了");
+            if (view.state === "locked") throw new HttpError(409, "island_locked", "要先把上一座島佔滿");
+            if (view.state === "cooldown") throw new HttpError(409, "tile_cooldown", "剛看過答案，明天再來佔領這一格");
+            const started = await rpc(deps.admin, "start_word_challenge_round_v1", {
+                p_student_id: student.id,
+                p_bank_version: WORD_BANK_VERSION,
+                p_level: level,
+                p_word_keys: [word.key]
+            });
+            const row = Array.isArray(started) ? started[0] : started;
+            return respond(200, {
+                round_id: row.round_id,
+                expires_at: row.expires_at,
+                level,
+                island,
+                tile,
+                question: toRoundQuestion(word, 0, BASE_REVEALED)
+            });
+        }
 
         if (action === "start_round") {
             const level = Number(body?.level);
@@ -204,6 +260,19 @@ export async function handleWordChallengeRequest(req: Request, deps: WordChallen
             const result = skipped && !item.answered_at
                 ? { correct: false, note: null, expected: word.display } as const
                 : checkWordAnswer(basis, word, meaningPeersOf(word));
+            // 剛看過答案（同一個台北日內答錯或跳過過）：這次答對不算「學會」。
+            // 做法：先把這題的提示數記成 1，資料庫就會照既有規則處理成「答對但用了提示」（進度不動、不算新字）。
+            let recentlySeen = false;
+            if (!item.answered_at && result.correct && Number(item.hint_count) === 0) {
+                const progress = await readProgress(deps, student);
+                const row = progress.find(entry => entry.word_key === String(item.word_key));
+                if (inCooldown(row?.last_missed_at, nowMs)) {
+                    await rpc(deps.admin, "reveal_word_challenge_hint_v1", {
+                        p_student_id: student.id, p_round_id: roundId, p_position: position, p_max_hints: 1
+                    });
+                    recentlySeen = true;
+                }
+            }
             const stored = await rpc(deps.admin, "record_word_challenge_answer_v1", {
                 p_student_id: student.id,
                 p_round_id: roundId,
@@ -222,6 +291,8 @@ export async function handleWordChallengeRequest(req: Request, deps: WordChallen
                 skipped: row.skipped === true,
                 hint_count: Number(row.hint_count) || 0,
                 already_answered: row.already_answered === true,
+                recently_seen: recentlySeen,
+                cooldown_until: row.correct !== true || recentlySeen ? nextTaipeiMidnightIso(nowMs) : null,
                 expected: word.display
             });
         }
