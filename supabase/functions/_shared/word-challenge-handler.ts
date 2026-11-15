@@ -12,7 +12,7 @@ import {
     pickRoundWords,
     toRoundQuestion
 } from "./word-challenge-round.ts";
-import { buildIslandViews, inCooldown, nextTaipeiMidnightIso, tileWord, type ProgressRow } from "./word-challenge-island.ts";
+import { buildIslandViews, inCooldown, nextTaipeiMidnightIso, tileWord, upgradesToday, type ProgressRow } from "./word-challenge-island.ts";
 
 export const ROLLOUT_FEATURE_KEY = "word_challenge_server_v1";
 
@@ -69,11 +69,20 @@ const DB_ERRORS: Record<string, [number, string, string]> = {
 const readProgress = async (deps: WordChallengeDeps, student: WordChallengeStudent): Promise<ProgressRow[]> => {
     const { data, error } = await deps.admin
         .from("student_word_progress")
-        .select("word_key,status,first_mastered_at,last_missed_at")
+        .select("word_key,status,first_mastered_at,last_missed_at,last_correct_at,upgrade_level,last_upgraded_on")
         .eq("student_id", student.id)
         .eq("bank_version", WORD_BANK_VERSION);
     if (error) throw error;
-    return Array.isArray(data) ? data : [];
+    // date 欄位正常是 "YYYY-MM-DD"；有些驅動會回日期物件，一律轉成字串再比對。
+    const day = (value: unknown) => (value instanceof Date ? value.toISOString().slice(0, 10) : value == null ? null : String(value).slice(0, 10));
+    const stamp = (value: unknown) => (value instanceof Date ? value.toISOString() : value == null ? null : String(value));
+    return (Array.isArray(data) ? data : []).map((row: ProgressRow) => ({
+        ...row,
+        first_mastered_at: stamp(row.first_mastered_at),
+        last_missed_at: stamp(row.last_missed_at),
+        last_correct_at: stamp(row.last_correct_at),
+        last_upgraded_on: day(row.last_upgraded_on)
+    }));
 };
 
 const rpc = async (admin: any, name: string, args: Record<string, unknown>) => {
@@ -168,7 +177,11 @@ export async function handleWordChallengeRequest(req: Request, deps: WordChallen
             if (!Number.isInteger(level) || level < 1 || level > 6) throw new HttpError(400, "invalid_level", "等級不正確");
             if (!await serverModeFor(deps, student)) return respond(200, { mode: "local", bank_version: WORD_BANK_VERSION });
             const progress = await readProgress(deps, student);
-            return respond(200, { mode: "server", bank_version: WORD_BANK_VERSION, level, islands: buildIslandViews(level, progress, nowMs) });
+            return respond(200, {
+                mode: "server", bank_version: WORD_BANK_VERSION, level,
+                upgrades_today: upgradesToday(progress, nowMs),
+                islands: buildIslandViews(level, progress, nowMs)
+            });
         }
 
         await requireServerMode(deps, student);
@@ -184,7 +197,8 @@ export async function handleWordChallengeRequest(req: Request, deps: WordChallen
             const progress = await readProgress(deps, student);
             const view = buildIslandViews(level, progress, nowMs)[island]?.tiles[tile];
             if (!view) throw new HttpError(400, "invalid_tile", "找不到這一格");
-            if (view.state === "claimed") throw new HttpError(409, "tile_claimed", "這一格已經佔領了");
+            // 已佔領的格子：可以升級就開「升級」；整座島升滿後可以用 practice 當練習（練習不會讓島退步）。
+            if (view.state === "claimed" && !view.can_upgrade && !(body?.practice === true && view.can_practice)) throw new HttpError(409, "tile_claimed", "這一格已經佔領了，明天再來升級");
             if (view.state === "locked") throw new HttpError(409, "island_locked", "要先把上一座島佔滿");
             if (view.state === "cooldown") throw new HttpError(409, "tile_cooldown", "剛看過答案，明天再來佔領這一格");
             const started = await rpc(deps.admin, "start_word_challenge_round_v1", {
@@ -283,8 +297,19 @@ export async function handleWordChallengeRequest(req: Request, deps: WordChallen
                 p_skipped: skipped
             });
             const row = Array.isArray(stored) ? stored[0] : stored;
+            // 已佔領的格子答對 → 嘗試升級；資料庫會重新檢查所有條件（不同天、沒用提示、每日上限）。
+            let upgrade: { upgraded: boolean; level: number } | null = null;
+            if (row.correct === true && row.already_answered !== true && Number(row.hint_count) === 0) {
+                const done = await rpc(deps.admin, "upgrade_word_island_tile_v1", {
+                    p_student_id: student.id, p_round_id: roundId, p_position: position
+                });
+                const up = Array.isArray(done) ? done[0] : done;
+                if (up) upgrade = { upgraded: up.upgraded === true, level: Number(up.upgrade_level) || 0 };
+            }
             return respond(200, {
                 position,
+                upgraded: upgrade?.upgraded === true,
+                upgrade_level: upgrade?.level ?? null,
                 correct: row.correct === true,
                 note: row.note ?? null,
                 matched: (result as { matched?: string }).matched ?? null,

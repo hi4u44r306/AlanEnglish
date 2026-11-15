@@ -17,7 +17,7 @@ jest.mock("../../services/wordChallengeService", () => ({
 
 const renderPage = (props = {}) => render(<MemoryRouter><WordIsland {...props} /></MemoryRouter>);
 const level1 = islandWordsOf(wordsForLevel(1, WORD_CHALLENGE_MODES.meaning));
-const tileButtons = () => [...document.querySelectorAll(".word-island__tile")];
+const tileButtons = () => [...document.querySelectorAll(".wi-tile")];
 const type = value => fireEvent.change(screen.getByLabelText("輸入英文單字"), { target: { value } });
 const submit = () => fireEvent.click(screen.getByRole("button", { name: "送出" }));
 
@@ -61,7 +61,7 @@ describe("local mode (guests, teachers, or no server)", () => {
         expect(screen.queryByLabelText("輸入英文單字")).not.toBeInTheDocument();
         fireEvent.click(screen.getByRole("button", { name: "知道了" }));
         expect(tileButtons()[1]).toHaveClass("is-cooldown");
-        expect(screen.getByText("明天再來")).toBeInTheDocument();
+        expect(tileButtons()[1]).toHaveTextContent("明天再來");
         fireEvent.click(tileButtons()[1]);
         expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
         expect(screen.getByText("已佔領 0 / 16")).toBeInTheDocument();
@@ -77,7 +77,7 @@ describe("local mode (guests, teachers, or no server)", () => {
         expect(screen.getByText("已佔領 0 / 16")).toBeInTheDocument();
         fireEvent.click(screen.getByRole("button", { name: "回上一座島" }));
         expect(screen.getByText("第 1 座島")).toBeInTheDocument();
-        expect(screen.getByText("已佔領 16 / 16")).toBeInTheDocument();
+        expect(screen.getByText(/已佔領 16 \/ 16/)).toBeInTheDocument();
         fireEvent.click(screen.getByRole("button", { name: "前往下一座島" }));
         expect(screen.getByText("第 2 座島")).toBeInTheDocument();
     });
@@ -96,7 +96,7 @@ describe("local mode (guests, teachers, or no server)", () => {
         expect(locked).toBeDisabled();
         fireEvent.click(full);
         expect(screen.getByText("第 1 座島", { selector: "strong" })).toBeInTheDocument();
-        expect(screen.getByText("已佔領 16 / 16")).toBeInTheDocument();
+        expect(screen.getByText(/已佔領 16 \/ 16/)).toBeInTheDocument();
     });
 
     test("the signed-in page without a server says progress stays on this device", () => {
@@ -136,7 +136,7 @@ describe("server mode (signed-in student)", () => {
 
         fireEvent.click(tileButtons()[0]);
         await screen.findByLabelText("輸入英文單字");
-        expect(service.startWordIslandTile).toHaveBeenCalledWith(user, 1, 0, 0);
+        expect(service.startWordIslandTile).toHaveBeenCalledWith(user, 1, 0, 0, { practice: false });
         expect(screen.getByText("d _ _")).toBeInTheDocument();
         expect(document.body.textContent).not.toMatch(/\bdog\b/);
 
@@ -147,7 +147,7 @@ describe("server mode (signed-in student)", () => {
         fireEvent.click(screen.getByRole("button", { name: "回到島上" }));
         await screen.findByText("已佔領 1 / 16");
         expect(tileButtons()[0]).toHaveClass("is-claimed");
-        expect(tileButtons()[0]).toHaveTextContent("dog");
+        expect(tileButtons()[0]).toHaveAccessibleName(/已佔領：dog/);
     });
 
     test("a correct answer right after seeing the answer is shown as not counted", async () => {
@@ -209,5 +209,125 @@ describe("server mode (signed-in student)", () => {
         renderPage({ variant: "app" });
         expect(service.getWordIslandSummary).not.toHaveBeenCalled();
         expect(tileButtons()).toHaveLength(16);
+    });
+});
+
+describe("two-stage upgrade, fused island, practice and the review cloud", () => {
+    const DAY = 24 * 60 * 60 * 1000;
+    const daysAgo = count => new Date(Date.now() - count * DAY).toISOString();
+    const seed = progress => window.localStorage.setItem("ae-word-island:v1", JSON.stringify({ progress }));
+    const maxedProgress = extra => Object.fromEntries(level1.slice(0, 16).map(word => [word.key, { status: "mastered", firstMasteredAt: "2026-03-05T04:00:00.000Z", lastCorrectAt: daysAgo(2), upgradeLevel: 1, lastUpgradedOn: daysAgo(10).slice(0, 10), ...extra }]));
+
+    test("a tile claimed on an earlier day can be answered again to upgrade — once", async () => {
+        seed({ [level1[0].key]: { status: "mastered", firstMasteredAt: daysAgo(3) } });
+        renderPage();
+        expect(tileButtons()[0]).toHaveClass("can-upgrade");
+        fireEvent.click(tileButtons()[0]);
+        expect(screen.getByText(/再答對一次，這塊地就升級/)).toBeInTheDocument();
+        type(level1[0].display);
+        submit();
+        expect(await screen.findByText("升級了！這塊地繁榮起來了。")).toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "回到島上" }));
+        expect(tileButtons()[0]).not.toHaveClass("can-upgrade");
+        expect(tileButtons()[0]).toHaveClass("is-gold");
+        expect(JSON.parse(window.localStorage.getItem("ae-word-island:v1")).progress[level1[0].key].upgradeLevel).toBe(1);
+        // 已經升級：再點不會開題目。
+        fireEvent.click(tileButtons()[0]);
+        expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    });
+
+    test("a tile claimed today cannot be upgraded until another day; there is no daily cap", () => {
+        seed({ [level1[0].key]: { status: "mastered", firstMasteredAt: new Date().toISOString() } });
+        renderPage();
+        expect(tileButtons()[0]).not.toHaveClass("can-upgrade");
+        fireEvent.click(tileButtons()[0]);
+        expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+        window.localStorage.clear();
+        const progress = {};
+        level1.slice(0, 12).forEach(word => { progress[word.key] = { status: "mastered", firstMasteredAt: daysAgo(3) }; });
+        seed(progress);
+        document.body.innerHTML = "";
+        renderPage();
+        expect(document.querySelectorAll(".wi-tile.can-upgrade")).toHaveLength(12);
+    });
+
+    test("claiming the last tile of an island shows the island medal, then the next island opens", async () => {
+        const progress = {};
+        level1.slice(0, 15).forEach(word => { progress[word.key] = { status: "mastered", firstMasteredAt: daysAgo(3) }; });
+        seed(progress);
+        renderPage();
+        fireEvent.click(tileButtons()[15]);
+        type(level1[15].display);
+        submit();
+        await screen.findByRole("button", { name: "回到島上" });
+        fireEvent.click(screen.getByRole("button", { name: "回到島上" }));
+        expect(await screen.findByText("全島佔領！")).toBeInTheDocument();
+    });
+
+    test("upgrading the last tile plays the full-upgrade crown, and the island becomes one fused picture", async () => {
+        const progress = maxedProgress();
+        progress[level1[15].key] = { status: "mastered", firstMasteredAt: daysAgo(3), lastCorrectAt: daysAgo(3) };
+        seed(progress);
+        renderPage();
+        expect(screen.queryByRole("dialog", { name: "完全升級" })).not.toBeInTheDocument();
+        fireEvent.click(tileButtons()[15]);
+        type(level1[15].display);
+        submit();
+        await screen.findByRole("button", { name: "回到島上" });
+        fireEvent.click(screen.getByRole("button", { name: "回到島上" }));
+        expect(await screen.findByRole("dialog", { name: "完全升級" })).toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "繼續" }));
+        expect(screen.queryByRole("dialog", { name: "完全升級" })).not.toBeInTheDocument();
+        expect(screen.getByRole("img", { name: /已完全升級/ })).toBeInTheDocument();
+        expect(tileButtons()).toHaveLength(0);
+    });
+
+    test("a fully upgraded island can be flipped open and any tile practised without losing the island", async () => {
+        seed(maxedProgress());
+        renderPage();
+        // 第 1 座已經升滿，一進來會停在還沒完成的第 2 座；從「我的島嶼」回到第 1 座。
+        fireEvent.click(screen.getByRole("button", { name: /第 1 座島/ }));
+        expect(screen.getByRole("img", { name: /已完全升級/ })).toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "翻開地塊" }));
+        expect(tileButtons()).toHaveLength(16);
+        expect(tileButtons()[3]).toHaveTextContent(level1[3].display);
+        fireEvent.click(tileButtons()[3]);
+        expect(screen.getByText(/練習一下/)).toBeInTheDocument();
+        type("zzzz");
+        submit();
+        expect(await screen.findByText(level1[3].display, { selector: "strong" })).toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "知道了" }));
+        const saved = JSON.parse(window.localStorage.getItem("ae-word-island:v1")).progress[level1[3].key];
+        expect([saved.firstMasteredAt !== undefined, saved.upgradeLevel, saved.status]).toEqual([true, 1, "missed"]);
+        fireEvent.click(screen.getByRole("button", { name: "收起地塊" }));
+        expect(screen.getByRole("img", { name: /已完全升級/ })).toBeInTheDocument();
+    });
+
+    test("after 7 quiet days a cloud asks to review, opens the tiles and marks the 3 stalest", () => {
+        const progress = maxedProgress({ lastCorrectAt: daysAgo(12) });
+        [0, 1, 2].forEach(index => { progress[level1[index].key].lastCorrectAt = daysAgo(30); });
+        seed(progress);
+        renderPage();
+        fireEvent.click(screen.getByRole("button", { name: /第 1 座島/ }));
+        fireEvent.click(screen.getByRole("button", { name: /這座島有字想複習/ }));
+        expect(tileButtons()).toHaveLength(16);
+        expect([...document.querySelectorAll(".wi-tile.is-stale")].map(node => tileButtons().indexOf(node))).toEqual([0, 1, 2]);
+    });
+
+    test("no cloud and no ambient motion on a recently used island", () => {
+        seed(maxedProgress());
+        renderPage();
+        fireEvent.click(screen.getByRole("button", { name: /第 1 座島/ }));
+        expect(screen.getByRole("img", { name: /已完全升級/ })).toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: /這座島有字想複習/ })).not.toBeInTheDocument();
+    });
+
+    test("an island completed on a holiday keeps its holiday tag", () => {
+        const progress = {};
+        level1.slice(0, 16).forEach(word => { progress[word.key] = { status: "mastered", firstMasteredAt: "2026-12-10T04:00:00.000Z" }; });
+        seed(progress);
+        renderPage();
+        fireEvent.click(screen.getByRole("button", { name: /第 1 座島，已全部佔領/ }));
+        expect(screen.getByText("聖誕限定")).toBeInTheDocument();
     });
 });

@@ -24,4 +24,4 @@ export const finishWordChallengeRound = (firebaseUser, roundId) => call(firebase
 
 // 單字島：整個等級的格子狀態；點一格開一輪只有 1 題的回合（作答、結算沿用上面的 answer）。
 export const getWordIslandSummary = (firebaseUser, level) => call(firebaseUser, { action: "island_summary", level });
-export const startWordIslandTile = (firebaseUser, level, island, tile) => call(firebaseUser, { action: "island_start", level, island, tile });
+export const startWordIslandTile = (firebaseUser, level, island, tile, { practice = false } = {}) => call(firebaseUser, { action: "island_start", level, island, tile, ...(practice ? { practice: true } : {}) });

@@ -3,6 +3,9 @@
 // 規則：每座島 16 格；已佔領＝這個字曾經沒用提示答對；答錯後冷卻到台北時間隔天；前一座島佔滿才開放下一座。
 
 export const ISLAND_SIZE = 16;
+export const MAX_TILE_LEVEL = 1;
+export const REVIEW_AFTER_DAYS = 7;
+export const REVIEW_PICK = 3;
 const TAIPEI_OFFSET_MS = 8 * 60 * 60 * 1000;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -26,7 +29,20 @@ export const inCooldown = (lastMissedAt, nowMs) => {
     return Number.isFinite(missedMs) && taipeiDate(missedMs) === taipeiDate(nowMs);
 };
 
-// progress：{ [word.key]: { status, firstMasteredAt, lastMissedAt } }（本機模式用；伺服器模式由伺服器直接給畫面狀態）。
+// 升級（兩段式）：已佔領的格子在「不同天」再答對就升級（0 剛佔領 → 1 繁榮），每格每天最多一次、不倒退、沒有全帳號每日上限。
+// 小雲：整座島全部升級後，7 天沒碰就提醒複習最久沒碰的 3 格；升滿的島可以隨時練習任何一格。
+export const upgradesToday = (progress, nowMs) => Object.values(progress).filter(row => row?.lastUpgradedOn === taipeiDate(nowMs)).length;
+
+export const canUpgradeTile = (row, nowMs) => {
+    if (!row?.firstMasteredAt) return false;
+    if ((Number(row.upgradeLevel) || 0) >= MAX_TILE_LEVEL) return false;
+    const today = taipeiDate(nowMs);
+    if (taipeiDate(Date.parse(row.firstMasteredAt)) >= today) return false;
+    if (row.lastUpgradedOn && row.lastUpgradedOn >= today) return false;
+    return !inCooldown(row.lastMissedAt, nowMs);
+};
+
+// progress：{ [word.key]: { status, firstMasteredAt, lastMissedAt, lastCorrectAt, upgradeLevel, lastUpgradedOn } }（本機模式用；伺服器模式由伺服器直接給畫面狀態）。
 export function buildIslandViews(words, progress, nowMs) {
     const islands = splitIslands(words);
     const views = [];
@@ -37,13 +53,35 @@ export function buildIslandViews(words, progress, nowMs) {
             const row = progress[word.key];
             const claimed = Boolean(row?.firstMasteredAt);
             const base = { tile, gloss: word.gloss, letters: word.letters ?? String(word.display).replace(/[^A-Za-z]/g, "").length, review: !claimed && row?.status === "missed" };
-            if (claimed) return { ...base, state: "claimed", display: word.display, review: row?.status === "missed" };
+            if (claimed) {
+                return {
+                    ...base, state: "claimed", display: word.display, review: row?.status === "missed",
+                    level: Math.min(Number(row?.upgradeLevel) || 0, MAX_TILE_LEVEL), can_upgrade: canUpgradeTile(row, nowMs)
+                };
+            }
             if (!unlocked) return { ...base, state: "locked" };
             if (inCooldown(row?.lastMissedAt, nowMs)) return { ...base, state: "cooldown", cooldown_until: nextTaipeiMidnightIso(nowMs) };
             return { ...base, state: "open" };
         });
         const claimedCount = tiles.filter(item => item.state === "claimed").length;
-        views.push({ island, unlocked, total: group.length, claimed_count: claimedCount, tiles });
+        const levelSum = tiles.reduce((sum, item) => sum + (item.level ?? 0), 0);
+        const maxed = claimedCount === group.length && tiles.every(item => (item.level ?? 0) >= MAX_TILE_LEVEL);
+        let needsReview = false;
+        if (maxed) {
+            const touched = group.map((word, tile) => {
+                const row = progress[word.key];
+                return { tile, at: Math.max(...[row?.lastCorrectAt, row?.lastMissedAt, row?.firstMasteredAt].map(value => (value ? Date.parse(value) : 0))) };
+            });
+            const latest = Math.max(...touched.map(item => item.at));
+            needsReview = latest > 0 && nowMs - latest >= REVIEW_AFTER_DAYS * DAY_MS;
+            const stale = new Set(needsReview ? [...touched].sort((a, b) => a.at - b.at).slice(0, REVIEW_PICK).map(item => item.tile) : []);
+            tiles.forEach((item, tile) => {
+                item.can_practice = true;
+                if (stale.has(tile)) item.stale = true;
+            });
+        }
+        const completedAt = claimedCount === group.length ? group.map(word => progress[word.key]?.firstMasteredAt ?? "").sort().pop() || null : null;
+        views.push({ island, unlocked, total: group.length, claimed_count: claimedCount, level_sum: levelSum, maxed, completed_at: completedAt, needs_review: needsReview, tiles });
         previousCleared = claimedCount === group.length;
     });
     return views;

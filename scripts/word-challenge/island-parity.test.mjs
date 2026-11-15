@@ -57,14 +57,16 @@ test("tile states match on a mixed progress: claimed, re-missed claimed, cooling
         const words = wordsOfLevel(level);
         const rows = [];
         // 第一座島全部佔領，其中一個之後又答錯；第二座島有今天答錯的、昨天答錯的、已佔領的；第三座島以後保持鎖定。
-        words.slice(0, ISLAND_SIZE).forEach((word, index) => rows.push({ word_key: word.key, status: index === 3 ? "missed" : "mastered", first_mastered_at: YESTERDAY, last_missed_at: index === 3 ? SAME_DAY : null }));
+        words.slice(0, ISLAND_SIZE).forEach((word, index) => rows.push({ word_key: word.key, status: index === 3 ? "missed" : "mastered", first_mastered_at: YESTERDAY, last_missed_at: index === 3 ? SAME_DAY : null, last_correct_at: index % 2 ? YESTERDAY : null, upgrade_level: index % 2, last_upgraded_on: index % 2 ? "2026-11-12" : null }));
         const second = words.slice(ISLAND_SIZE, ISLAND_SIZE * 2);
         if (second.length > 3) {
             rows.push({ word_key: second[0].key, status: "missed", first_mastered_at: null, last_missed_at: SAME_DAY });
             rows.push({ word_key: second[1].key, status: "missed", first_mastered_at: null, last_missed_at: YESTERDAY });
             rows.push({ word_key: second[2].key, status: "mastered", first_mastered_at: YESTERDAY, last_missed_at: null });
+            // 升級：不同等級、今天已升過、佔領是今天、剛看過答案。
+            rows.push({ word_key: second[3].key, status: "mastered", first_mastered_at: YESTERDAY, last_missed_at: null, upgrade_level: 1, last_upgraded_on: "2026-11-13" });
         }
-        const progress = Object.fromEntries(rows.map(row => [row.word_key, { status: row.status, firstMasteredAt: row.first_mastered_at, lastMissedAt: row.last_missed_at }]));
+        const progress = Object.fromEntries(rows.map(row => [row.word_key, { status: row.status, firstMasteredAt: row.first_mastered_at, lastMissedAt: row.last_missed_at, lastCorrectAt: row.last_correct_at, upgradeLevel: row.upgrade_level, lastUpgradedOn: row.last_upgraded_on }]));
         assert.deepEqual(webViews(words, progress, NOW), serverViews(level, rows, NOW), `level ${level}`);
     }
 });
@@ -80,4 +82,44 @@ test("with no progress only the first island is open and no unclaimed tile carri
             assert.equal("key" in tile, false);
         }
     }
+});
+
+test("upgrade rules agree: needs a different day, one upgrade, max level and cooldown (no daily cap)", async () => {
+    const { canUpgradeTile: webCan, upgradesToday: webToday } = await import("../../src/utils/wordIsland.js");
+    const { canUpgradeTile: serverCan, upgradesToday: serverToday } = await import("../../supabase/functions/_shared/word-challenge-island.ts");
+    const cases = [
+        { first_mastered_at: YESTERDAY, upgrade_level: 0, last_upgraded_on: null, last_missed_at: null },
+        { first_mastered_at: SAME_DAY, upgrade_level: 0, last_upgraded_on: null, last_missed_at: null },
+        { first_mastered_at: YESTERDAY, upgrade_level: 1, last_upgraded_on: "2026-11-10", last_missed_at: null },
+        { first_mastered_at: YESTERDAY, upgrade_level: 0, last_upgraded_on: "2026-11-14", last_missed_at: null },
+        { first_mastered_at: YESTERDAY, upgrade_level: 0, last_upgraded_on: "2026-11-13", last_missed_at: null },
+        { first_mastered_at: YESTERDAY, upgrade_level: 0, last_upgraded_on: null, last_missed_at: SAME_DAY },
+        { first_mastered_at: null, upgrade_level: 0, last_upgraded_on: null, last_missed_at: null }
+    ];
+    for (const row of cases) {
+        const web = webCan({ firstMasteredAt: row.first_mastered_at, upgradeLevel: row.upgrade_level, lastUpgradedOn: row.last_upgraded_on, lastMissedAt: row.last_missed_at }, NOW);
+        assert.equal(web, serverCan({ word_key: "x", status: "mastered", ...row }, NOW), JSON.stringify(row));
+    }
+    assert.equal(serverCan({ word_key: "x", status: "mastered", ...cases[0] }, NOW), true);
+    assert.equal(serverCan({ word_key: "x", status: "mastered", ...cases[2] }, NOW), false, "already upgraded");
+    const rows = [{ word_key: "a", status: "mastered", first_mastered_at: YESTERDAY, last_missed_at: null, last_upgraded_on: "2026-11-14" }, { word_key: "b", status: "mastered", first_mastered_at: YESTERDAY, last_missed_at: null, last_upgraded_on: "2026-11-13" }];
+    assert.equal(serverToday(rows, NOW), 1);
+    assert.equal(webToday({ a: { lastUpgradedOn: "2026-11-14" }, b: { lastUpgradedOn: "2026-11-13" } }, NOW), 1);
+});
+
+test("the review cloud and practice flags agree on a fully upgraded island, quiet or recently touched", () => {
+    const words = wordsOfLevel(1).slice(0, ISLAND_SIZE);
+    const build = touchedAt => {
+        const rows = words.map((word, index) => ({ word_key: word.key, status: "mastered", first_mastered_at: "2026-10-01T04:00:00.000Z", last_missed_at: null, last_correct_at: index < 3 ? "2026-10-05T04:00:00.000Z" : touchedAt, upgrade_level: 1, last_upgraded_on: "2026-10-02" }));
+        const progress = Object.fromEntries(rows.map(row => [row.word_key, { status: row.status, firstMasteredAt: row.first_mastered_at, lastMissedAt: row.last_missed_at, lastCorrectAt: row.last_correct_at, upgradeLevel: row.upgrade_level, lastUpgradedOn: row.last_upgraded_on }]));
+        return { web: webViews(words, progress, NOW)[0], server: serverViews(1, rows, NOW)[0] };
+    };
+    const quiet = build("2026-11-01T04:00:00.000Z"); // 13 天沒碰
+    assert.deepEqual(quiet.web, quiet.server);
+    assert.equal(quiet.server.needs_review, true);
+    assert.deepEqual(quiet.server.tiles.filter(tile => tile.stale).map(tile => tile.tile), [0, 1, 2]);
+    const recent = build("2026-11-12T04:00:00.000Z"); // 2 天前
+    assert.deepEqual(recent.web, recent.server);
+    assert.equal(recent.server.needs_review, false);
+    assert.ok(recent.server.tiles.every(tile => tile.can_practice === true && !tile.stale));
 });

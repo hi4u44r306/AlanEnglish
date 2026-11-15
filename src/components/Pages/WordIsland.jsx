@@ -1,13 +1,14 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { FiFlag, FiLock, FiX } from "react-icons/fi";
+import { FullUpgradeOverlay, IslandMap, MedalPop } from "./WordIslandMap";
 import Brand from "../fragment/Brand";
 import { useAuth } from "../../auth/AuthContext";
 import { WORD_BANK_VERSION, WORD_CHALLENGE_LEVELS, meaningPeersOf, wordsForLevel } from "../../services/wordChallengeBank";
 import { answerWordChallenge, getWordIslandSummary, startWordIslandTile } from "../../services/wordChallengeService";
 import { WORD_CHALLENGE_MODES, checkWordAnswer, lettersOnly, noteMessage } from "../../utils/wordChallengeAnswer";
-import { ISLAND_SIZE, buildIslandViews, islandWordsOf } from "../../utils/wordIsland";
-import { isSeasonal, skinForIsland } from "../../utils/wordIslandSkins";
+import { ISLAND_SIZE, buildIslandViews, canUpgradeTile, islandWordsOf, taipeiDate } from "../../utils/wordIsland";
+import { skinForIsland } from "../../utils/wordIslandSkins";
 import "./css/WordIsland.scss";
 
 // 單字島：看中文、拼出英文，答對才佔領那一格。
@@ -52,7 +53,7 @@ function useStudentAccount(variant) {
     return variant === "app" && auth?.role === "student" && auth.firebaseUser ? auth.firebaseUser : null;
 }
 
-function QuestionSheet({ gloss, pattern, submit, onClose }) {
+function QuestionSheet({ gloss, pattern, submit, onClose, upgrade = false, practice = false }) {
     const [typed, setTyped] = useState("");
     const [busy, setBusy] = useState(false);
     const [outcome, setOutcome] = useState(null);
@@ -82,10 +83,10 @@ function QuestionSheet({ gloss, pattern, submit, onClose }) {
         <div className="word-island__sheet-backdrop" role="presentation" onClick={onClose}>
             <form className="word-island__sheet" role="dialog" aria-modal="true" aria-label="佔領這一格" onSubmit={onSubmit} onClick={event => event.stopPropagation()}>
                 <button className="word-island__sheet-close" type="button" onClick={onClose} aria-label="關閉"><FiX aria-hidden="true" /></button>
-                <p className="word-island__sheet-eyebrow">看中文，拼出英文（只有一次機會）</p>
+                <p className="word-island__sheet-eyebrow">{practice ? "練習一下（答錯也不會讓島退步）" : upgrade ? "再答對一次，這塊地就升級（只有一次機會）" : "看中文，拼出英文（只有一次機會）"}</p>
                 <h2 className="word-island__sheet-gloss">{gloss}</h2>
                 {outcome && !outcome.error && !outcome.correct ? (
-                    <p className="word-island__sheet-answer">答案是 <strong>{outcome.expected}</strong><span>這一格明天再來佔領。</span></p>
+                    <p className="word-island__sheet-answer">答案是 <strong>{outcome.expected}</strong><span>{practice ? "這個字標成「待複習」，島不會退步。" : upgrade ? "這一格明天再來升級。" : "這一格明天再來佔領。"}</span></p>
                 ) : (
                     <p className="word-island__sheet-pattern">{pattern}</p>
                 )}
@@ -109,7 +110,11 @@ function QuestionSheet({ gloss, pattern, submit, onClose }) {
                 {outcome?.error && <p className="word-island__message" role="alert">{outcome.error}</p>}
                 {outcome && !outcome.error && outcome.correct && (
                     <p className={`word-island__message${claimed ? " is-good" : ""}`} role="status">
-                        {outcome.recentlySeen ? "剛看過這個字的答案，明天再答對才算學會。" : (outcome.message || "答對了，這一格是你的！")}
+                        {outcome.recentlySeen
+                            ? "剛看過這個字的答案，明天再答對才算學會。"
+                            : outcome.upgraded
+                                ? "升級了！這塊地繁榮起來了。"
+                                : (outcome.message || (practice || upgrade ? "答對了！" : "答對了，這一格是你的！"))}
                     </p>
                 )}
                 {outcome && <button className="word-island__primary" type="button" onClick={onClose}>{claimed ? "回到島上" : "知道了"}</button>}
@@ -131,6 +136,13 @@ function WordIsland({ variant = "public" }) {
     // 登入學生在伺服器回覆前不顯示格子，避免學生在「還不知道走哪個模式」時就作答、成績記到本機。
     const [usingLocal, setUsingLocal] = useState(false);
     const loadToken = useRef(0);
+    // 剛佔領、剛升級的那一格（播動畫用）與升級動畫。
+    const [fresh, setFresh] = useState(null);
+    const [fullUpgrade, setFullUpgrade] = useState(false);
+    const [medal, setMedal] = useState(null);
+    const [flipped, setFlipped] = useState(false);
+    const snapshot = useRef({});
+    const lastResult = useRef(null);
 
     const loadServer = useCallback(async targetLevel => {
         if (!studentUser) return;
@@ -173,14 +185,46 @@ function WordIsland({ variant = "public" }) {
     // 一進來就停在「第一座還沒佔滿的島」；只有佔滿一座島才會出現「前往下一座島」。
     useEffect(() => {
         if (islandIndex !== null || !islands.length || loading || !ready) return;
-        const firstOpen = islands.findIndex(item => item.claimed_count < item.total);
+        const firstOpen = islands.findIndex(item => item.claimed_count < item.total || item.tiles.some(tile => tile.can_upgrade));
         setIslandIndex(firstOpen === -1 ? islands.length - 1 : firstOpen);
     }, [islandIndex, islands, loading, ready]);
 
     const safeIndex = Math.max(0, Math.min(islandIndex ?? 0, islands.length - 1));
     const island = islands[safeIndex];
     const cleared = Boolean(island) && island.claimed_count === island.total;
-    // 造型：節日期間用節日造型，否則依島的編號輪流；網址加 ?skin=christmas 可強制預覽。
+
+    // 里程碑只看「這次操作後」的變化（第一次載入不觸發）：全島佔領 → 小島徽章；升級過半 → 銀牌；
+    // 全部升級 → 皇冠「完全升級」；小雲被清掉（複習完成）→ 鑽石徽章。
+    useEffect(() => {
+        if (!ready || loading) return;
+        const next = {};
+        let trigger = null;
+        islands.forEach(item => {
+            const key = `${level}:${item.island}`;
+            const before = snapshot.current[key];
+            const done = item.claimed_count === item.total;
+            const half = (item.level_sum ?? 0) >= item.total / 2;
+            next[key] = { done, half, maxed: item.maxed === true, cloud: item.needs_review === true };
+            if (!before) return;
+            if (!before.maxed && item.maxed === true) trigger = { type: "full" };
+            else if (before.cloud && item.needs_review !== true) trigger = { type: "medal", badge: "gem", text: "複習完成！" };
+            else if (!before.half && half && item.maxed !== true) trigger = { type: "medal", badge: "silver", text: "升級過半！" };
+            else if (!before.done && done) trigger = { type: "medal", badge: "island", text: "全島佔領！" };
+        });
+        snapshot.current = { ...snapshot.current, ...next };
+        if (trigger?.type === "full") setFullUpgrade(true);
+        else if (trigger) setMedal(trigger);
+    }, [islands, level, ready, loading]);
+
+    // 換島或換年級時，回到完整島的畫面。
+    useEffect(() => { setFlipped(false); }, [level, islandIndex]);
+
+    useEffect(() => {
+        if (!fresh) return undefined;
+        const timer = setTimeout(() => setFresh(null), 1600);
+        return () => clearTimeout(timer);
+    }, [fresh]);
+    // 造型：已完成的島看完成那天是不是節日，否則依島的編號輪流；網址加 ?skin=christmas 可強制預覽。
     const skinOverride = useMemo(() => {
         try {
             return new URLSearchParams(window.location.search).get("skin") || "";
@@ -188,45 +232,71 @@ function WordIsland({ variant = "public" }) {
             return "";
         }
     }, []);
-    const skin = skinForIsland(safeIndex, { override: skinOverride });
+    const skin = skinForIsland(safeIndex, { completedAt: island?.completed_at, override: skinOverride });
 
     const closeSheet = () => {
         setOpenTile(null);
+        const result = lastResult.current;
+        lastResult.current = null;
+        if (result) setFresh(result);
         if (serverMode) loadServer(level);
     };
 
     // 本機模式：用畫面上的字庫批改；伺服器模式：答案由伺服器批改，答案在作答之後才回傳。
-    const openLocalTile = tile => {
+    const openLocalTile = (tile, practice = false) => {
         const word = localWords[safeIndex * ISLAND_SIZE + tile.tile];
+        const upgrade = tile.state === "claimed" && !practice;
         setOpenTile({
             gloss: tile.gloss,
+            upgrade,
+            practice,
             pattern: patternFromWord(word.display),
             submit: async typed => {
                 const result = checkWordAnswer(typed, word, MODE, meaningPeersOf(word));
-                const nowIso = new Date().toISOString();
+                const nowMs = Date.now();
+                const nowIso = new Date(nowMs).toISOString();
                 const previous = localProgress[word.key] || {};
-                const next = result.correct
-                    ? { ...previous, status: "mastered", firstMasteredAt: previous.firstMasteredAt || nowIso }
-                    : { ...previous, status: "missed", lastMissedAt: nowIso };
+                let upgraded = false;
+                let next;
+                if (!result.correct) {
+                    next = { ...previous, status: "missed", lastMissedAt: nowIso };
+                } else if (previous.firstMasteredAt) {
+                    // 已佔領的字再答對：升級條件符合就升（和伺服器同一套規則）；練習只更新「最近答對時間」。
+                    upgraded = canUpgradeTile(previous, nowMs);
+                    next = { ...previous, status: "mastered", lastCorrectAt: nowIso };
+                    if (upgraded) next = { ...next, upgradeLevel: (Number(previous.upgradeLevel) || 0) + 1, lastUpgradedOn: taipeiDate(nowMs) };
+                } else {
+                    next = { ...previous, status: "mastered", firstMasteredAt: nowIso, lastCorrectAt: nowIso };
+                }
                 const progress = { ...localProgress, [word.key]: next };
                 setLocalProgress(progress);
                 saveLocal(progress);
-                return { correct: result.correct, expected: word.display, message: noteMessage(word, result) };
+                if (result.correct && (upgraded || !previous.firstMasteredAt)) lastResult.current = { tile: tile.tile, kind: upgraded ? "upgrade" : "claim" };
+                return { correct: result.correct, expected: word.display, message: noteMessage(word, result), upgraded, upgradeLevel: next.upgradeLevel || 0 };
             }
         });
     };
 
-    const openServerTile = async tile => {
+    const openServerTile = async (tile, practice = false) => {
         if (starting) return;
         setStarting(true);
         try {
-            const started = await startWordIslandTile(studentUser, level, safeIndex, tile.tile);
+            const started = await startWordIslandTile(studentUser, level, safeIndex, tile.tile, { practice });
+            const upgrade = tile.state === "claimed" && !practice;
             setOpenTile({
                 gloss: started.question.gloss,
+                upgrade,
+                practice,
                 pattern: patternFromTemplate(started.question.template),
                 submit: async typed => {
                     const reply = await answerWordChallenge(studentUser, started.round_id, 0, { typed });
-                    return { correct: reply.correct, expected: reply.expected, recentlySeen: reply.recently_seen === true, message: reply.recently_seen ? "" : noteMessage({ display: reply.expected }, { note: reply.note, matched: reply.matched }) };
+                    const recentlySeen = reply.recently_seen === true;
+                    if (reply.correct && !recentlySeen && (reply.upgraded || tile.state === "open")) lastResult.current = { tile: tile.tile, kind: reply.upgraded ? "upgrade" : "claim" };
+                    return {
+                        correct: reply.correct, expected: reply.expected, recentlySeen,
+                        upgraded: reply.upgraded === true, upgradeLevel: reply.upgrade_level,
+                        message: recentlySeen ? "" : noteMessage({ display: reply.expected }, { note: reply.note, matched: reply.matched })
+                    };
                 }
             });
         } catch (error) {
@@ -238,16 +308,11 @@ function WordIsland({ variant = "public" }) {
     };
 
     const onTileClick = tile => {
-        if (tile.state !== "open") return;
-        if (serverMode) openServerTile(tile);
-        else openLocalTile(tile);
-    };
-
-    const tileLabel = tile => {
-        if (tile.state === "claimed") return `已佔領：${tile.display}`;
-        if (tile.state === "locked") return `${tile.gloss}，要先把上一座島佔滿`;
-        if (tile.state === "cooldown") return `${tile.gloss}，剛看過答案，明天再來`;
-        return `${tile.review ? "待複習：" : ""}${tile.gloss}，按下作答`;
+        // 升滿的島（翻開地塊，或沒有融合圖的節日島）：點已佔領的格子就是練習。
+        const practice = tile.state === "claimed" && !tile.can_upgrade && tile.can_practice === true;
+        if (tile.state !== "open" && !(tile.state === "claimed" && (tile.can_upgrade || practice))) return;
+        if (serverMode) openServerTile(tile, practice);
+        else openLocalTile(tile, practice);
     };
 
     return (
@@ -258,7 +323,7 @@ function WordIsland({ variant = "public" }) {
 
             <section className="word-island__intro">
                 <h1>單字島</h1>
-                <p>看中文、拼出英文，答對就佔領一格。把整座島佔滿，就能前往下一座島。</p>
+                <p>看中文、拼出英文，答對就讓一塊地從海裡浮上來。把整座島佔滿，就能前往下一座島；隔天再答對同一個字，地塊會升級。整座島都升級後，會融合成一座完整的島。</p>
             </section>
 
             {notice && <p className="word-island__notice" role="status">{notice}</p>}
@@ -310,32 +375,13 @@ function WordIsland({ variant = "public" }) {
                 <section className="word-island__map" aria-label={`第 ${safeIndex + 1} 座島`}>
                     <div className="word-island__map-head">
                         <strong>第 {safeIndex + 1} 座島</strong>
-                        <span>已佔領 {island.claimed_count} / {island.total}</span>
+                        <span>已佔領 {island.claimed_count} / {island.total}{cleared ? `・已升級 ${island.level_sum ?? 0} / ${island.total}` : ""}</span>
                     </div>
-                    <div className="word-island__bar" aria-hidden="true"><i style={{ width: `${island.total ? (island.claimed_count / island.total) * 100 : 0}%` }} /></div>
-                    <div className="word-island__stage" data-skin={skin.id} style={{ backgroundImage: `url(${skin.image})` }}>
-                    {isSeasonal(skin) && <span className="word-island__skin-tag">{skin.label}</span>}
-                    <ul className="word-island__grid">
-                        {island.tiles.map(tile => (
-                            <li key={tile.tile}>
-                                <button
-                                    type="button"
-                                    className={`word-island__tile is-${tile.state}${tile.review ? " is-review" : ""}`}
-                                    aria-disabled={tile.state !== "open" ? "true" : undefined}
-                                    onClick={() => onTileClick(tile)}
-                                    aria-label={tileLabel(tile)}
-                                >
-                                    {tile.state === "claimed" ? <FiFlag className="word-island__flag" aria-hidden="true" /> : null}
-                                    <span className="word-island__tile-text">{tile.state === "claimed" ? tile.display : tile.gloss}</span>
-                                    {tile.state === "cooldown" ? <small>明天再來</small> : tile.review ? <small>待複習</small> : null}
-                                </button>
-                            </li>
-                        ))}
-                    </ul>
-                    </div>
+                    <div className="word-island__bar" aria-hidden="true"><i style={{ width: `${island.total ? ((cleared ? island.level_sum ?? 0 : island.claimed_count) / island.total) * 100 : 0}%` }} /></div>
+                    <IslandMap island={island} skin={skin} islandIndex={safeIndex} onTile={onTileClick} fresh={fresh} flipped={flipped} onFlip={() => setFlipped(value => !value)} />
                     {cleared && (
                         <p className="word-island__cleared" role="status">
-                            {safeIndex + 1 < islands.length ? "這座島全部佔領了！" : "這個年級的島全部佔領了！"}
+                            {island.maxed ? "這座島已經完全升級！" : "這座島全部佔領了！明天起，隔天再答對就能升級。"}
                             {safeIndex + 1 < islands.length && <button type="button" onClick={() => setIslandIndex(safeIndex + 1)}>前往下一座島</button>}
                         </p>
                     )}
@@ -345,7 +391,9 @@ function WordIsland({ variant = "public" }) {
                 </section>
             )}
 
-            {openTile && <QuestionSheet key={`${level}-${safeIndex}-${openTile.gloss}`} gloss={openTile.gloss} pattern={openTile.pattern} submit={openTile.submit} onClose={closeSheet} />}
+            {openTile && <QuestionSheet key={`${level}-${safeIndex}-${openTile.gloss}`} gloss={openTile.gloss} pattern={openTile.pattern} submit={openTile.submit} upgrade={openTile.upgrade} practice={openTile.practice} onClose={closeSheet} />}
+            {fullUpgrade && <FullUpgradeOverlay onClose={() => setFullUpgrade(false)} />}
+            {medal && <MedalPop badge={medal.badge} text={medal.text} onDone={() => setMedal(null)} />}
         </main>
     );
 }
