@@ -161,16 +161,64 @@ body:has(.word-island) {
   }
 }
 
+// 島圖是 2:3 的整張背景；格子放在島中間那塊留白的草地上，邊緣的樹、碼頭、小船露在周圍。
+.word-island__stage {
+  position: relative;
+  width: 100%;
+  max-width: 460px;
+  margin: 0 auto;
+  aspect-ratio: 2 / 3;
+  border-radius: 16px;
+  background-color: var(--wi-sea);
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  overflow: hidden;
+}
+
+.word-island__skin-tag {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  z-index: 1;
+  transform: translateX(-50%);
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(23, 54, 111, 0.85);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
 .word-island__grid {
+  position: absolute;
+  inset: 17% 12% 17% 12%;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
+  grid-template-rows: repeat(4, minmax(0, 1fr));
+  gap: 6px;
   margin: 0;
   padding: 0;
   list-style: none;
 
   li {
     min-width: 0;
+    min-height: 0;
+  }
+
+  .word-island__tile {
+    height: 100%;
+    min-height: 0;
+    border-radius: 12px;
+    box-shadow: 0 2px 6px rgba(23, 54, 111, 0.22);
+
+    &.is-open {
+      background: rgba(255, 255, 255, 0.86);
+    }
+
+    &.is-locked {
+      background: rgba(238, 241, 246, 0.8);
+    }
   }
 }
 
@@ -485,17 +533,17 @@ body:has(.word-island) {
   }
 }
 
-// 小手機：一排 3 格，格子與文字放大，比較好讀、好點。
+// 小手機：島圖整張縮小，格子仍是 4 x 4，字不再縮到看不清。
 @media (max-width: 400px) {
-  .word-island__grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+  .word-island__map {
+    padding: 12px 8px;
   }
 
-  .word-island__tile {
-    min-height: 80px;
+  .word-island__grid {
+    gap: 5px;
   }
 
   .word-island__tile-text {
-    font-size: 16px;
+    font-size: 14px;
   }
 }

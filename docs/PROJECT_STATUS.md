@@ -6,6 +6,7 @@
 - 擁有者決定：冷卻「隔天」（台北時間）；在單字大挑戰學會的字自動佔領對應格子；佔領過的字再答錯不取消、只標「待複習」；每格只答一次；與單字大挑戰共用每天 60 輪；會員過期維持本機模式；部署 Edge Function 前要再取得同意。
 - 後端：只改 `word-challenge` Edge Function（`_shared/word-challenge-handler.ts` 新增 `island_summary`／`island_start`、`answer` 加冷卻檢查；新增 `_shared/word-challenge-island.ts`）。**沒有 migration**。部署時 Function 要多帶 `word-challenge-island.ts`，部署後立刻逐檔比對。回復：把 `word-challenge` 重新部署成 main 上的版本。
 - 畫面（擁有者 2026-11-14 同意）：年級下方「我的島嶼」小卡片列（全佔領／進行中／鎖頭，點開放的跳轉；只顯示目前年級，不另外查其他年級）；寬度 400px 以下格子改 3 欄、字 16px。
+- 造型（擁有者 2026-11-15 提供 13 張 ChatGPT 生成的 2:3 島圖並同意）：圖放 `src/assets/islands/*.webp`（640×960、共約 540KB，只在顯示該座島時載入）；`utils/wordIslandSkins.js` 決定造型（一般七種依島編號輪流、節日六種依日期自動切換，春節與中秋日期每年要補、目前到 2028 年春節與 2027 年中秋）；網址 `?skin=christmas` 強制預覽。格子半透明放在島中間草地上。已知限制：圖像由 AI 生成，每張尚未逐一檢查有沒有隱藏的小字或不當細節（目視沒有）；春節、中秋日期是查到後寫死，需核對。
 - 前端：`WordIsland.jsx`／`.scss`、`utils/wordIsland.js`、`wordChallengeService.js` 加兩個函式、`WordChallenge.jsx` 顯示「剛看過答案」提示、`App.jsx` 加 `/word-island`（公開、本機）與 `/student/word-island`。
 - 驗證：Edge 處理程式＋真實 PostgreSQL（PGlite）10 項（含舊漏洞回歸、隔天重開、島的解鎖）；前後端一致性 4 項；畫面 25 項（單字島 11、單字挑戰 14）；ESLint 乾淨。
 - 尚未驗證：Edge Function 尚未部署，伺服器模式沒有真實連線測過；正式資料庫是否已有靠舊漏洞產生的「已學會」紀錄沒查（目前只有 Test 2 是伺服器模式，影響應該很小）；在校生 `is_active` 是否一定為 true 沒核對；未用 iPhone 實機測。

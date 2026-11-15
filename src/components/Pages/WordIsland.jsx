@@ -7,6 +7,7 @@ import { WORD_BANK_VERSION, WORD_CHALLENGE_LEVELS, meaningPeersOf, wordsForLevel
 import { answerWordChallenge, getWordIslandSummary, startWordIslandTile } from "../../services/wordChallengeService";
 import { WORD_CHALLENGE_MODES, checkWordAnswer, lettersOnly, noteMessage } from "../../utils/wordChallengeAnswer";
 import { ISLAND_SIZE, buildIslandViews, islandWordsOf } from "../../utils/wordIsland";
+import { isSeasonal, skinForIsland } from "../../utils/wordIslandSkins";
 import "./css/WordIsland.scss";
 
 // 單字島：看中文、拼出英文，答對才佔領那一格。
@@ -179,6 +180,15 @@ function WordIsland({ variant = "public" }) {
     const safeIndex = Math.max(0, Math.min(islandIndex ?? 0, islands.length - 1));
     const island = islands[safeIndex];
     const cleared = Boolean(island) && island.claimed_count === island.total;
+    // 造型：節日期間用節日造型，否則依島的編號輪流；網址加 ?skin=christmas 可強制預覽。
+    const skinOverride = useMemo(() => {
+        try {
+            return new URLSearchParams(window.location.search).get("skin") || "";
+        } catch {
+            return "";
+        }
+    }, []);
+    const skin = skinForIsland(safeIndex, { override: skinOverride });
 
     const closeSheet = () => {
         setOpenTile(null);
@@ -303,6 +313,8 @@ function WordIsland({ variant = "public" }) {
                         <span>已佔領 {island.claimed_count} / {island.total}</span>
                     </div>
                     <div className="word-island__bar" aria-hidden="true"><i style={{ width: `${island.total ? (island.claimed_count / island.total) * 100 : 0}%` }} /></div>
+                    <div className="word-island__stage" data-skin={skin.id} style={{ backgroundImage: `url(${skin.image})` }}>
+                    {isSeasonal(skin) && <span className="word-island__skin-tag">{skin.label}</span>}
                     <ul className="word-island__grid">
                         {island.tiles.map(tile => (
                             <li key={tile.tile}>
@@ -320,6 +332,7 @@ function WordIsland({ variant = "public" }) {
                             </li>
                         ))}
                     </ul>
+                    </div>
                     {cleared && (
                         <p className="word-island__cleared" role="status">
                             {safeIndex + 1 < islands.length ? "這座島全部佔領了！" : "這個年級的島全部佔領了！"}
