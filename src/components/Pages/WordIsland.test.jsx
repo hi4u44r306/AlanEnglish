@@ -352,3 +352,73 @@ describe("two-stage upgrade, fused island, practice and the review cloud", () =>
         expect(screen.getByText("聖誕限定")).toBeInTheDocument();
     });
 });
+
+describe("full-screen mobile challenge", () => {
+    const openFull = () => fireEvent.click(screen.getByRole("button", { name: /開始挑戰/ }));
+    const canvasWidth = () => document.querySelector(".wi-imm__canvas").style.width;
+    let scrollTo;
+    beforeEach(() => {
+        scrollTo = jest.fn();
+        Element.prototype.scrollTo = scrollTo;
+    });
+    afterEach(() => {
+        delete Element.prototype.scrollTo;
+        document.body.style.overflow = "";
+    });
+
+    test("opens a full-screen island, shows the tiles once, and the back button returns to the page", () => {
+        renderPage();
+        openFull();
+        expect(screen.getByRole("region", { name: "單字島全螢幕挑戰" })).toBeInTheDocument();
+        expect(tileButtons()).toHaveLength(16);
+        expect(document.body.style.overflow).toBe("hidden");
+        fireEvent.click(screen.getByRole("button", { name: "回到單字島首頁" }));
+        expect(screen.queryByRole("region", { name: "單字島全螢幕挑戰" })).not.toBeInTheDocument();
+        expect(tileButtons()).toHaveLength(16);
+        expect(document.body.style.overflow).toBe("");
+    });
+
+    test("the island zooms in and out within limits", () => {
+        renderPage();
+        openFull();
+        expect(canvasWidth()).toBe("170%");
+        fireEvent.click(screen.getByRole("button", { name: "放大" }));
+        expect(canvasWidth()).toBe("210%");
+        fireEvent.click(screen.getByRole("button", { name: "縮小" }));
+        fireEvent.click(screen.getByRole("button", { name: "縮小" }));
+        fireEvent.click(screen.getByRole("button", { name: "縮小" }));
+        expect(canvasWidth()).toBe("100%");
+        expect(screen.getByRole("button", { name: "縮小" })).toBeDisabled();
+    });
+
+    test("edge arrows appear only on the side that is cut off and jump to that end", () => {
+        const widths = { scrollWidth: 1000, clientWidth: 360 };
+        const spies = Object.entries(widths).map(([key, value]) => jest.spyOn(HTMLElement.prototype, key, "get").mockReturnValue(value));
+        try {
+            renderPage();
+            openFull();
+            const scroller = document.querySelector(".wi-imm__scroll");
+            scroller.scrollLeft = 0;
+            fireEvent.scroll(scroller);
+            expect(screen.queryByRole("button", { name: "捲到島的最左邊" })).not.toBeInTheDocument();
+            fireEvent.click(screen.getByRole("button", { name: "捲到島的最右邊" }));
+            expect(scrollTo).toHaveBeenCalledWith(expect.objectContaining({ left: 1000 }));
+            scroller.scrollLeft = 300;
+            fireEvent.scroll(scroller);
+            fireEvent.click(screen.getByRole("button", { name: "捲到島的最左邊" }));
+            expect(scrollTo).toHaveBeenLastCalledWith(expect.objectContaining({ left: 0 }));
+        } finally {
+            spies.forEach(spy => spy.mockRestore());
+        }
+    });
+
+    test("tapping a tile brings it up to the top part of the screen and opens the answer sheet", () => {
+        renderPage();
+        openFull();
+        scrollTo.mockClear();
+        fireEvent.click(tileButtons()[0]);
+        expect(scrollTo).toHaveBeenCalledTimes(1);
+        expect(screen.getByRole("dialog", { name: "佔領這一格" })).toBeInTheDocument();
+        expect(document.querySelector(".wi-imm")).toHaveClass("is-sheet-open");
+    });
+});

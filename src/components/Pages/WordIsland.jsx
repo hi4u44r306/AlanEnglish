@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Link } from "react-router-dom";
 import { FiFlag, FiLock, FiX } from "react-icons/fi";
 import { FullUpgradeOverlay, IslandMap, MedalPop } from "./WordIslandMap";
+import ImmersiveIsland from "./WordIslandImmersive";
 import Brand from "../fragment/Brand";
 import { useAuth } from "../../auth/AuthContext";
 import { WORD_BANK_VERSION, WORD_CHALLENGE_LEVELS, meaningPeersOf, wordsForLevel } from "../../services/wordChallengeBank";
@@ -175,6 +176,7 @@ function WordIsland({ variant = "public" }) {
     const [fullUpgrade, setFullUpgrade] = useState(false);
     const [medal, setMedal] = useState(null);
     const [flipped, setFlipped] = useState(false);
+    const [immersive, setImmersive] = useState(false);
     const snapshot = useRef({});
     const lastResult = useRef(null);
 
@@ -349,7 +351,7 @@ function WordIsland({ variant = "public" }) {
     };
 
     return (
-        <main className="word-island">
+        <main className={`word-island${immersive ? " wi-imm-open" : ""}`}>
             <header className="word-island__header">
                 <Link className="word-island__brand" to="/" aria-label="前往 Alan English 首頁"><Brand /></Link>
             </header>
@@ -411,7 +413,8 @@ function WordIsland({ variant = "public" }) {
                         <span>已佔領 {island.claimed_count} / {island.total}{cleared ? `・已升級 ${island.level_sum ?? 0} / ${island.total}` : ""}</span>
                     </div>
                     <div className="word-island__bar" aria-hidden="true"><i style={{ width: `${island.total ? ((cleared ? island.level_sum ?? 0 : island.claimed_count) / island.total) * 100 : 0}%` }} /></div>
-                    <IslandMap island={island} islandIndex={safeIndex} onTile={onTileClick} fresh={fresh} flipped={flipped} onFlip={() => setFlipped(value => !value)} override={skinOverride} />
+                    <button className="word-island__play" type="button" onClick={() => setImmersive(true)}>開始挑戰（全螢幕）</button>
+                    {!immersive && <IslandMap island={island} islandIndex={safeIndex} onTile={onTileClick} fresh={fresh} flipped={flipped} onFlip={() => setFlipped(value => !value)} override={skinOverride} />}
                     {cleared && (
                         <p className="word-island__cleared" role="status">
                             {island.maxed ? "這座島已經完全升級！" : "這座島全部佔領了！明天起，隔天再答對就能升級。"}
@@ -424,6 +427,16 @@ function WordIsland({ variant = "public" }) {
                 </section>
             )}
 
+            {immersive && ready && island && (
+                <ImmersiveIsland
+                    islands={islands}
+                    islandIndex={safeIndex}
+                    onSelectIsland={setIslandIndex}
+                    onClose={() => setImmersive(false)}
+                    sheetOpen={Boolean(openTile)}
+                    mapProps={{ onTile: onTileClick, fresh, flipped, onFlip: () => setFlipped(value => !value), override: skinOverride }}
+                />
+            )}
             {openTile && <QuestionSheet key={`${level}-${safeIndex}-${openTile.gloss}`} gloss={openTile.gloss} pattern={openTile.pattern} submit={openTile.submit} upgrade={openTile.upgrade} practice={openTile.practice} onClose={closeSheet} />}
             {fullUpgrade && <FullUpgradeOverlay onClose={() => setFullUpgrade(false)} />}
             {medal && <MedalPop badge={medal.badge} text={medal.text} onDone={() => setMedal(null)} />}

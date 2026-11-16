@@ -920,3 +920,204 @@ body:has(.word-island) {
 }
 .word-island__xp-note { margin: 8px 0 0; font-size: 13px; color: #4a5a85; &.is-up { font-weight: 800; color: #e8920a; font-size: 15px; } }
 @media (prefers-reduced-motion: reduce) { .word-island__xp-bar span { transition: none; } }
+
+// ── 手機全螢幕挑戰 ──
+// 「開始挑戰」只在手機寬度出現；全螢幕時整個畫面是海和島，上方只留返回與縮放，下方是切換島嶼的小圓點。
+.word-island__play {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .word-island__play {
+    display: block;
+    width: 100%;
+    min-height: 48px;
+    margin: 0 0 12px;
+    border: 0;
+    border-radius: 14px;
+    background: var(--wi-yellow);
+    color: #4a3200;
+    font-size: 16px;
+    font-weight: 800;
+    box-shadow: 0 4px 0 #c99500;
+  }
+}
+
+.wi-imm {
+  position: fixed;
+  inset: 0;
+  z-index: 1040;
+  display: flex;
+  flex-direction: column;
+  background: radial-gradient(circle at 50% 35%, #62bff0, #2a86cc 68%, #1b66a8);
+  color: #fff;
+  overscroll-behavior: contain;
+}
+
+.wi-imm__top {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: calc(10px + env(safe-area-inset-top)) calc(12px + env(safe-area-inset-right)) 8px calc(12px + env(safe-area-inset-left));
+  pointer-events: none;
+
+  > * {
+    pointer-events: auto;
+  }
+}
+
+.wi-imm__round {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--wi-navy);
+  font-size: 22px;
+  box-shadow: 0 3px 10px rgba(0, 30, 80, 0.3);
+
+  &:disabled {
+    opacity: 0.45;
+  }
+}
+
+.wi-imm__title {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  flex-direction: column;
+  margin: 0;
+  line-height: 1.25;
+  text-shadow: 0 2px 4px rgba(0, 30, 80, 0.45);
+
+  strong {
+    font-size: 16px;
+  }
+
+  span {
+    font-size: 13px;
+    font-weight: 700;
+  }
+}
+
+.wi-imm__zoom {
+  display: flex;
+  gap: 8px;
+}
+
+.wi-imm__scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  scrollbar-width: none;
+  touch-action: pan-x pan-y;
+  -webkit-overflow-scrolling: touch;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.wi-imm__canvas {
+  display: flex;
+  align-items: center;
+  min-height: 100%;
+  padding: calc(64px + env(safe-area-inset-top)) 0 calc(64px + env(safe-area-inset-bottom));
+
+  .wi-stage {
+    max-width: none;
+    flex: 0 0 auto;
+  }
+}
+
+// 答題視窗升起時，多留一大片空間，讓被點的那一塊能捲到視窗上方、不被蓋住。
+.wi-imm.is-sheet-open .wi-imm__canvas {
+  padding-bottom: 60vh;
+}
+
+.wi-imm__edge {
+  position: absolute;
+  top: 50%;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 64px;
+  padding: 0;
+  border: 0;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--wi-navy);
+  font-size: 30px;
+  box-shadow: 0 3px 10px rgba(0, 30, 80, 0.3);
+  transform: translateY(-50%);
+
+  &.is-left {
+    left: 0;
+    border-radius: 0 32px 32px 0;
+  }
+
+  &.is-right {
+    right: 0;
+    border-radius: 32px 0 0 32px;
+  }
+}
+
+.wi-imm__dots {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  padding: 0 12px calc(8px + env(safe-area-inset-bottom));
+  pointer-events: none;
+}
+
+.wi-imm__dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  pointer-events: auto;
+
+  i {
+    display: block;
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.55);
+    box-shadow: 0 1px 3px rgba(0, 30, 80, 0.35);
+  }
+
+  &.is-current i {
+    width: 24px;
+    background: #fff;
+  }
+
+  &:disabled i {
+    background: rgba(255, 255, 255, 0.22);
+  }
+}
+
+// 全螢幕時答題視窗要蓋在全螢幕之上，背景只輕輕變暗，島還看得見。
+.wi-imm-open .word-island__sheet-backdrop {
+  z-index: 1050;
+  background: rgba(11, 42, 90, 0.28);
+}
