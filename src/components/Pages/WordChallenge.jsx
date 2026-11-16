@@ -251,7 +251,8 @@ function WordChallenge({ variant = "public" }) {
             const result = { correct: reply.correct, note: reply.note, matched: reply.matched, expected: reply.expected };
             // 同一題只記一次（重送時伺服器回的是原本的結果）。
             setResults(previous => (previous.some(item => item.key === entry.key) ? previous : [...previous, entry]));
-            setFeedback({ ...result, skipped: reply.skipped, message: reply.skipped ? "" : noteMessage(word, result) });
+            const seenMessage = reply.recently_seen ? "剛看過這個字的答案，明天再答對才算學會。" : "";
+            setFeedback({ ...result, skipped: reply.skipped, message: reply.skipped ? "" : (seenMessage || noteMessage(word, result)) });
         } catch (error) {
             abandonServerRound(error?.message || SERVER_FALLBACK_NOTICE);
         } finally {

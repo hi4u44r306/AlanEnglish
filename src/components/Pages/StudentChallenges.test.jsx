@@ -41,8 +41,8 @@ test("a student with the speaking plan sees both challenges and the current book
     const speaking = screen.getByRole("link", { name: /口說大挑戰/ });
     expect(speaking).toHaveAttribute("href", "/student/speaking-challenges");
     await waitFor(() => expect(within(speaking).getByText("Workbook 1 · 已過 1 / 2 關")).toBeInTheDocument());
-    const word = screen.getByRole("link", { name: /單字大挑戰/ });
-    expect(word).toHaveAttribute("href", "/student/word-challenge");
+    const word = screen.getByRole("link", { name: /單字島/ });
+    expect(word).toHaveAttribute("href", "/student/word-island");
     expect(within(word).getByText(`${WORD_TOTAL} 字 · 還沒挑戰`)).toBeInTheDocument();
 });
 
@@ -53,7 +53,7 @@ test("without the speaking plan, speaking is locked but the word challenge stays
     expect(screen.getByText("需要「口說方案」。請問老師或家長。")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "看會員與功能" })).toHaveAttribute("href", "/student/membership");
     expect(getSpeakingChallengeCatalog).not.toHaveBeenCalled();
-    expect(screen.getByRole("link", { name: /單字大挑戰/ })).toHaveAttribute("href", "/student/word-challenge");
+    expect(screen.getByRole("link", { name: /單字島/ })).toHaveAttribute("href", "/student/word-island");
 });
 
 test("the word card counts words already spelled correctly on this device", () => {
@@ -61,7 +61,7 @@ test("the word card counts words already spelled correctly on this device", () =
     const known = wordBank.words.filter(word => word.gloss).slice(0, 3).map(word => word.key);
     window.localStorage.setItem(`ae-word-challenge:${WORD_BANK_VERSION}:meaning`, JSON.stringify({ best: {}, mastered: known, missed: [] }));
     renderPage();
-    expect(within(screen.getByRole("link", { name: /單字大挑戰/ })).getByText(`已會 3 / ${WORD_TOTAL} 字`)).toBeInTheDocument();
+    expect(within(screen.getByRole("link", { name: /單字島/ })).getByText(`已會 3 / ${WORD_TOTAL} 字`)).toBeInTheDocument();
 });
 
 test("the word card reminds how many missed words are waiting for review", () => {
@@ -69,13 +69,13 @@ test("the word card reminds how many missed words are waiting for review", () =>
     const words = wordBank.words.filter(word => word.gloss);
     window.localStorage.setItem(`ae-word-challenge:${WORD_BANK_VERSION}:meaning`, JSON.stringify({ best: {}, mastered: [], missed: [words[0].key, words[1].key, "not-a-word"] }));
     renderPage();
-    expect(within(screen.getByRole("link", { name: /單字大挑戰/ })).getByText("有 2 個字要複習")).toBeInTheDocument();
+    expect(within(screen.getByRole("link", { name: /單字島/ })).getByText("有 2 個字要複習")).toBeInTheDocument();
 });
 
 test("teachers preview both challenges without loading a student's progress", () => {
     useAuth.mockReturnValue({ firebaseUser: { uid: "teacher" }, role: "teacher", studentProfile: {} });
     renderPage();
     expect(within(screen.getByRole("link", { name: /口說大挑戰/ })).getByText("老師預覽")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /單字大挑戰/ })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /單字島/ })).toBeInTheDocument();
     expect(getSpeakingChallengeCatalog).not.toHaveBeenCalled();
 });

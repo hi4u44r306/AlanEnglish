@@ -11,6 +11,8 @@ import { WORD_BANK } from "../supabase/functions/_shared/word-challenge-bank.gen
 const { PGlite } = await import(process.env.PGLITE_MODULE ? pathToFileURL(process.env.PGLITE_MODULE).href : "@electric-sql/pglite");
 const db = new PGlite();
 const migration = readFileSync(new URL("../supabase/migrations/20261111100000_word_challenge_server_v1.sql", import.meta.url), "utf8");
+const xpMigration = readFileSync(new URL("../supabase/migrations/20261116100000_word_island_xp_v1.sql", import.meta.url), "utf8");
+const upgradeMigration = readFileSync(new URL("../supabase/migrations/20261115100000_word_island_upgrade_v1.sql", import.meta.url), "utf8");
 
 const SCALARS = new Set(["reveal_word_challenge_hint_v1", "get_word_challenge_summary_v1"]);
 const toPgArray = list => `{${list.map(item => `"${String(item).replace(/"/g, '\\"')}"`).join(",")}}`;
@@ -35,6 +37,12 @@ const admin = {
         const builder = {
             select(list) { columns = list; return builder; },
             eq(column, value) { filters.push([column, value]); return builder; },
+            // 不接 maybeSingle，直接 await：回傳符合條件的全部列（單字島讀整份進度）。
+            then(resolve) {
+                const where = filters.map(([column], index) => `${column} = $${index + 1}`).join(" and ");
+                db.query(`select ${columns} from public.${table} where ${where}`, filters.map(([, value]) => value))
+                    .then(result => resolve({ data: result.rows, error: null }), error => resolve({ data: null, error: { message: String(error.message) } }));
+            },
             async maybeSingle() {
                 const where = filters.map(([column], index) => `${column} = $${index + 1}`).join(" and ");
                 try {
@@ -49,7 +57,7 @@ const admin = {
     }
 };
 
-const STUDENTS = { "student-1": { id: 1, role: "student" }, "teacher-2": { id: 2, role: "teacher" }, "student-5": { id: 5, role: "student" }, "student-7": { id: 7, role: "student" } };
+const STUDENTS = { "student-1": { id: 1, role: "student" }, "teacher-2": { id: 2, role: "teacher" }, "student-5": { id: 5, role: "student" }, "student-7": { id: 7, role: "student" }, "student-8": { id: 8, role: "student" }, "student-9": { id: 9, role: "student" } };
 const EXPIRED = new Set([7]);
 const makeDeps = (overrides = {}) => ({
     admin,
@@ -81,7 +89,7 @@ before(async () => {
         create table public.student_feature_rollouts (student_id bigint not null, feature_key text not null, enabled boolean not null default false, primary key (student_id, feature_key),
             constraint student_feature_rollouts_key_check check (feature_key in ('listening_rewards_v2','assignment_v2')));
         create table public.students (id bigint primary key, role text not null, account_status text, archived_at timestamptz);
-        insert into public.students values (1,'student','active',null),(2,'teacher','active',null),(5,'student','active',null),(7,'student','active',null);
+        insert into public.students values (1,'student','active',null),(2,'teacher','active',null),(5,'student','active',null),(7,'student','active',null),(8,'student','active',null),(9,'student','active',null);
         create table public.student_gamification_balances (student_id bigint primary key references public.students(id), total_xp integer not null default 0, points_balance integer not null default 0, updated_at timestamptz default now());
         create table public.student_gamification_ledger (id bigserial primary key, student_id bigint not null, xp_delta integer not null, points_delta integer not null default 0, source_type text not null, source_key text not null, description text, metadata jsonb not null default '{}'::jsonb, created_at timestamptz not null default now(), unique (student_id, source_type, source_key));
         create function private.ae_gamification_grant_v2(p_student_id bigint, p_xp_delta integer, p_points_delta integer, p_source_type text, p_source_key text, p_description text default null, p_metadata jsonb default '{}'::jsonb)
@@ -97,8 +105,10 @@ before(async () => {
         end $$;
     `);
     await db.exec(migration);
+    await db.exec(upgradeMigration);
+    await db.exec(xpMigration);
     // 學生 1、5、7 被逐一開放；老師 2 也有資料列但不是學生。
-    await db.exec("insert into public.student_feature_rollouts values (1,'word_challenge_server_v1',true),(5,'word_challenge_server_v1',true),(7,'word_challenge_server_v1',true),(2,'word_challenge_server_v1',true)");
+    await db.exec("insert into public.student_feature_rollouts values (1,'word_challenge_server_v1',true),(5,'word_challenge_server_v1',true),(7,'word_challenge_server_v1',true),(8,'word_challenge_server_v1',true),(9,'word_challenge_server_v1',true),(2,'word_challenge_server_v1',true)");
 });
 after(async () => { await db.close(); });
 
@@ -234,4 +244,220 @@ test("database failures become a generic 500 without leaking details", async () 
     const response = await call("student-1", { action: "summary" }, makeDeps({ admin: broken }));
     assert.equal(response.status, 500);
     assert.doesNotMatch(JSON.stringify(response.json), /10\.0\.0\.1|secret|abc/);
+});
+
+// ---------- 單字島 ----------
+const ISLAND_SIZE = 16;
+const level1 = WORD_BANK.filter(word => word.level === 1);
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+test("island_summary shows every island of a level, only the first is open, and never leaks an unclaimed English word", async () => {
+    const summary = await call("student-8", { action: "island_summary", level: 1 });
+    assert.equal(summary.status, 200);
+    assert.equal(summary.json.mode, "server");
+    const islands = summary.json.islands;
+    assert.equal(islands.length, Math.ceil(level1.length / ISLAND_SIZE));
+    assert.equal(islands[0].unlocked, true);
+    assert.ok(islands.slice(1).every(island => island.unlocked === false));
+    assert.equal(islands[0].tiles.length, ISLAND_SIZE);
+    assert.ok(islands[0].tiles.every(tile => tile.state === "open"));
+    assert.ok(islands[1].tiles.every(tile => tile.state === "locked"));
+    const raw = JSON.stringify(summary.json);
+    for (const forbidden of ['"display"', '"key"', '"word_key"']) assert.equal(raw.includes(forbidden), false, forbidden);
+    const values = [];
+    JSON.stringify(summary.json, (key, value) => { if (typeof value === "string") values.push(value.toLowerCase()); return value; });
+    for (const word of level1.filter(item => item.display.length > 3)) assert.equal(values.includes(word.display.toLowerCase()), false, word.key);
+    assert.equal((await call("student-8", { action: "island_summary", level: 0 })).status, 400);
+    assert.equal((await call("student-8", { action: "island_summary", level: 7 })).status, 400);
+});
+
+test("island_start refuses locked, invalid, claimed and local-mode requests; a correct answer claims the tile", async () => {
+    assert.equal((await call("student-8", { action: "island_start", level: 1, island: 1, tile: 0 })).json.code, "island_locked");
+    for (const bad of [{ island: 99, tile: 0 }, { island: 0, tile: 16 }, { island: 0, tile: -1 }, { island: "x", tile: 0 }]) {
+        assert.equal((await call("student-8", { action: "island_start", level: 1, ...bad })).json.code, "invalid_tile", JSON.stringify(bad));
+    }
+    assert.equal((await call("student-8", { action: "island_start", level: 0, island: 0, tile: 0 })).status, 400);
+    assert.equal((await call("teacher-2", { action: "island_start", level: 1, island: 0, tile: 0 })).status, 403);
+    assert.equal((await call("student-7", { action: "island_start", level: 1, island: 0, tile: 0 })).json.code, "server_mode_off");
+    assert.equal((await call("teacher-2", { action: "island_summary", level: 1 })).json.mode, "local");
+    assert.equal((await call("student-7", { action: "island_summary", level: 1 })).json.mode, "local");
+
+    const start = await call("student-8", { action: "island_start", level: 1, island: 0, tile: 0 });
+    assert.equal(start.status, 200);
+    assert.equal(start.json.question.gloss, level1[0].gloss);
+    assert.equal(JSON.stringify(start.json).includes('"display"'), false);
+    const answer = await call("student-8", { action: "answer", round_id: start.json.round_id, position: 0, typed: level1[0].display });
+    assert.deepEqual([answer.json.correct, answer.json.hint_count, answer.json.recently_seen, answer.json.cooldown_until], [true, 0, false, null]);
+
+    const summary = await call("student-8", { action: "island_summary", level: 1 });
+    const claimed = summary.json.islands[0].tiles[0];
+    assert.deepEqual([claimed.state, claimed.display], ["claimed", level1[0].display]);
+    assert.ok(Number.isFinite(Date.parse(claimed.claimed_at)), "a claimed tile reports when it was claimed");
+    assert.equal("claimed_at" in summary.json.islands[0].tiles[1], false, "an unclaimed tile has no claim time");
+    assert.equal(summary.json.islands[0].claimed_count, 1);
+    assert.equal((await call("student-8", { action: "island_start", level: 1, island: 0, tile: 0 })).json.code, "tile_claimed");
+});
+
+test("a wrong answer cools the tile until tomorrow, and seeing the answer then typing it never counts (old loophole closed)", async () => {
+    const target = level1[1];
+    const start = await call("student-8", { action: "island_start", level: 1, island: 0, tile: 1 });
+    const wrong = await call("student-8", { action: "answer", round_id: start.json.round_id, position: 0, typed: "zzzz" });
+    assert.equal(wrong.json.correct, false);
+    assert.equal(wrong.json.expected, target.display);
+    assert.ok(wrong.json.cooldown_until);
+
+    const summary = await call("student-8", { action: "island_summary", level: 1 });
+    const tile = summary.json.islands[0].tiles[1];
+    assert.deepEqual([tile.state, tile.review], ["cooldown", true]);
+    assert.ok(tile.cooldown_until);
+    assert.equal((await call("student-8", { action: "island_start", level: 1, island: 0, tile: 1 })).json.code, "tile_cooldown");
+
+    // 舊漏洞：答錯看到答案後，用「練最近錯的字」馬上打對。現在要被當成「剛看過答案」，不算學會。
+    const practice = await call("student-8", { action: "start_round", level: 0 });
+    const position = practice.json.questions.findIndex(question => question.gloss === target.gloss);
+    assert.ok(position >= 0);
+    const retry = await call("student-8", { action: "answer", round_id: practice.json.round_id, position, typed: target.display });
+    assert.equal(retry.json.correct, true);
+    assert.equal(retry.json.recently_seen, true);
+    assert.equal(retry.json.hint_count, 1);
+    const stillOpen = await call("student-8", { action: "island_summary", level: 1 });
+    assert.equal(stillOpen.json.islands[0].tiles[1].state, "cooldown", "still not claimed the same day");
+    const row = await db.query("select first_mastered_at from public.student_word_progress where student_id = 8 and word_key = $1", [target.key]);
+    assert.equal(row.rows[0].first_mastered_at, null);
+
+    // 隔天（台北時間）：格子重新打開，答對才算佔領，而且不是「剛看過答案」。
+    const tomorrow = makeDeps({ now: () => Date.now() + DAY_MS + 60 * 1000 });
+    const reopened = await call("student-8", { action: "island_summary", level: 1 }, tomorrow);
+    assert.equal(reopened.json.islands[0].tiles[1].state, "open");
+    const again = await call("student-8", { action: "island_start", level: 1, island: 0, tile: 1 }, tomorrow);
+    assert.equal(again.status, 200);
+    const win = await call("student-8", { action: "answer", round_id: again.json.round_id, position: 0, typed: target.display }, tomorrow);
+    assert.deepEqual([win.json.correct, win.json.recently_seen, win.json.hint_count], [true, false, 0]);
+    const claimed = await call("student-8", { action: "island_summary", level: 1 }, tomorrow);
+    assert.equal(claimed.json.islands[0].tiles[1].state, "claimed");
+});
+
+test("the next island opens only after every tile of the previous one is claimed", async () => {
+    const keys = level1.slice(0, ISLAND_SIZE).map(word => word.key);
+    const insert = "insert into public.student_word_progress (student_id, bank_version, word_key, status, first_mastered_at, last_correct_at, correct_count) select 9, 'v1', k, 'mastered', now(), now(), 1 from unnest($1::text[]) as k";
+    await db.query(insert, [toPgArray(keys.slice(0, ISLAND_SIZE - 1))]);
+    let summary = await call("student-9", { action: "island_summary", level: 1 });
+    assert.equal(summary.json.islands[0].claimed_count, ISLAND_SIZE - 1);
+    assert.equal(summary.json.islands[1].unlocked, false);
+    assert.equal((await call("student-9", { action: "island_start", level: 1, island: 1, tile: 0 })).json.code, "island_locked");
+
+    await db.query(insert, [toPgArray([keys[ISLAND_SIZE - 1]])]);
+    summary = await call("student-9", { action: "island_summary", level: 1 });
+    assert.equal(summary.json.islands[1].unlocked, true);
+    assert.equal(summary.json.islands[2].unlocked, false);
+    const open = await call("student-9", { action: "island_start", level: 1, island: 1, tile: 0 });
+    assert.equal(open.status, 200);
+    assert.equal(open.json.question.gloss, level1[ISLAND_SIZE].gloss);
+
+    // 學會過的字之後又答錯：仍然算佔領（只標「待複習」），不會被收回。
+    await db.query("update public.student_word_progress set status = 'missed', last_missed_at = now() where student_id = 9 and word_key = $1", [keys[0]]);
+    summary = await call("student-9", { action: "island_summary", level: 1 });
+    assert.deepEqual([summary.json.islands[0].tiles[0].state, summary.json.islands[0].tiles[0].review], ["claimed", true]);
+    assert.equal(summary.json.islands[1].unlocked, true);
+});
+
+// 升級（兩段式）：資料庫用真實時間判斷「不同天」，所以測試把佔領時間改到幾天前，而不是調假時鐘。
+test("a claimed tile upgrades once on a later day; a same-day claim, a hinted answer or a second try never upgrades", async () => {
+    const tile = level1[0];
+    // 今天才佔領的格子：不能升級（要不同天）。
+    assert.equal((await call("student-8", { action: "island_start", level: 1, island: 0, tile: 0 })).json.code, "tile_claimed");
+    await db.query("update public.student_word_progress set first_mastered_at = now() - interval '3 days' where student_id = 8 and word_key = $1", [tile.key]);
+    let view = (await call("student-8", { action: "island_summary", level: 1 })).json;
+    assert.deepEqual([view.islands[0].tiles[0].level, view.islands[0].tiles[0].can_upgrade], [0, true]);
+    assert.equal("upgrade_limit" in view, false, "there is no per-account daily cap any more");
+
+    const first = await call("student-8", { action: "island_start", level: 1, island: 0, tile: 0 });
+    const up = await call("student-8", { action: "answer", round_id: first.json.round_id, position: 0, typed: tile.display });
+    assert.deepEqual([up.json.upgraded, up.json.upgrade_level], [true, 1]);
+    view = (await call("student-8", { action: "island_summary", level: 1 })).json;
+    assert.deepEqual([view.islands[0].tiles[0].level, view.islands[0].tiles[0].can_upgrade, view.upgrades_today, view.islands[0].level_sum], [1, false, 1, 1]);
+    // 已經升級：同一天、之後都不能再「升級」，也不能用練習（這座島還沒升滿）。
+    assert.equal((await call("student-8", { action: "island_start", level: 1, island: 0, tile: 0 })).json.code, "tile_claimed");
+    assert.equal((await call("student-8", { action: "island_start", level: 1, island: 0, tile: 0, practice: true })).json.code, "tile_claimed");
+    assert.equal((await db.query("select upgrade_level from public.student_word_progress where student_id = 8 and word_key = $1", [tile.key])).rows[0].upgrade_level, 1);
+});
+
+test("there is no daily cap: many tiles can upgrade on the same day, and the database refuses a second level", async () => {
+    const keys = level1.slice(0, ISLAND_SIZE).map(word => word.key);
+    await db.query("update public.student_word_progress set first_mastered_at = now() - interval '3 days' where student_id = 9 and word_key = any($1::text[])", [toPgArray(keys)]);
+    // 第 0 格在前面的測試被標成「剛答錯」，所以從第 1 格開始，一口氣升 8 塊。
+    for (let tile = 1; tile <= 8; tile += 1) {
+        const start = await call("student-9", { action: "island_start", level: 1, island: 0, tile });
+        const answer = await call("student-9", { action: "answer", round_id: start.json.round_id, position: 0, typed: level1[tile].display });
+        assert.deepEqual([answer.json.upgraded, answer.json.upgrade_level], [true, 1], `tile ${tile} ${JSON.stringify([start.json, answer.json])}`);
+    }
+    const view = (await call("student-9", { action: "island_summary", level: 1 })).json;
+    assert.equal(view.upgrades_today, 8);
+    assert.ok(view.islands[0].completed_at, "a fully claimed island reports when it was completed");
+    assert.equal(view.islands[1].completed_at, null);
+
+    // 繞過 Edge 直接叫資料庫升級已經升過的格子：不會再升（最多一級）。
+    const direct = await db.query("select * from public.start_word_challenge_round_v1(9, 'v1', 1::smallint, $1::text[])", [toPgArray([level1[1].key])]);
+    const roundId = direct.rows[0].round_id;
+    await db.query("select * from public.record_word_challenge_answer_v1(9, $1, 0::smallint, $2, true, null, false)", [roundId, level1[1].display]);
+    const refused = await db.query("select * from public.upgrade_word_island_tile_v1(9, $1, 0::smallint)", [roundId]);
+    assert.equal(refused.rows[0].upgraded, false);
+});
+
+test("a fully upgraded island lets the student practice any tile; after 7 quiet days a cloud asks to review the 3 stalest tiles, and practice clears it", async () => {
+    const keys = level1.slice(0, ISLAND_SIZE).map(word => word.key);
+    await db.query("update public.student_word_progress set status = 'mastered', last_missed_at = null, first_mastered_at = now() - interval '10 days', last_correct_at = now() - interval '9 days', upgrade_level = 1, last_upgraded_on = (now() - interval '8 days')::date where student_id = 9 and word_key = any($1::text[])", [toPgArray(keys)]);
+    // 讓第 5、6、7 格最久沒碰。
+    await db.query("update public.student_word_progress set last_correct_at = now() - interval '30 days' where student_id = 9 and word_key = any($1::text[])", [toPgArray([keys[5], keys[6], keys[7]])]);
+
+    let view = (await call("student-9", { action: "island_summary", level: 1 })).json.islands[0];
+    assert.deepEqual([view.maxed, view.needs_review], [true, true]);
+    assert.deepEqual(view.tiles.filter(tile => tile.stale).map(tile => tile.tile), [5, 6, 7]);
+    assert.ok(view.tiles.every(tile => tile.can_practice === true));
+
+    // 平常的練習：不是升級，答對只更新「最近答對時間」，答錯只標待複習、島不退步。
+    const start = await call("student-9", { action: "island_start", level: 1, island: 0, tile: 5, practice: true });
+    assert.equal(start.status, 200);
+    const answer = await call("student-9", { action: "answer", round_id: start.json.round_id, position: 0, typed: level1[5].display });
+    assert.deepEqual([answer.json.correct, answer.json.upgraded], [true, false]);
+    view = (await call("student-9", { action: "island_summary", level: 1 })).json.islands[0];
+    assert.equal(view.needs_review, false, "touching the island clears the cloud");
+    assert.equal(view.maxed, true);
+
+    const wrong = await call("student-9", { action: "island_start", level: 1, island: 0, tile: 6, practice: true });
+    const miss = await call("student-9", { action: "answer", round_id: wrong.json.round_id, position: 0, typed: "zzzz" });
+    assert.equal(miss.json.correct, false);
+    view = (await call("student-9", { action: "island_summary", level: 1 })).json.islands[0];
+    assert.deepEqual([view.maxed, view.claimed_count, view.tiles[6].level], [true, 16, 1]);
+});
+
+// 單字島 XP：新佔領 +2、升級 +3、每天最多 30；用提示或練習不給；舊式整輪不重複發。
+test("island XP: +2 for a new tile, +3 for an upgrade, nothing for hinted or practice answers, capped at 30 a day", async () => {
+    const claimTile = async (tile, typed) => {
+        const start = await call("student-1", { action: "island_start", level: 1, island: 0, tile });
+        assert.equal(start.status, 200, JSON.stringify(start.json));
+        return call("student-1", { action: "answer", round_id: start.json.round_id, position: 0, typed });
+    };
+    const first = await claimTile(0, level1[0].display);
+    assert.equal(first.json.xp.xp_awarded, 2);
+    assert.deepEqual([first.json.xp.level_before, first.json.xp.level_after, first.json.xp.progress_after - first.json.xp.progress_before, first.json.xp.daily_cap], [1, 1, 2, 30]);
+    // 答錯：不給 XP（沒有 xp 欄位內容）。
+    const wrong = await claimTile(1, "zzzz");
+    assert.equal(wrong.json.xp, null);
+    // 同一輪重複送答案：不會重複發。
+    const start = await call("student-1", { action: "island_start", level: 1, island: 0, tile: 2 });
+    await call("student-1", { action: "answer", round_id: start.json.round_id, position: 0, typed: level1[2].display });
+    const again = await call("student-1", { action: "answer", round_id: start.json.round_id, position: 0, typed: level1[2].display });
+    assert.equal(again.json.xp, null);
+    assert.equal((await db.query("select count(*)::int n from public.student_gamification_ledger where student_id = 1 and source_type = 'word_island'")).rows[0].n, 2);
+    // 升級 +3：把這塊地的佔領時間改到幾天前再答。
+    await db.query("update public.student_word_progress set first_mastered_at = now() - interval '3 days' where student_id = 1 and word_key = $1", [level1[0].key]);
+    const up = await claimTile(0, level1[0].display);
+    assert.deepEqual([up.json.upgraded, up.json.xp.xp_awarded], [true, 3]);
+    // 每天最多 30：把今天已拿的假裝成 29，下一塊新地只能拿 1。
+    await db.query("insert into public.student_gamification_ledger(student_id,xp_delta,source_type,source_key,metadata) values (1, 22, 'word_island', 'test:filler', '{\"base_xp\":22}'::jsonb)");
+    const cap1 = await claimTile(3, level1[3].display);
+    assert.equal(cap1.json.xp.xp_awarded, 1);
+    const cap2 = await claimTile(4, level1[4].display);
+    assert.deepEqual([cap2.json.xp.xp_awarded, cap2.json.xp.daily_xp], [0, 30]);
 });

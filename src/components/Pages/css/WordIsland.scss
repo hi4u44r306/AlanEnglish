@@ -1,0 +1,919 @@
+.word-island {
+  --wi-navy: #17366f;
+  --wi-blue: #315bc8;
+  --wi-blue-dark: #2449a9;
+  --wi-blue-soft: #e7eefc;
+  --wi-yellow: #ffcc41;
+  --wi-yellow-soft: #fff6dc;
+  --wi-yellow-ink: #8a5a00;
+  --wi-sea: #dbeafe;
+  --wi-ink: #172033;
+  --wi-muted: #667085;
+  --wi-line: #dfe5f0;
+  --wi-green: #16a34a;
+  --wi-orange: #c2410c;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 0 16px calc(32px + env(safe-area-inset-bottom));
+  max-width: 560px;
+  margin: 0 auto;
+  color: var(--wi-ink);
+  font-family: "Inter", "Noto Sans TC", sans-serif;
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  button {
+    font: inherit;
+    cursor: pointer;
+  }
+}
+
+body:has(.word-island) {
+  background: var(--ae-surface, #f4f7fd);
+}
+
+.word-island__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: calc(14px + env(safe-area-inset-top)) 0 8px;
+}
+
+.word-island__brand {
+  display: inline-flex;
+  color: inherit;
+}
+
+.word-island__notice {
+  margin: 0 0 12px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--wi-yellow-soft);
+  color: var(--wi-yellow-ink);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.word-island__loading {
+  margin: 24px 0;
+  color: var(--wi-muted);
+  text-align: center;
+}
+
+.word-island__intro {
+  margin: 8px 0 14px;
+
+  h1 {
+    margin: 0 0 4px;
+    color: var(--wi-navy);
+    font-size: 26px;
+    line-height: 1.2;
+  }
+
+  p {
+    margin: 0;
+    color: var(--wi-muted);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+}
+
+.word-island__levels {
+  display: flex;
+  gap: 8px;
+  padding-bottom: 4px;
+  overflow-x: auto;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.word-island__chip {
+  flex: 0 0 auto;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--wi-line);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--wi-navy);
+  font-weight: 700;
+
+  &.is-active {
+    border-color: var(--wi-blue);
+    background: var(--wi-blue);
+    color: #fff;
+  }
+}
+
+.word-island__back {
+  display: block;
+  min-height: 44px;
+  margin: 8px auto 0;
+  padding: 0 12px;
+  border: 0;
+  background: none;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.word-island__map {
+  margin-top: 12px;
+  padding: 16px;
+  border: 1px solid var(--wi-line);
+  border-radius: 20px;
+  background: radial-gradient(circle at 50% 35%, #62bff0, #2a86cc 68%, #1b66a8);
+  box-shadow: 0 10px 28px rgba(23, 54, 111, 0.18);
+  color: #fff;
+}
+
+.word-island__map-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  color: #fff;
+  text-shadow: 0 2px 4px rgba(0, 30, 80, 0.35);
+
+  span {
+    font-size: 14px;
+    font-weight: 700;
+  }
+}
+
+.word-island__bar {
+  height: 8px;
+  margin: 10px 0 14px;
+  border-radius: 999px;
+  border: 2px solid var(--wi-yellow);
+  background: #0b2a5a;
+  overflow: hidden;
+
+  i {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--wi-yellow);
+    transition: width 0.4s ease;
+  }
+}
+
+.word-island__cleared {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin: 16px 0 0;
+  color: #fff;
+  font-weight: 800;
+  text-shadow: 0 2px 4px rgba(0, 30, 80, 0.4);
+
+  button {
+    min-height: 44px;
+    padding: 0 20px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--wi-yellow);
+    color: #4a3200;
+    font-weight: 800;
+    text-shadow: none;
+  }
+}
+
+.word-island__reset {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  margin-top: 16px;
+  padding: 0 12px;
+  border: 0;
+  background: none;
+  color: var(--wi-muted);
+  font-size: 13px;
+}
+
+.word-island__sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(15, 27, 54, 0.5);
+}
+
+.word-island__sheet {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  max-width: 480px;
+  padding: 28px 20px calc(24px + env(safe-area-inset-bottom));
+  border-radius: 24px 24px 0 0;
+  background: #fff;
+  text-align: center;
+  animation: word-island-rise 0.2s ease-out;
+}
+
+@keyframes word-island-rise {
+  from {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+}
+
+.word-island__sheet-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  background: none;
+  color: var(--wi-muted);
+  font-size: 20px;
+}
+
+.word-island__sheet-eyebrow {
+  margin: 0;
+  color: var(--wi-muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.word-island__sheet-gloss {
+  margin: 0;
+  color: var(--wi-navy);
+  font-size: 30px;
+  line-height: 1.25;
+}
+
+.word-island__sheet-pattern {
+  margin: 0;
+  color: var(--wi-blue);
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.word-island__sheet-answer {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  color: var(--wi-orange);
+
+  strong {
+    font-size: 28px;
+  }
+
+  span {
+    color: var(--wi-muted);
+    font-size: 13px;
+  }
+}
+
+.word-island__input {
+  min-height: 52px;
+  padding: 0 14px;
+  border: 2px solid var(--wi-line);
+  border-radius: 14px;
+  font-size: 20px;
+  text-align: center;
+
+  &:focus {
+    border-color: var(--wi-blue);
+    outline: none;
+  }
+}
+
+.word-island__primary {
+  min-height: 48px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--wi-blue);
+  color: #fff;
+  font-weight: 800;
+
+  &:disabled {
+    background: #c3cde6;
+    cursor: not-allowed;
+  }
+}
+
+.word-island__message {
+  margin: 0;
+  color: var(--wi-orange);
+  font-size: 14px;
+  font-weight: 700;
+
+  &.is-good {
+    color: var(--wi-green);
+  }
+}
+
+.word-island__overview {
+  margin: 14px 0 0;
+}
+
+.word-island__overview-title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0 0 8px;
+  color: var(--wi-navy);
+  font-weight: 800;
+
+  span {
+    color: var(--wi-muted);
+    font-size: 13px;
+    font-weight: 700;
+  }
+}
+
+.word-island__overview-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.word-island__mini {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  width: 52px;
+  min-height: 56px;
+  padding: 4px 2px;
+  border: 1px solid var(--wi-line);
+  border-radius: 14px;
+  background: #fff;
+  color: var(--wi-navy);
+
+  strong {
+    font-size: 16px;
+    line-height: 1.1;
+  }
+
+  small {
+    min-height: 12px;
+    color: var(--wi-muted);
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  &.is-full {
+    border-color: #f5b800;
+    background: var(--wi-yellow);
+    color: #4a3200;
+
+    small {
+      color: #7a5600;
+    }
+  }
+
+  &.is-locked {
+    background: #eef1f6;
+    color: #98a2b3;
+    cursor: not-allowed;
+  }
+
+  &.is-current {
+    outline: 3px solid var(--wi-blue);
+    outline-offset: 1px;
+  }
+}
+
+// ── 單字島地圖：海面、六角地塊、融合島、徽章 ──
+// 畫面平常完全靜止；只有「你操作的那一刻」（地塊浮出、升級、徽章、完全升級）才播動畫。
+.wi-stage {
+  position: relative;
+  width: 100%;
+  max-width: 560px;
+  margin: 0 auto;
+  aspect-ratio: 3 / 2;
+  container-type: inline-size;
+}
+
+.wi-stage__tag {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  z-index: 30;
+  transform: translateX(-50%);
+  padding: 3px 12px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #f5b800, #ffd966);
+  color: #4a3200;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.wi-fused {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  height: 100%;
+  width: auto;
+  max-width: 100%;
+  transform: translate(-50%, -50%);
+  object-fit: contain;
+  filter: drop-shadow(0 12px 10px rgba(0, 30, 80, 0.4));
+  user-select: none;
+}
+
+.wi-grid {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.wi-grid__item {
+  position: absolute;
+  transform: translate(-50%, -50%);
+}
+
+.wi-tile {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #fff;
+  -webkit-tap-highlight-color: transparent;
+
+  &:focus-visible {
+    outline: 3px solid var(--wi-yellow);
+    outline-offset: 2px;
+    border-radius: 12px;
+  }
+
+  &.is-claimed:not(.can-upgrade) {
+    cursor: default;
+  }
+
+  &.is-locked,
+  &.is-cooldown {
+    cursor: not-allowed;
+  }
+}
+
+.wi-tile__img {
+  display: block;
+  width: 100%;
+  height: auto;
+  user-select: none;
+  filter: drop-shadow(0 6px 5px rgba(0, 30, 80, 0.35));
+  pointer-events: none;
+}
+
+// 沉在水裡的地塊：淡淡的輪廓，上面寫中文。
+.is-open .wi-tile__img,
+.is-cooldown .wi-tile__img,
+.is-locked .wi-tile__img {
+  filter: grayscale(1) brightness(1.7) drop-shadow(0 4px 4px rgba(0, 30, 80, 0.2));
+  opacity: 0.3;
+}
+
+.is-open .wi-tile__img {
+  opacity: 0.5;
+}
+
+.is-locked .wi-tile__img {
+  opacity: 0.14;
+}
+
+.wi-tile__label {
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  top: 22%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40%;
+  font-size: max(12px, 3.1cqw);
+  font-weight: 800;
+  line-height: 1.15;
+  text-align: center;
+  text-shadow: 0 1px 3px rgba(0, 30, 80, 0.8);
+  overflow-wrap: anywhere;
+  pointer-events: none;
+
+  &.is-word {
+    color: #fff;
+    text-shadow: 0 1px 2px #000, 0 0 5px rgba(0, 30, 80, 0.9);
+  }
+}
+
+.is-open.is-review .wi-tile__label {
+  color: #ffd9a8;
+}
+
+// 已升級（繁榮）：有裝飾，加一圈金色光暈。
+.is-claimed.is-gold .wi-tile__img {
+  filter: drop-shadow(0 0 5px #ffd24a) drop-shadow(0 0 12px rgba(255, 200, 60, 0.9)) drop-shadow(0 6px 5px rgba(0, 30, 80, 0.35));
+}
+
+// 很久沒練的格子（小雲）：一圈靜態的亮框。
+.is-stale .wi-tile__img {
+  filter: drop-shadow(0 0 4px #fff) drop-shadow(0 0 9px #7cc4ff) drop-shadow(0 6px 5px rgba(0, 30, 80, 0.35));
+}
+
+.wi-tile__coin,
+.wi-tile__up {
+  position: absolute;
+  top: 2%;
+  right: 4%;
+  width: max(30px, 6.6cqw);
+  height: auto;
+  aspect-ratio: 1;
+  pointer-events: none;
+  filter: drop-shadow(0 3px 4px rgba(0, 30, 80, 0.55));
+}
+
+.wi-tile__dot {
+  position: absolute;
+  top: 8%;
+  left: 12%;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #fb923c;
+  box-shadow: 0 0 0 2px #fff;
+}
+
+.wi-tile.is-rising .wi-tile__img {
+  animation: wi-rise 0.9s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+
+.wi-tile.is-upgrading .wi-tile__img {
+  animation: wi-upgrade 0.9s ease-out both;
+}
+
+@keyframes wi-rise {
+  from {
+    transform: translateY(60%) scale(0.5);
+    opacity: 0;
+  }
+}
+
+@keyframes wi-upgrade {
+  0% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(1.22) translateY(-8%);
+    filter: brightness(1.6) drop-shadow(0 0 14px #ffe27a);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.wi-flip {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  z-index: 25;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--wi-navy);
+  font-size: 14px;
+  font-weight: 800;
+  box-shadow: 0 4px 10px rgba(0, 30, 80, 0.3);
+}
+
+// 小雲：靜態的白雲 + 橘色驚嘆號，點下去翻開地塊練習。
+.wi-cloud {
+  position: absolute;
+  left: 2%;
+  top: 4%;
+  z-index: 26;
+  display: block;
+  min-width: 96px;
+  padding: 0;
+  border: 0;
+  background: none;
+
+  &:focus-visible {
+    outline: 3px solid var(--wi-yellow);
+    outline-offset: 4px;
+    border-radius: 24px;
+  }
+}
+
+.wi-cloud__body {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 30px;
+  background: #e9f1fa;
+  box-shadow: 0 6px 12px rgba(0, 30, 80, 0.3), inset 0 -6px 0 #c9d8ea;
+  color: #4a5d7e;
+  font-size: 14px;
+  font-weight: 900;
+  isolation: isolate;
+
+  &::before,
+  &::after {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    border-radius: 50%;
+    background: #e9f1fa;
+  }
+
+  &::before {
+    left: 14px;
+    top: -14px;
+    width: 32px;
+    height: 32px;
+  }
+
+  &::after {
+    right: 14px;
+    top: -20px;
+    width: 40px;
+    height: 40px;
+  }
+}
+
+.wi-cloud__badge {
+  position: absolute;
+  right: -4px;
+  top: -24px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #fb923c;
+  box-shadow: 0 0 0 3px #fff;
+  color: #fff;
+  font-weight: 900;
+}
+
+// 小徽章彈出（升級過半、全島佔領、複習完成）：幾秒後自己消失。
+.wi-medal {
+  position: fixed;
+  left: 50%;
+  top: 44%;
+  z-index: 1100;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.wi-medal__rays,
+.wi-full__rays {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  border-radius: 50%;
+  background: repeating-conic-gradient(rgba(255, 214, 90, 0.6) 0 8deg, transparent 8deg 22deg);
+  -webkit-mask-image: radial-gradient(circle, #000 8%, transparent 62%);
+  mask-image: radial-gradient(circle, #000 8%, transparent 62%);
+}
+
+.wi-medal__rays {
+  width: min(90vw, 520px);
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  animation: wi-medal-rays 2.4s ease-out both;
+}
+
+.wi-medal__img {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(44vw, 220px);
+  transform: translate(-50%, -50%);
+  filter: drop-shadow(0 0 18px rgba(255, 214, 90, 0.9));
+  animation: wi-medal-pop 2.4s cubic-bezier(0.2, 1.5, 0.4, 1) both;
+}
+
+.wi-medal__text {
+  position: absolute;
+  left: 50%;
+  top: calc(50% + min(26vw, 130px));
+  margin: 0;
+  transform: translateX(-50%);
+  color: #fff3b0;
+  font-size: 24px;
+  font-weight: 900;
+  text-shadow: 0 3px 0 #8a5a00, 0 0 14px rgba(255, 200, 60, 0.9);
+  white-space: nowrap;
+  animation: wi-medal-text 2.4s 0.15s ease-out both;
+}
+
+@keyframes wi-medal-rays {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0);
+  }
+  25% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+}
+
+@keyframes wi-medal-pop {
+  0% {
+    transform: translate(-50%, -50%) scale(0) rotate(-25deg);
+  }
+  30% {
+    transform: translate(-50%, -50%) scale(1.2) rotate(6deg);
+  }
+  45%,
+  85% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -70%) scale(0.85);
+    opacity: 0;
+  }
+}
+
+@keyframes wi-medal-text {
+  0% {
+    transform: translateX(-50%) scale(0);
+  }
+  25% {
+    transform: translateX(-50%) scale(1.15);
+  }
+  35%,
+  85% {
+    transform: translateX(-50%) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-50%) scale(1);
+    opacity: 0;
+  }
+}
+
+// 完全升級：畫面變暗，皇冠徽章落下，下面寫「完全升級」。
+.wi-full {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: rgba(5, 15, 40, 0.78);
+}
+
+.wi-full__rays {
+  width: min(190vw, 1300px);
+  aspect-ratio: 1;
+  top: 44%;
+  background: repeating-conic-gradient(rgba(255, 214, 90, 0.55) 0 7deg, transparent 7deg 20deg);
+  transform: translate(-50%, -50%);
+  animation: wi-full-in 1s 0.2s both;
+}
+
+.wi-full__badge {
+  position: relative;
+  width: min(56vw, 260px);
+  margin-top: -6vh;
+  filter: drop-shadow(0 0 26px rgba(255, 214, 90, 0.9));
+  animation: wi-full-drop 1.1s cubic-bezier(0.2, 1.4, 0.4, 1) 0.15s both;
+}
+
+.wi-full__label {
+  position: relative;
+  margin: 14px 0 0;
+  color: #fff3b0;
+  font-size: min(9vw, 40px);
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-shadow: 0 3px 0 #8a5a00, 0 0 18px rgba(255, 200, 60, 0.9);
+  animation: wi-full-label 0.8s 1s cubic-bezier(0.2, 1.5, 0.4, 1) both;
+}
+
+.wi-full__close {
+  position: relative;
+  min-height: 48px;
+  margin-top: 18px;
+  padding: 0 32px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--wi-yellow);
+  color: #4a3200;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+@keyframes wi-full-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes wi-full-drop {
+  0% {
+    transform: translateY(-90vh) scale(0.5) rotate(-10deg);
+    opacity: 0;
+  }
+  60% {
+    transform: translateY(2vh) scale(1.08) rotate(2deg);
+    opacity: 1;
+  }
+  100% {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+@keyframes wi-full-label {
+  from {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wi-tile.is-rising .wi-tile__img,
+  .wi-tile.is-upgrading .wi-tile__img,
+  .wi-medal__rays,
+  .wi-medal__img,
+  .wi-medal__text,
+  .wi-full__rays,
+  .wi-full__badge,
+  .wi-full__label {
+    animation: none;
+  }
+
+  // 沒有動畫時，徽章直接停在完整的樣子。
+  .wi-medal__rays {
+    opacity: 0;
+  }
+}
+
+// 答對後的 XP 回饋（只在登入學生走伺服器時出現）
+.word-island__xp {
+    margin: 12px 0 4px;
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: #eef4ff;
+    border: 1px solid #cfe0ff;
+    text-align: left;
+}
+.word-island__xp-title { margin: 0 0 8px; font-size: 15px; color: #1d3a8a; strong { font-size: 20px; color: #e8920a; } }
+.word-island__xp-row { display: flex; align-items: center; gap: 8px; }
+.word-island__xp-level { font-weight: 800; color: #1d3a8a; min-width: 44px; }
+.word-island__xp-pct { font-size: 13px; color: #4a5a85; min-width: 40px; text-align: right; }
+.word-island__xp-bar {
+    flex: 1; height: 12px; border-radius: 999px; background: #dbe6fb; overflow: hidden;
+    span { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #4f8cff, #f7b52c); transition: width 0.8s ease-out; }
+}
+.word-island__xp-note { margin: 8px 0 0; font-size: 13px; color: #4a5a85; &.is-up { font-weight: 800; color: #e8920a; font-size: 15px; } }
+@media (prefers-reduced-motion: reduce) { .word-island__xp-bar span { transition: none; } }

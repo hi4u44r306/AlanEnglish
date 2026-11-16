@@ -414,7 +414,7 @@ describe("MainNavbar student navigation", () => {
         expect(screen.getByRole("link", { name: "作業" })).toHaveAttribute("href", "/teacher/assignments");
         fireEvent.click(screen.getByRole("button", { name: "教材" }));
         expect(screen.getByRole("link", { name: "口說大挑戰預覽" })).toHaveAttribute("href", "/student/speaking-challenges");
-        expect(screen.getByRole("link", { name: "單字大挑戰預覽" })).toHaveAttribute("href", "/student/word-challenge");
+        expect(screen.getByRole("link", { name: "單字島" })).toHaveAttribute("href", "/student/word-island");
 
         const musicManagementLink = screen.getByRole("link", { name: "音檔管理" });
         expect(musicManagementLink).toHaveAttribute("href", "/teacher/music/manage");
@@ -430,7 +430,7 @@ describe("MainNavbar student navigation", () => {
 
         expect(await screen.findAllByRole("link", { name: "音檔管理" })).toHaveLength(2);
         expect(screen.getAllByRole("link", { name: "口說題庫" })).toHaveLength(2);
-        expect(screen.getAllByRole("link", { name: "單字大挑戰預覽" })).toHaveLength(2);
+        expect(screen.getAllByRole("link", { name: "單字島" })).toHaveLength(2);
         ["新增連結", "獎品與兌換管理", "教材商品包", "商城訂單與出貨", "等級與晉級測驗", "班級排行榜"].forEach(name => expect(screen.queryByRole("link", { name })).not.toBeInTheDocument());
         expect(screen.queryByRole("link", { name: "建立音檔" })).not.toBeInTheDocument();
     });
@@ -475,7 +475,7 @@ describe("MainNavbar student navigation", () => {
         await waitFor(() => expect(screen.queryByText("教材載入中...")).not.toBeInTheDocument());
         fireEvent.click(screen.getByRole("button", { name: "教材" }));
         expect(screen.getByRole("link", { name: "口說大挑戰預覽" })).toHaveAttribute("href", "/student/speaking-challenges");
-        expect(screen.getByRole("link", { name: "單字大挑戰預覽" })).toHaveAttribute("href", "/student/word-challenge");
+        expect(screen.getByRole("link", { name: "單字島" })).toHaveAttribute("href", "/student/word-island");
         expect(screen.getByRole("link", { name: "音檔管理" })).toHaveAttribute("href", "/teacher/music/manage");
         expect(screen.queryByRole("link", { name: "口說題庫" })).not.toBeInTheDocument();
         expect(screen.queryByRole("button", { name: "設定" })).not.toBeInTheDocument();

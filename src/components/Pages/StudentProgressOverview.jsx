@@ -148,7 +148,7 @@ function StudentProgressOverview() {
         <div className="student-progress__links">
             <Link to="/student/weekly-report"><FiMail aria-hidden="true" />每週報告{focusRate !== null && <small>本週專注度 {focusRate}%</small>}</Link>
             <Link to="/student/leaderboard"><PiTrophyFill aria-hidden="true" />排行榜</Link>
-            <Link to="/student/word-challenge"><FiType aria-hidden="true" />單字大挑戰</Link>
+            <Link to="/student/word-island"><FiType aria-hidden="true" />單字島</Link>
         </div>
     </section>;
 }
