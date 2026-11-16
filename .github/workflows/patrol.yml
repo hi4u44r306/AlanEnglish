@@ -33,5 +33,12 @@ jobs:
           name: patrol-report
           path: patrol-out/
           retention-days: 30
+      - name: 寄通知信（未設定 Secret 時自動略過）
+        if: always()
+        env:
+          PATROL_RESEND_API_KEY: ${{ secrets.PATROL_RESEND_API_KEY }}
+          PATROL_FROM_EMAIL: ${{ secrets.PATROL_FROM_EMAIL }}
+          PATROL_NOTIFY_EMAIL: ${{ secrets.PATROL_NOTIFY_EMAIL }}
+        run: node patrol/notify.mjs
       - name: 有紅色問題就讓工作失敗（GitHub 會寄信）
         run: node -e "const s=require('./patrol-out/summary.json');if(s.shouldNotify){console.error('發現 '+s.red+' 個紅色問題，請看報告');process.exit(1)}"
