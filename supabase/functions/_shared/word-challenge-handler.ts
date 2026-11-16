@@ -309,8 +309,12 @@ export async function handleWordChallengeRequest(req: Request, deps: WordChallen
             // XP：新佔領 +2、剛升級 +3（每天最多 30）。資料庫重新檢查（答對、沒提示、真的是新佔領／剛升級），發不發都以它為準。
             let xp: Record<string, unknown> | null = null;
             if (Number(answerRound.question_count) === 1 && row.correct === true && row.already_answered !== true && Number(row.hint_count) === 0) {
+                // XP 發放失敗不能讓這次答題回 500（答案與進度已經記好了），只是這次不顯示 XP。
                 const paid = await rpc(deps.admin, "award_word_island_xp_v1", {
                     p_student_id: student.id, p_round_id: roundId, p_position: position, p_kind: upgrade?.upgraded ? "upgrade" : "claim"
+                }).catch(error => {
+                    console.error("word-island xp failed", (error as { code?: string })?.code || (error as Error)?.name);
+                    return null;
                 });
                 const award = Array.isArray(paid) ? paid[0] : paid;
                 if (award) {
