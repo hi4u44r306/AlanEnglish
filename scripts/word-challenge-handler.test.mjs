@@ -11,6 +11,7 @@ import { WORD_BANK } from "../supabase/functions/_shared/word-challenge-bank.gen
 const { PGlite } = await import(process.env.PGLITE_MODULE ? pathToFileURL(process.env.PGLITE_MODULE).href : "@electric-sql/pglite");
 const db = new PGlite();
 const migration = readFileSync(new URL("../supabase/migrations/20261111100000_word_challenge_server_v1.sql", import.meta.url), "utf8");
+const xpMigration = readFileSync(new URL("../supabase/migrations/20261116100000_word_island_xp_v1.sql", import.meta.url), "utf8");
 const upgradeMigration = readFileSync(new URL("../supabase/migrations/20261115100000_word_island_upgrade_v1.sql", import.meta.url), "utf8");
 
 const SCALARS = new Set(["reveal_word_challenge_hint_v1", "get_word_challenge_summary_v1"]);
@@ -105,6 +106,7 @@ before(async () => {
     `);
     await db.exec(migration);
     await db.exec(upgradeMigration);
+    await db.exec(xpMigration);
     // 學生 1、5、7 被逐一開放；老師 2 也有資料列但不是學生。
     await db.exec("insert into public.student_feature_rollouts values (1,'word_challenge_server_v1',true),(5,'word_challenge_server_v1',true),(7,'word_challenge_server_v1',true),(8,'word_challenge_server_v1',true),(9,'word_challenge_server_v1',true),(2,'word_challenge_server_v1',true)");
 });
@@ -290,6 +292,8 @@ test("island_start refuses locked, invalid, claimed and local-mode requests; a c
     const summary = await call("student-8", { action: "island_summary", level: 1 });
     const claimed = summary.json.islands[0].tiles[0];
     assert.deepEqual([claimed.state, claimed.display], ["claimed", level1[0].display]);
+    assert.ok(Number.isFinite(Date.parse(claimed.claimed_at)), "a claimed tile reports when it was claimed");
+    assert.equal("claimed_at" in summary.json.islands[0].tiles[1], false, "an unclaimed tile has no claim time");
     assert.equal(summary.json.islands[0].claimed_count, 1);
     assert.equal((await call("student-8", { action: "island_start", level: 1, island: 0, tile: 0 })).json.code, "tile_claimed");
 });
@@ -425,4 +429,35 @@ test("a fully upgraded island lets the student practice any tile; after 7 quiet 
     assert.equal(miss.json.correct, false);
     view = (await call("student-9", { action: "island_summary", level: 1 })).json.islands[0];
     assert.deepEqual([view.maxed, view.claimed_count, view.tiles[6].level], [true, 16, 1]);
+});
+
+// 單字島 XP：新佔領 +2、升級 +3、每天最多 30；用提示或練習不給；舊式整輪不重複發。
+test("island XP: +2 for a new tile, +3 for an upgrade, nothing for hinted or practice answers, capped at 30 a day", async () => {
+    const claimTile = async (tile, typed) => {
+        const start = await call("student-1", { action: "island_start", level: 1, island: 0, tile });
+        assert.equal(start.status, 200, JSON.stringify(start.json));
+        return call("student-1", { action: "answer", round_id: start.json.round_id, position: 0, typed });
+    };
+    const first = await claimTile(0, level1[0].display);
+    assert.equal(first.json.xp.xp_awarded, 2);
+    assert.deepEqual([first.json.xp.level_before, first.json.xp.level_after, first.json.xp.progress_after - first.json.xp.progress_before, first.json.xp.daily_cap], [1, 1, 2, 30]);
+    // 答錯：不給 XP（沒有 xp 欄位內容）。
+    const wrong = await claimTile(1, "zzzz");
+    assert.equal(wrong.json.xp, null);
+    // 同一輪重複送答案：不會重複發。
+    const start = await call("student-1", { action: "island_start", level: 1, island: 0, tile: 2 });
+    await call("student-1", { action: "answer", round_id: start.json.round_id, position: 0, typed: level1[2].display });
+    const again = await call("student-1", { action: "answer", round_id: start.json.round_id, position: 0, typed: level1[2].display });
+    assert.equal(again.json.xp, null);
+    assert.equal((await db.query("select count(*)::int n from public.student_gamification_ledger where student_id = 1 and source_type = 'word_island'")).rows[0].n, 2);
+    // 升級 +3：把這塊地的佔領時間改到幾天前再答。
+    await db.query("update public.student_word_progress set first_mastered_at = now() - interval '3 days' where student_id = 1 and word_key = $1", [level1[0].key]);
+    const up = await claimTile(0, level1[0].display);
+    assert.deepEqual([up.json.upgraded, up.json.xp.xp_awarded], [true, 3]);
+    // 每天最多 30：把今天已拿的假裝成 29，下一塊新地只能拿 1。
+    await db.query("insert into public.student_gamification_ledger(student_id,xp_delta,source_type,source_key,metadata) values (1, 22, 'word_island', 'test:filler', '{\"base_xp\":22}'::jsonb)");
+    const cap1 = await claimTile(3, level1[3].display);
+    assert.equal(cap1.json.xp.xp_awarded, 1);
+    const cap2 = await claimTile(4, level1[4].display);
+    assert.deepEqual([cap2.json.xp.xp_awarded, cap2.json.xp.daily_xp], [0, 30]);
 });

@@ -13,6 +13,25 @@ export const ISLAND_SIZE = 16;
 export const MAX_TILE_LEVEL = 1;
 export const REVIEW_AFTER_DAYS = 7;
 export const REVIEW_PICK = 3;
+// 等級門檻（和 gamification 函式、資料庫 ae_level_for_xp 同一套）；單字島答對後用它算「目前等級與進度」。
+export const LEVEL_THRESHOLDS = [0, 100, 250, 450, 700, 1000, 1400, 1900, 2500, 3200, 4000, 5000, 6200, 7600, 9200, 11000, 13000, 15200, 17600, 20200];
+export function levelInfo(xpValue: number) {
+    const xp = Math.max(0, Math.floor(Number(xpValue) || 0));
+    const last = LEVEL_THRESHOLDS.length - 1;
+    let level: number; let min: number; let next: number;
+    if (xp >= LEVEL_THRESHOLDS[last]) {
+        const extra = Math.floor((xp - LEVEL_THRESHOLDS[last]) / 3000);
+        level = LEVEL_THRESHOLDS.length + extra;
+        min = LEVEL_THRESHOLDS[last] + extra * 3000;
+        next = min + 3000;
+    } else {
+        let index = 0;
+        while (index < last && xp >= LEVEL_THRESHOLDS[index + 1]) index += 1;
+        level = index + 1; min = LEVEL_THRESHOLDS[index]; next = LEVEL_THRESHOLDS[index + 1];
+    }
+    return { level, level_min_xp: min, next_level_xp: next, progress_percent: Math.min(100, Math.max(0, Math.round(((xp - min) / Math.max(1, next - min)) * 100))) };
+}
+
 export const TAIPEI_OFFSET_MS = 8 * 60 * 60 * 1000;
 
 export type ProgressRow = {
@@ -58,7 +77,7 @@ export const inCooldown = (lastMissedAt: string | null | undefined, nowMs: numbe
 // 注意：字的 key 就等於英文答案，所以絕對不能放進沒佔領的格子。
 export type IslandTile = {
     tile: number; gloss: string; letters: number; state: TileState; review: boolean;
-    display?: string; cooldown_until?: string;
+    display?: string; claimed_at?: string | null; cooldown_until?: string;
     level?: number; can_upgrade?: boolean; can_practice?: boolean; stale?: boolean;
 };
 export type IslandView = {
@@ -98,7 +117,7 @@ export function buildIslandViews(level: number, progress: ProgressRow[], nowMs: 
             const base = { tile, gloss: word.gloss, letters: word.letters, review: !claimed && row?.status === "missed" };
             if (claimed) {
                 return {
-                    ...base, state: "claimed", display: word.display, review: row?.status === "missed",
+                    ...base, state: "claimed", display: word.display, claimed_at: row?.first_mastered_at ?? null, review: row?.status === "missed",
                     level: Math.min(Number(row?.upgrade_level) || 0, MAX_TILE_LEVEL), can_upgrade: canUpgradeTile(row, nowMs)
                 };
             }

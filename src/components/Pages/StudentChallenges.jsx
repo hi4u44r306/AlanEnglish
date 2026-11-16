@@ -71,11 +71,11 @@ export default function StudentChallenges() {
                         <Link className="student-challenges__locked-link" to="/student/membership">看會員與功能</Link>
                     </span>
                 </div>}
-            <Link className="student-challenges__card is-word" to="/student/word-challenge">
+            <Link className="student-challenges__card is-word" to="/student/word-island">
                 <span className="student-challenges__tile" aria-hidden="true"><FiType /></span>
                 <span className="student-challenges__body">
-                    <strong>單字大挑戰</strong>
-                    <span>看中文，把英文單字拼出來。分 6 級，每輪 10 題。</span>
+                    <strong>單字島</strong>
+                    <span>看中文拼英文，答對一塊地就從海裡浮上來，整座島升級後融合成完整的島。分 6 級。</span>
                     <small>{wordKnown > 0 ? `已會 ${wordKnown} / ${WORD_TOTAL} 字` : `${WORD_TOTAL} 字 · 還沒挑戰`}</small>
                     {wordReview > 0 && <small className="student-challenges__review">有 {wordReview} 個字要複習</small>}
                 </span>

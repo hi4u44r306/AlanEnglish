@@ -12,7 +12,7 @@ import {
     pickRoundWords,
     toRoundQuestion
 } from "./word-challenge-round.ts";
-import { buildIslandViews, inCooldown, nextTaipeiMidnightIso, tileWord, upgradesToday, type ProgressRow } from "./word-challenge-island.ts";
+import { buildIslandViews, inCooldown, levelInfo, nextTaipeiMidnightIso, tileWord, upgradesToday, type ProgressRow } from "./word-challenge-island.ts";
 
 export const ROLLOUT_FEATURE_KEY = "word_challenge_server_v1";
 
@@ -126,7 +126,7 @@ const readRound = async (deps: WordChallengeDeps, student: WordChallengeStudent,
     if (!UUID_PATTERN.test(roundId)) throw new HttpError(400, "invalid_round", "資料不正確");
     const { data, error } = await deps.admin
         .from("word_challenge_rounds")
-        .select("id,student_id,level,bank_version,status")
+        .select("id,student_id,level,bank_version,status,question_count")
         .eq("id", roundId)
         .eq("student_id", student.id)
         .maybeSingle();
@@ -267,7 +267,7 @@ export async function handleWordChallengeRequest(req: Request, deps: WordChallen
             const position = Number(body?.position);
             const skipped = body?.skipped === true;
             const typed = normalizeTyped(body?.typed);
-            await readRound(deps, student, roundId);
+            const answerRound = await readRound(deps, student, roundId);
             const { word, item } = await readItem(deps, roundId, position);
             // 已經答過：用當時存的答案重新算說明文字，不採用這次傳來的內容。
             const basis = item.answered_at ? String(item.typed ?? "") : typed;
@@ -306,8 +306,32 @@ export async function handleWordChallengeRequest(req: Request, deps: WordChallen
                 const up = Array.isArray(done) ? done[0] : done;
                 if (up) upgrade = { upgraded: up.upgraded === true, level: Number(up.upgrade_level) || 0 };
             }
+            // XP：新佔領 +2、剛升級 +3（每天最多 30）。資料庫重新檢查（答對、沒提示、真的是新佔領／剛升級），發不發都以它為準。
+            let xp: Record<string, unknown> | null = null;
+            if (Number(answerRound.question_count) === 1 && row.correct === true && row.already_answered !== true && Number(row.hint_count) === 0) {
+                const paid = await rpc(deps.admin, "award_word_island_xp_v1", {
+                    p_student_id: student.id, p_round_id: roundId, p_position: position, p_kind: upgrade?.upgraded ? "upgrade" : "claim"
+                });
+                const award = Array.isArray(paid) ? paid[0] : paid;
+                if (award) {
+                    const before = levelInfo(Number(award.xp_before));
+                    const after = levelInfo(Number(award.total_xp));
+                    xp = {
+                        xp_awarded: Number(award.xp_awarded) || 0,
+                        daily_xp: Number(award.daily_xp) || 0,
+                        daily_cap: Number(award.daily_cap) || 0,
+                        total_xp: Number(award.total_xp) || 0,
+                        level_before: before.level,
+                        level_after: after.level,
+                        progress_before: before.progress_percent,
+                        progress_after: after.progress_percent,
+                        next_level_xp: after.next_level_xp
+                    };
+                }
+            }
             return respond(200, {
                 position,
+                xp,
                 upgraded: upgrade?.upgraded === true,
                 upgrade_level: upgrade?.level ?? null,
                 correct: row.correct === true,

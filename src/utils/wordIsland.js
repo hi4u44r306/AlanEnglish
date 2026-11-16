@@ -55,7 +55,7 @@ export function buildIslandViews(words, progress, nowMs) {
             const base = { tile, gloss: word.gloss, letters: word.letters ?? String(word.display).replace(/[^A-Za-z]/g, "").length, review: !claimed && row?.status === "missed" };
             if (claimed) {
                 return {
-                    ...base, state: "claimed", display: word.display, review: row?.status === "missed",
+                    ...base, state: "claimed", display: word.display, claimed_at: row?.firstMasteredAt ?? null, review: row?.status === "missed",
                     level: Math.min(Number(row?.upgradeLevel) || 0, MAX_TILE_LEVEL), can_upgrade: canUpgradeTile(row, nowMs)
                 };
             }

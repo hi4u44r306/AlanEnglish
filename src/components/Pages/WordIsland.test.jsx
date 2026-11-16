@@ -127,7 +127,7 @@ describe("server mode (signed-in student)", () => {
             tile: 0,
             question: { position: 0, gloss: "中文0", letters: 3, template: [{ kind: "letter", hint: "d" }, { kind: "letter", hint: "" }, { kind: "letter", hint: "" }] }
         });
-        service.answerWordChallenge.mockResolvedValue({ position: 0, correct: true, note: null, matched: null, skipped: false, hint_count: 0, already_answered: false, recently_seen: false, expected: "dog" });
+        service.answerWordChallenge.mockResolvedValue({ position: 0, correct: true, note: null, matched: null, skipped: false, hint_count: 0, already_answered: false, recently_seen: false, expected: "dog", xp: { xp_awarded: 2, daily_xp: 2, daily_cap: 30, total_xp: 12, level_before: 1, level_after: 1, progress_before: 10, progress_after: 12, next_level_xp: 100 } });
 
         renderPage({ variant: "app" });
         await screen.findByText("已佔領 0 / 16");
@@ -144,6 +144,11 @@ describe("server mode (signed-in student)", () => {
         submit();
         await screen.findByText(/這一格是你的/);
         expect(service.answerWordChallenge).toHaveBeenCalledWith(user, "r1", 0, { typed: "dog" });
+        // XP 回饋：這次 +2 XP、目前 Lv.1、進度條 10% → 12%。
+        expect(screen.getByText("+2 XP")).toBeInTheDocument();
+        expect(screen.getByText("Lv.1")).toBeInTheDocument();
+        expect(screen.getByRole("progressbar", { name: "目前等級進度" })).toHaveAttribute("aria-valuenow", "12");
+        expect(screen.getByText(/10% → 12%/)).toBeInTheDocument();
         fireEvent.click(screen.getByRole("button", { name: "回到島上" }));
         await screen.findByText("已佔領 1 / 16");
         expect(tileButtons()[0]).toHaveClass("is-claimed");
@@ -320,6 +325,22 @@ describe("two-stage upgrade, fused island, practice and the review cloud", () =>
         fireEvent.click(screen.getByRole("button", { name: /第 1 座島/ }));
         expect(screen.getByRole("img", { name: /已完全升級/ })).toBeInTheDocument();
         expect(screen.queryByRole("button", { name: /這座島有字想複習/ })).not.toBeInTheDocument();
+    });
+
+    test("a tile claimed on a holiday is a holiday tile even among ordinary ones, and the island notes how many", () => {
+        const progress = {};
+        level1.slice(0, 15).forEach(word => { progress[word.key] = { status: "mastered", firstMasteredAt: "2026-03-05T04:00:00.000Z", lastCorrectAt: daysAgo(2), upgradeLevel: 1, lastUpgradedOn: "2026-03-06" }; });
+        progress[level1[15].key] = { status: "mastered", firstMasteredAt: "2026-09-25T04:00:00.000Z", lastCorrectAt: daysAgo(2), upgradeLevel: 1, lastUpgradedOn: "2026-09-26" };
+        seed(progress);
+        renderPage();
+        fireEvent.click(screen.getByRole("button", { name: /第 1 座島/ }));
+        // 15 塊一般日 + 1 塊中秋：融合成一般島，標出 1 塊中秋地塊；翻開後看得到那塊中秋地塊。
+        expect(screen.getByText("中秋限定地塊 ×1")).toBeInTheDocument();
+        expect(screen.getByRole("img", { name: /已完全升級/ }).getAttribute("src")).toMatch(/island-hd-grass\.webp$/);
+        fireEvent.click(screen.getByRole("button", { name: "翻開地塊" }));
+        const sources = tileButtons().map(node => node.querySelector(".wi-tile__img").getAttribute("src"));
+        expect(sources[15]).toMatch(/tile-midautumn-/);
+        expect(sources.slice(0, 15).every(src => /tile-grass-/.test(src))).toBe(true);
     });
 
     test("an island completed on a holiday keeps its holiday tag", () => {

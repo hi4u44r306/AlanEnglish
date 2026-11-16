@@ -13,6 +13,7 @@
 - 小雲提醒（擁有者 2026-11-16 決定）：整座島升滿後 7 天沒碰（答對或答錯）→ `needs_review`，標出最久沒碰的 3 格（`stale`）；規則在 `word-challenge-island.ts` 與 `utils/wordIsland.js`，一致性測試保護。**不需要新資料表**（用既有的 `last_correct_at`／`last_missed_at`）。
 - 驗證：Edge 處理程式＋真實 PostgreSQL（PGlite）13 項（含舊漏洞回歸、隔天重開、島的解鎖、兩段式升級、無每日上限、資料庫直接呼叫也擋第二級、升滿練習與小雲）；前後端一致性 6 項；畫面 27 項（單字島 20、造型 7）；ESLint 乾淨。尚未做：用真實瀏覽器看過各種寬度（只看過約 280／412／800 寬的幾個畫面）、動畫實際播放順不順（驗證用的瀏覽器關閉了動畫）。
 - 尚未驗證：Edge Function 尚未部署，伺服器模式沒有真實連線測過；正式資料庫是否已有靠舊漏洞產生的「已學會」紀錄沒查（目前只有 Test 2 是伺服器模式，影響應該很小）；在校生 `is_active` 是否一定為 true 沒核對；未用 iPhone 實機測。
+- XP（2026-11-16）：新 migration `20261116100000_word_island_xp_v1.sql`（`award_word_island_xp_v1`：佔領 +2、升級 +3、每天最多 30、`source_type='word_island'`、只給單題回合），`answer` 回 `xp`（含等級與進度條前後百分比），畫面 `XpGain` 面板；**migration 尚未套用、Edge 尚未重新部署**。後端 20 項測試通過、畫面 31 項通過、ESLint 乾淨。
 - 待做：取得部署同意後部署並比對；入口（「大挑戰」頁加單字島卡片、導覽）尚未加；單字島 XP、分開計每日輪數、開放全部學生（`WORD_CHALLENGE_SERVER_ALL`）都是之後各自要擁有者同意的後續。
 
 ### 排行榜列美化（2026-11-14，分支 `feature/leaderboard-row-polish`；程式完成、**尚未合併、`gamification` 尚未重新部署**）

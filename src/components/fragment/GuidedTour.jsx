@@ -67,7 +67,7 @@ const buildSystemTour = role => {
             {
                 selector: "[data-tour='adventure']",
                 title: "大挑戰",
-                body: "口說大挑戰和單字大挑戰都在這裡：看著句子開口說，或看中文拼英文單字。"
+                body: "口說大挑戰和單字島都在這裡：看著句子開口說，或看中文拼英文單字，讓一座座小島長出來。"
             },
             {
                 selector: "[data-tour='settings']",

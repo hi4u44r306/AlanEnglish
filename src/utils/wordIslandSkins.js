@@ -14,17 +14,18 @@ export const TERRAIN_TILES = {
     xmas: ["xmas-plain", "xmas-tree", "xmas-gift", "xmas-snowman", "xmas-candy"],
     hallo: ["hallo-plain", "hallo-pumpkin", "hallo-ghost", "hallo-tree", "hallo-cauldron"],
     cny: ["cny-plain", "cny-lantern", "cny-ingot", "cny-cracker", "cny-lion"],
+    midautumn: ["midautumn-plain", "midautumn-lantern", "midautumn-rabbit", "midautumn-pavilion", "midautumn-pond"],
     love: ["love-plain", "love-heart", "love-rose", "love-balloon", "love-choco"]
 };
 
-// 整座島升滿後融合成的完整島圖（只有四種一般主題有；節日主題暫時沒有，升滿時維持地塊畫面）。
+// 整座島升滿後融合成的完整島圖：四種一般主題在這裡；節日主題的圖寫在各自的 fused 欄位。
 export const FUSED_ISLANDS = {
     grass: `${ART_BASE}/island-hd-grass.webp`,
     sand: `${ART_BASE}/island-hd-sand.webp`,
     forest: `${ART_BASE}/island-hd-forest.webp`,
     snow: `${ART_BASE}/island-hd-snow.webp`
 };
-export const fusedImageFor = skin => FUSED_ISLANDS[skin.id] || null;
+export const fusedImageFor = skin => (skin.fused ? `${ART_BASE}/${skin.fused}` : FUSED_ISLANDS[skin.id] || null);
 
 // 徽章（ChatGPT 生成，現代手遊風）。star：單塊升級；silver：升級過半；island：全島佔領；crown：完全升級；gem：複習完成。
 export const BADGES = {
@@ -44,14 +45,18 @@ export const BASE_SKINS = [
 ];
 
 // 節日限定造型。windows：每年重複的日期區間（月-日，含頭尾，可跨年）；
-// lunar：農曆節日每年日期不同，直接列出各年的日期區間（YYYY-MM-DD，含頭尾），每年要補。
-// 中秋節的圖還沒有，補圖後再加進來。
+// lunar：農曆節日每年日期不同，直接列出各年的日期區間（YYYY-MM-DD，含頭尾）。
+// 春節日期（初一）：2027/2/6、2028/1/26、2029/2/13、2030/2/3、2031/1/23、2032/2/11、2033/1/31、2034/2/19、2035/2/8，
+// 區間＝初一前 4 天（除夕前夕）到元宵節（初一後 14 天）；中秋節（八月十五）：2026/9/25、2027/9/15、2028/10/3、2029/9/22、2030/9/12、2031/10/1、2032/9/19、2033/9/8、2034/9/27、2035/9/16，
+// 區間＝前 3 天到後 2 天。日期 2026-11-16 查自多個網路來源互相對照；到 2035 年之後要再補。
+// fused：這個節日的融合島圖（放 public/island-art/）。節日的島在地塊階段用 terrains 的地塊、升滿後換成 fused。
 export const SEASONAL_SKINS = [
-    { id: "christmas", name: "聖誕島", label: "聖誕限定", terrains: ["xmas"], windows: [{ from: "12-01", to: "12-26" }] },
-    { id: "newyear", name: "新年島", label: "新年限定", terrains: ["xmas"], windows: [{ from: "12-27", to: "01-03" }] },
-    { id: "cny", name: "春節島", label: "春節限定", terrains: ["cny"], lunar: [["2027-02-02", "2027-02-20"], ["2028-01-22", "2028-02-09"]] },
-    { id: "valentine", name: "情人節島", label: "情人節限定", terrains: ["love"], windows: [{ from: "02-07", to: "02-14" }] },
-    { id: "halloween", name: "萬聖島", label: "萬聖節限定", terrains: ["hallo"], windows: [{ from: "10-20", to: "10-31" }] }
+    { id: "christmas", name: "聖誕島", label: "聖誕限定", terrains: ["xmas"], fused: "island-hd-xmas.webp", windows: [{ from: "12-01", to: "12-26" }] },
+    { id: "newyear", name: "新年島", label: "新年限定", terrains: ["xmas"], fused: "island-hd-xmas.webp", windows: [{ from: "12-27", to: "01-03" }] },
+    { id: "cny", name: "春節島", label: "春節限定", terrains: ["cny"], fused: "island-hd-cny.webp", lunar: [["2027-02-02", "2027-02-20"], ["2028-01-22", "2028-02-09"], ["2029-02-09", "2029-02-27"], ["2030-01-30", "2030-02-17"], ["2031-01-19", "2031-02-06"], ["2032-02-07", "2032-02-25"], ["2033-01-27", "2033-02-14"], ["2034-02-15", "2034-03-05"], ["2035-02-04", "2035-02-22"]] },
+    { id: "valentine", name: "情人節島", label: "情人節限定", terrains: ["love"], fused: "island-hd-love.webp", windows: [{ from: "02-07", to: "02-14" }] },
+    { id: "halloween", name: "萬聖島", label: "萬聖節限定", terrains: ["hallo"], fused: "island-hd-hallo.webp", windows: [{ from: "10-20", to: "10-31" }] },
+    { id: "midautumn", name: "中秋島", label: "中秋限定", terrains: ["midautumn"], fused: "island-hd-midautumn.webp", lunar: [["2026-09-22", "2026-09-27"], ["2027-09-12", "2027-09-17"], ["2028-09-30", "2028-10-05"], ["2029-09-19", "2029-09-24"], ["2030-09-09", "2030-09-14"], ["2031-09-28", "2031-10-03"], ["2032-09-16", "2032-09-21"], ["2033-09-05", "2033-09-10"], ["2034-09-24", "2034-09-29"], ["2035-09-13", "2035-09-18"]] }
 ];
 
 const SKIN_BY_ID = new Map([...BASE_SKINS, ...SEASONAL_SKINS].map(skin => [skin.id, skin]));
@@ -83,6 +88,40 @@ export function skinForIsland(index, { completedAt = null, date = new Date(), ov
 }
 
 export const isSeasonal = skin => SEASONAL_SKINS.some(item => item.id === skin.id);
+
+// 台北時間的日期（YYYY-MM-DD）。節日用「台北的那一天」判斷，不受裝置時區影響。
+const taipeiDay = iso => new Date(Date.parse(iso) + 8 * 60 * 60 * 1000).toISOString().slice(0, 10);
+const dateOfDay = day => new Date(`${day}T12:00:00`);
+
+// 一般島的造型（依島的編號輪流）。
+export const baseSkinFor = index => BASE_SKINS[index % BASE_SKINS.length];
+
+// 一塊地的樣子：哪天佔領的就長那天的樣子——節日當天佔領的是節日地塊，其他日子是這座島的一般地塊。
+// override 只給預覽用（網址 ?skin=christmas 讓全部地塊都用同一種）。
+export function skinForClaim(index, claimedAt, { override = "" } = {}) {
+    const forced = override ? SKIN_BY_ID.get(override) : null;
+    if (forced) return forced;
+    if (!claimedAt || !Number.isFinite(Date.parse(claimedAt))) return baseSkinFor(index);
+    return seasonalSkinAt(dateOfDay(taipeiDay(claimedAt))) || baseSkinFor(index);
+}
+
+// 整座島融合成哪一張圖：看哪一種樣子的地塊最多（一般島算一種）；一樣多時節日優先。
+// 回傳 { skin, holidayCounts }，holidayCounts 是各節日地塊的數量（沒有就是空陣列），畫面用來標「含 N 塊中秋限定地塊」。
+export function fusedSkinFor(index, claimedAtList, { override = "" } = {}) {
+    const counts = new Map();
+    const base = baseSkinFor(index);
+    claimedAtList.forEach(claimedAt => {
+        const skin = skinForClaim(index, claimedAt, { override });
+        const entry = counts.get(skin.id) || { skin, n: 0, latest: 0 };
+        entry.n += 1;
+        entry.latest = Math.max(entry.latest, Date.parse(claimedAt) || 0);
+        counts.set(skin.id, entry);
+    });
+    const ranked = [...counts.values()].sort((a, b) => b.n - a.n || Number(isSeasonal(b.skin)) - Number(isSeasonal(a.skin)) || b.latest - a.latest);
+    const skin = ranked[0]?.skin || base;
+    const holidayCounts = ranked.filter(entry => isSeasonal(entry.skin)).map(entry => ({ skin: entry.skin, n: entry.n }));
+    return { skin, holidayCounts };
+}
 
 // 簡單的可重現亂數：同一座島每次打開都是一樣的排列。
 const hashSeed = text => {

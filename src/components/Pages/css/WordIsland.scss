@@ -897,3 +897,23 @@ body:has(.word-island) {
     opacity: 0;
   }
 }
+
+// 答對後的 XP 回饋（只在登入學生走伺服器時出現）
+.word-island__xp {
+    margin: 12px 0 4px;
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: #eef4ff;
+    border: 1px solid #cfe0ff;
+    text-align: left;
+}
+.word-island__xp-title { margin: 0 0 8px; font-size: 15px; color: #1d3a8a; strong { font-size: 20px; color: #e8920a; } }
+.word-island__xp-row { display: flex; align-items: center; gap: 8px; }
+.word-island__xp-level { font-weight: 800; color: #1d3a8a; min-width: 44px; }
+.word-island__xp-pct { font-size: 13px; color: #4a5a85; min-width: 40px; text-align: right; }
+.word-island__xp-bar {
+    flex: 1; height: 12px; border-radius: 999px; background: #dbe6fb; overflow: hidden;
+    span { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, #4f8cff, #f7b52c); transition: width 0.8s ease-out; }
+}
+.word-island__xp-note { margin: 8px 0 0; font-size: 13px; color: #4a5a85; &.is-up { font-weight: 800; color: #e8920a; font-size: 15px; } }
+@media (prefers-reduced-motion: reduce) { .word-island__xp-bar span { transition: none; } }

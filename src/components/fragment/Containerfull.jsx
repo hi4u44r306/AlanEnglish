@@ -78,9 +78,9 @@ const Containerfull = ({ children }) => {
 
     // 口說挑戰期間保留曲目與播放位置，但完整封鎖教材播放器的
     // 顯示與操作，避免孩子在麥克風練習時分心或同時播放教材音檔。
-    // 單字大挑戰要專心拼字，同樣暫停並隱藏教材播放器。
+    // 單字島（原單字大挑戰）要專心拼字，同樣暫停並隱藏教材播放器。
     const wordChallengePage =
-        location.pathname === '/student/word-challenge';
+        location.pathname === '/student/word-island' || location.pathname === '/student/word-challenge';
 
     const hidePlayerForSpeaking = Boolean(
         currMusic && (speakingChallengePage || wordChallengePage)

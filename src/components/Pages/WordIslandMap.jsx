@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo } from "react";
-import { BADGES, CENTER_TILE, fusedImageFor, ghostImageFor, isSeasonal, tileArtFor, tileImageFor } from "../../utils/wordIslandSkins";
+import React, { useEffect, useMemo, useRef } from "react";
+import { BADGES, CENTER_TILE, baseSkinFor, fusedImageFor, fusedSkinFor, ghostImageFor, isSeasonal, skinForClaim, tileArtFor, tileImageFor } from "../../utils/wordIslandSkins";
 
 // 一座島：16 塊六角地塊拼在海上。還沒佔領的地塊沉在水裡（可以點來作答），答對後那一塊從水裡浮上來；
 // 已佔領的地塊隔天再答對會升級（繁榮：出現裝飾、星星徽章、金色光暈）；
@@ -39,22 +39,41 @@ const tileLabel = (tile, flipped) => {
     return `${tile.review ? "待複習：" : ""}${tile.gloss}，按下作答`;
 };
 
-export function IslandMap({ island, skin, islandIndex, onTile, fresh, flipped, onFlip }) {
-    const art = useMemo(() => tileArtFor(skin, islandIndex, island.tiles.length), [skin, islandIndex, island.tiles.length]);
+export function IslandMap({ island, islandIndex, onTile, fresh, flipped, onFlip, override = "" }) {
+    // 每一塊地的樣子依「哪天佔領」決定（節日當天佔領的是節日地塊）；還沒佔領的格子用這座島原本的地形。
+    const baseSkin = baseSkinFor(islandIndex);
+    const tileSkins = useMemo(() => island.tiles.map(tile => (tile.state === "claimed" ? skinForClaim(islandIndex, tile.claimed_at, { override }) : override ? skinForClaim(islandIndex, null, { override }) : baseSkin)), [island.tiles, islandIndex, override, baseSkin]);
+    const artCache = useRef(new Map());
+    const artOf = (skin, tileIndex) => {
+        const key = `${islandIndex}:${skin.id}`;
+        if (!artCache.current.has(key)) artCache.current.set(key, tileArtFor(skin, islandIndex, island.tiles.length));
+        return artCache.current.get(key)[tileIndex];
+    };
+    // 融合成哪一張圖：看哪一種樣子的地塊最多；一樣多時節日優先。
+    const { skin, holidayCounts } = useMemo(
+        () => fusedSkinFor(islandIndex, island.tiles.filter(tile => tile.state === "claimed").map(tile => tile.claimed_at), { override }),
+        [island.tiles, islandIndex, override]
+    );
     const fusedSrc = island.maxed ? fusedImageFor(skin) : null;
     const showFused = Boolean(fusedSrc) && !flipped;
     // 升滿的島：有融合圖的要「翻開」才看得到單字；沒有融合圖的（節日島）直接顯示單字、可以練習。
     const wordsOn = island.maxed && (flipped || !fusedSrc);
     return (
         <div className={`wi-stage${island.maxed ? " is-maxed" : ""}`} data-skin={skin.id}>
-            {isSeasonal(skin) && <span className="wi-stage__tag">{skin.label}</span>}
+            {(isSeasonal(skin) || holidayCounts.length > 0) && (
+                <span className="wi-stage__tag">
+                    {isSeasonal(skin)
+                        ? skin.label
+                        : holidayCounts.map(entry => `${entry.skin.label}地塊 ×${entry.n}`).join("、")}
+                </span>
+            )}
             {showFused ? (
                 <img className="wi-fused" src={fusedSrc} alt={`第 ${islandIndex + 1} 座島，已完全升級`} draggable="false" />
             ) : (
                 <ul className="wi-grid">
                     {island.tiles.map(tile => {
                         const pos = POSITIONS[tile.tile];
-                        const tileArt = art[tile.tile];
+                        const tileArt = artOf(tileSkins[tile.tile], tile.tile);
                         const claimed = tile.state === "claimed";
                         const level = tile.level ?? 0;
                         const center = tile.tile === CENTER_TILE;

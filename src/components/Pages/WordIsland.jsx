@@ -8,7 +8,6 @@ import { WORD_BANK_VERSION, WORD_CHALLENGE_LEVELS, meaningPeersOf, wordsForLevel
 import { answerWordChallenge, getWordIslandSummary, startWordIslandTile } from "../../services/wordChallengeService";
 import { WORD_CHALLENGE_MODES, checkWordAnswer, lettersOnly, noteMessage } from "../../utils/wordChallengeAnswer";
 import { ISLAND_SIZE, buildIslandViews, canUpgradeTile, islandWordsOf, taipeiDate } from "../../utils/wordIsland";
-import { skinForIsland } from "../../utils/wordIslandSkins";
 import "./css/WordIsland.scss";
 
 // 單字島：看中文、拼出英文，答對才佔領那一格。
@@ -51,6 +50,40 @@ const patternFromWord = display => patternFromTemplate(String(display).split("")
 function useStudentAccount(variant) {
     const auth = useAuth();
     return variant === "app" && auth?.role === "student" && auth.firebaseUser ? auth.firebaseUser : null;
+}
+
+// 答對後的 XP 回饋：這次拿了多少、目前等級、進度條從哪裡長到哪裡（升等時先填滿再從頭長）。
+function XpGain({ xp }) {
+    const levelUp = xp.level_after > xp.level_before;
+    const [width, setWidth] = useState(levelUp ? xp.progress_before : xp.progress_before);
+    useEffect(() => {
+        const timers = [];
+        if (levelUp) {
+            timers.push(setTimeout(() => setWidth(100), 60));
+            timers.push(setTimeout(() => setWidth(xp.progress_after), 900));
+        } else {
+            timers.push(setTimeout(() => setWidth(xp.progress_after), 60));
+        }
+        return () => timers.forEach(clearTimeout);
+    }, [levelUp, xp.progress_after]);
+    const capped = xp.xp_awarded === 0;
+    return (
+        <div className="word-island__xp" role="status" aria-live="polite">
+            <p className="word-island__xp-title">
+                {capped ? `今天單字島的 XP 已拿滿 ${xp.daily_cap}，明天再來` : <>獲得 <strong>+{xp.xp_awarded} XP</strong></>}
+            </p>
+            <div className="word-island__xp-row">
+                <span className="word-island__xp-level">Lv.{xp.level_after}</span>
+                <div className="word-island__xp-bar" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={xp.progress_after} aria-label="目前等級進度">
+                    <span style={{ width: `${width}%` }} />
+                </div>
+                <span className="word-island__xp-pct">{xp.progress_after}%</span>
+            </div>
+            {levelUp
+                ? <p className="word-island__xp-note is-up">升到 Lv.{xp.level_after} 了！</p>
+                : !capped && <p className="word-island__xp-note">進度條 {xp.progress_before}% → {xp.progress_after}%（今天單字島 {xp.daily_xp}/{xp.daily_cap} XP）</p>}
+        </div>
+    );
 }
 
 function QuestionSheet({ gloss, pattern, submit, onClose, upgrade = false, practice = false }) {
@@ -117,6 +150,7 @@ function QuestionSheet({ gloss, pattern, submit, onClose, upgrade = false, pract
                                 : (outcome.message || (practice || upgrade ? "答對了！" : "答對了，這一格是你的！"))}
                     </p>
                 )}
+                {claimed && outcome.xp && <XpGain xp={outcome.xp} />}
                 {outcome && <button className="word-island__primary" type="button" onClick={onClose}>{claimed ? "回到島上" : "知道了"}</button>}
             </form>
         </div>
@@ -224,7 +258,7 @@ function WordIsland({ variant = "public" }) {
         const timer = setTimeout(() => setFresh(null), 1600);
         return () => clearTimeout(timer);
     }, [fresh]);
-    // 造型：已完成的島看完成那天是不是節日，否則依島的編號輪流；網址加 ?skin=christmas 可強制預覽。
+    // 造型：每塊地依「哪天佔領」決定樣子（節日當天佔領的是節日地塊）；網址加 ?skin=christmas 可強制預覽。
     const skinOverride = useMemo(() => {
         try {
             return new URLSearchParams(window.location.search).get("skin") || "";
@@ -232,7 +266,6 @@ function WordIsland({ variant = "public" }) {
             return "";
         }
     }, []);
-    const skin = skinForIsland(safeIndex, { completedAt: island?.completed_at, override: skinOverride });
 
     const closeSheet = () => {
         setOpenTile(null);
@@ -294,7 +327,7 @@ function WordIsland({ variant = "public" }) {
                     if (reply.correct && !recentlySeen && (reply.upgraded || tile.state === "open")) lastResult.current = { tile: tile.tile, kind: reply.upgraded ? "upgrade" : "claim" };
                     return {
                         correct: reply.correct, expected: reply.expected, recentlySeen,
-                        upgraded: reply.upgraded === true, upgradeLevel: reply.upgrade_level,
+                        upgraded: reply.upgraded === true, upgradeLevel: reply.upgrade_level, xp: reply.xp || null,
                         message: recentlySeen ? "" : noteMessage({ display: reply.expected }, { note: reply.note, matched: reply.matched })
                     };
                 }
@@ -378,7 +411,7 @@ function WordIsland({ variant = "public" }) {
                         <span>已佔領 {island.claimed_count} / {island.total}{cleared ? `・已升級 ${island.level_sum ?? 0} / ${island.total}` : ""}</span>
                     </div>
                     <div className="word-island__bar" aria-hidden="true"><i style={{ width: `${island.total ? ((cleared ? island.level_sum ?? 0 : island.claimed_count) / island.total) * 100 : 0}%` }} /></div>
-                    <IslandMap island={island} skin={skin} islandIndex={safeIndex} onTile={onTileClick} fresh={fresh} flipped={flipped} onFlip={() => setFlipped(value => !value)} />
+                    <IslandMap island={island} islandIndex={safeIndex} onTile={onTileClick} fresh={fresh} flipped={flipped} onFlip={() => setFlipped(value => !value)} override={skinOverride} />
                     {cleared && (
                         <p className="word-island__cleared" role="status">
                             {island.maxed ? "這座島已經完全升級！" : "這座島全部佔領了！明天起，隔天再答對就能升級。"}
