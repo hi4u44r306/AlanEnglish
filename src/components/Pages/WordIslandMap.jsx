@@ -97,15 +97,18 @@ export function IslandMap({ island, islandIndex, onTile, fresh, flipped, onFlip,
                                     aria-label={tileLabel(tile, wordsOn)}
                                     onClick={() => clickable && onTile(tile)}
                                 >
+                                    {claimed && isFresh === "claim" && <img className="wi-tile__img wi-tile__ghost" src={ghostImageFor(tileArt)} alt="" draggable="false" />}
                                     <img className="wi-tile__img" src={claimed ? image.src : ghostImageFor(tileArt)} alt="" draggable="false" />
                                     {!claimed && tile.state !== "locked" && <span className="wi-tile__label">{tile.state === "cooldown" ? "明天再來" : tile.gloss}</span>}
                                     {claimed && wordsOn && <span className="wi-tile__label is-word">{tile.display}</span>}
                                     {claimed && !wordsOn && level >= 1 && <img className="wi-tile__coin" src={BADGES.star} alt="" draggable="false" />}
                                     {claimed && tile.can_upgrade && (
-                                        <svg className="wi-tile__up" viewBox="0 0 48 48" aria-hidden="true">
-                                            <circle cx="24" cy="24" r="22" fill="#fff" stroke="#2f5fd0" strokeWidth="4" />
-                                            <path d="M24 8 L39 25 H29 V39 H19 V25 H9 Z" fill="#2f5fd0" stroke="#2f5fd0" strokeWidth="3" strokeLinejoin="round" />
-                                        </svg>
+                                        <span className="wi-tile__up" aria-hidden="true">
+                                            <svg viewBox="0 0 48 48">
+                                                <path d="M24 6 L42 28 H30 V42 H18 V28 H6 Z" fill="#2f5fd0" stroke="#2f5fd0" strokeWidth="3" strokeLinejoin="round" />
+                                            </svg>
+                                            升級
+                                        </span>
                                     )}
                                     {tile.review && <span className="wi-tile__dot" aria-hidden="true" />}
                                 </button>
