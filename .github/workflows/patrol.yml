@@ -1,0 +1,37 @@
+name: AI 巡邏（只讀）
+# 每天台北時間 06:00（UTC 22:00）自動跑一次，也可手動按「Run workflow」。
+# 只看、不登入、不寫入任何正式資料；發現紅色問題時此工作會失敗，GitHub 會寄通知信給你。
+on:
+  schedule:
+    - cron: "0 22 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  patrol:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npx playwright install --with-deps chromium
+      - name: 巡邏（前台＋後台）
+        run: |
+          node patrol/ui-patrol.mjs
+          node patrol/backend-patrol.mjs
+          node patrol/report.mjs
+      - name: 保存報告與截圖（30 天）
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: patrol-report
+          path: patrol-out/
+          retention-days: 30
+      - name: 有紅色問題就讓工作失敗（GitHub 會寄信）
+        run: node -e "const s=require('./patrol-out/summary.json');if(s.shouldNotify){console.error('發現 '+s.red+' 個紅色問題，請看報告');process.exit(1)}"

@@ -1,0 +1,25 @@
+{
+  "_說明": "巡邏員走的公開頁面清單。只放不需登入的頁面；一律只看、不送出表單。",
+  "pages": [
+    { "path": "/", "name": "首頁" },
+    { "path": "/login", "name": "登入" },
+    { "path": "/forgot-password", "name": "忘記密碼" },
+    { "path": "/support", "name": "聯絡客服" },
+    { "path": "/freetrial", "name": "免費體驗" },
+    { "path": "/materials", "name": "教材介紹" },
+    { "path": "/shop", "name": "商店" },
+    { "path": "/links", "name": "教材音檔" },
+    { "path": "/parents", "name": "家長頁" },
+    { "path": "/install", "name": "安裝說明" },
+    { "path": "/basic-reading", "name": "基礎閱讀" },
+    { "path": "/word-island", "name": "單字島（本機模式）" }
+  ],
+  "viewports": [
+    { "width": 320, "height": 640 },
+    { "width": 360, "height": 740 },
+    { "width": 412, "height": 915 },
+    { "width": 768, "height": 1024 },
+    { "width": 1280, "height": 800 },
+    { "width": 1440, "height": 900 }
+  ]
+}

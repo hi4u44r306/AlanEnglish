@@ -72,6 +72,7 @@
     "test:e2e:entitlements": "playwright test tests/e2e/student-entitlements.spec.js",
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:report": "playwright show-report",
+    "patrol": "node patrol/ui-patrol.mjs && node patrol/backend-patrol.mjs && node patrol/report.mjs",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
