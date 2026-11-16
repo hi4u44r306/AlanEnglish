@@ -423,7 +423,7 @@ describe("full-screen mobile challenge", () => {
     });
 });
 
-describe("upgrade is spelled out, and claiming fades the tile in", () => {
+describe("upgrade is spelled out and a claimed tile rises", () => {
     const daysAgo = count => new Date(Date.now() - count * 24 * 60 * 60 * 1000).toISOString();
 
     test("a tile that can upgrade carries a visible 升級 label, and the page explains what to do", () => {
@@ -441,7 +441,7 @@ describe("upgrade is spelled out, and claiming fades the tile in", () => {
         expect(screen.queryByText(/塊地可以升級/)).not.toBeInTheDocument();
     });
 
-    test("right after claiming, the old outline fades out under the real tile (no rising from below)", async () => {
+    test("right after claiming, the tile rises with a single picture (no extra outline layer)", async () => {
         renderPage();
         fireEvent.click(tileButtons()[0]);
         type(level1[0].display);
@@ -450,8 +450,7 @@ describe("upgrade is spelled out, and claiming fades the tile in", () => {
         fireEvent.click(screen.getByRole("button", { name: "回到島上" }));
         const tile = tileButtons()[0];
         expect(tile).toHaveClass("is-rising");
-        expect(tile.querySelectorAll(".wi-tile__img")).toHaveLength(2);
-        expect(tile.querySelector(".wi-tile__ghost")).not.toBeNull();
+        expect(tile.querySelectorAll(".wi-tile__img")).toHaveLength(1);
     });
 
     test("full-screen shows how many tiles can upgrade", () => {
