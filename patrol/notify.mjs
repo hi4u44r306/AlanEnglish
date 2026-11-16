@@ -33,7 +33,7 @@ if (s.red > 0) {
     subject = `【巡邏】發現 ${s.red} 個需要馬上處理的問題`;
     lines = [`今天巡邏發現 ${s.red} 個紅色問題（另有黃 ${s.yellow}、灰 ${s.gray}）。`, "請打開報告看哪一頁、哪個寬度、有沒有截圖。"];
 } else if (weekday === 1 || forced) {
-    subject = "【巡邏】本週平安";
+    subject = forced ? "【巡邏】測試信（通知設定正常）" : "【巡邏】本週平安";
     lines = [`今天沒有發現需要馬上處理的問題（黃 ${s.yellow}、灰 ${s.gray}、巡邏員連不上 ${s.unreachable}）。`, `前台檢查了 ${s.checked.uiCombos} 組（頁面×寬度）。`];
 } else {
     console.log("沒有紅色問題，也不是週一，不寄信。");
