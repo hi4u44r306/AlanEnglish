@@ -297,7 +297,7 @@ export async function handleWordChallengeRequest(req: Request, deps: WordChallen
                 p_skipped: skipped
             });
             const row = Array.isArray(stored) ? stored[0] : stored;
-            // 已佔領的格子答對 → 嘗試升級；資料庫會重新檢查所有條件（不同天、沒用提示、每日上限）。
+            // 已佔領的格子答對 → 嘗試升級；資料庫會重新檢查所有條件（不同天、沒用提示、每格每天一次）。
             let upgrade: { upgraded: boolean; level: number } | null = null;
             if (row.correct === true && row.already_answered !== true && Number(row.hint_count) === 0) {
                 const done = await rpc(deps.admin, "upgrade_word_island_tile_v1", {
