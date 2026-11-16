@@ -422,3 +422,45 @@ describe("full-screen mobile challenge", () => {
         expect(document.querySelector(".wi-imm")).toHaveClass("is-sheet-open");
     });
 });
+
+describe("upgrade is spelled out, and claiming fades the tile in", () => {
+    const daysAgo = count => new Date(Date.now() - count * 24 * 60 * 60 * 1000).toISOString();
+
+    test("a tile that can upgrade carries a visible 升級 label, and the page explains what to do", () => {
+        window.localStorage.setItem("ae-word-island:v1", JSON.stringify({ progress: { [level1[0].key]: { status: "mastered", firstMasteredAt: daysAgo(3) }, [level1[1].key]: { status: "mastered", firstMasteredAt: daysAgo(3) } } }));
+        renderPage();
+        expect(document.querySelectorAll(".wi-tile__up")).toHaveLength(2);
+        expect(document.querySelector(".wi-tile__up")).toHaveTextContent("升級");
+        expect(screen.getByText(/有 2 塊地可以升級/)).toBeInTheDocument();
+        expect(screen.getByText(/再答對一次，它就會變成繁榮的金色地塊/)).toBeInTheDocument();
+    });
+
+    test("no upgrade label or hint when nothing can be upgraded", () => {
+        renderPage();
+        expect(document.querySelector(".wi-tile__up")).toBeNull();
+        expect(screen.queryByText(/塊地可以升級/)).not.toBeInTheDocument();
+    });
+
+    test("right after claiming, the old outline fades out under the real tile (no rising from below)", async () => {
+        renderPage();
+        fireEvent.click(tileButtons()[0]);
+        type(level1[0].display);
+        submit();
+        await screen.findByRole("status");
+        fireEvent.click(screen.getByRole("button", { name: "回到島上" }));
+        const tile = tileButtons()[0];
+        expect(tile).toHaveClass("is-rising");
+        expect(tile.querySelectorAll(".wi-tile__img")).toHaveLength(2);
+        expect(tile.querySelector(".wi-tile__ghost")).not.toBeNull();
+    });
+
+    test("full-screen shows how many tiles can upgrade", () => {
+        window.localStorage.setItem("ae-word-island:v1", JSON.stringify({ progress: { [level1[0].key]: { status: "mastered", firstMasteredAt: daysAgo(3) } } }));
+        Element.prototype.scrollTo = jest.fn();
+        renderPage();
+        fireEvent.click(screen.getByRole("button", { name: /開始挑戰/ }));
+        expect(document.querySelector(".wi-imm__hint")).toHaveTextContent("1 塊可以升級");
+        delete Element.prototype.scrollTo;
+        document.body.style.overflow = "";
+    });
+});

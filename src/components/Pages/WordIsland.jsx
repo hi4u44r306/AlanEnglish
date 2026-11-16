@@ -413,6 +413,11 @@ function WordIsland({ variant = "public" }) {
                         <span>已佔領 {island.claimed_count} / {island.total}{cleared ? `・已升級 ${island.level_sum ?? 0} / ${island.total}` : ""}</span>
                     </div>
                     <div className="word-island__bar" aria-hidden="true"><i style={{ width: `${island.total ? ((cleared ? island.level_sum ?? 0 : island.claimed_count) / island.total) * 100 : 0}%` }} /></div>
+                    {island.tiles.some(tile => tile.can_upgrade) && (
+                        <p className="word-island__upgrade-hint">
+                            <b>升級</b>有 {island.tiles.filter(tile => tile.can_upgrade).length} 塊地可以升級：點有「升級」標籤的地塊，再答對一次，它就會變成繁榮的金色地塊。
+                        </p>
+                    )}
                     <button className="word-island__play" type="button" onClick={() => setImmersive(true)}>開始挑戰（全螢幕）</button>
                     {!immersive && <IslandMap island={island} islandIndex={safeIndex} onTile={onTileClick} fresh={fresh} flipped={flipped} onFlip={() => setFlipped(value => !value)} override={skinOverride} />}
                     {cleared && (

@@ -130,6 +130,7 @@ function ImmersiveIsland({ islands, islandIndex, onSelectIsland, onClose, sheetO
     };
 
     if (!island) return null;
+    const upgradeCount = island.tiles.filter(tile => tile.can_upgrade).length;
     return (
         <div className={`wi-imm${sheetOpen ? " is-sheet-open" : ""}`} role="region" aria-label="單字島全螢幕挑戰">
             <div className="wi-imm__top">
@@ -137,6 +138,7 @@ function ImmersiveIsland({ islands, islandIndex, onSelectIsland, onClose, sheetO
                 <p className="wi-imm__title">
                     <strong>第 {islandIndex + 1} 座島</strong>
                     <span>已佔領 {island.claimed_count} / {island.total}</span>
+                    {upgradeCount > 0 && <span className="wi-imm__hint">{upgradeCount} 塊可以升級：點有「升級」標籤的地塊</span>}
                 </p>
                 <div className="wi-imm__zoom">
                     <button type="button" className="wi-imm__round" onClick={() => changeZoom(zoom - ZOOM_STEP)} disabled={zoom <= MIN_ZOOM} aria-label="縮小"><FiMinus aria-hidden="true" /></button>
