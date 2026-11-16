@@ -97,7 +97,6 @@ export function IslandMap({ island, islandIndex, onTile, fresh, flipped, onFlip,
                                     aria-label={tileLabel(tile, wordsOn)}
                                     onClick={() => clickable && onTile(tile)}
                                 >
-                                    {claimed && isFresh === "claim" && <img className="wi-tile__img wi-tile__ghost" src={ghostImageFor(tileArt)} alt="" draggable="false" />}
                                     <img className="wi-tile__img" src={claimed ? image.src : ghostImageFor(tileArt)} alt="" draggable="false" />
                                     {!claimed && tile.state !== "locked" && <span className="wi-tile__label">{tile.state === "cooldown" ? "明天再來" : tile.gloss}</span>}
                                     {claimed && wordsOn && <span className="wi-tile__label is-word">{tile.display}</span>}

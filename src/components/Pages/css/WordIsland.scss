@@ -600,35 +600,17 @@ body:has(.word-island) {
   box-shadow: 0 0 0 2px #fff;
 }
 
-// 佔領：原本淡淡的輪廓慢慢淡出，真正的地塊同時從水裡淡入（不是從下面冒出來）。
-.wi-tile.is-rising .wi-tile__img:not(.wi-tile__ghost) {
-  animation: wi-fade-in 1.1s ease-in-out both;
-}
-
-.wi-tile__ghost {
-  position: absolute;
-  inset: 0;
-  filter: grayscale(1) brightness(1.7) drop-shadow(0 4px 4px rgba(0, 30, 80, 0.2));
-  opacity: 0;
-  animation: wi-ghost-out 1.1s ease-in-out both;
+.wi-tile.is-rising .wi-tile__img {
+  animation: wi-rise 0.9s cubic-bezier(0.2, 1.4, 0.4, 1) both;
 }
 
 .wi-tile.is-upgrading .wi-tile__img {
   animation: wi-upgrade 0.9s ease-out both;
 }
 
-@keyframes wi-fade-in {
+@keyframes wi-rise {
   from {
-    opacity: 0;
-    filter: grayscale(1) brightness(1.7) drop-shadow(0 4px 4px rgba(0, 30, 80, 0.2));
-  }
-}
-
-@keyframes wi-ghost-out {
-  from {
-    opacity: 0.5;
-  }
-  to {
+    transform: translateY(60%) scale(0.5);
     opacity: 0;
   }
 }
@@ -929,7 +911,6 @@ body:has(.word-island) {
 @media (prefers-reduced-motion: reduce) {
   .wi-tile.is-rising .wi-tile__img,
   .wi-tile.is-upgrading .wi-tile__img,
-  .wi-tile__ghost,
   .wi-medal__rays,
   .wi-medal__img,
   .wi-medal__text,
