@@ -427,6 +427,9 @@ verify_jwt = false
 [functions.word-challenge]
 verify_jwt = false
 
+[functions.word-island-report]
+verify_jwt = false
+
 [functions.review-center]
 verify_jwt = false
 
