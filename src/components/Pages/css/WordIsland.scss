@@ -1057,7 +1057,7 @@ body:has(.word-island) {
   display: flex;
   align-items: center;
   min-height: 100%;
-  padding: calc(64px + env(safe-area-inset-top)) 0 calc(64px + env(safe-area-inset-bottom));
+  padding: calc(112px + env(safe-area-inset-top)) 0 calc(64px + env(safe-area-inset-bottom));
 
   .wi-stage {
     max-width: none;
@@ -1176,4 +1176,37 @@ body:has(.word-island) {
   color: #4a3200;
   font-size: 12px !important;
   text-shadow: none;
+}
+
+// 全螢幕上方常駐的等級與本級進度。
+.wi-imm__xp {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  font-size: 12px !important;
+
+  b {
+    font-weight: 800;
+    white-space: nowrap;
+  }
+
+  i {
+    display: block;
+    flex: 0 1 96px;
+    min-width: 48px;
+    height: 8px;
+    border-radius: 999px;
+    background: #0b2a5a;
+    overflow: hidden;
+  }
+
+  u {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--wi-yellow);
+    text-decoration: none;
+    transition: width 0.6s ease;
+  }
 }

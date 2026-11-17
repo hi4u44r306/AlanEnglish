@@ -3,12 +3,14 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { useAuth } from "../../auth/AuthContext";
 import * as service from "../../services/wordChallengeService";
+import { getGamificationSummary } from "../../services/gamificationService";
 import { wordsForLevel } from "../../services/wordChallengeBank";
 import { WORD_CHALLENGE_MODES } from "../../utils/wordChallengeAnswer";
 import { islandWordsOf } from "../../utils/wordIsland";
 import WordIsland from "./WordIsland";
 
 jest.mock("../../auth/AuthContext", () => ({ useAuth: jest.fn() }));
+jest.mock("../../services/gamificationService", () => ({ getGamificationSummary: jest.fn() }));
 jest.mock("../../services/wordChallengeService", () => ({
     getWordIslandSummary: jest.fn(),
     startWordIslandTile: jest.fn(),
@@ -461,5 +463,56 @@ describe("upgrade is spelled out and a claimed tile rises", () => {
         expect(document.querySelector(".wi-imm__hint")).toHaveTextContent("1 塊可以升級");
         delete Element.prototype.scrollTo;
         document.body.style.overflow = "";
+    });
+});
+
+describe("full-screen level bar (signed-in students)", () => {
+    const user = { uid: "student-1" };
+    const tiles = Array.from({ length: 16 }, (_, tile) => ({ tile, gloss: `中文${tile}`, letters: 3, state: "open", review: false }));
+    const summary = { mode: "server", bank_version: "v1", level: 1, islands: [{ island: 0, unlocked: true, total: 16, claimed_count: 0, tiles }] };
+    beforeEach(() => {
+        getGamificationSummary.mockReset();
+        Element.prototype.scrollTo = jest.fn();
+        useAuth.mockReturnValue({ role: "student", firebaseUser: user });
+    });
+    afterEach(() => {
+        delete Element.prototype.scrollTo;
+        document.body.style.overflow = "";
+    });
+
+    test("shows the current level and progress when the full screen opens, then follows each answer", async () => {
+        service.getWordIslandSummary.mockResolvedValue(summary);
+        getGamificationSummary.mockResolvedValue({ balance: { level: 3, total_xp: 300, next_level_xp: 450, progress_percent: 40 } });
+        service.startWordIslandTile.mockResolvedValue({ round_id: "r1", level: 1, island: 0, tile: 0, question: { position: 0, gloss: "中文0", letters: 3, template: [{ kind: "letter", hint: "d" }, { kind: "letter", hint: "" }, { kind: "letter", hint: "" }] } });
+        service.answerWordChallenge.mockResolvedValue({ position: 0, correct: true, note: null, matched: null, skipped: false, hint_count: 0, already_answered: false, recently_seen: false, expected: "dog", xp: { xp_awarded: 2, daily_xp: 2, daily_cap: 30, total_xp: 302, level_before: 3, level_after: 3, progress_before: 40, progress_after: 42, next_level_xp: 450 } });
+        renderPage({ variant: "app" });
+        await screen.findByText("已佔領 0 / 16");
+        fireEvent.click(screen.getByRole("button", { name: /開始挑戰/ }));
+        const bar = await screen.findByLabelText("目前 Lv.3，本級進度 40%");
+        expect(bar).toHaveTextContent("Lv.3");
+        fireEvent.click(tileButtons()[0]);
+        await screen.findByLabelText("輸入英文單字");
+        type("dog");
+        submit();
+        await screen.findByLabelText("目前 Lv.3，本級進度 42%");
+    });
+
+    test("guests and teachers get no level bar and no gamification call", () => {
+        useAuth.mockReturnValue({ role: null, firebaseUser: null });
+        renderPage();
+        fireEvent.click(screen.getByRole("button", { name: /開始挑戰/ }));
+        expect(document.querySelector(".wi-imm__xp")).toBeNull();
+        expect(getGamificationSummary).not.toHaveBeenCalled();
+    });
+
+    test("if the level cannot be read, the full screen still works without the bar", async () => {
+        service.getWordIslandSummary.mockResolvedValue(summary);
+        getGamificationSummary.mockRejectedValue(new Error("offline"));
+        renderPage({ variant: "app" });
+        await screen.findByText("已佔領 0 / 16");
+        fireEvent.click(screen.getByRole("button", { name: /開始挑戰/ }));
+        await waitFor(() => expect(getGamificationSummary).toHaveBeenCalled());
+        expect(document.querySelector(".wi-imm__xp")).toBeNull();
+        expect(screen.getByRole("region", { name: "單字島全螢幕挑戰" })).toBeInTheDocument();
     });
 });
