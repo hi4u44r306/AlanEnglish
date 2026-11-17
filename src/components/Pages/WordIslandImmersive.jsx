@@ -20,7 +20,7 @@ const smooth = () => {
     }
 };
 
-function ImmersiveIsland({ islands, islandIndex, onSelectIsland, onClose, sheetOpen, mapProps }) {
+function ImmersiveIsland({ islands, islandIndex, onSelectIsland, onClose, sheetOpen, growth, mapProps }) {
     const island = islands[islandIndex];
     const scroller = useRef(null);
     const center = useRef(null);
@@ -138,7 +138,13 @@ function ImmersiveIsland({ islands, islandIndex, onSelectIsland, onClose, sheetO
                 <p className="wi-imm__title">
                     <strong>第 {islandIndex + 1} 座島</strong>
                     <span>已佔領 {island.claimed_count} / {island.total}</span>
-                    {upgradeCount > 0 && <span className="wi-imm__hint">{upgradeCount} 塊可以升級：點有「升級」標籤的地塊</span>}
+                    {growth && (
+                        <span className="wi-imm__xp" aria-label={`目前 Lv.${growth.level}，本級進度 ${growth.progress}%`}>
+                            <b>Lv.{growth.level}</b>
+                            <i aria-hidden="true"><u style={{ width: `${growth.progress}%` }} /></i>
+                        </span>
+                    )}
+                    {upgradeCount > 0 &&<span className="wi-imm__hint">{upgradeCount} 塊可以升級：點有「升級」標籤的地塊</span>}
                 </p>
                 <div className="wi-imm__zoom">
                     <button type="button" className="wi-imm__round" onClick={() => changeZoom(zoom - ZOOM_STEP)} disabled={zoom <= MIN_ZOOM} aria-label="縮小"><FiMinus aria-hidden="true" /></button>

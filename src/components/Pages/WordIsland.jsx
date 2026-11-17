@@ -7,6 +7,7 @@ import Brand from "../fragment/Brand";
 import { useAuth } from "../../auth/AuthContext";
 import { WORD_BANK_VERSION, WORD_CHALLENGE_LEVELS, meaningPeersOf, wordsForLevel } from "../../services/wordChallengeBank";
 import { answerWordChallenge, getWordIslandSummary, startWordIslandTile } from "../../services/wordChallengeService";
+import { getGamificationSummary } from "../../services/gamificationService";
 import { WORD_CHALLENGE_MODES, checkWordAnswer, lettersOnly, noteMessage } from "../../utils/wordChallengeAnswer";
 import { ISLAND_SIZE, buildIslandViews, canUpgradeTile, islandWordsOf, taipeiDate } from "../../utils/wordIsland";
 import "./css/WordIsland.scss";
@@ -177,6 +178,8 @@ function WordIsland({ variant = "public" }) {
     const [medal, setMedal] = useState(null);
     const [flipped, setFlipped] = useState(false);
     const [immersive, setImmersive] = useState(false);
+    // 全螢幕上方常駐的等級與進度：進全螢幕時讀一次，之後每次答對用伺服器回傳的新進度更新（只有登入學生有）。
+    const [growth, setGrowth] = useState(null);
     const snapshot = useRef({});
     const lastResult = useRef(null);
 
@@ -217,6 +220,18 @@ function WordIsland({ variant = "public" }) {
     const serverMode = Boolean(studentUser && serverViews);
     const islands = serverMode ? serverViews : localViews;
     const ready = !studentUser || serverMode || usingLocal;
+
+    useEffect(() => {
+        if (!immersive || !studentUser) return undefined;
+        let alive = true;
+        Promise.resolve(getGamificationSummary(studentUser))
+            .then(summary => {
+                const balance = summary?.balance;
+                if (alive && balance && Number.isFinite(Number(balance.level))) setGrowth(prev => prev || { level: Number(balance.level), progress: Math.min(100, Math.max(0, Number(balance.progress_percent) || 0)) });
+            })
+            .catch(() => {});
+        return () => { alive = false; };
+    }, [immersive, studentUser]);
 
     // 一進來就停在「第一座還沒佔滿的島」；只有佔滿一座島才會出現「前往下一座島」。
     useEffect(() => {
@@ -325,6 +340,7 @@ function WordIsland({ variant = "public" }) {
                 pattern: patternFromTemplate(started.question.template),
                 submit: async typed => {
                     const reply = await answerWordChallenge(studentUser, started.round_id, 0, { typed });
+                    if (reply.xp) setGrowth({ level: reply.xp.level_after, progress: reply.xp.progress_after });
                     const recentlySeen = reply.recently_seen === true;
                     if (reply.correct && !recentlySeen && (reply.upgraded || tile.state === "open")) lastResult.current = { tile: tile.tile, kind: reply.upgraded ? "upgrade" : "claim" };
                     return {
@@ -439,6 +455,7 @@ function WordIsland({ variant = "public" }) {
                     onSelectIsland={setIslandIndex}
                     onClose={() => setImmersive(false)}
                     sheetOpen={Boolean(openTile)}
+                    growth={growth}
                     mapProps={{ onTile: onTileClick, fresh, flipped, onFlip: () => setFlipped(value => !value), override: skinOverride }}
                 />
             )}
