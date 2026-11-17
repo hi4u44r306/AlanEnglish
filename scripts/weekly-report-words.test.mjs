@@ -136,3 +136,69 @@ test("the student page shows the line only for a positive total and never a zero
     assert.match(source, /和上週一樣/);
     assert.doesNotMatch(source, /本週拼了|本週會拼/);
 });
+
+// ---- 家長週報的「單字島」一行 ----
+import { loadWordIslandWeek, summarizeWordIslandWeek } from "../supabase/functions/_shared/weekly-report-words.ts";
+
+function islandAdmin({ claimed = 0, upgraded = 0, any = 1, dates = [], fail = null } = {}) {
+    const calls = [];
+    return {
+        calls,
+        from(table) {
+            const q = { table, filters: [], range: [] };
+            const done = () => {
+                calls.push(q);
+                if (fail) return Promise.resolve({ error: { message: fail } });
+                if (table === "word_challenge_rounds") return Promise.resolve({ data: dates.map(activity_date => ({ activity_date })), error: null });
+                const isUpgrade = q.range.some(([c]) => c === "last_upgraded_on");
+                const isClaim = q.range.some(([c]) => c === "first_mastered_at");
+                return Promise.resolve({ count: isUpgrade ? upgraded : isClaim ? claimed : any, error: null });
+            };
+            const b = {
+                select() { return b; },
+                eq(c, v) { q.filters.push([c, v]); return b; },
+                gte(c, v) { q.range.push([c, ">=", v]); return b; },
+                lt(c, v) { q.range.push([c, "<", v]); return done(); },
+                lte(c, v) { q.range.push([c, "<=", v]); return done(); },
+                then(res, rej) { return done().then(res, rej); }
+            };
+            return b;
+        }
+    };
+}
+const WEEK = { startDate: "2026-11-09", endDate: "2026-11-15", startAt: START, endAt: END };
+
+test("island line: practice days, new claims and upgrades", () => {
+    assert.equal(summarizeWordIslandWeek({ claimed: 12, upgraded: 3, days: 4, everPlayed: true }), "練習 4 天，新佔領 12 塊，升級 3 塊");
+    assert.equal(summarizeWordIslandWeek({ claimed: 0, upgraded: 2, days: 1, everPlayed: true }), "練習 1 天，升級 2 塊");
+    assert.equal(summarizeWordIslandWeek({ claimed: 5, upgraded: 0, days: 0, everPlayed: true }), "練習 1 天，新佔領 5 塊");
+});
+
+test("island line: no play this week is encouraging, never 0 or blaming; never played ever shows nothing", () => {
+    const text = summarizeWordIslandWeek({ claimed: 0, upgraded: 0, days: 0, everPlayed: true });
+    assert.equal(text, "這週還沒玩單字島，一起幫孩子開始下一座島吧");
+    assert.doesNotMatch(text, /(^|\D)0|沒做|偷懶|落後/);
+    assert.equal(summarizeWordIslandWeek({ claimed: 0, upgraded: 0, days: 0, everPlayed: false }), null);
+    assert.equal(summarizeWordIslandWeek(null), null);
+});
+
+test("island line: loads only this student's numbers for this week and counts distinct days", async () => {
+    const admin = islandAdmin({ claimed: 7, upgraded: 2, dates: ["2026-11-09", "2026-11-09", "2026-11-11"] });
+    const result = await loadWordIslandWeek(admin, 42, WEEK);
+    assert.deepEqual(result, { claimed: 7, upgraded: 2, days: 2, everPlayed: true });
+    assert.ok(admin.calls.length >= 4);
+    for (const call of admin.calls) assert.deepEqual(call.filters.find(([c]) => c === "student_id"), ["student_id", 42]);
+    assert.ok(admin.calls.some(c => c.table === "word_challenge_rounds" && c.filters.some(([k, v]) => k === "status" && v === "finished")));
+});
+
+test("island line: database errors and bad ids throw so the email can simply skip the line", async () => {
+    await assert.rejects(() => loadWordIslandWeek(islandAdmin({ fail: "boom" }), 42, WEEK));
+    await assert.rejects(() => loadWordIslandWeek(islandAdmin(), 0, WEEK));
+});
+
+test("guardian email wires the island line without breaking the rest of the email", () => {
+    const source = readFileSync(new URL("../supabase/functions/guardian-email/index.ts", import.meta.url), "utf8");
+    assert.match(source, /word_island: wordIslandText,/);
+    assert.match(source, /m\.word_island \? \["單字島", m\.word_island\] : null/);
+    assert.match(source, /guardian-email word island error/);
+});
