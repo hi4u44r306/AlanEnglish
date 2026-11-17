@@ -55,9 +55,8 @@ export function summarizeWordMastery(input: { total?: unknown; previous?: unknow
     };
 }
 
-// ---- 家長週報的「單字島」一行（2026-11-17 擁有者決定）----
-// 內容：這週練習幾天、新佔領幾塊、升級幾塊。這週完全沒玩的學生用鼓勵語氣，不出現「0」或責備的字；
-// 從來沒玩過單字島（沒有任何進度、也沒有任何一輪紀錄）的學生整行不出現，避免對沒開通的孩子亂說話。
+// ---- 家長週報的單字島數字（2026-11-17 擁有者決定）----
+// 只回傳數字（這週新佔領、升級、練習天數、是否玩過），文字由 summarizeWordLineForGuardian 合成一行。
 export type WordIslandWeek = { claimed: number; upgraded: number; days: number; everPlayed: boolean };
 
 const dateOnly = (value: unknown) => String(value ?? "").slice(0, 10);
@@ -92,16 +91,32 @@ export async function loadWordIslandWeek(
     };
 }
 
-export function summarizeWordIslandWeek(input: Partial<WordIslandWeek> | null | undefined): string | null {
-    if (!input) return null;
-    const claimed = Math.max(0, Math.floor(Number(input.claimed) || 0));
-    const upgraded = Math.max(0, Math.floor(Number(input.upgraded) || 0));
-    const days = Math.min(7, Math.max(0, Math.floor(Number(input.days) || 0)));
-    if (days > 0 || claimed > 0 || upgraded > 0) {
-        const parts = [`練習 ${Math.max(1, days)} 天`];
-        if (claimed > 0) parts.push(`新佔領 ${claimed} 塊`);
-        if (upgraded > 0) parts.push(`升級 ${upgraded} 塊`);
-        return parts.join("，");
-    }
-    return input.everPlayed ? "這週還沒玩單字島，一起幫孩子開始下一座島吧" : null;
+// 家長信的「單字」區塊（擁有者 2026-11-17：只留專注度、口說、單字，並且用圖形）。
+// 回傳畫圖需要的數字：累計字數（讀不到或沒有時是 null）、這週新增、這週練習天數。升級塊數不放進家長信。
+export type WordFigures = { total: number | null; added: number; days: number };
+export function summarizeWordFigures(
+    mastery: { total?: unknown; previous?: unknown } | null | undefined,
+    island: Partial<WordIslandWeek> | null | undefined
+): WordFigures | null {
+    const base = summarizeWordMastery(mastery);
+    const rawDays = Math.min(7, Math.max(0, Math.floor(Number(island?.days) || 0)));
+    const claimed = Math.max(0, Math.floor(Number(island?.claimed) || 0));
+    const upgraded = Math.max(0, Math.floor(Number(island?.upgraded) || 0));
+    const played = rawDays > 0 || claimed > 0 || upgraded > 0;
+    const days = played ? Math.max(1, rawDays) : 0;
+    if (base) return { total: base.total_mastered, added: base.added, days };
+    if (played) return { total: null, added: claimed, days };
+    return island?.everPlayed ? { total: null, added: 0, days: 0 } : null;
+}
+
+// 純文字版（信件的純文字內容與寄送紀錄）：同一份數字寫成一行。
+export function summarizeWordLineForGuardian(
+    mastery: { total?: unknown; previous?: unknown } | null | undefined,
+    island: Partial<WordIslandWeek> | null | undefined
+): string | null {
+    const figures = summarizeWordFigures(mastery, island);
+    if (!figures) return null;
+    const week = figures.days > 0 ? `這週練習 ${figures.days} 天${figures.added > 0 ? `、新增 ${figures.added} 個` : ""}` : null;
+    if (figures.total !== null) return `累計會拼 ${figures.total} 個字，${week ?? "這週還沒玩，一起開始下一座島吧"}`;
+    return week ?? "這週還沒玩單字島，一起幫孩子開始下一座島吧";
 }
