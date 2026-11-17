@@ -1,7 +1,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 import { createRemoteJWKSet, jwtVerify } from "npm:jose@5";
 import { canManageStudent, getManagedStudentIds } from "../_shared/teacher-scope.ts";
-import { loadWordMastery, summarizeWordMastery } from "../_shared/weekly-report-words.ts";
+import { loadWordIslandWeek, loadWordMastery, summarizeWordIslandWeek, summarizeWordMastery } from "../_shared/weekly-report-words.ts";
 import { buildUnsubscribeUrl } from "../_shared/guardian-weekly-unsubscribe-token.ts";
 
 const corsHeaders = {
@@ -230,6 +230,13 @@ const buildReport = async (admin: any, student: any, weekStart: string) => {
     } catch (error) {
         console.error("guardian-email word mastery error", (error as { code?: string })?.code || (error as Error)?.name);
     }
+    // 單字島：這週練習天數、新佔領、升級。讀不到就不出現，整封信照常寄出。
+    let wordIslandText: string | null = null;
+    try {
+        wordIslandText = summarizeWordIslandWeek(await loadWordIslandWeek(admin, Number(student.id), range));
+    } catch (error) {
+        console.error("guardian-email word island error", (error as { code?: string })?.code || (error as Error)?.name);
+    }
 
     return {
         student,
@@ -237,6 +244,7 @@ const buildReport = async (admin: any, student: any, weekStart: string) => {
         range,
         metrics: {
             word_mastery: wordMasteryText,
+            word_island: wordIslandText,
             active_days: activeDateKeys.size,
             listening_count: listening,
             completed_assignments: completedAssignments,
@@ -278,6 +286,7 @@ const buildEmail = (report: any, unsubscribeUrl: string | null = null) => {
         focusText ? ["專注度", focusText] : null,
         m.videos_watched ? ["教學影片", `看完 ${m.videos_watched} 段`] : null,
         m.word_mastery ? ["單字大挑戰", m.word_mastery] : null,
+        m.word_island ? ["單字島", m.word_island] : null,
         m.ai_passed ? ["AI 教材", `通過 ${m.ai_passed} 份`] : null,
         m.review_count ? ["智慧複習", `${m.review_count} 題${m.accuracy === null ? "" : `，正確率 ${m.accuracy}%`}`] : null
     ].filter(Boolean) as string[][];

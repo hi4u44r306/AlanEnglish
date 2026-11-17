@@ -54,3 +54,54 @@ export function summarizeWordMastery(input: { total?: unknown; previous?: unknow
         text: added > 0 ? `累計會拼 ${total} 個字，比上週多 ${added} 個` : `累計會拼 ${total} 個字，和上週一樣`
     };
 }
+
+// ---- 家長週報的「單字島」一行（2026-11-17 擁有者決定）----
+// 內容：這週練習幾天、新佔領幾塊、升級幾塊。這週完全沒玩的學生用鼓勵語氣，不出現「0」或責備的字；
+// 從來沒玩過單字島（沒有任何進度、也沒有任何一輪紀錄）的學生整行不出現，避免對沒開通的孩子亂說話。
+export type WordIslandWeek = { claimed: number; upgraded: number; days: number; everPlayed: boolean };
+
+const dateOnly = (value: unknown) => String(value ?? "").slice(0, 10);
+
+// startDate／endDate：台北週一～週日（YYYY-MM-DD，含）；startAt／endAt 是同一週的時間區間。只回傳數字，不回傳字的清單。
+export async function loadWordIslandWeek(
+    admin: any, studentId: number, week: { startDate: string; endDate: string; startAt: string; endAt: string }
+): Promise<WordIslandWeek> {
+    if (!Number.isInteger(Number(studentId)) || Number(studentId) <= 0) throw new Error("student_id 不正確");
+    const id = Number(studentId);
+    const [claimed, upgraded, rounds, anyProgress] = await Promise.all([
+        admin.from("student_word_progress").select("word_key", { count: "exact", head: true })
+            .eq("student_id", id).eq("bank_version", WORD_PROGRESS_BANK_VERSION)
+            .gte("first_mastered_at", week.startAt).lt("first_mastered_at", week.endAt),
+        admin.from("student_word_progress").select("word_key", { count: "exact", head: true })
+            .eq("student_id", id).eq("bank_version", WORD_PROGRESS_BANK_VERSION)
+            .gte("last_upgraded_on", week.startDate).lte("last_upgraded_on", week.endDate),
+        admin.from("word_challenge_rounds").select("activity_date")
+            .eq("student_id", id).eq("status", "finished")
+            .gte("activity_date", week.startDate).lte("activity_date", week.endDate),
+        admin.from("student_word_progress").select("word_key", { count: "exact", head: true })
+            .eq("student_id", id).eq("bank_version", WORD_PROGRESS_BANK_VERSION)
+    ]);
+    const failed = [claimed.error, upgraded.error, rounds.error, anyProgress.error].find(Boolean);
+    if (failed) throw failed;
+    const days = new Set((rounds.data || []).map((row: any) => dateOnly(row.activity_date)).filter(Boolean)).size;
+    return {
+        claimed: Number(claimed.count) || 0,
+        upgraded: Number(upgraded.count) || 0,
+        days: Math.min(7, days),
+        everPlayed: (Number(anyProgress.count) || 0) > 0
+    };
+}
+
+export function summarizeWordIslandWeek(input: Partial<WordIslandWeek> | null | undefined): string | null {
+    if (!input) return null;
+    const claimed = Math.max(0, Math.floor(Number(input.claimed) || 0));
+    const upgraded = Math.max(0, Math.floor(Number(input.upgraded) || 0));
+    const days = Math.min(7, Math.max(0, Math.floor(Number(input.days) || 0)));
+    if (days > 0 || claimed > 0 || upgraded > 0) {
+        const parts = [`練習 ${Math.max(1, days)} 天`];
+        if (claimed > 0) parts.push(`新佔領 ${claimed} 塊`);
+        if (upgraded > 0) parts.push(`升級 ${upgraded} 塊`);
+        return parts.join("，");
+    }
+    return input.everPlayed ? "這週還沒玩單字島，一起幫孩子開始下一座島吧" : null;
+}
