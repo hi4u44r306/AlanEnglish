@@ -91,20 +91,32 @@ export async function loadWordIslandWeek(
     };
 }
 
-// 家長信只留一行「單字」（擁有者 2026-11-17：兩行太多）：累計會拼幾個字＋這週練習幾天、新增幾個。
-// 這週沒玩用鼓勵語氣；沒有累計、也從來沒玩過就整行不出現。升級塊數不放進家長信。
+// 家長信的「單字」區塊（擁有者 2026-11-17：只留專注度、口說、單字，並且用圖形）。
+// 回傳畫圖需要的數字：累計字數（讀不到或沒有時是 null）、這週新增、這週練習天數。升級塊數不放進家長信。
+export type WordFigures = { total: number | null; added: number; days: number };
+export function summarizeWordFigures(
+    mastery: { total?: unknown; previous?: unknown } | null | undefined,
+    island: Partial<WordIslandWeek> | null | undefined
+): WordFigures | null {
+    const base = summarizeWordMastery(mastery);
+    const rawDays = Math.min(7, Math.max(0, Math.floor(Number(island?.days) || 0)));
+    const claimed = Math.max(0, Math.floor(Number(island?.claimed) || 0));
+    const upgraded = Math.max(0, Math.floor(Number(island?.upgraded) || 0));
+    const played = rawDays > 0 || claimed > 0 || upgraded > 0;
+    const days = played ? Math.max(1, rawDays) : 0;
+    if (base) return { total: base.total_mastered, added: base.added, days };
+    if (played) return { total: null, added: claimed, days };
+    return island?.everPlayed ? { total: null, added: 0, days: 0 } : null;
+}
+
+// 純文字版（信件的純文字內容與寄送紀錄）：同一份數字寫成一行。
 export function summarizeWordLineForGuardian(
     mastery: { total?: unknown; previous?: unknown } | null | undefined,
     island: Partial<WordIslandWeek> | null | undefined
 ): string | null {
-    const base = summarizeWordMastery(mastery);
-    const days = Math.min(7, Math.max(0, Math.floor(Number(island?.days) || 0)));
-    const claimed = Math.max(0, Math.floor(Number(island?.claimed) || 0));
-    const upgraded = Math.max(0, Math.floor(Number(island?.upgraded) || 0));
-    const played = days > 0 || claimed > 0 || upgraded > 0;
-    const added = base ? base.added : claimed;
-    const week = played ? `這週練習 ${Math.max(1, days)} 天${added > 0 ? `、新增 ${added} 個` : ""}` : null;
-    if (base) return `累計會拼 ${base.total_mastered} 個字，${week ?? "這週還沒玩，一起開始下一座島吧"}`;
-    if (week) return week;
-    return island?.everPlayed ? "這週還沒玩單字島，一起幫孩子開始下一座島吧" : null;
+    const figures = summarizeWordFigures(mastery, island);
+    if (!figures) return null;
+    const week = figures.days > 0 ? `這週練習 ${figures.days} 天${figures.added > 0 ? `、新增 ${figures.added} 個` : ""}` : null;
+    if (figures.total !== null) return `累計會拼 ${figures.total} 個字，${week ?? "這週還沒玩，一起開始下一座島吧"}`;
+    return week ?? "這週還沒玩單字島，一起幫孩子開始下一座島吧";
 }

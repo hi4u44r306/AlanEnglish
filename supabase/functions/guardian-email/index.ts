@@ -1,7 +1,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 import { createRemoteJWKSet, jwtVerify } from "npm:jose@5";
 import { canManageStudent, getManagedStudentIds } from "../_shared/teacher-scope.ts";
-import { loadWordIslandWeek, loadWordMastery, summarizeWordLineForGuardian } from "../_shared/weekly-report-words.ts";
+import { loadWordIslandWeek, loadWordMastery, summarizeWordFigures, summarizeWordLineForGuardian } from "../_shared/weekly-report-words.ts";
 import { buildUnsubscribeUrl } from "../_shared/guardian-weekly-unsubscribe-token.ts";
 
 const corsHeaders = {
@@ -237,6 +237,7 @@ const buildReport = async (admin: any, student: any, weekStart: string) => {
         console.error("guardian-email word island error", (error as { code?: string })?.code || (error as Error)?.name);
     }
     const wordLineText = summarizeWordLineForGuardian(wordMastery, wordIsland);
+    const wordFigures = summarizeWordFigures(wordMastery, wordIsland);
 
     return {
         student,
@@ -244,6 +245,7 @@ const buildReport = async (admin: any, student: any, weekStart: string) => {
         range,
         metrics: {
             word_line: wordLineText,
+            word: wordFigures,
             active_days: activeDateKeys.size,
             listening_count: listening,
             completed_assignments: completedAssignments,
@@ -263,6 +265,8 @@ const buildReport = async (admin: any, student: any, weekStart: string) => {
 };
 
 // unsubscribeUrl 只放在寄出的信裡；notification_logs 存的 logText 不含連結，因為連結本身就是取消的憑證。
+// 版面（擁有者 2026-11-17）：只留「專注度、口說大挑戰、單字」三塊，用長條與圓點代替文字；
+// Email 不能放 JavaScript 或外部圖片，所以圖形全部用 table＋背景色做成。
 const buildEmail = (report: any, unsubscribeUrl: string | null = null) => {
     const m = report.metrics;
     const guardianName = report.guardian?.guardian_name
@@ -270,29 +274,20 @@ const buildEmail = (report: any, unsubscribeUrl: string | null = null) => {
         : "家長您好";
     const studentName = escapeHtml(report.student.name || "孩子");
     const subject = `Alan English｜${report.student.name} ${report.range.startDate} 學習週報`;
-    const assignmentText = m.completed_assignments || m.started_assignments
-        ? `完成 ${m.completed_assignments} 份${m.started_assignments ? `，另有 ${m.started_assignments} 份做到一半` : ""}`
-        : "本週沒有作業紀錄";
     const speakingText = m.speaking_attempts
         ? `開口練習 ${m.speaking_attempts} 次，通過 ${m.speaking_passed} 題`
-        : "本週沒有口說練習";
-    // Optional lines appear only when the student actually used that feature.
+        : "這週沒有口說練習";
     const focusText = [
         m.listening_focus === null ? "" : `聽力 ${m.listening_focus}%（${focusLabel(m.listening_focus)}）`,
         m.speaking_focus === null ? "" : `口說 ${m.speaking_focus}%（${focusLabel(m.speaking_focus)}）`
     ].filter(Boolean).join("、");
-    const extras = [
+    const textLines = [
         focusText ? ["專注度", focusText] : null,
-        m.videos_watched ? ["教學影片", `看完 ${m.videos_watched} 段`] : null,
-        m.word_line ? ["單字", m.word_line] : null,
-        m.review_count ? ["智慧複習", `${m.review_count} 題${m.accuracy === null ? "" : `，正確率 ${m.accuracy}%`}`] : null
+        ["口說大挑戰", speakingText],
+        m.word_line ? ["單字", m.word_line] : null
     ].filter(Boolean) as string[][];
     const logText = `${guardianName}：\n\n${report.student.name || "孩子"} 在 ${report.range.startDate}～${report.range.endDate} 的學習摘要：\n` +
-        `・練習天數：${m.active_days} / 7 天\n` +
-        `・聽力：有效聆聽 ${m.listening_count} 次\n` +
-        `・口說大挑戰：${speakingText}\n` +
-        `・作業：${assignmentText}\n` +
-        extras.map(([label, value]) => `・${label}：${value}\n`).join("") +
+        textLines.map(([label, value]) => `・${label}：${value}\n`).join("") +
         `\n${report.status.label}：${report.status.message}\n\nAlan English`;
     const text = unsubscribeUrl
         ? `${logText}\n\n不想再收到每週學習週報？按這裡取消：${unsubscribeUrl}`
@@ -300,26 +295,68 @@ const buildEmail = (report: any, unsubscribeUrl: string | null = null) => {
     const footerNote = unsubscribeUrl
         ? `這封信由 Alan English 自動寄出。如不想再收到每週學習週報，請<a href="${escapeHtml(unsubscribeUrl)}" style="color:#244680;text-decoration:underline">按這裡取消</a>；如需更換信箱，請聯絡授課老師。`
         : "這封信由 Alan English 自動寄出；如需停止收信或更換信箱，請聯絡授課老師。";
-    // Email 版面只能用 table＋inline style，不依賴外部 CSS／圖片；顏色沿用家長驗證碼信的四色頂條。
+
     // 標題與頁尾刻意用淺藍底、深色字：Gmail 手機版深色模式會自動反轉顏色且無法關閉，整封信用淺色系才會一起反轉成一致的深色。
-    const tile = (value: string | number, unit: string, label: string, background: string, accent: string, numberColor: string) => `
-          <td width="33.33%" valign="top" style="padding:0 4px">
+    const focusColor = (rate: number) => (rate >= 80 ? "#3fb984" : rate >= 60 ? "#ffd45c" : "#ff7a59");
+    // 長條：左邊有顏色的部分占 percent%，右邊是淺灰底。
+    const bar = (percent: number, color: string) => {
+        const filled = Math.min(100, Math.max(0, Math.round(percent)));
+        const cells = filled >= 100
+            ? `<td width="100%" height="14" style="background-color:${color};font-size:0;line-height:0">&nbsp;</td>`
+            : filled <= 0
+                ? `<td width="100%" height="14" style="background-color:#e3e9f3;font-size:0;line-height:0">&nbsp;</td>`
+                : `<td width="${filled}%" height="14" style="background-color:${color};font-size:0;line-height:0">&nbsp;</td><td width="${100 - filled}%" height="14" style="background-color:#e3e9f3;font-size:0;line-height:0">&nbsp;</td>`;
+        return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="table-layout:fixed;border-radius:7px;overflow:hidden"><tr>${cells}</tr></table>`;
+    };
+    const focusRow = (label: string, rate: number) => `
+        <tr><td style="padding:6px 0">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+            <td style="font-size:14px;color:#42566e">${label}</td>
+            <td align="right" style="font-size:14px;font-weight:800;color:#142443">${rate}%　<span style="font-size:12px;font-weight:700;color:#42566e">${focusLabel(rate)}</span></td>
+          </tr></table>
+          <div style="margin-top:6px">${bar(rate, focusColor(rate))}</div>
+        </td></tr>`;
+    const bigNumber = (value: string | number, unit: string, label: string, background: string, accent: string, numberColor: string) => `
+          <td width="50%" valign="top" style="padding:0 4px">
             <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="center" style="background-color:${background};border-top:5px solid ${accent};border-radius:14px;padding:16px 4px">
-              <div style="font-size:32px;font-weight:800;line-height:1.1;color:${numberColor}">${value}<span style="font-size:13px;font-weight:700;color:#42566e"> ${unit}</span></div>
+              <div style="font-size:34px;font-weight:800;line-height:1.1;color:${numberColor}">${value}<span style="font-size:13px;font-weight:700;color:#42566e"> ${unit}</span></div>
               <div style="font-size:13px;color:#42566e;margin-top:6px">${label}</div>
             </td></tr></table>
           </td>`;
-    const dotColors = ["#2b66c3", "#3fb984", "#ffd45c", "#ff7a59"];
-    const row = (label: string, value: string, index: number, last = false) => {
-        const border = last ? "" : "border-bottom:1px solid #edf0f5;";
-        return `
-        <tr>
-          <td width="18" valign="middle" style="padding:14px 0;${border}"><table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td width="10" height="10" style="background-color:${dotColors[index % dotColors.length]};border-radius:5px;font-size:0;line-height:0">&nbsp;</td></tr></table></td>
-          <td style="padding:14px 4px;${border}color:#42566e;white-space:nowrap">${escapeHtml(label)}</td>
-          <td align="right" style="padding:14px 4px;${border}font-weight:700;color:#142443">${escapeHtml(value)}</td>
-        </tr>`;
+    // 七個圓點＝一週七天，亮起來的數量＝這週練習了幾天（不代表是星期幾）。
+    const dots = (days: number) => {
+        const lit = Math.min(7, Math.max(0, Math.round(days)));
+        return `<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>${Array.from({ length: 7 }, (_, index) => `<td width="26" height="26" align="center" style="padding-right:6px"><table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td width="22" height="22" style="background-color:${index < lit ? "#3fb984" : "#e3e9f3"};border-radius:11px;font-size:0;line-height:0">&nbsp;</td></tr></table></td>`).join("")}</tr></table>`;
     };
-    const rows = [["口說大挑戰", speakingText], ["作業", assignmentText], ...extras];
+    const section = (title: string, dotColor: string, body: string) => `
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:14px"><tr>
+        <td style="background-color:#f3f6fb;border-radius:14px;padding:18px 18px 16px">
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:10px"><tr>
+            <td width="10" height="10" style="background-color:${dotColor};border-radius:5px;font-size:0;line-height:0">&nbsp;</td>
+            <td style="padding-left:8px;font-size:16px;font-weight:800;color:#142443">${title}</td>
+          </tr></table>
+          ${body}
+        </td>
+      </tr></table>`;
+
+    const focusSection = m.listening_focus === null && m.speaking_focus === null ? "" : section(
+        "專注度", "#2b66c3",
+        `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">${m.listening_focus === null ? "" : focusRow("聽力", m.listening_focus)}${m.speaking_focus === null ? "" : focusRow("口說", m.speaking_focus)}</table>`
+    );
+    const speakingSection = section(
+        "口說大挑戰", "#ffd45c",
+        m.speaking_attempts
+            ? `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="table-layout:fixed"><tr>${bigNumber(m.speaking_passed, "題", "通過", "#fff6d7", "#ffd45c", "#b27b00")}${bigNumber(m.speaking_attempts, "次", "開口練習", "#e4efff", "#2b66c3", "#2b66c3")}</tr></table>`
+            : `<div style="font-size:15px;color:#42566e">這週沒有口說練習</div>`
+    );
+    const word = m.word;
+    const wordSection = !word ? "" : section(
+        "單字", "#3fb984",
+        `${word.total !== null ? `<div style="font-size:15px;color:#42566e">累計會拼</div><div style="font-size:34px;font-weight:800;line-height:1.2;color:#1f8f62">${word.total}<span style="font-size:14px;font-weight:700;color:#42566e"> 個字</span>${word.added > 0 ? `<span style="font-size:14px;font-weight:800;color:#b27b00">　這週 +${word.added}</span>` : ""}</div>` : ""}
+          <div style="margin-top:${word.total !== null ? 12 : 0}px">${dots(word.days)}</div>
+          <div style="margin-top:8px;font-size:14px;color:#42566e">${word.days > 0 ? `這週練習 ${word.days} 天` : "這週還沒玩，一起開始下一座島吧"}</div>`
+    );
+
     const html = `<!doctype html>
 <html lang="zh-Hant">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="color-scheme" content="light only"><title>Alan English 學習週報</title></head>
@@ -342,22 +379,19 @@ const buildEmail = (report: any, unsubscribeUrl: string | null = null) => {
       <h1 style="margin:16px 0 6px;font-size:26px;line-height:1.35;color:#142443;font-weight:800">${studentName} 這週的英文學習</h1>
       <p style="margin:0;font-size:14px;line-height:1.7;color:#42566e">${report.range.startDate} ～ ${report.range.endDate}</p>
     </td></tr>
-    <tr><td style="background-color:#ffffff;padding:28px 20px 8px">
-      <p style="margin:0 0 18px 8px;font-size:16px;line-height:1.7;color:#17233d">${guardianName}：</p>
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="table-layout:fixed"><tr>${tile(m.active_days, "/ 7 天", "有練習的天數", "#e4efff", "#2b66c3", "#2b66c3")}${tile(m.listening_count, "次", "聽力有效聆聽", "#e4f5ec", "#3fb984", "#1f8f62")}${tile(m.speaking_passed, "題", "口說通過", "#fff6d7", "#ffd45c", "#b27b00")}
-      </tr></table>
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:20px"><tr>
-        <td style="background-color:#f3f6fb;border-left:5px solid #ff7a59;border-radius:12px;padding:16px 18px">
+    <tr><td style="background-color:#ffffff;padding:24px 20px 10px">
+      <p style="margin:0 0 14px 8px;font-size:16px;line-height:1.7;color:#17233d">${guardianName}：</p>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+        <td style="background-color:#f3f6fb;border-left:5px solid #ff7a59;border-radius:12px;padding:14px 18px">
           <strong style="font-size:17px;color:#142443">${escapeHtml(report.status.label)}</strong>
           <p style="margin:6px 0 0;font-size:15px;line-height:1.7;color:#42566e">${escapeHtml(report.status.message)}</p>
         </td>
       </tr></table>
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:12px;font-size:15px">${rows.map(([label, value], index) => row(label, value, index, index === rows.length - 1)).join("")}
-      </table>
+      ${focusSection}${speakingSection}${wordSection}
     </td></tr>
     <tr><td style="background-color:#ffffff;padding:8px 28px 28px">
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
-        <td style="background-color:#f3f6fb;border-radius:10px;padding:14px 16px;font-size:12px;line-height:1.8;color:#667085">「有效聆聽」是孩子實際聽滿八成以上才算一次。${footerNote}</td>
+        <td style="background-color:#f3f6fb;border-radius:10px;padding:14px 16px;font-size:12px;line-height:1.8;color:#667085">專注度是孩子這週練習時沒有放著不動、切走的比例。${footerNote}</td>
       </tr></table>
     </td></tr>
     <tr><td style="background-color:#dce8fb;border-radius:0 0 22px 22px;padding:18px 28px;text-align:center">

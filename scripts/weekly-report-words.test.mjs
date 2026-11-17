@@ -138,7 +138,7 @@ test("the student page shows the line only for a positive total and never a zero
 });
 
 // ---- 家長週報的「單字島」一行 ----
-import { loadWordIslandWeek, summarizeWordLineForGuardian } from "../supabase/functions/_shared/weekly-report-words.ts";
+import { loadWordIslandWeek, summarizeWordFigures, summarizeWordLineForGuardian } from "../supabase/functions/_shared/weekly-report-words.ts";
 
 function islandAdmin({ claimed = 0, upgraded = 0, any = 1, dates = [], fail = null } = {}) {
     const calls = [];
@@ -210,4 +210,21 @@ test("guardian email shows a single word line and no second island row", () => {
     // 擁有者 2026-11-17：家長信不放 AI 教材。
     assert.doesNotMatch(source, /\["AI 教材"/);
     assert.match(source, /guardian-email word island error/);
+});
+
+test("figures for the email charts: total, new this week, practice days; same rules as the text line", () => {
+    assert.deepEqual(summarizeWordFigures({ total: 112, previous: 100 }, { claimed: 12, upgraded: 3, days: 4, everPlayed: true }), { total: 112, added: 12, days: 4 });
+    assert.deepEqual(summarizeWordFigures({ total: 40, previous: 40 }, { claimed: 0, upgraded: 0, days: 0, everPlayed: true }), { total: 40, added: 0, days: 0 });
+    assert.deepEqual(summarizeWordFigures(null, { claimed: 3, upgraded: 0, days: 0, everPlayed: true }), { total: null, added: 3, days: 1 });
+    assert.deepEqual(summarizeWordFigures({ total: 0, previous: 0 }, { claimed: 0, upgraded: 0, days: 0, everPlayed: true }), { total: null, added: 0, days: 0 });
+    assert.equal(summarizeWordFigures({ total: 0, previous: 0 }, { claimed: 0, upgraded: 0, days: 0, everPlayed: false }), null);
+    assert.equal(summarizeWordFigures(null, null), null);
+    assert.ok(summarizeWordFigures({ total: 5, previous: 0 }, { claimed: 0, upgraded: 0, days: 99, everPlayed: true }).days <= 7);
+});
+
+test("guardian email body only has focus, speaking and word sections (owner 2026-11-17)", () => {
+    const source = readFileSync(new URL("../supabase/functions/guardian-email/index.ts", import.meta.url), "utf8");
+    const body = source.slice(source.indexOf("const buildEmail"), source.indexOf("const sendWithResend"));
+    for (const gone of ["AI 教材", "教學影片", "智慧複習", "作業", "有效聆聽", "有練習的天數"]) assert.ok(!body.includes(gone), gone);
+    for (const kept of ['"專注度"', '"口說大挑戰"', '"單字"']) assert.ok(body.includes(kept), kept);
 });
