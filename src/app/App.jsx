@@ -73,6 +73,7 @@ const TextbookSpeakingChallenge = lazy(() => import("../components/Pages/Textboo
 const TeacherAssignments = lazy(() => import("../components/Pages/TeacherAssignments"));
 const StudentAssignments = lazy(() => import("../components/Pages/StudentAssignments"));
 const TeacherAttendance = lazy(() => import("../components/Pages/TeacherAttendance"));
+const TeacherWordIsland = lazy(() => import("../components/Pages/TeacherWordIsland"));
 const StudentMakeup = lazy(() => import("../components/Pages/StudentMakeup"));
 const AdminCreateStaff = lazy(() => import("../components/Pages/AdminCreateStaff"));
 const ReviewCenter = lazy(() => import("../components/Pages/ReviewCenter"));
@@ -228,6 +229,7 @@ const App = () => {
                         <Route path="/teacher/reports" element={<ProtectedRoute allowedRoles={["teacher", "admin"]}><WeeklyReport /></ProtectedRoute>} />
                         <Route path="/teacher/assignments" element={<ProtectedRoute allowedRoles={["teacher", "admin"]}><TeacherAssignments /></ProtectedRoute>} />
                         <Route path="/teacher/attendance" element={<ProtectedRoute allowedRoles={["teacher", "admin"]}><TeacherAttendance /></ProtectedRoute>} />
+                        <Route path="/teacher/word-island" element={<ProtectedRoute allowedRoles={["teacher", "admin"]}><TeacherWordIsland /></ProtectedRoute>} />
                         <Route path="/teacher/accounts" element={<ProtectedRoute allowedRoles={["teacher", "admin"]}><AccountManagement /></ProtectedRoute>} />
                         <Route path="/teacher/accounts/create" element={<ProtectedRoute allowedRoles={["teacher", "admin"]}><Signup /></ProtectedRoute>} />
                         <Route path="/teacher/music/create" element={<ProtectedRoute allowedRoles={["teacher", "admin"]}><AddMusic /></ProtectedRoute>} />
