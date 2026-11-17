@@ -207,5 +207,7 @@ test("island line: database errors and bad ids throw so the email can simply ski
 test("guardian email shows a single word line and no second island row", () => {
     const source = readFileSync(new URL("../supabase/functions/guardian-email/index.ts", import.meta.url), "utf8");
     assert.doesNotMatch(source, /word_island|單字島"/);
+    // 擁有者 2026-11-17：家長信不放 AI 教材。
+    assert.doesNotMatch(source, /\["AI 教材"/);
     assert.match(source, /guardian-email word island error/);
 });

@@ -285,7 +285,6 @@ const buildEmail = (report: any, unsubscribeUrl: string | null = null) => {
         focusText ? ["專注度", focusText] : null,
         m.videos_watched ? ["教學影片", `看完 ${m.videos_watched} 段`] : null,
         m.word_line ? ["單字", m.word_line] : null,
-        m.ai_passed ? ["AI 教材", `通過 ${m.ai_passed} 份`] : null,
         m.review_count ? ["智慧複習", `${m.review_count} 題${m.accuracy === null ? "" : `，正確率 ${m.accuracy}%`}`] : null
     ].filter(Boolean) as string[][];
     const logText = `${guardianName}：\n\n${report.student.name || "孩子"} 在 ${report.range.startDate}～${report.range.endDate} 的學習摘要：\n` +
