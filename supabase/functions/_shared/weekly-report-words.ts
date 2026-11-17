@@ -55,9 +55,8 @@ export function summarizeWordMastery(input: { total?: unknown; previous?: unknow
     };
 }
 
-// ---- 家長週報的「單字島」一行（2026-11-17 擁有者決定）----
-// 內容：這週練習幾天、新佔領幾塊、升級幾塊。這週完全沒玩的學生用鼓勵語氣，不出現「0」或責備的字；
-// 從來沒玩過單字島（沒有任何進度、也沒有任何一輪紀錄）的學生整行不出現，避免對沒開通的孩子亂說話。
+// ---- 家長週報的單字島數字（2026-11-17 擁有者決定）----
+// 只回傳數字（這週新佔領、升級、練習天數、是否玩過），文字由 summarizeWordLineForGuardian 合成一行。
 export type WordIslandWeek = { claimed: number; upgraded: number; days: number; everPlayed: boolean };
 
 const dateOnly = (value: unknown) => String(value ?? "").slice(0, 10);
@@ -92,16 +91,20 @@ export async function loadWordIslandWeek(
     };
 }
 
-export function summarizeWordIslandWeek(input: Partial<WordIslandWeek> | null | undefined): string | null {
-    if (!input) return null;
-    const claimed = Math.max(0, Math.floor(Number(input.claimed) || 0));
-    const upgraded = Math.max(0, Math.floor(Number(input.upgraded) || 0));
-    const days = Math.min(7, Math.max(0, Math.floor(Number(input.days) || 0)));
-    if (days > 0 || claimed > 0 || upgraded > 0) {
-        const parts = [`練習 ${Math.max(1, days)} 天`];
-        if (claimed > 0) parts.push(`新佔領 ${claimed} 塊`);
-        if (upgraded > 0) parts.push(`升級 ${upgraded} 塊`);
-        return parts.join("，");
-    }
-    return input.everPlayed ? "這週還沒玩單字島，一起幫孩子開始下一座島吧" : null;
+// 家長信只留一行「單字」（擁有者 2026-11-17：兩行太多）：累計會拼幾個字＋這週練習幾天、新增幾個。
+// 這週沒玩用鼓勵語氣；沒有累計、也從來沒玩過就整行不出現。升級塊數不放進家長信。
+export function summarizeWordLineForGuardian(
+    mastery: { total?: unknown; previous?: unknown } | null | undefined,
+    island: Partial<WordIslandWeek> | null | undefined
+): string | null {
+    const base = summarizeWordMastery(mastery);
+    const days = Math.min(7, Math.max(0, Math.floor(Number(island?.days) || 0)));
+    const claimed = Math.max(0, Math.floor(Number(island?.claimed) || 0));
+    const upgraded = Math.max(0, Math.floor(Number(island?.upgraded) || 0));
+    const played = days > 0 || claimed > 0 || upgraded > 0;
+    const added = base ? base.added : claimed;
+    const week = played ? `這週練習 ${Math.max(1, days)} 天${added > 0 ? `、新增 ${added} 個` : ""}` : null;
+    if (base) return `累計會拼 ${base.total_mastered} 個字，${week ?? "這週還沒玩，一起開始下一座島吧"}`;
+    if (week) return week;
+    return island?.everPlayed ? "這週還沒玩單字島，一起幫孩子開始下一座島吧" : null;
 }

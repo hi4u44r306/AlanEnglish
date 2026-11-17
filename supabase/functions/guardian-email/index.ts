@@ -1,7 +1,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2.112.3";
 import { createRemoteJWKSet, jwtVerify } from "npm:jose@5";
 import { canManageStudent, getManagedStudentIds } from "../_shared/teacher-scope.ts";
-import { loadWordIslandWeek, loadWordMastery, summarizeWordIslandWeek, summarizeWordMastery } from "../_shared/weekly-report-words.ts";
+import { loadWordIslandWeek, loadWordMastery, summarizeWordLineForGuardian } from "../_shared/weekly-report-words.ts";
 import { buildUnsubscribeUrl } from "../_shared/guardian-weekly-unsubscribe-token.ts";
 
 const corsHeaders = {
@@ -223,28 +223,27 @@ const buildReport = async (admin: any, student: any, weekStart: string) => {
     const listeningFocus = tracking ? roundedFocus(listening, countKey("pause-idle") + countKey("pause-hidden")) : null;
     const speakingFocus = tracking ? roundedFocus(Number(speakingCompletedResult.count || 0), countKey("speaking-pause-idle") + countKey("speaking-pause-hidden") + countKey("speaking-pause-left_prep")) : null;
 
-    // 單字大挑戰：累計會拼幾個字、比上週有沒有增加。讀不到、或學生從沒學會過任何字就不出現這一行，整封信照常寄出。
-    let wordMasteryText: string | null = null;
+    // 單字：累計會拼幾個字＋這週練習幾天、新增幾個，合成一行。任何一邊讀不到就用另一邊，整封信照常寄出。
+    let wordMastery: { total: number; previous: number } | null = null;
+    let wordIsland: Awaited<ReturnType<typeof loadWordIslandWeek>> | null = null;
     try {
-        wordMasteryText = summarizeWordMastery(await loadWordMastery(admin, Number(student.id), range.startAt, range.endAt))?.text ?? null;
+        wordMastery = await loadWordMastery(admin, Number(student.id), range.startAt, range.endAt);
     } catch (error) {
         console.error("guardian-email word mastery error", (error as { code?: string })?.code || (error as Error)?.name);
     }
-    // 單字島：這週練習天數、新佔領、升級。讀不到就不出現，整封信照常寄出。
-    let wordIslandText: string | null = null;
     try {
-        wordIslandText = summarizeWordIslandWeek(await loadWordIslandWeek(admin, Number(student.id), range));
+        wordIsland = await loadWordIslandWeek(admin, Number(student.id), range);
     } catch (error) {
         console.error("guardian-email word island error", (error as { code?: string })?.code || (error as Error)?.name);
     }
+    const wordLineText = summarizeWordLineForGuardian(wordMastery, wordIsland);
 
     return {
         student,
         guardian: guardianResult.data || null,
         range,
         metrics: {
-            word_mastery: wordMasteryText,
-            word_island: wordIslandText,
+            word_line: wordLineText,
             active_days: activeDateKeys.size,
             listening_count: listening,
             completed_assignments: completedAssignments,
@@ -285,8 +284,7 @@ const buildEmail = (report: any, unsubscribeUrl: string | null = null) => {
     const extras = [
         focusText ? ["專注度", focusText] : null,
         m.videos_watched ? ["教學影片", `看完 ${m.videos_watched} 段`] : null,
-        m.word_mastery ? ["單字大挑戰", m.word_mastery] : null,
-        m.word_island ? ["單字島", m.word_island] : null,
+        m.word_line ? ["單字", m.word_line] : null,
         m.ai_passed ? ["AI 教材", `通過 ${m.ai_passed} 份`] : null,
         m.review_count ? ["智慧複習", `${m.review_count} 題${m.accuracy === null ? "" : `，正確率 ${m.accuracy}%`}`] : null
     ].filter(Boolean) as string[][];
