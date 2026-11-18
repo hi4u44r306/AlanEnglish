@@ -89,7 +89,7 @@ export function IslandMap({ island, islandIndex, onTile, fresh, flipped, onFlip,
                         if (isFresh === "claim") classes.push("is-rising");
                         if (isFresh === "upgrade") classes.push("is-upgrading");
                         return (
-                            <li key={tile.tile} className="wi-grid__item" style={{ left: `${pos.left}%`, top: `${pos.top}%`, width: `${(TILE_W / STAGE_W) * 100}%`, zIndex: pos.row + (isFresh ? 10 : 0) }}>
+                            <li key={tile.tile} className="wi-grid__item" style={{ left: `${pos.left}%`, top: `${pos.top}%`, width: `${(TILE_W / STAGE_W) * 100}%`, zIndex: pos.row }}>
                                 <button
                                     type="button"
                                     className={classes.join(" ")}

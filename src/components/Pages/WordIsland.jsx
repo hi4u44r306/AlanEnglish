@@ -95,7 +95,28 @@ function QuestionSheet({ gloss, pattern, submit, onClose, upgrade = false, pract
     const inputRef = useRef(null);
     const lock = useRef(false);
 
-    useEffect(() => { inputRef.current?.focus(); }, []);
+    useEffect(() => { inputRef.current?.focus({ preventScroll: true }); }, []);
+
+    // 手機鍵盤跳出來時，瀏覽器會把整個畫面往上推，上面的島和標題就被擠出去。
+    // 這裡把「全螢幕島」與「答題視窗」都縮到鍵盤上方的可見範圍，畫面就不會被推走。
+    useEffect(() => {
+        const viewport = window.visualViewport;
+        if (!viewport) return undefined;
+        const root = document.documentElement;
+        const sync = () => {
+            root.style.setProperty("--wi-vv-top", `${viewport.offsetTop}px`);
+            root.style.setProperty("--wi-vv-h", `${viewport.height}px`);
+        };
+        sync();
+        viewport.addEventListener("resize", sync);
+        viewport.addEventListener("scroll", sync);
+        return () => {
+            viewport.removeEventListener("resize", sync);
+            viewport.removeEventListener("scroll", sync);
+            root.style.removeProperty("--wi-vv-top");
+            root.style.removeProperty("--wi-vv-h");
+        };
+    }, []);
 
     const onSubmit = async event => {
         event.preventDefault();

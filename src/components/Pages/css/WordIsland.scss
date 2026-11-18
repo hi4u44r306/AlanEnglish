@@ -205,6 +205,9 @@ body:has(.word-island) {
 .word-island__sheet-backdrop {
   position: fixed;
   inset: 0;
+  // 手機鍵盤出現時縮到鍵盤上方的可見範圍（數值由答題視窗設定，平常不存在）。
+  top: var(--wi-vv-top, 0px);
+  height: var(--wi-vv-h, auto);
   z-index: 1000;
   display: flex;
   align-items: flex-end;
@@ -974,6 +977,8 @@ body:has(.word-island) {
 .wi-imm {
   position: fixed;
   inset: 0;
+  top: var(--wi-vv-top, 0px);
+  height: var(--wi-vv-h, auto);
   z-index: 1040;
   display: flex;
   flex-direction: column;
