@@ -99,13 +99,18 @@ function QuestionSheet({ gloss, pattern, submit, onClose, upgrade = false, pract
 
     // 手機鍵盤跳出來時，瀏覽器會把整個畫面往上推，上面的島和標題就被擠出去。
     // 這裡把「全螢幕島」與「答題視窗」都縮到鍵盤上方的可見範圍，畫面就不會被推走。
+    // 背景（海、半透明遮罩）永遠鋪滿整個畫面，只有裡面的內容讓出上下空間，所以瀏覽器推畫面時不會閃出後面的頁面。
+    const [keyboardOpen, setKeyboardOpen] = useState(false);
     useEffect(() => {
         const viewport = window.visualViewport;
         if (!viewport) return undefined;
         const root = document.documentElement;
         const sync = () => {
-            root.style.setProperty("--wi-vv-top", `${viewport.offsetTop}px`);
-            root.style.setProperty("--wi-vv-h", `${viewport.height}px`);
+            const top = Math.max(0, viewport.offsetTop);
+            const bottom = Math.max(0, window.innerHeight - top - viewport.height);
+            root.style.setProperty("--wi-vv-top", `${top}px`);
+            root.style.setProperty("--wi-vv-bottom", `${bottom}px`);
+            setKeyboardOpen(bottom > 120);
         };
         sync();
         viewport.addEventListener("resize", sync);
@@ -114,7 +119,7 @@ function QuestionSheet({ gloss, pattern, submit, onClose, upgrade = false, pract
             viewport.removeEventListener("resize", sync);
             viewport.removeEventListener("scroll", sync);
             root.style.removeProperty("--wi-vv-top");
-            root.style.removeProperty("--wi-vv-h");
+            root.style.removeProperty("--wi-vv-bottom");
         };
     }, []);
 
@@ -136,7 +141,7 @@ function QuestionSheet({ gloss, pattern, submit, onClose, upgrade = false, pract
     const claimed = outcome?.correct === true && !outcome.recentlySeen;
 
     return (
-        <div className="word-island__sheet-backdrop" role="presentation" onClick={onClose}>
+        <div className={`word-island__sheet-backdrop${keyboardOpen ? " is-keyboard" : ""}`} role="presentation" onClick={onClose}>
             <form className="word-island__sheet" role="dialog" aria-modal="true" aria-label="佔領這一格" onSubmit={onSubmit} onClick={event => event.stopPropagation()}>
                 <button className="word-island__sheet-close" type="button" onClick={onClose} aria-label="關閉"><FiX aria-hidden="true" /></button>
                 <p className="word-island__sheet-eyebrow">{practice ? "練習一下（答錯也不會讓島退步）" : upgrade ? "再答對一次，這塊地就升級（只有一次機會）" : "看中文，拼出英文（只有一次機會）"}</p>
@@ -318,6 +323,7 @@ function WordIsland({ variant = "public" }) {
         const word = localWords[safeIndex * ISLAND_SIZE + tile.tile];
         const upgrade = tile.state === "claimed" && !practice;
         setOpenTile({
+            tileIndex: tile.tile,
             gloss: tile.gloss,
             upgrade,
             practice,
@@ -355,6 +361,7 @@ function WordIsland({ variant = "public" }) {
             const started = await startWordIslandTile(studentUser, level, safeIndex, tile.tile, { practice });
             const upgrade = tile.state === "claimed" && !practice;
             setOpenTile({
+                tileIndex: tile.tile,
                 gloss: started.question.gloss,
                 upgrade,
                 practice,
@@ -456,7 +463,7 @@ function WordIsland({ variant = "public" }) {
                         </p>
                     )}
                     <button className="word-island__play" type="button" onClick={() => setImmersive(true)}>開始挑戰（全螢幕）</button>
-                    {!immersive && <IslandMap island={island} islandIndex={safeIndex} onTile={onTileClick} fresh={fresh} flipped={flipped} onFlip={() => setFlipped(value => !value)} override={skinOverride} />}
+                    {!immersive && <IslandMap island={island} islandIndex={safeIndex} onTile={onTileClick} fresh={fresh} flipped={flipped} onFlip={() => setFlipped(value => !value)} override={skinOverride} askingTile={openTile ? openTile.tileIndex : null} />}
                     {cleared && (
                         <p className="word-island__cleared" role="status">
                             {island.maxed ? "這座島已經完全升級！" : "這座島全部佔領了！明天起，隔天再答對就能升級。"}
@@ -476,8 +483,9 @@ function WordIsland({ variant = "public" }) {
                     onSelectIsland={setIslandIndex}
                     onClose={() => setImmersive(false)}
                     sheetOpen={Boolean(openTile)}
+                    askingTile={openTile ? openTile.tileIndex : null}
                     growth={growth}
-                    mapProps={{ onTile: onTileClick, fresh, flipped, onFlip: () => setFlipped(value => !value), override: skinOverride }}
+                    mapProps={{ onTile: onTileClick, fresh, flipped, onFlip: () => setFlipped(value => !value), override: skinOverride, askingTile: openTile ? openTile.tileIndex : null }}
                 />
             )}
             {openTile && <QuestionSheet key={`${level}-${safeIndex}-${openTile.gloss}`} gloss={openTile.gloss} pattern={openTile.pattern} submit={openTile.submit} upgrade={openTile.upgrade} practice={openTile.practice} onClose={closeSheet} />}

@@ -39,7 +39,7 @@ const tileLabel = (tile, flipped) => {
     return `${tile.review ? "待複習：" : ""}${tile.gloss}，按下作答`;
 };
 
-export function IslandMap({ island, islandIndex, onTile, fresh, flipped, onFlip, override = "" }) {
+export function IslandMap({ island, islandIndex, onTile, fresh, flipped, onFlip, override = "", askingTile = null }) {
     // 每一塊地的樣子依「哪天佔領」決定（節日當天佔領的是節日地塊）；還沒佔領的格子用這座島原本的地形。
     const baseSkin = baseSkinFor(islandIndex);
     const tileSkins = useMemo(() => island.tiles.map(tile => (tile.state === "claimed" ? skinForClaim(islandIndex, tile.claimed_at, { override }) : override ? skinForClaim(islandIndex, null, { override }) : baseSkin)), [island.tiles, islandIndex, override, baseSkin]);
@@ -86,6 +86,7 @@ export function IslandMap({ island, islandIndex, onTile, fresh, flipped, onFlip,
                         if (claimed && tile.can_upgrade) classes.push("can-upgrade");
                         if (tile.stale) classes.push("is-stale");
                         if (tile.review) classes.push("is-review");
+                        if (askingTile === tile.tile) classes.push("is-asking");
                         if (isFresh === "claim") classes.push("is-rising");
                         if (isFresh === "upgrade") classes.push("is-upgrading");
                         return (
@@ -98,7 +99,7 @@ export function IslandMap({ island, islandIndex, onTile, fresh, flipped, onFlip,
                                     onClick={() => clickable && onTile(tile)}
                                 >
                                     <img className="wi-tile__img" src={claimed ? image.src : ghostImageFor(tileArt)} alt="" draggable="false" />
-                                    {!claimed && tile.state !== "locked" && <span className="wi-tile__label">{tile.state === "cooldown" ? "明天再來" : tile.gloss}</span>}
+                                    {!claimed && tile.state !== "locked" && <span className="wi-tile__label"><span className="wi-tile__text">{tile.state === "cooldown" ? "明天再來" : tile.gloss}</span></span>}
                                     {claimed && wordsOn && <span className="wi-tile__label is-word">{tile.display}</span>}
                                     {claimed && !wordsOn && level >= 1 && <img className="wi-tile__coin" src={BADGES.star} alt="" draggable="false" />}
                                     {claimed && tile.can_upgrade && (

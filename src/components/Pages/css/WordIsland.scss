@@ -205,9 +205,9 @@ body:has(.word-island) {
 .word-island__sheet-backdrop {
   position: fixed;
   inset: 0;
-  // 手機鍵盤出現時縮到鍵盤上方的可見範圍（數值由答題視窗設定，平常不存在）。
-  top: var(--wi-vv-top, 0px);
-  height: var(--wi-vv-h, auto);
+  // 遮罩永遠鋪滿；手機鍵盤出現時，答題視窗讓出鍵盤的位置（數值由答題視窗設定，平常是 0）。
+  padding-top: var(--wi-vv-top, 0px);
+  padding-bottom: var(--wi-vv-bottom, 0px);
   z-index: 1000;
   display: flex;
   align-items: flex-end;
@@ -227,6 +227,20 @@ body:has(.word-island) {
   background: #fff;
   text-align: center;
   animation: word-island-rise 0.2s ease-out;
+}
+
+// 手機鍵盤開著時，視窗縮緊，讓上面多露出一些島。
+.word-island__sheet-backdrop.is-keyboard .word-island__sheet {
+  gap: 6px;
+  padding: 14px 16px 10px;
+
+  .word-island__sheet-eyebrow {
+    display: none;
+  }
+
+  .word-island__sheet-gloss {
+    font-size: 24px;
+  }
 }
 
 @keyframes word-island-rise {
@@ -543,6 +557,29 @@ body:has(.word-island) {
 
 .is-open.is-review .wi-tile__label {
   color: #ffd9a8;
+}
+
+// 沉在水裡的中文題目（例如「一」「二」「三」）：加一個深色底，不管是哪種海都看得清楚。
+.wi-tile__text {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: rgba(10, 40, 90, 0.62);
+}
+
+// 正在回答的那一塊：黃色光圈＋放大的題目，打開答題視窗後一眼就找得到。靜態，不閃動。
+.wi-tile.is-asking {
+  .wi-tile__img {
+    opacity: 0.95;
+    filter: brightness(1.1) drop-shadow(0 0 3px #fff) drop-shadow(0 0 10px #ffcc41) drop-shadow(0 0 16px rgba(255, 204, 65, 0.9));
+  }
+
+  .wi-tile__text {
+    padding: 4px 14px;
+    background: #17366f;
+    box-shadow: 0 0 0 3px var(--wi-yellow);
+    font-size: max(16px, 4.4cqw);
+  }
 }
 
 // 已升級（繁榮）：有裝飾，加一圈金色光暈。
@@ -977,8 +1014,9 @@ body:has(.word-island) {
 .wi-imm {
   position: fixed;
   inset: 0;
-  top: var(--wi-vv-top, 0px);
-  height: var(--wi-vv-h, auto);
+  // 海永遠鋪滿整個畫面；手機鍵盤出現時，裡面的內容縮到鍵盤上方（數值由答題視窗設定，平常是 0）。
+  padding-top: var(--wi-vv-top, 0px);
+  padding-bottom: var(--wi-vv-bottom, 0px);
   z-index: 1040;
   display: flex;
   flex-direction: column;
@@ -989,7 +1027,7 @@ body:has(.word-island) {
 
 .wi-imm__top {
   position: absolute;
-  top: 0;
+  top: var(--wi-vv-top, 0px);
   left: 0;
   right: 0;
   z-index: 40;
@@ -1106,11 +1144,38 @@ body:has(.word-island) {
   }
 }
 
+// 這座島佔滿、下一座島已開放：下方一顆大按鈕。
+.wi-imm__next {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--wi-vv-bottom, 0px) + 56px + env(safe-area-inset-bottom));
+  z-index: 41;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 48px;
+  padding: 0 20px 0 24px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--wi-yellow);
+  color: #4a3200;
+  font-size: 17px;
+  font-weight: 900;
+  box-shadow: 0 4px 0 #c99500, 0 6px 14px rgba(0, 30, 80, 0.35);
+  transform: translateX(-50%);
+  white-space: nowrap;
+
+  svg {
+    width: 1.3em;
+    height: 1.3em;
+  }
+}
+
 .wi-imm__dots {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 0;
+  bottom: var(--wi-vv-bottom, 0px);
   z-index: 40;
   display: flex;
   justify-content: center;
