@@ -20,7 +20,7 @@ const smooth = () => {
     }
 };
 
-function ImmersiveIsland({ islands, islandIndex, onSelectIsland, onClose, sheetOpen, growth, mapProps }) {
+function ImmersiveIsland({ islands, islandIndex, onSelectIsland, onClose, sheetOpen, askingTile = null, growth, mapProps }) {
     const island = islands[islandIndex];
     const scroller = useRef(null);
     const center = useRef(null);
@@ -113,6 +113,34 @@ function ImmersiveIsland({ islands, islandIndex, onSelectIsland, onClose, sheetO
         el.scrollTo({ left: side === "left" ? 0 : el.scrollWidth, behavior: smooth() });
     };
 
+    // 答題視窗（含手機鍵盤）升起後，可看見的島只剩上面一小塊：把正在問的那一塊放在「標題下方、答題視窗上方」的正中間。
+    useEffect(() => {
+        if (!sheetOpen || askingTile === null || askingTile === undefined) return undefined;
+        const run = () => {
+            const el = scroller.current;
+            const item = el?.querySelectorAll(".wi-grid__item")[askingTile];
+            if (!el || !item) return;
+            const box = el.getBoundingClientRect();
+            const rect = item.getBoundingClientRect();
+            const sheet = document.querySelector(".word-island__sheet");
+            const topEdge = box.top + 96;
+            const bottomEdge = Math.max(topEdge + 60, sheet ? Math.min(box.bottom, sheet.getBoundingClientRect().top) : box.top + box.height * 0.5);
+            const targetY = (topEdge + bottomEdge) / 2;
+            el.scrollTo({
+                left: el.scrollLeft + (rect.left - box.left) + rect.width / 2 - box.width / 2,
+                top: Math.max(0, el.scrollTop + (rect.top + rect.height / 2 - targetY)),
+                behavior: smooth()
+            });
+        };
+        const timers = [setTimeout(run, 150), setTimeout(run, 500)];
+        const viewport = window.visualViewport;
+        viewport?.addEventListener("resize", run);
+        return () => {
+            timers.forEach(clearTimeout);
+            viewport?.removeEventListener("resize", run);
+        };
+    }, [sheetOpen, askingTile]);
+
     // 點地塊：先把那一塊帶到畫面上方約三成的位置，再交給原本的作答流程。
     const onTile = tile => {
         const el = scroller.current;
@@ -131,6 +159,9 @@ function ImmersiveIsland({ islands, islandIndex, onSelectIsland, onClose, sheetO
 
     if (!island) return null;
     const upgradeCount = island.tiles.filter(tile => tile.can_upgrade).length;
+    // 這座島全部佔滿、下一座島已開放：在畫面下方放一顆大按鈕，不必去找底下的小圓點。
+    const nextIsland = islands[islandIndex + 1];
+    const showNext = !sheetOpen && island.claimed_count >= island.total && Boolean(nextIsland?.unlocked);
     return (
         <div className={`wi-imm${sheetOpen ? " is-sheet-open" : ""}`} role="region" aria-label="單字島全螢幕挑戰">
             <div className="wi-imm__top">
@@ -160,6 +191,12 @@ function ImmersiveIsland({ islands, islandIndex, onSelectIsland, onClose, sheetO
 
             {edges.left && <button type="button" className="wi-imm__edge is-left" onClick={() => goEdge("left")} aria-label="捲到島的最左邊"><FiChevronLeft aria-hidden="true" /></button>}
             {edges.right && <button type="button" className="wi-imm__edge is-right" onClick={() => goEdge("right")} aria-label="捲到島的最右邊"><FiChevronRight aria-hidden="true" /></button>}
+
+            {showNext && (
+                <button type="button" className="wi-imm__next" onClick={() => onSelectIsland(islandIndex + 1)}>
+                    前往第 {islandIndex + 2} 座島<FiChevronRight aria-hidden="true" />
+                </button>
+            )}
 
             <div className="wi-imm__dots" role="group" aria-label="切換島嶼">
                 {islands.map((item, index) => (

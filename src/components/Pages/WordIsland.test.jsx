@@ -423,6 +423,44 @@ describe("full-screen mobile challenge", () => {
         expect(screen.getByRole("dialog", { name: "佔領這一格" })).toBeInTheDocument();
         expect(document.querySelector(".wi-imm")).toHaveClass("is-sheet-open");
     });
+
+    test("the tile being asked is highlighted while the answer sheet is open, and the highlight goes away on close", () => {
+        renderPage();
+        openFull();
+        fireEvent.click(tileButtons()[3]);
+        expect(tileButtons()[3]).toHaveClass("is-asking");
+        expect(document.querySelectorAll(".wi-tile.is-asking")).toHaveLength(1);
+        fireEvent.click(screen.getByRole("button", { name: "關閉" }));
+        expect(document.querySelectorAll(".wi-tile.is-asking")).toHaveLength(0);
+    });
+
+    test("every sunken tile keeps its Chinese prompt on a dark background so numbers are easy to find", () => {
+        renderPage();
+        openFull();
+        const texts = document.querySelectorAll(".wi-tile__label .wi-tile__text");
+        expect(texts.length).toBeGreaterThan(0);
+        texts.forEach(node => expect(node.textContent.trim()).not.toBe(""));
+    });
+
+    test("a fully claimed island shows a big button to the next island", () => {
+        const progress = {};
+        level1.slice(0, 16).forEach(word => { progress[word.key] = { status: "mastered", firstMasteredAt: new Date().toISOString() }; });
+        window.localStorage.setItem("ae-word-island:v1", JSON.stringify({ progress }));
+        renderPage();
+        // 頁面載入時會自動停在第一座還沒佔滿的島；回到第 1 座島，才是「剛佔滿、要去下一座」的情況。
+        fireEvent.click(screen.getByRole("button", { name: /^第 1 座島/ }));
+        openFull();
+        const next = screen.getByRole("button", { name: /前往第 2 座島/ });
+        fireEvent.click(next);
+        expect(document.querySelector(".wi-imm__title strong")).toHaveTextContent("第 2 座島");
+        expect(screen.queryByRole("button", { name: /前往第 3 座島/ })).not.toBeInTheDocument();
+    });
+
+    test("no next-island button on an island that is not fully claimed", () => {
+        renderPage();
+        openFull();
+        expect(screen.queryByRole("button", { name: /前往第 2 座島/ })).not.toBeInTheDocument();
+    });
 });
 
 describe("upgrade is spelled out and a claimed tile rises", () => {
