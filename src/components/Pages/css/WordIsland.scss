@@ -600,31 +600,34 @@ body:has(.word-island) {
   box-shadow: 0 0 0 2px #fff;
 }
 
+// 動畫期間絕對不能比自己的格子大：不放大超過 100%、不彈跳超過，才不會蓋住旁邊的島。
 .wi-tile.is-rising .wi-tile__img {
-  animation: wi-rise 0.9s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+  animation: wi-rise 0.7s cubic-bezier(0.25, 0.8, 0.3, 1) both;
 }
 
 .wi-tile.is-upgrading .wi-tile__img {
-  animation: wi-upgrade 0.9s ease-out both;
+  animation: wi-upgrade 0.9s ease-out backwards;
 }
 
 @keyframes wi-rise {
   from {
-    transform: translateY(60%) scale(0.5);
+    transform: translateY(12%) scale(0.88);
     opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
   }
 }
 
+// 升級：原地閃一下金光，不放大、不位移，也不讓光暈大到蓋住旁邊的島。
 @keyframes wi-upgrade {
-  0% {
-    transform: scale(1);
-  }
-  35% {
-    transform: scale(1.22) translateY(-8%);
-    filter: brightness(1.6) drop-shadow(0 0 14px #ffe27a);
-  }
+  0%,
   100% {
-    transform: scale(1);
+    filter: brightness(1) drop-shadow(0 0 0 rgba(255, 226, 122, 0)) drop-shadow(0 6px 5px rgba(0, 30, 80, 0.35));
+  }
+  40% {
+    filter: brightness(1.45) drop-shadow(0 0 6px #ffe27a) drop-shadow(0 6px 5px rgba(0, 30, 80, 0.35));
   }
 }
 
